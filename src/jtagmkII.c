@@ -1867,20 +1867,16 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
 
   cmd = mmt_malloc(page_size + 10);
   cmd[0] = CMND_WRITE_MEMORY;
-  if(mem_is_flash(m)) {
+  if(mem_is_in_flash(m)) {
     my.flash_pageaddr = ~0UL;
     cmd[1] = jtagmkII_mtype(pgm, p, m, addr);
-    if(p->prog_modes & (PM_PDI | PM_UPDI))      // Dynamically decide between flash/boot mtype
+    if(is_pdi(p))               // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
     if(pgm->flag & PGM_FL_IS_DW) {
-      /*
-       * jtagmkII_paged_write() to EEPROM attempted while in DW mode.  Use
-       * jtagmkII_write_byte() instead.
-       */
+       // Cannot use paged write to EEPROM in DW mode;  use jtagmkII_write_byte() instead
       for(; addr < maxaddr; addr++) {
-        status = jtagmkII_write_byte(pgm, p, m, addr, m->buf[addr]);
-        if(status < 0) {
+        if(jtagmkII_write_byte(pgm, p, m, addr, m->buf[addr]) < 0) {
           mmt_free(cmd);
           return -1;
         }
@@ -1892,8 +1888,6 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
-  } else if(mem_is_boot(m)) {
-    cmd[1] = MTYPE_BOOT_FLASH;
   } else if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
   } else {
@@ -1981,9 +1975,9 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   page_size = m->readsize;
 
   cmd[0] = CMND_READ_MEMORY;
-  if(mem_is_flash(m)) {
+  if(mem_is_in_flash(m)) {
     cmd[1] = jtagmkII_mtype(pgm, p, m, addr);
-    if(p->prog_modes & (PM_PDI | PM_UPDI))      // Dynamically decide between flash/boot mtype
+    if(is_pdi(p))               // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
@@ -1993,8 +1987,6 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_PRODSIG;
   } else if(mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
-  } else if(mem_is_boot(m)) {
-    cmd[1] = MTYPE_BOOT_FLASH;
   } else if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
   } else {
@@ -2265,8 +2257,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   cmd[0] = CMND_WRITE_MEMORY;
   cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_SPM;
   if(mem_is_flash(mem)) {
-    if((addr & 1) == 1) {
-      // Odd address = high byte
+    if(addr & 1) {              // Odd address = high byte
       writedata = 0xFF;         // Don't modify the low byte
       writedata2 = data;
       addr &= ~1L;
@@ -2603,26 +2594,18 @@ static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, con
     MTYPE_FLASH;
 }
 
+// Return adjusted memory for communicating address of paged read/writes to programmer
 static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
-  /*
-   * Xmega devices handled by V7+ firmware don't want to be told their
-   * m->offset within the write memory command.
-   */
+  // Xmega flash memories need adjusting as boot has its own region for the programmers
+  if(is_pdi(p) && mem_is_flash(m) && addr >= my.boot_start)
+    addr -= my.boot_start;
+  // Xmega devices handled by V7+ firmware don't want to be told their m->offset
   if(my.fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
-    if(addr >= my.boot_start)
-      /*
-       * All memories but "flash" are smaller than boot_start anyway, so no
-       * need for an extra check we are operating on "flash"
-       */
-      return addr - my.boot_start;
-    else
-      // Normal flash, or anything else
-      return addr;
+    if(is_pdi(p) && mem_is_in_flash(m) && !mem_is_boot(m)) // Apptable, application and flash
+      addr += avr_flash_offset(p, m, addr);
+    return addr;
   }
-  /*
-   * Old firmware, or non-Xmega device.  Non-Xmega (and non-AVR32) devices
-   * always have an m->offset of 0, so we don't have to distinguish them here.
-   */
+  // Old firmware, or non-Xmega/non-UPDI device (which have offset 0)
   return addr + m->offset;
 }
 
