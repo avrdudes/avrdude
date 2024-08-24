@@ -352,6 +352,14 @@ if(BUILD_DOC)
     add_subdirectory(src/doc)
 endif()
 
+if(HAVE_PARPORT)
+  if(WIN32)
+    message(FATAL_ERROR "avrdude does not support parallel port on Windows")
+  elseif(APPLE)
+    message(FATAL_ERROR "avrdude does not support parallel port on Apple systems")
+  endif()
+endif()
+
 # =====================================
 # Configuration
 # =====================================

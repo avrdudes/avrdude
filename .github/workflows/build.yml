@@ -105,6 +105,7 @@ jobs:
           cmake
           -D BUILD_DOC=1
           -D DEBUG_CMAKE=1
+          -D HAVE_PARPORT=1
           -D HAVE_LINUXGPIO=1
           -D HAVE_LINUXSPI=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -169,6 +170,7 @@ jobs:
         run: >-
           cmake
           -D DEBUG_CMAKE=1
+          -D HAVE_PARPORT=1
           -D HAVE_LINUXGPIO=1
           -D HAVE_LINUXSPI=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
