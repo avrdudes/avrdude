@@ -1,0 +1,47 @@
+ELF2TAG(1)
+==========
+:doctype: manpage
+:man source: avrdude
+:man manual: avrdude Manual
+
+NAME
+----
+
+elf2tag - output a tagfile for the avrdude disasm command
+
+SYNOPSIS
+--------
+
+*elf2tag* <file.elf>
+
+*elf2tag* [*-h* | *--help*]
+
+DESCRIPTION
+-----------
+
+_elf2tag_ generates a tagfile for use with the _avrdude disasm_ command.
+
+OPTIONS
+-------
+
+*-h* *--help*::
+    Prints the help message and exits.
+
+EXAMPLES
+--------
+
+....
+$ elf2tag blink.elf > blink.tag
+$ avrdude -qq -c dryrun -p m328p -U blink.elf -t
+avrdude> disasm -t=blink.tag flash 0 512
+....
+
+AUTHORS
+-------
+
+_elf2tag_ was written by Johannes Bauer with small modifications by Stefan Rueger.
+
+SEE ALSO
+--------
+
+*avrdude(1)*, *avr-nm(1)*, *avr-objdump(1)*
