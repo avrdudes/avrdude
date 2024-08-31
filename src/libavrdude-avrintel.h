@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.39
- * 15.08.2024
+ * v 1.40
+ * 31.08.2024
  *
  */
 
@@ -82,7 +82,7 @@ typedef struct {                // Value of -1 typically means unknown
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
-extern const Avrintel uP_table[394];
+extern const Avrintel uP_table[398];
 
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
@@ -474,12 +474,16 @@ extern const Avrintel uP_table[394];
 #define id_avr64da64       362u
 #define id_avr64db64       363u
 #define id_avr128da28      364u
+#define id_avr128da28s     394u
 #define id_avr128db28      365u
 #define id_avr128da32      366u
+#define id_avr128da32s     395u
 #define id_avr128db32      367u
 #define id_avr128da48      368u
+#define id_avr128da48s     396u
 #define id_avr128db48      369u
 #define id_avr128da64      370u
+#define id_avr128da64s     397u
 #define id_avr128db64      371u
 
 
@@ -833,7 +837,7 @@ extern const Avrintel uP_table[394];
 #define vts_avr32dd32        36
 #define vts_avr32du32        34
 #define vts_avr32ea32        37
-#define vts_avr32da48        58
+#define vts_avr32da48        61
 #define vts_avr32db48        61
 #define vts_avr32ea48        45
 #define vts_avr64dd14        36
@@ -854,12 +858,16 @@ extern const Avrintel uP_table[394];
 #define vts_avr64da64        64
 #define vts_avr64db64        65
 #define vts_avr128da28       41
+#define vts_avr128da28s      41
 #define vts_avr128db28       42
 #define vts_avr128da32       44
+#define vts_avr128da32s      44
 #define vts_avr128db32       44
 #define vts_avr128da48       58
+#define vts_avr128da48s      58
 #define vts_avr128db48       61
 #define vts_avr128da64       64
+#define vts_avr128da64s      64
 #define vts_avr128db64       65
 
 
@@ -1234,12 +1242,16 @@ extern const Avrintel uP_table[394];
 #define vbu_avr64da64        64
 #define vbu_avr64db64        65
 #define vbu_avr128da28       41
+#define vbu_avr128da28s      41
 #define vbu_avr128db28       42
 #define vbu_avr128da32       41
+#define vbu_avr128da32s      41
 #define vbu_avr128db32       44
 #define vbu_avr128da48       58
+#define vbu_avr128da48s      58
 #define vbu_avr128db48       59
 #define vbu_avr128da64       64
+#define vbu_avr128da64s      64
 #define vbu_avr128db64       65
 
 
@@ -1678,6 +1690,8 @@ extern const char * const    vtab_avr16eb32[31];
 #define vtab_avr16eb20       vtab_avr16eb32
 #define vtab_avr16eb14       vtab_avr16eb32
 
+extern const char * const    vtab_avr32da48[61];
+
 extern const char * const    vtab_avr64dd32[36];
 #define vtab_avr64dd28       vtab_avr64dd32
 #define vtab_avr64dd20       vtab_avr64dd32
@@ -1713,32 +1727,35 @@ extern const char * const    vtab_avr64ea48[45];
 #define vtab_avr32ea48       vtab_avr64ea48
 #define vtab_avr16ea48       vtab_avr64ea48
 
-extern const char * const    vtab_avr128da28[41];
-#define vtab_avr64da28       vtab_avr128da28
-#define vtab_avr32da28       vtab_avr128da28
+extern const char * const    vtab_avr128da28s[41];
+#define vtab_avr128da28      vtab_avr128da28s
+#define vtab_avr64da28       vtab_avr128da28s
+#define vtab_avr32da28       vtab_avr128da28s
 
 extern const char * const    vtab_avr128db28[42];
 #define vtab_avr64db28       vtab_avr128db28
 #define vtab_avr32db28       vtab_avr128db28
 
-extern const char * const    vtab_avr128da32[44];
-#define vtab_avr64da32       vtab_avr128da32
-#define vtab_avr32da32       vtab_avr128da32
+extern const char * const    vtab_avr128da32s[44];
+#define vtab_avr128da32      vtab_avr128da32s
+#define vtab_avr64da32       vtab_avr128da32s
+#define vtab_avr32da32       vtab_avr128da32s
 
 extern const char * const    vtab_avr128db32[44];
 #define vtab_avr64db32       vtab_avr128db32
 #define vtab_avr32db32       vtab_avr128db32
 
-extern const char * const    vtab_avr128da48[58];
-#define vtab_avr64da48       vtab_avr128da48
-#define vtab_avr32da48       vtab_avr128da48
+extern const char * const    vtab_avr128da48s[58];
+#define vtab_avr128da48      vtab_avr128da48s
+#define vtab_avr64da48       vtab_avr128da48s
 
 extern const char * const    vtab_avr128db48[61];
 #define vtab_avr64db48       vtab_avr128db48
 #define vtab_avr32db48       vtab_avr128db48
 
-extern const char * const    vtab_avr128da64[64];
-#define vtab_avr64da64       vtab_avr128da64
+extern const char * const    vtab_avr128da64s[64];
+#define vtab_avr128da64      vtab_avr128da64s
+#define vtab_avr64da64       vtab_avr128da64s
 
 extern const char * const    vtab_avr128db64[65];
 #define vtab_avr64db64       vtab_avr128db64
@@ -2239,6 +2256,11 @@ extern const Configitem    cfgtab_avr32db28[16];
 #define cfgtab_avr128db48    cfgtab_avr32db28
 #define cfgtab_avr128db64    cfgtab_avr32db28
 
+extern const Configitem    cfgtab_avr128da28s[17];
+#define cfgtab_avr128da32s   cfgtab_avr128da28s
+#define cfgtab_avr128da48s   cfgtab_avr128da28s
+#define cfgtab_avr128da64s   cfgtab_avr128da28s
+
 // I/O Register files
 
 extern const Register_file rgftab_atmega328[81];
@@ -2731,7 +2753,7 @@ extern const Register_file rgftab_avr32db32[477];
 #define rgftab_avr64db32     rgftab_avr32db32
 #define rgftab_avr128db32    rgftab_avr32db32
 
-extern const Register_file rgftab_avr32da48[600];
+extern const Register_file rgftab_avr32da48[610];
 
 extern const Register_file rgftab_avr32db48[643];
 #define rgftab_avr64db48     rgftab_avr32db48
@@ -2739,15 +2761,19 @@ extern const Register_file rgftab_avr32db48[643];
 
 extern const Register_file rgftab_avr64da28[433];
 #define rgftab_avr128da28    rgftab_avr64da28
+#define rgftab_avr128da28s   rgftab_avr64da28
 
 extern const Register_file rgftab_avr64da32[448];
 #define rgftab_avr128da32    rgftab_avr64da32
+#define rgftab_avr128da32s   rgftab_avr64da32
 
 extern const Register_file rgftab_avr64da48[601];
 #define rgftab_avr128da48    rgftab_avr64da48
+#define rgftab_avr128da48s   rgftab_avr64da48
 
 extern const Register_file rgftab_avr64da64[659];
 #define rgftab_avr128da64    rgftab_avr64da64
+#define rgftab_avr128da64s   rgftab_avr64da64
 
 extern const Register_file rgftab_avr64db64[698];
 #define rgftab_avr128db64    rgftab_avr64db64
