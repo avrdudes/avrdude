@@ -14599,7 +14599,7 @@ part parent ".classic" # m16u4
     pagel                  = 0xd7;
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x88;
-    usbpid                 = 0x2ff4;
+    usbpid                 = 0x2ff3;
     reset                  = io;
     timeout                = 200;
     stabdelay              = 100;
@@ -14720,6 +14720,7 @@ part parent "m16u4" # m32u4
         "ATmega32U4RC-MUR: QFN44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 65;
     signature              = 0x1e 0x95 0x87;
+    usbpid                 = 0x2ff4;
 
     memory "eeprom"
         size               = 1024;
@@ -16001,7 +16002,7 @@ part parent ".xmega-cd" # x16c4
     n_interrupts           = 127;
     boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x43;
-    usbpid                 = 0x2fe3;
+    usbpid                 = 0x2fd8;
 
     memory "eeprom"
         size               = 1024;
@@ -16210,7 +16211,7 @@ part parent ".xmega-cd" # x32c4
     n_interrupts           = 127;
     boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x44;
-    usbpid                 = 0x2fe4;
+    usbpid                 = 0x2fd9;
 
     memory "eeprom"
         size               = 1024;
@@ -16371,7 +16372,7 @@ part parent ".xmega-ab" # x64a4u
     n_interrupts           = 127;
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
-    usbpid                 = 0x2fe5;
+    usbpid                 = 0x2fdd;
 
     memory "prodsig"
         size               = 64;
