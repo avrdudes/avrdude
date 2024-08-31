@@ -16055,7 +16055,6 @@ part parent ".xmega-cd" # x16d4
     n_interrupts           = 91;
     boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x42;
-    usbpid                 = 0x2fe3;
 
     memory "eeprom"
         size               = 1024;
@@ -16109,7 +16108,6 @@ part parent ".xmega-ab" # x16a4
     n_interrupts           = 94;
     boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x41;
-    usbpid                 = 0x2fe3;
 
     memory "eeprom"
         size               = 1024;
@@ -16265,7 +16263,6 @@ part parent ".xmega-cd" # x32d4
     n_interrupts           = 91;
     boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x42;
-    usbpid                 = 0x2fe4;
 
     memory "eeprom"
         size               = 1024;
@@ -16319,7 +16316,6 @@ part parent ".xmega-ab" # x32a4
     n_interrupts           = 94;
     boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x41;
-    usbpid                 = 0x2fe4;
 
     memory "eeprom"
         size               = 1024;
@@ -16456,7 +16452,6 @@ part parent ".xmega-cd" # x32d3
     n_interrupts           = 114;
     boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x4a;
-    usbpid                 = 0x2fe4;
 
     memory "eeprom"
         size               = 1024;
@@ -16540,7 +16535,6 @@ part parent ".xmega-cd" # x64d3
     n_interrupts           = 114;
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x4a;
-    usbpid                 = 0x2fe5;
 
     memory "prodsig"
         size               = 52;
@@ -16573,7 +16567,6 @@ part parent ".xmega-cd" # x64d4
     n_interrupts           = 91;
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x47;
-    usbpid                 = 0x2fe5;
 
     memory "prodsig"
         page_size          = 64;
@@ -16604,7 +16597,6 @@ part parent ".xmega-ab" # x64a1
     n_interrupts           = 125;
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x4e;
-    usbpid                 = 0x2fe5;
 
     memory "fuse2"
         bitmask            = 0x43;
@@ -16667,7 +16659,6 @@ part parent ".xmega-ab" # x64a3
     n_interrupts           = 122;
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x42;
-    usbpid                 = 0x2fe5;
 
     memory "fuse2"
         bitmask            = 0x43;
@@ -16718,7 +16709,6 @@ part parent ".xmega-ab" # x64a4
     n_interrupts           = 125;
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
-    usbpid                 = 0x2fe5;
 
     memory "fuse0"
         initval            = -1;
@@ -16892,7 +16882,6 @@ part parent ".xmega-cd" # x128d3
     n_interrupts           = 114;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x48;
-    usbpid                 = 0x2fd7;
 
     memory "flash"
         size               = 0x22000;
@@ -16952,7 +16941,6 @@ part parent ".xmega-cd" # x128d4
     n_interrupts           = 91;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x47;
-    usbpid                 = 0x2fd7;
 
     memory "flash"
         size               = 0x22000;
@@ -17009,7 +16997,6 @@ part parent ".xmega-ab" # x128a1
     n_interrupts           = 125;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4c;
-    usbpid                 = 0x2fd7;
 
     memory "flash"
         size               = 0x22000;
@@ -17138,7 +17125,6 @@ part parent ".xmega-ab" # x128a3
     n_interrupts           = 122;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x42;
-    usbpid                 = 0x2fd7;
 
     memory "flash"
         size               = 0x22000;
@@ -17843,7 +17829,6 @@ part parent ".xmega-cd" # x256d3
     n_interrupts           = 114;
     boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x44;
-    usbpid                 = 0x2fda;
 
     memory "eeprom"
         size               = 4096;
@@ -17901,7 +17886,6 @@ part parent ".xmega-ab" # x256a1
     n_interrupts           = 127;
     boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x46;
-    usbpid                 = 0x2fda;
 
     memory "eeprom"
         size               = 4096;
@@ -17991,7 +17975,6 @@ part parent ".xmega-ab" # x256a3
     n_interrupts           = 122;
     boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x42;
-    usbpid                 = 0x2fda;
 
     memory "eeprom"
         size               = 4096;
@@ -18109,7 +18092,6 @@ part parent ".xmega-ab" # x256a3b
     n_interrupts           = 122;
     boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x43;
-    usbpid                 = 0x2fda;
 
     memory "eeprom"
         size               = 4096;
@@ -18285,7 +18267,6 @@ part parent ".xmega-cd" # x384d3
     n_interrupts           = 114;
     boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x47;
-    usbpid                 = 0x2fdb;
 
     memory "eeprom"
         size               = 4096;
