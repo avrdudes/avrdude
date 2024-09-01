@@ -9,13 +9,20 @@ Changes since version 8.0:
 
   * New devices supported:
 
+    - AVR128DA28S, AVR128DA32S, AVR128DA48S, AVR128DA64S
+
   * New programmers supported:
 
   * New serial adapters supported:
 
   * Issues fixed:
 
+    - Missing devices in udev rules output? #1915
+
   * Pull requests:
+
+    - Add AVR128DAxxS parts #1918
+    - Update usbpids in avrdude.conf #1919
 
   * Internals:
 
