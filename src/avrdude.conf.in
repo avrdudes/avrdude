@@ -5313,6 +5313,7 @@ part parent "t44" # t44a
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21;
+
 ;
 
 #------------------------------------------------------------
@@ -21275,7 +21276,7 @@ part parent ".avrdx" # 32da48
         "AVR32DA48T-I/PT:  TQFP48, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     family_id              = "    AVR";
     mcuid                  = 346;
-    n_interrupts           = 58;
+    n_interrupts           = 61;
     signature              = 0x1e 0x95 0x32;
 
     memory "eeprom"
@@ -21707,6 +21708,106 @@ part parent ".avrdx" # 128da64
     memory "sram"
         size               = 0x4000;
         offset             = 0x4000;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR128DA28S
+#------------------------------------------------------------
+
+part parent "128da28" # 128da28s
+    desc                   = "AVR128DA28S";
+    id                     = "128da28s";
+    variants               =
+        "AVR128DA28S-SPDIP: SOIC28, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 394;
+    signature              = 0x1e 0x97 0x12;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR128DA32S
+#------------------------------------------------------------
+
+part parent "128da32" # 128da32s
+    desc                   = "AVR128DA32S";
+    id                     = "128da32s";
+    variants               =
+        "AVR128DA32S-VQFN/TQFP: QFN32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 395;
+    signature              = 0x1e 0x97 0x11;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR128DA48S
+#------------------------------------------------------------
+
+part parent "128da48" # 128da48s
+    desc                   = "AVR128DA48S";
+    id                     = "128da48s";
+    variants               =
+        "AVR128DA48S-VQFN/TQFP: QFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 396;
+    signature              = 0x1e 0x97 0x10;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR128DA64S
+#------------------------------------------------------------
+
+part parent "128da64" # 128da64s
+    desc                   = "AVR128DA64S";
+    id                     = "128da64s";
+    variants               =
+        "AVR128DA64S-VQFN/TQFP: QFN64, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 397;
+    signature              = 0x1e 0x97 0x0f;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
     ;
 ;
 
