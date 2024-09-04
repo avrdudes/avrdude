@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+# update-elf2tag-manpage - update the elf2tag.1 manpage from adoc source
+#
+# Usage: ./path/to/update-elf2tag-manpage
+#
+# Changes to the directory where update-elf2tag-manpage and elf2tag.1.adoc
+# are, runs elf2tag.1.adoc through asciidoctor to produce a man page, but
+# only updates the elf2tag.1 file in the case of actual changes.
+#
+# Just the asciidoctor version or the current date being different from
+# the last asciidoctor run is not an actual change.
+#
+# Requires asciidoctor to be installed.
+#
+# Environment variables used (if unset, uses the command from PATH):
+# ASCIIDOCTOR  the asciidoctor command to run
+# CMP          the cmp command to run (e.g. "busybox cmp")
+# SED          the sed command to run (e.g. "busybox sed")
+
+# This script uses the shell feature called "process substitution" which
+# is implemented by bash and busybox sh, but not by e.g. dash and can
+# therefore not be a /bin/sh script.
+
+set -e
+
+case "$1" in
+  -h | --help )
+    ${SED-sed} -n '/^#\( .*\)$/,$p' "$0" \
+      | ${SED-sed} '/^#\( .*\)\?$/!q' \
+      | ${SED-sed} '/^$/d' \
+      | ${SED-sed} 's|^#$||; s|^# ||'
+    exit 0
+    ;;
+esac
+
+cd "$(dirname "$0")"
+
+test -s elf2tag.1.adoc
+test -s elf2tag
+
+normalize_manpage() {
+  ${SED-sed} -f <(cat<<EOF
+s|^\.\\" Generator: Asciidoctor .*|.\\" Generator: GENERATOR|
+s|^\.\\"      Date: 20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]|.\\"      Date: DATE|
+s|^.TH "ELF2TAG" "1" "20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]" "avrdude" "avrdude Manual"|\.\\" TH HEADER|
+EOF
+) < "$1" > "$2"
+}
+
+tmpdir="tmp$$"
+
+if ! ${ASCIIDOCTOR-asciidoctor} -b manpage -D "$tmpdir" elf2tag.1.adoc; then
+  echo "Error updating elf2tag.1"
+  exit 2
+fi
+
+if ! test -e elf2tag.1; then
+  echo "Generate elf2tag.1"
+  mv -f "$tmpdir/elf2tag.1" elf2tag.1
+  rmdir "$tmpdir"
+  exit 0
+fi
+
+normalize_manpage elf2tag.1           "$tmpdir/elf2tag.1.old"
+normalize_manpage "$tmpdir/elf2tag.1" "$tmpdir/elf2tag.1.new"
+
+if ${CMP-cmp} "$tmpdir/elf2tag.1.old" "$tmpdir/elf2tag.1.new" > /dev/null; then
+  echo "elf2tag.1 is up to date"
+  rm -f "$tmpdir/elf2tag.1"
+  rm -f "$tmpdir/elf2tag.1.old"
+  rm -f "$tmpdir/elf2tag.1.new"
+  rmdir "$tmpdir"
+  exit 0
+fi
+
+echo "Updating elf2tag.1"
+mv -f "$tmpdir/elf2tag.1" elf2tag.1
+rm -f "$tmpdir/elf2tag.1.old"
+rm -f "$tmpdir/elf2tag.1.new"
+rmdir "$tmpdir"
+exit 0
