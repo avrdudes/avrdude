@@ -20,6 +20,10 @@
 #     cmake -B build
 #     cmake --build build
 
+# Some useful tool versions to know about:
+#     cmake 3.14.0  2019-03-14  Current minimum requirement
+#     cmake 3.20.0  2021-03-23  Adds CMAKE_C_BYTE_ORDER
+
 cmake_minimum_required(VERSION 3.14)
 project(avrdude VERSION 8.0 LANGUAGES C)
 
@@ -50,6 +54,21 @@ include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
+
+
+# =====================================================================
+# Abort the build for non-little endian targets
+#
+# Our minimum cmake requirement is 3.14, so we cannot use
+# CMAKE_C_BYTE_ORDER (cmake >= 3.20) to detect the byte order.
+# =====================================================================
+
+include (TestBigEndian)
+test_big_endian(AVRDUDE_TARGET_IS_BIG_ENDIAN)
+if(AVRDUDE_TARGET_IS_BIG_ENDIAN)
+  message(FATAL_ERROR "avrdude only supports building for little endian targets at this time")
+endif()
+
 
 # =====================================
 # Get Git commit info

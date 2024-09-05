@@ -24,6 +24,7 @@ dnl
 dnl 2019-03-14 cmake    3.13
 dnl
 dnl 2006-10-23 autoconf 2.60    used to be avrdude's requirement
+dnl 2012-04-24 autoconf 2.62    AC_C_BIGENDIAN
 dnl 2012-04-24 autoconf 2.69
 dnl 2021-01-28 autoconf 2.71
 dnl
@@ -168,6 +169,22 @@ fi
 
 dnl Makefile.am:77: compiling `config_gram.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.ac'
 AM_PROG_CC_C_O
+
+
+ad_target_is_little_endian=false
+AC_C_BIGENDIAN([dnl
+], [dnl
+  dnl Target is Little Endian, which avrdude actually supports.
+  ad_target_is_little_endian=:
+], [dnl
+], [dnl
+])
+
+AS_IF([$ad_target_is_little_endian], [dnl
+], [dnl
+  AC_MSG_ERROR([avrdude only supports building for little endian targets at this time])
+])
+
 
 # Checks for libraries.
 # For MinGW.
