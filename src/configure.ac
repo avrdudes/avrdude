@@ -80,11 +80,13 @@ AC_MSG_RESULT([$PACKAGE_VERSION])
 dnl Compose the full version message mirroring the cmake one, inform
 dnl about it and pass it on to avrdude.conf and the "avrdude -?"
 dnl version message
+AC_ARG_VAR([EXTRA_VERSION_SUFFIX],
+           [extra version information to be appended to the version])
 AC_MSG_CHECKING([versioninfo derived AVRDUDE_FULL_VERSION])
 if test "x$GIT_COMMIT_HASH" = "x$GIT_TAG_HASH"; then
-	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION"
+	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION$EXTRA_VERSION_SUFFIX"
 else
-	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION ($GIT_COMMIT_HASH)"
+	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION$EXTRA_VERSION_SUFFIX ($GIT_COMMIT_HASH)"
 fi
 AC_MSG_RESULT([$AVRDUDE_FULL_VERSION])
 AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
