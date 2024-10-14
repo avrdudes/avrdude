@@ -229,7 +229,12 @@ set(SOURCES
     pgm_type.c
     pickit2.c
     pickit2.h
-    pickit5_updi_lut.c
+    pickit5_lut_dw.c
+    pickit5_lut_isp.c
+    pickit5_lut_jtag.c
+    pickit5_lut_pdi.c
+    pickit5_lut_tpi.c
+    pickit5_lut_updi.c
     pickit5_lut.h
     pickit5.c
     pickit5.h
