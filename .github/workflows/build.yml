@@ -293,8 +293,10 @@ jobs:
 
           mkdir _ambuild && cd _ambuild
 
-          CFLAGS="-I/opt/homebrew/include" LDFLAGS="-L/opt/homebrew/lib" ../src/configure
-          
+          CFLAGS="-I/opt/homebrew/include"
+          LDFLAGS="-L/opt/homebrew/lib"
+          ../src/configure
+
       - name: Build
         run: make -C _ambuild -j$(nproc)
       - name: "avrdude -? (not installed)"
