@@ -63,6 +63,7 @@ jobs:
           mkdir _ambuild && cd _ambuild
 
           ../src/configure
+          --enable-option-checking=fatal
           --enable-doc
           --enable-parport
           --enable-linuxgpio
@@ -312,6 +313,7 @@ jobs:
           CFLAGS="-I/opt/homebrew/include -I/opt/homebrew/opt/flex/include"
           LDFLAGS="-L/opt/homebrew/lib    -L/opt/homebrew/opt/bison/lib"
           ../src/configure
+          --enable-option-checking=fatal
 
       - name: Build
         run: make -C _ambuild -j$(nproc)
