@@ -42,6 +42,7 @@ built_sources += lexer.c
 BUILT_SOURCES += $(built_sources)
 CLEANFILES    += $(built_sources)
 
+include build-helpers/buildinfo.mk
 include build-helpers/versioninfo.mk
 
 #SUBDIRS      = doc

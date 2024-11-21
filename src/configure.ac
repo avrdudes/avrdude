@@ -720,6 +720,8 @@ AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
 
 AC_OUTPUT
 
+BUILDINFO_OUTPUT()
+
 echo ""
 echo ""
 echo "Configuration summary:"

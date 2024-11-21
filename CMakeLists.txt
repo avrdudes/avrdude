@@ -48,6 +48,9 @@ include(FetchContent)
 include(FindPackageMessage)
 include(GNUInstallDirs)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/build-helpers")
+include(buildinfo)
+
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_BUILDSYSTEM "cmake")
 set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}${EXTRA_VERSION_SUFFIX}")
@@ -364,6 +367,8 @@ endif()
 # =====================================
 # Configuration
 # =====================================
+
+buildinfo_output()
 
 message(STATUS "Configuration summary:")
 message(STATUS "----------------------")
