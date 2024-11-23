@@ -368,8 +368,6 @@ endif()
 # Configuration
 # =====================================
 
-buildinfo_output()
-
 message(STATUS "Configuration summary:")
 message(STATUS "----------------------")
 
@@ -406,11 +404,14 @@ if (DEBUG_CMAKE)
     message(STATUS "----------------------")
 endif()
 
+buildinfo_item("libelf" "yes")
+buildinfo_item("libelf" "no")
+buildinfo_item("libelf" "DO HAVE")
+buildinfo_item("libelf" "DON'T HAVE")
+
+buildinfo_output()
+
 if(HAVE_LIBELF)
-    buildinfo_item("libelf", "yes")
-    buildinfo_item("libelf", "no")
-    buildinfo_item("libelf", "DO HAVE")
-    buildinfo_item("libelf", "DON'T HAVE")
     message(STATUS "DO HAVE    libelf")
 else()
     message(STATUS "DON'T HAVE libelf")
