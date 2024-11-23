@@ -682,9 +682,11 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   my.pk_op_mode = PK_OP_READY;
   my.dW_switched_isp = 0;
 
-  if(is_updi(pgm) && (pickit5_updi_init(pgm, p, v_target) < 0)) {
-    return -1;  // UPDI got it's own init as it is well enough documented to select the
-  } else {      //  CLKDIV based on the voltage and requested baud
+  if(is_updi(pgm)) {  // UPDI got it's own init as it is well enough documented to select the
+    if (pickit5_updi_init(pgm, p, v_target) < 0) {  //  CLKDIV based on the voltage and requested baud
+      return -1;
+    }
+  } else {
     double bitclock = pgm->bitclock;
     unsigned int baud = pgm->baudrate;
 
@@ -712,8 +714,6 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
     }
   }
-
-  pickit5_program_enable(pgm, p);
   return 0;
 }
 
