@@ -651,7 +651,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     } else if(my.power_source == POWER_SOURCE_INT) {
       pmsg_notice("no extenal Voltage detected; trying to supply from PICkit\n");
         if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
-          if(my.target_voltage > 3.6) {
+          if(my.target_voltage > 3.49) {
             pmsg_error("xmega part selected but requested voltage is over 3.6V, aborting.");
             return -1;
           }
