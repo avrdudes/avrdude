@@ -8,7 +8,7 @@ const avr_buildinfo libavrdude_buildinfo = {
   {
     {"buildsystem", AVRDUDE_BUILDSYSTEM},
 
-#include <auto-buildinfo.c>
+#include <buildinfo-include.c>
 
     {"libelf",
 #ifdef HAVE_LIBELF

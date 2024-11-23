@@ -729,6 +729,8 @@ BUILDINFO_ITEM([libelf], [yes])
 BUILDINFO_ITEM([libelf], [no])
 BUILDINFO_ITEM([libelf], [DO HAVE])
 BUILDINFO_ITEM([libelf], [DON'T HAVE])
+
+# print the output collected by earlier calls to BUILDINFO_ITEM()
 BUILDINFO_OUTPUT()
 
 echo ""

@@ -368,8 +368,8 @@ endif()
 # Configuration
 # =====================================
 
-message(STATUS "Configuration summary:")
-message(STATUS "----------------------")
+message(STATUS "Configuration details:")
+message(STATUS "---------------------")
 
 if (DEBUG_CMAKE)
     message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
@@ -403,13 +403,6 @@ if (DEBUG_CMAKE)
     message(STATUS "LIBGPIOD_FOUND: ${LIBGPIOD_FOUND}")
     message(STATUS "----------------------")
 endif()
-
-buildinfo_item("libelf" "yes")
-buildinfo_item("libelf" "no")
-buildinfo_item("libelf" "DO HAVE")
-buildinfo_item("libelf" "DON'T HAVE")
-
-buildinfo_output()
 
 if(HAVE_LIBELF)
     message(STATUS "DO HAVE    libelf")
@@ -503,3 +496,11 @@ else()
 endif()
 
 message(STATUS "----------------------")
+
+buildinfo_item("libelf" "yes")
+buildinfo_item("libelf" "no")
+buildinfo_item("libelf" "DO HAVE")
+buildinfo_item("libelf" "DON'T HAVE")
+
+# print the output collected by earlier calls to buildinfo_item()
+buildinfo_output()
