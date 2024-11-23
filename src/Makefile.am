@@ -33,6 +33,7 @@ EXTRA_DIST   = \
 
 BUILT_SOURCES  =
 CLEANFILES     =
+DISTCLEANFILES =
 
 built_sources  =
 built_sources += config_gram.c

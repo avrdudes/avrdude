@@ -124,6 +124,10 @@ AC_SUBST([LIBAVRDUDE_VERSION_INFO],
 AC_MSG_RESULT([$LIBAVRDUDE_VERSION_INFO])
 
 
+m4_pattern_forbid([^BUILDINFO_])dnl
+BUILDINFO_SETUP()
+
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -720,6 +724,11 @@ AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
 
 AC_OUTPUT
 
+
+BUILDINFO_ITEM([libelf], [yes])
+BUILDINFO_ITEM([libelf], [no])
+BUILDINFO_ITEM([libelf], [DO HAVE])
+BUILDINFO_ITEM([libelf], [DON'T HAVE])
 BUILDINFO_OUTPUT()
 
 echo ""
