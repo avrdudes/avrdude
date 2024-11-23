@@ -804,13 +804,16 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   const unsigned char *set_speed = my.scripts.SetSpeed;
   unsigned int set_speed_len = my.scripts.SetSpeed_len;
   unsigned char buf[4];
-  if (set_speed_len > 0) {  // debugWire is fun . . .
-    pickit5_uint32_to_array(buf, frq);
-    if(pickit5_send_script(pgm, SCR_CMD, set_speed, set_speed_len, buf, 4, 0) >= 0) {
-      if(pickit5_read_response(pgm) >= 0)
-      return 0;
-    }
+  if (set_speed == NULL) {  // debugWire is fun . . .
+    return 0; // No script, to execute, return success
   }
+
+  pickit5_uint32_to_array(buf, frq);
+  if(pickit5_send_script(pgm, SCR_CMD, set_speed, set_speed_len, buf, 4, 0) >= 0) {
+    if(pickit5_read_response(pgm) >= 0)
+    return 0;
+  }
+
   pmsg_error("Failed to set speed.\n");
   return -1;
 }
@@ -1346,8 +1349,11 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
   avr_set_bits(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd);
   avr_set_addr(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, mem_fuse_offset(mem));
   avr_set_input(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, value);
-  cmd = __builtin_bswap32(cmd);         // Swap bitorder
-  pickit5_uint32_to_array(&write_fuse_isp[11], cmd);  // fill programming command
+
+  write_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
+  write_fuse_isp[13] = (uint8_t) (cmd >> 8);
+  write_fuse_isp[12] = (uint8_t) (cmd >> 16);
+  write_fuse_isp[11] = (uint8_t) (cmd >> 24);
 
   if(pickit5_send_script_cmd(pgm, write_fuse_isp, write_fuse_isp_len, NULL, 0) < 0) {
     pmsg_error("Write Fuse Script failed");
@@ -1373,8 +1379,11 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
   unsigned int cmd;
   avr_set_bits(mem->op[AVR_OP_READ], (unsigned char*)&cmd);
   avr_set_addr(mem->op[AVR_OP_READ], (unsigned char*)&cmd, mem_fuse_offset(mem));
-  cmd = __builtin_bswap32(cmd); // Swap bitorder
-  pickit5_uint32_to_array(&read_fuse_isp[11], cmd); // fill programming command
+  
+  read_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
+  read_fuse_isp[13] = (uint8_t) (cmd >> 8);
+  read_fuse_isp[12] = (uint8_t) (cmd >> 16);
+  read_fuse_isp[11] = (uint8_t) (cmd >> 24);
 
   if(pickit5_send_script_cmd(pgm, read_fuse_isp, read_fuse_isp_len, NULL, 0) < 0) {
     pmsg_error("Read Fuse Script failed");

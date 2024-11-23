@@ -303,8 +303,8 @@ def convert_xml(xml_path, c_funcs):
                         func_bytes = bytes(scr_bytes_buffer[:counter])  # create an immutable bytes array
                         break
 
-                if func_bytes == None:
-                    continue    # continue with next chip if somethin went wrong
+                if func_bytes == None or len(func_bytes) == 0:
+                    continue    # continue with next chip if somethin went wrong or is empty (SetSpeed_dw)
 
                 if function_name not in function_dict[programming_mode].keys():
                     function_dict[programming_mode][function_name] = []

@@ -35,9 +35,6 @@ const unsigned char ExitProgMode_dw_0[31] = {
   0x1e, 0x4e, 0x90, 0x0c, 0x30, 0x00, 0x00, 0x00, 0x1e, 0x40, 0x0c, 0x1e, 0x51, 0x1e, 0x4c, 
 };
 
-const unsigned char SetSpeed_dw_0[0] = {  
-};
-
 const unsigned char EraseChip_dw_0[1] = {  
   0xaf, 
 };
@@ -4199,7 +4196,6 @@ static void pickit_dw_script_init(SCRIPT *scr) {
 
   scr->EnterProgMode = EnterProgMode_dw_0;
   scr->ExitProgMode = ExitProgMode_dw_0;
-  scr->SetSpeed = SetSpeed_dw_0;
   scr->EraseChip = EraseChip_dw_0;
   scr->WriteMem8 = WriteMem8_dw_0;
   scr->switchtoISP = switchtoISP_dw_0;
@@ -4207,7 +4203,6 @@ static void pickit_dw_script_init(SCRIPT *scr) {
 
   scr->EnterProgMode_len = sizeof(EnterProgMode_dw_0);
   scr->ExitProgMode_len = sizeof(ExitProgMode_dw_0);
-  scr->SetSpeed_len = sizeof(SetSpeed_dw_0);
   scr->EraseChip_len = sizeof(EraseChip_dw_0);
   scr->WriteMem8_len = sizeof(WriteMem8_dw_0);
   scr->switchtoISP_len = sizeof(switchtoISP_dw_0);
