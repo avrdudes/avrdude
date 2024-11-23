@@ -4,20 +4,26 @@
 #
 # Usage:
 #    ./path/to/update-elf2tag-manpage
+#    ./path/to/update-elf2tag-manpage --verify
 #
-# Changes into the directory where update-elf2tag-manpage and
-# elf2tag.1.adoc are, runs asciidoctor to produce a man page elf2tag.1
-# from elf2tag.1.adoc, but only updates the elf2tag.1 file in the case
-# of actual changes.
+# Without a command line argument given, changes into the directory
+# where update-elf2tag-manpage and elf2tag.1.adoc are, runs
+# asciidoctor to produce a man page elf2tag.1 from elf2tag.1.adoc, but
+# only updates the elf2tag.1 file in the case of actual changes.
 #
 # Just the asciidoctor version or the current date being different
 # from the last asciidoctor run is not considered an actual change.
+#
+# With the --verify argument given, only verify that elf2tag.1 and
+# elf2tag.1.adoc are consistent with each other, i.e. elf2tag.1 would
+# not be changed.
 #
 # Requires asciidoctor to be installed.
 #
 # Environment variables used (if unset, uses the command from PATH):
 # ASCIIDOCTOR  the asciidoctor command to run
 # CMP          the cmp command to run (e.g. "busybox cmp")
+# DIFF         the diff command to run with -u (used with --verify only)
 # SED          the sed command to run (e.g. "busybox sed")
 
 # This script uses the shell feature called "process substitution" which
@@ -33,6 +39,7 @@ if test "$#" -gt 1; then
   exit 2
 fi
 
+verify=false
 if test "$#" -eq 1; then
   case "$1" in
     -h | --help )
@@ -41,6 +48,9 @@ if test "$#" -eq 1; then
         | ${SED-sed} '/^$/d' \
         | ${SED-sed} 's|^#$||; s|^# ||'
       exit 0
+      ;;
+    --verify )
+      verify=:
       ;;
     * )
       echo "$prog: Unhandled command line argument."
@@ -89,6 +99,11 @@ else
 fi
 
 if ! test -e elf2tag.1; then
+  if "$verify"; then
+    echo "$prog: Cannot ensure consistency if there is no old elf2tag.1 file"
+    rm -rf "$tmpdir"
+    exit 1
+  fi
   echo "$prog: Generate elf2tag.1"
   mv -f "$tmpdir/elf2tag.1" elf2tag.1
   rmdir "$tmpdir"
@@ -105,6 +120,16 @@ if ${CMP-cmp} "$tmpdir/elf2tag.1.norm-old" "$tmpdir/elf2tag.1.norm-new" > /dev/n
   rm -f "$tmpdir/elf2tag.1.norm-new"
   rmdir "$tmpdir"
   exit 0
+fi
+
+if "$verify"; then
+  echo "$prog: Error: src/elf2tag.1 is inconsistent with src/elf2tag.1.adoc"
+  ${DIFF-diff} -u "$tmpdir/elf2tag.1.norm-old" "$tmpdir/elf2tag.1.norm-new" ||:
+  rm -f "$tmpdir/elf2tag.1"
+  rm -f "$tmpdir/elf2tag.1.norm-old"
+  rm -f "$tmpdir/elf2tag.1.norm-new"
+  rmdir "$tmpdir"
+  exit 1
 fi
 
 echo "Updating elf2tag.1"
