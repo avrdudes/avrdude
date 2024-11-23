@@ -23,6 +23,8 @@ Changes since version 8.0:
 
     - Add AVR128DAxxS parts #1918
     - Update usbpids in avrdude.conf #1919
+    - Add extra version information to avrdude output #1927
+    - CI: Ensure only supported configure options are used (--enable-option-checking=fatal) #1934
 
   * Internals:
 
