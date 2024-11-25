@@ -213,6 +213,8 @@ AC_SUBST([LIBELF])
 
 AC_SEARCH_LIBS([gethostent], [nsl])
 AC_SEARCH_LIBS([setsockopt], [socket])
+
+
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
@@ -231,6 +233,12 @@ if test "x$have_libusb" = xyes; then
    AC_CHECK_HEADERS([lusb0_usb.h])
 fi
 AC_SUBST([LIBUSB])
+
+AS_VAR_IF([have_libusb], [yes], [dnl
+  BUILDINFO_ITEM([libusb], [DO HAVE])
+], [dnl
+  BUILDINFO_ITEM([libusb], [DON'T HAVE])
+])
 
 AC_ARG_ENABLE(
 	[libusb_1_0],
@@ -282,6 +290,17 @@ if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    AC_CHECK_HEADERS([libusb.h])
 fi
 AC_SUBST([LIBUSB_1_0])
+
+AS_VAR_IF([have_libusb_1_0], [yes], [dnl
+  AS_VAR_IF([enabled_libusb_1_0], [yes], [dnl
+    BUILDINFO_ITEM([libusb_1_0], [DO HAVE])
+  ], [dnl
+    BUILDINFO_ITEM([libusb_1_0], [DISABLED])
+  ])
+], [dnl
+  BUILDINFO_ITEM([libusb_1_0], [DON'T HAVE])
+])
+
 
 AH_TEMPLATE([HAVE_LIBHIDAPI],
             [Define if HID support is enabled via libhidapi])
@@ -736,22 +755,6 @@ echo ""
 echo ""
 echo "Configuration summary:"
 echo "----------------------"
-
-if test "x$have_libusb" = xyes; then
-   echo "DO HAVE    libusb"
-else
-   echo "DON'T HAVE libusb"
-fi
-
-if test "x$have_libusb_1_0" = xyes; then
-   if test "x$enabled_libusb_1_0" = xyes; then
-       echo "DO HAVE    libusb_1_0"
-   else
-       echo "DISABLED   libusb_1_0"
-   fi
-else
-   echo "DON'T HAVE libusb_1_0"
-fi
 
 if test "x$have_libftdi1" = xyes; then
    echo "DO HAVE    libftdi1"
