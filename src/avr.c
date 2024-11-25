@@ -1749,7 +1749,7 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
  *
  * before the application's first call of progress_report(). The update
  * function has to keep track whether reporting was initiated or has been
- * prematurely cut short, eg, by an error. It received an int percentage
+ * prematurely cut short, eg, by an error. It receives an int percentage
  * in [0, 100] of how much progress has been made, a double etime of how
  * much time in seconds has passed since the activity started, a string
  * hdr that describes the activity, eg, "Reading" (device memory) and an
