@@ -15768,7 +15768,7 @@ part # .xmega-cd
     #  - fuses[6] only used in XMEGA-E parts
     #
     memory "fuses"
-        size               = 7;
+        size               = 6;
         offset             = 0x8f0020;
     ;
 
@@ -15877,6 +15877,10 @@ part parent ".xmega-cd" # .xmega-e
 
     memory "boot"
         page_size          = 128;
+    ;
+
+    memory "fuses"
+        size               = 7;
     ;
 
     memory "fuse2"
