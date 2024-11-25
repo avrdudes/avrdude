@@ -10,14 +10,16 @@ for pgm in sort grep awk avr-objdump avr-nm; do
   hash $pgm 2>/dev/null || { echo "$progname: $pgm does not seem to be installed, exiting"; exit 1; }
 done
 
-if [ "$1" == "" ]; then
-cat <<END
+case "$1" in
+  "" | -h | --help )
+    cat <<END
 Syntax: $progname <file>.elf
 Function: output a tagfile suitable for the avrdude disasm -t=<tagfile> command
 Options: none
 END
-exit 1
-fi
+    exit 1
+    ;;
+esac
 
 echo "# Automatically generated tagfile via ${progname} ${1}"
 avr-objdump -d "$1" | grep '<.*>:' | awk '{

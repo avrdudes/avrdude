@@ -1,0 +1,62 @@
+'\" t
+.\"     Title: elf2tag
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-11-23
+.\"    Manual: avrdude Manual
+.\"    Source: avrdude
+.\"  Language: English
+.\"
+.TH "ELF2TAG" "1" "2024-11-23" "avrdude" "avrdude Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+elf2tag \- output a tagfile for the avrdude disasm command
+.SH "SYNOPSIS"
+.sp
+\fBelf2tag\fP <file.elf>
+.sp
+\fBelf2tag\fP [\fB\-h\fP | \fB\-\-help\fP]
+.SH "DESCRIPTION"
+.sp
+\fIelf2tag\fP generates a tagfile for use with the \fIavrdude disasm\fP command.
+.SH "OPTIONS"
+.sp
+\fB\-h\fP \fB\-\-help\fP
+.RS 4
+Prints the help message and exits.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n .RS 4
+.nf
+.fam C
+$ elf2tag blink.elf > blink.tag
+$ avrdude \-qq \-c dryrun \-p m328p \-U blink.elf \-t
+avrdude> disasm \-t=blink.tag flash 0 512
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+\fIelf2tag\fP was written by Johannes Bauer with small modifications by Stefan Rueger.
+.SH "SEE ALSO"
+.sp
+\fBavrdude(1)\fP, \fBavr\-nm(1)\fP, \fBavr\-objdump(1)\fP
