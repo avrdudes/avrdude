@@ -23171,7 +23171,7 @@ part parent ".avrex" # 16ea28
     variants               =
         "AVR16EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 332;
-    n_interrupts           = 37;
+    n_interrupts           = 43;
     signature              = 0x1e 0x94 0x37;
 
     memory "eeprom"
@@ -23208,7 +23208,7 @@ part parent ".avrex" # 16ea32
     variants               =
         "AVR16EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 334;
-    n_interrupts           = 37;
+    n_interrupts           = 43;
     signature              = 0x1e 0x94 0x36;
 
     memory "eeprom"
@@ -23282,7 +23282,7 @@ part parent ".avrex" # 32ea28
     variants               =
         "AVR32EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 341;
-    n_interrupts           = 37;
+    n_interrupts           = 43;
     signature              = 0x1e 0x95 0x3e;
 
     memory "eeprom"
@@ -23319,7 +23319,7 @@ part parent ".avrex" # 32ea32
     variants               =
         "AVR32EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 345;
-    n_interrupts           = 37;
+    n_interrupts           = 43;
     signature              = 0x1e 0x95 0x3d;
 
     memory "eeprom"
@@ -23395,7 +23395,7 @@ part parent ".avrex" # 64ea28
         "AVR64EA28-I/SP: SPDIP28, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA28-I/SS: SSOP28,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 354;
-    n_interrupts           = 37;
+    n_interrupts           = 43;
     signature              = 0x1e 0x96 0x20;
 
     memory "eeprom"
@@ -23434,7 +23434,7 @@ part parent ".avrex" # 64ea32
         "AVR64EA32-I/PT:  TQFP32, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA32-I/RXB: VQFN32, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 358;
-    n_interrupts           = 37;
+    n_interrupts           = 43;
     signature              = 0x1e 0x96 0x1f;
 
     memory "eeprom"
@@ -23615,4 +23615,93 @@ part parent "16eb14" # 16eb32
         "AVR16EB32-VQFN/TQFP: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 383;
     signature              = 0x1e 0x94 0x3e;
+;
+
+#------------------------------------------------------------
+# AVR32EB14
+#------------------------------------------------------------
+
+part parent "16eb14" # 32eb14
+    desc                   = "AVR32EB14";
+    id                     = "32eb14";
+    variants               =
+        "AVR32EB14-SOIC/TSSOP: SOIC14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 398;
+    signature              = 0x1e 0x95 0x2d;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x7400;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32EB20
+#------------------------------------------------------------
+
+part parent "16eb20" # 32eb20
+    desc                   = "AVR32EB20";
+    id                     = "32eb20";
+    variants               =
+        "AVR32EB20-SSOP: SOIC20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 399;
+    signature              = 0x1e 0x95 0x2c;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x7400;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32EB28
+#------------------------------------------------------------
+
+part parent "16eb28" # 32eb28
+    desc                   = "AVR32EB28";
+    id                     = "32eb28";
+    variants               =
+        "AVR32EB28-SSOP/SPDIP: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR32EB28-VQFN:       VQFN28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 400;
+    signature              = 0x1e 0x95 0x2b;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x7400;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32EB32
+#------------------------------------------------------------
+
+part parent "16eb32" # 32eb32
+    desc                   = "AVR32EB32";
+    id                     = "32eb32";
+    variants               =
+        "AVR32EB32-VQFN/TQFP: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 401;
+    signature              = 0x1e 0x95 0x2a;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x7400;
+    ;
 ;
