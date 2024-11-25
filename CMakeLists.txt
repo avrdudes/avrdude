@@ -405,9 +405,9 @@ if (DEBUG_CMAKE)
 endif()
 
 if(HAVE_LIBELF)
-    message(STATUS "DO HAVE    libelf")
+  buildinfo_item("libelf" "DO HAVE")
 else()
-    message(STATUS "DON'T HAVE libelf")
+  buildinfo_item("libelf" "DON'T HAVE")
 endif()
 
 if(HAVE_LIBUSB)
@@ -496,11 +496,6 @@ else()
 endif()
 
 message(STATUS "----------------------")
-
-buildinfo_item("libelf" "yes")
-buildinfo_item("libelf" "no")
-buildinfo_item("libelf" "DO HAVE")
-buildinfo_item("libelf" "DON'T HAVE")
 
 # print the output collected by earlier calls to buildinfo_item()
 buildinfo_output()

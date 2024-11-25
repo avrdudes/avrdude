@@ -204,8 +204,12 @@ if test "x$have_libelf" = xyes; then
    esac
    AC_DEFINE([HAVE_LIBELF])
    AC_CHECK_HEADERS([libelf.h libelf/libelf.h])
+   BUILDINFO_ITEM([libelf], [DO HAVE])
+else
+   BUILDINFO_ITEM([libelf], [DON'T HAVE])
 fi
 AC_SUBST([LIBELF])
+
 
 AC_SEARCH_LIBS([gethostent], [nsl])
 AC_SEARCH_LIBS([setsockopt], [socket])
@@ -725,11 +729,6 @@ AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
 AC_OUTPUT
 
 
-BUILDINFO_ITEM([libelf], [yes])
-BUILDINFO_ITEM([libelf], [no])
-BUILDINFO_ITEM([libelf], [DO HAVE])
-BUILDINFO_ITEM([libelf], [DON'T HAVE])
-
 # print the output collected by earlier calls to BUILDINFO_ITEM()
 BUILDINFO_OUTPUT()
 
@@ -737,12 +736,6 @@ echo ""
 echo ""
 echo "Configuration summary:"
 echo "----------------------"
-
-if test "x$have_libelf" = xyes; then
-   echo "DO HAVE    libelf"
-else
-   echo "DON'T HAVE libelf"
-fi
 
 if test "x$have_libusb" = xyes; then
    echo "DO HAVE    libusb"
