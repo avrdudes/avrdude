@@ -3062,7 +3062,7 @@ programmer # pickit4_tpi
 # using different programmer names:
 #
 # Interface:   Programmer name:
-# JTAG         pickit5, pickit4_jtag
+# JTAG         pickit5, pickit5_jtag
 # PDI          pickit5_pdi
 # UPDI         pickit5_updi
 # debugWIRE    pickit5_dw   (can auto-switch to ISP to write fuses)
@@ -3094,7 +3094,7 @@ programmer # pickit4_tpi
 #------------------------------------------------------------
 
 programmer # pickit5_jtag
-    id                     = "pickit5_jtag";
+    id                     = "pickit5", "pickit5_jtag";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in JTAG Mode";
     type                   = "pickit5_jtag";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;

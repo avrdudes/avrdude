@@ -97,8 +97,10 @@ struct pdata {
   unsigned char fw_info[16];    // Buffer for display() sent by get_fw()
   unsigned char sernum_string[20]; // Buffer for display() sent by get_fw()
   char sib_string[32];
-  unsigned char txBuf[2048];     // Buffer for transfers
-  unsigned char rxBuf[2048];     // 2048 because of WriteEEmem_dw with 1728 bytes length
+  unsigned char prodsig[256];   // Buffer for Prodsig that contains more then one memory
+  unsigned int prod_sig_len;    // length of read prodsig (to know if it filled) 
+  unsigned char txBuf[2048];    // Buffer for transfers
+  unsigned char rxBuf[2048];    // 2048 because of WriteEEmem_dw with 1728 bytes length
   SCRIPT scripts;
 };
 
@@ -165,7 +167,6 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
 // JTAG-Specific
 static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value);
 static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value);
-static int pickit5_jtag_read_configmem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value);
 
 // Extra functions
 static int pickit5_get_fw_info(const PROGRAMMER *pgm);
@@ -182,6 +183,9 @@ inline static void pickit5_create_payload_header(unsigned char *buf, unsigned in
   unsigned int msg_len, unsigned int trans_len);
 inline static void pickit5_create_script_header(unsigned char *buf, unsigned int arg_len, unsigned int script_len);
 inline static int pickit5_check_ret_status(const PROGRAMMER *pgm);
+
+static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value);
 
 static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status);
 static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
@@ -308,7 +312,7 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
   unsigned int header_len = 16 + 8;     // Header info + script header
   unsigned int preamble_len = header_len + param_len;
   unsigned int message_len = preamble_len + script_len;
-  pmsg_debug("%s(scr_len: %u, param_len: %u, payload_len: %u)\n", __func__, script_len, param_len, payload_len);
+  pmsg_debug("%s(scr_len: %u, param_len: %u, data_len: %u)\n", __func__, script_len, param_len, payload_len);
 
   if(message_len >= 2048){       // Required memory will exceed buffer size, abort
     pmsg_error("Requested message size (%u) too large!", message_len);
@@ -687,7 +691,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       pmsg_notice("no extenal Voltage detected; trying to supply from PICkit\n");
         if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
           if(my.target_voltage > 3.49) {
-            pmsg_error("xmega part selected but requested voltage is over 3.6V, aborting.");
+            pmsg_error("xmega part selected but requested voltage is over 3.49V, aborting.");
             return -1;
           }
         }
@@ -748,6 +752,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       pmsg_error("failed to obtain device ID\n");
       return -1;
     }
+
   }
   return 0;
 }
@@ -856,13 +861,15 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
 static int pickit5_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char value) {
   int rc = 0;
-  if(mem_is_in_fuses(mem)) {
+  if(mem_is_a_fuse(mem)) {
     if(is_isp(pgm)){
       rc = pickit5_isp_write_fuse(pgm, mem, value);
     } else if(is_debugwire(pgm)){
       rc = pickit5_dw_write_fuse(pgm, p, mem, value);
     } else if(both_jtag(pgm, p)){
       rc = pickit5_jtag_write_fuse(pgm, p, mem, value);
+    } else if(is_updi(pgm)){
+      rc = pickit5_updi_write_byte(pgm, p, mem, addr, value);
     }
   }
   if(rc == 0) {
@@ -877,20 +884,25 @@ static int pickit5_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char *value) {
   int rc = 0;
-  if(mem_is_in_fuses(mem)) {
+  if(mem_is_signature(mem)) {
+    if(addr < 4) {
+      *value = my.devID[addr];
+      rc = 1;
+    } else {
+      rc = -1;
+    }
+  } else if(mem_is_a_fuse(mem)) {
     if(is_isp(pgm)) {
       rc = pickit5_isp_read_fuse(pgm, mem, addr, value);
     } else if(is_debugwire(pgm)) {
       rc = pickit5_dw_read_fuse(pgm, p, mem, value);
     } else if(both_jtag(pgm, p)) {
       rc = pickit5_jtag_read_fuse(pgm, p, mem, value);
+    } else if(is_updi(pgm)) {
+      rc = pickit5_updi_read_byte(pgm, p, mem, addr, value);
     }
   } else if(mem_is_in_sigrow(mem)) {
-    if(is_isp(pgm)){
-      rc = pickit5_isp_read_fuse(pgm, mem, addr, value);  // this works by chance
-    } else if(both_jtag(pgm, p)) {
-      rc = pickit5_jtag_read_configmem(pgm, p, mem, addr, value);
-    }
+    rc = pickit5_read_prodsig(pgm, p, mem, addr, 1, value);
   }
   if(rc == 0) {
     rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
@@ -911,42 +923,21 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   }
   addr += mem->offset;
   pmsg_debug("%s(0x%4X, %i)\n", __func__, (unsigned) addr, value);
+
   // This script is based on WriteCSreg; reduces overhead by avoiding writing data EP
-  const unsigned char h_len = 24;       // 16 + 8
-  const unsigned char p_len = 8;
-  const unsigned char s_len = 8;
-  const unsigned char m_len = h_len + p_len + s_len;
-
   unsigned char write8_fast[] = {
-    0x00, 0x01, 0x00, 0x00,     // [0]  SCR_CMD
-    0x00, 0x00, 0x00, 0x00,     // [4]  always 0
-    m_len, 0x00, 0x00, 0x00,    // [8]  message length = 16 + 8 + param (8) + script (8) = 40
-    0x00, 0x00, 0x00, 0x00,     // [12] keep at 0 to receive the data in the "response"
-
-    p_len, 0x00, 0x00, 0x00,    // [16] param length: 8 bytes
-    s_len, 0x00, 0x00, 0x00,    // [20] length of script: 8 bytes
-
-    0x00, 0x00, 0x00, 0x00,     // [24] param: address to write to, will be overwritten
-    0x00, 0x00, 0x00, 0x00,     // [28] param: byte to write, will be overwritten
-
-    // Script itself:
-    0x91, 0x00,                 // Copy first 4 bytes of param to reg 0
-    0x91, 0x01,                 // Copy second 4 bytes of param to reg 1
-    0x1E, 0x06, 0x00, 0x01,     // Store to address in reg 0 the byte in reg 1
+    0x90, 0x00, 0x00, 0x00, 0x00, 0x00, // Place address in r0
+    0x9B, 0x01, value,                  // Place value in r1
+    0x1E, 0x06, 0x00, 0x01,             // Store to address in reg 0 the byte in reg 1
   };
-  write8_fast[24] = (((unsigned char *) &addr)[0]);
-  write8_fast[25] = (((unsigned char *) &addr)[1]);
-  write8_fast[28] = value;
 
-  serial_send(&pgm->fd, write8_fast, m_len);
-  unsigned char *buf = my.rxBuf;
+  pickit5_uint32_to_array(&write8_fast[2], addr);
 
-  if(serial_recv(&pgm->fd, buf, 512) >= 0) { // Read response
-    if(buf[0] == 0x0D) {
-      return 0;
-    }
-  }
-  return -1;
+  int rc = pickit5_send_script_cmd(pgm, write8_fast, sizeof(write8_fast), NULL, 0);
+  if (rc < 0) {
+    return -1;
+  } 
+  return 1;
 }
 
 // UPDI-specific function providing a reduced overhead when reading a single byte
@@ -960,50 +951,30 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
     }
     addr += mem->offset;
     pmsg_debug("%s(0x%4X)\n", __func__, (unsigned int) addr);
-    // This script is based on ReadSIB; reduces overhead by avoiding readind data EP
-    const unsigned char h_len = 24;     // 16 + 8
-    const unsigned char p_len = 4;
-    const unsigned char s_len = 6;
-    const unsigned char m_len = h_len + p_len + s_len;
 
     unsigned char read8_fast[] = {
-      0x00, 0x01, 0x00, 0x00,   // [0]  SCR_CMD
-      0x00, 0x00, 0x00, 0x00,   // [4]  always 0
-      m_len, 0x00, 0x00, 0x00,  // [8]  message length = 16 + 8 + param (4) + script (6) = 34
-      0x00, 0x00, 0x00, 0x00,   // [12] keep at 0 to receive the data in the "response"
-
-      p_len, 0x00, 0x00, 0x00,  // [16] param length: 4 bytes
-      s_len, 0x00, 0x00, 0x00,  // [20] length of script: 6 bytes
-
-      0x00, 0x00, 0x00, 0x00,   // [24] param: address to read from, will be overwritten
-
-      // Script itself:
-      0x91, 0x00,               // Copy first 4 bytes of param to reg 0
-      0x1E, 0x03, 0x00,         // Load byte from address in reg 0
-      0x9F                      // Send data from 0x1E to "response"
+      0x90, 0x00, 0x00, 0x00, 0x00, 0x00, // load address (overwritten below)
+      0x1E, 0x03, 0x00,                   // Load byte from address in reg 0
+      0x9F                                // Send data from 0x1E to "response"
     };
-    read8_fast[24] = (((unsigned char *) &addr)[0]);
-    read8_fast[25] = (((unsigned char *) &addr)[1]);
-
-    serial_send(&pgm->fd, read8_fast, m_len);
-    unsigned char *buf = my.rxBuf;
-
-    if(serial_recv(&pgm->fd, buf, 512) >= 0) {  // Read response
-      if(buf[0] == 0x0D) {
-        if(buf[20] == 0x01) {
-          *value = buf[24];
-          return 0;
-        }
-      }
+    pickit5_uint32_to_array(&read8_fast[2], addr);
+    int rc = pickit5_send_script_cmd(pgm, read8_fast, sizeof(read8_fast), NULL, 0);
+    if (rc < 0) {
+      return -1;
+    } else {
+      *value = my.rxBuf[24];
+      return 1;
     }
-    return -1;
-  } else {                      // Fall back to standard function
+  } 
+  return 0;
+  /*else {                      // Fall back to standard function
     int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
 
     if(rc < 0)
       return rc;
-    return 0;
+    return 1;
   }
+  */
 }
 
 // Return numbers of byte written
@@ -1034,13 +1005,16 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   if((mem_is_in_flash(mem) && (len == mem->page_size))) {
     write_bytes     = my.scripts.WriteProgmem;
     write_bytes_len = my.scripts.WriteProgmem_len;
+  } else if(mem_is_boot(mem) && my.scripts.WriteBootMem != NULL) {
+    write_bytes     = my.scripts.WriteBootMem;
+    write_bytes_len = my.scripts.WriteBootMem_len;
   } else if(mem_is_io(mem) && my.scripts.WriteMemIO != NULL) {
     write_bytes     = my.scripts.WriteMemIO;
     write_bytes_len = my.scripts.WriteMemIO_len;
   } else if(mem_is_eeprom(mem) && my.scripts.WriteDataEEmem != NULL) {
     write_bytes     = my.scripts.WriteDataEEmem;
     write_bytes_len = my.scripts.WriteDataEEmem_len;
-  } else if(mem_is_in_fuses(mem) && my.scripts.WriteConfigmemFuse != NULL) {
+  } else if(mem_is_a_fuse(mem) && my.scripts.WriteConfigmemFuse != NULL) {
     write_bytes     = my.scripts.WriteConfigmemFuse;
     write_bytes_len = my.scripts.WriteConfigmemFuse_len;
   } else if(mem_is_lock(mem) && my.scripts.WriteConfigmemLock != NULL) {
@@ -1113,6 +1087,9 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   if(mem_is_in_flash(mem)) {
     read_bytes      = my.scripts.ReadProgmem;
     read_bytes_len  = my.scripts.ReadProgmem_len;
+  } else if(mem_is_boot(mem) && my.scripts.ReadBootMem != NULL) {
+    read_bytes     = my.scripts.ReadBootMem;
+    read_bytes_len = my.scripts.ReadBootMem_len;
   } else if(mem_is_calibration(mem) && my.scripts.ReadCalibrationByte != NULL) {
     read_bytes      = my.scripts.ReadCalibrationByte;
     read_bytes_len  = my.scripts.ReadCalibrationByte_len;
@@ -1122,7 +1099,7 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   } else if(mem_is_eeprom(mem) && my.scripts.ReadDataEEmem != NULL) {
     read_bytes      = my.scripts.ReadDataEEmem;
     read_bytes_len  = my.scripts.ReadDataEEmem_len;
-  } else if(mem_is_in_fuses(mem) && my.scripts.ReadConfigmemFuse != NULL) {
+  } else if(mem_is_a_fuse(mem) && my.scripts.ReadConfigmemFuse != NULL) {
     read_bytes      = my.scripts.ReadConfigmemFuse;
     read_bytes_len  = my.scripts.ReadConfigmemFuse_len;
   } else if(mem_is_lock(mem) && my.scripts.ReadConfigmemLock != NULL) {
@@ -1146,7 +1123,11 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
     read_bytes_len  = my.scripts.ReadConfigmem_len;
   } else if(!mem_is_readonly(mem)) { // SRAM, IO, LOCK, USERROW
     if((len == 1) && is_updi(pgm)) {
-      return pickit5_updi_read_byte(pgm, p, mem, addr, value);
+      if(pickit5_updi_read_byte(pgm, p, mem, addr, value) < 0) {
+        return -1;
+      } else {
+        return 0;
+      }
     }
     read_bytes      = my.scripts.ReadMem8;
     read_bytes_len  = my.scripts.ReadMem8_len;
@@ -1505,36 +1486,6 @@ static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const
   return 1;
 }
 
-static int pickit5_jtag_read_configmem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value) {
-  unsigned char read_configmem_jtag [] = {
-    0x90, 0x00, 0x00, 0x03, 0x00, 0x00,   // set r00 to 0x03xx (Load Address byte with xx=addr)
-    0x9b, 0x02, 0x0f,                     // set r02 to 0x0F
-    0x9b, 0x03, 0x05,                     // set r03 to 0x05 (PROG COMMANDS)
-    0x1e, 0x66, 0x03,                     // Write JTAG Instruction in r03
-    0x90, 0x04, 0x08, 0x23, 0x00, 0x00,   // set r04 to 0x2308 (Enter Signature Read)
-    0x1e, 0x67, 0x04, 0x02,               // Write JTAG instruction in r04 with length in r02 (15 bits)
-    0x1e, 0x67, 0x00, 0x02,               // Write JTAG instruction in r00 with length in r02 (15 bits)
-    0x90, 0x05, 0x00, 0x32, 0x00, 0x00,   // set r05 to 0x3200 (Read Signature byte I)
-    0x1e, 0x67, 0x05, 0x02,               // Write JTAG instruction in r05 with length in r02 (15 bits)
-    0x90, 0x06, 0x00, 0x33, 0x00, 0x00,   // set r06 to 0x3300 (Read Signature byte II)
-    0x1E, 0x6B, 0x06, 0x02,               // Write JTAG instruction in r06 with length in r02 (15 bits) and shift data in
-    0x9F,                                 // Send temp-reg to return status
-  };
-  unsigned int read_configmem_jtag_len = sizeof(read_configmem_jtag);
-  read_configmem_jtag[2] = (unsigned char)mem->offset + (unsigned char)addr;
-
-  if(pickit5_send_script_cmd(pgm, read_configmem_jtag, read_configmem_jtag_len, NULL, 0) < 0) {
-    pmsg_error("Read Fuse Script failed");
-    return -1;
-  }
-  if(0x01 != my.rxBuf[20]) { // length
-    return -1;
-  }
-  *value = my.rxBuf[24];      // return value
-  return 1;
-
-}
-
 
 // TPI has an unified memory space, meaning that any memory (even SRAM) 
 // can be accessed by the same command, meaning that we don't need the
@@ -1552,21 +1503,6 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&buf[4], len);
 
   int rc = pickit5_download_data(pgm, write_bytes, write_bytes_len, buf, 8, value, len);
-  if(rc == -1) {
-    pmsg_error("sending script failed\n");
-  }
-  if(rc == -2) {
-    pmsg_error("reading script response failed\n");
-  }
-  if(rc == -3) {
-    pmsg_error("failed when sending data\n");
-  }
-  if(rc == -4) {
-    pmsg_error("error check failed\n");
-  }
-  if(rc == -5) {
-    pmsg_error("sending script done message failed\n");
-  }
   if(rc < 0) {
     return -1;
   } else {
@@ -1582,25 +1518,108 @@ static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
 
   addr += mem->offset;
   unsigned char buf[8];
-
   pickit5_uint32_to_array(&buf[0], addr);
   pickit5_uint32_to_array(&buf[4], len);
   int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, buf, 8, value, len);
 
-  if(rc == -1) {
-    pmsg_error("sending script failed\n");
-  } else if(rc == -2) {
-    pmsg_error("unexpected read response\n");
-  } else if(rc == -3) {
-    pmsg_error("reading data memory failed\n");
-  } else if(rc == -4) {
-    pmsg_error("sending script done message failed\n");
-  }
   if(rc < 0) {
     return -1;
   } else {
     return len; 
   }
+}
+
+
+// There are often multiple memories located in prodsig, we try to read it once
+// and handle all further requests through a buffer.
+static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
+  int rc = 0;
+
+  AVRMEM *prodsig = avr_locate_prodsig(p);
+  if (prodsig == NULL) {
+    return 0;  // no prodsig on this device, try again in read_array
+  }
+  if (mem->offset < prodsig->offset || 
+    (mem->offset + mem->size) > (prodsig->offset) + (prodsig->size)) {
+    return 0;  // Requested memory not in prodsig, try again in read_array
+  }
+
+  int max_mem_len = sizeof(my.prodsig);  // Current devices have no more then 128
+  unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len; 
+
+  if ((addr + len) > mem_len) {
+    pmsg_warning("Requested memory is outside of the progsig on the device");
+    return 0;
+  }
+
+  unsigned int prod_addr = addr + mem->offset - prodsig->offset;  // adjust offset
+
+  if(prod_addr == 0x00 || (my.prod_sig_len == 0x00)) { // update buffer
+    if (my.scripts.ReadConfigmem != NULL) {
+      unsigned char param_buf[8];
+      pickit5_uint32_to_array(&param_buf[0], prodsig->offset);
+      pickit5_uint32_to_array(&param_buf[4], mem_len);
+      rc = pickit5_upload_data(pgm, my.scripts.ReadConfigmem, my.scripts.ReadConfigmem_len, param_buf, 8, my.prodsig, mem_len);
+    } else if(mem->op[AVR_OP_READ] != NULL) {
+      if(both_jtag(pgm, p)){
+        const unsigned char read_prodsigmem_jtag [] = {
+          0x90, 0x00, 0x00, 0x03, 0x00, 0x00,   // set r00 to 0x0300 (Load Address byte command (0x3bb))
+          0x9b, 0x01, 0x0f,                     // set r01 to 0x0F
+          0x9b, 0x02, 0x05,                     // set r02 to 0x05 (PROG COMMANDS)
+          0x90, 0x03, 0x08, 0x23, 0x00, 0x00,   // set r03 to 0x2308 (Enter Signature Read)
+          0x90, 0x05, 0x00, 0x32, 0x00, 0x00,   // set r05 to 0x3200 (Read Signature byte I)
+          0x90, 0x06, 0x00, 0x33, 0x00, 0x00,   // set r06 to 0x3300 (Read Signature byte II)
+
+          0xAC, mem_len, 0x00,                  // loop for mem length
+          0x1e, 0x66, 0x02,                     // Write JTAG Instruction in r03 (PROG COMMANDS)
+          0x1e, 0x67, 0x03, 0x01,               // Write JTAG instruction in r02 with length in r01 (15 bits)
+          0x1e, 0x67, 0x00, 0x01,               // Write JTAG instruction in r00 with length in r01 (15 bits)
+          0x1e, 0x67, 0x05, 0x01,               // Write JTAG instruction in r05 with length in r01 (15 bits)
+          0x1E, 0x6B, 0x06, 0x01,               // Write JTAG instruction in r06 with length in r01 (15 bits) and shift data in
+          0x9F,                                 // Send temp-reg to return status
+          0x92, 0x00, 0x01, 0x00, 0x00, 0x00,   // increase address (r00) by 1
+          0xA4,                                 // End of for loop
+        };
+        rc = pickit5_upload_data(pgm, read_prodsigmem_jtag, sizeof(read_prodsigmem_jtag), NULL, 0, my.prodsig, mem_len);
+      } else if(is_isp(pgm)) {
+        // Ok, this one is tricky due to the lsb being on another position compared to the rest,
+        // The solution is to read two bytes in one while loop and toggle the LSB
+        const unsigned char read_prodsig_isp [] = {
+          0x90, 0x00, 0x32, 0x00, 0x00, 0x00,   // load 0x32 to r00
+          0x90, 0x01, 0x00, 0x00, 0x00, 0x30,   // load programming command to r01 (the same on all)
+          0x9B, 0x02, 0x03,                     // load 0x03 to r02
+          0x9B, 0x03, 0x00,                     // load 0x00 to r03
+          0x1E, 0x37, 0x00,                     // Enable Programming?
+          0xAC, (mem_len / 2), 0x00,            // loop for half the mem length
+          0x1E, 0x35, 0x01, 0x02, 0x03,         // Execute ISP Read command in r01
+          0x9F,                                 // Send Data back to USB
+          0x92, 0x01, 0x00, 0x00, 0x00, 0x08,   // set LSB of prodsig address
+          0x1E, 0x35, 0x01, 0x02, 0x03,         // Execute ISP Read command in r01
+          0x9F,
+          0x69, 0x01, 0x00, 0x00, 0x00, 0x08,   // clr LSB of prodsig address
+          0x92, 0x01, 0x00, 0x01, 0x00, 0x00,   // increase address by "2"
+          0xA4,                                 // End of for loop
+        };
+        rc = pickit5_upload_data(pgm, read_prodsig_isp, sizeof(read_prodsig_isp), NULL, 0, my.prodsig, mem_len);
+      } else {
+        return 0; // debugWire
+      }
+    } else {
+      rc = -6;  // Something went wrong
+    }
+  }
+  if (rc >= 0) {  // No errors, copy data
+    my.prod_sig_len = mem_len;
+    if (len == 1) {
+      *value = my.prodsig[prod_addr];
+    } else {
+      memcpy(value, &my.prodsig[prod_addr], len);
+    }
+    return 1; // Success
+  }
+  return rc;
 }
 
 

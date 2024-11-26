@@ -82,6 +82,8 @@ c_func_list = [
     # Added from JTAG/PDI
     "WriteSRAM",
     "ReadSRAM",
+    "WriteBootMem",
+    "ReadBootMem",
 ]
 
 # List of MCUs that are supported by avrdude, extracted from the .conf file
@@ -375,9 +377,13 @@ def convert_xml(xml_path, c_funcs):
                     c_file.write(num_line + "\n};\n\n")             # complete array
 
                 if len(func_array_bytes) == 1:     # look for common function
+                    if (prog_iface == "JTAG"):                      # This handles the edge case in JTAG where only the
+                        if (func_name == "ReadConfigmem") or (func_name == "WriteConfigmem"):
+                            continue                                # XMEGA has the functions, but not the old JTAG
+                    common_func.append(func_name)                   
                     struct_init_func += "  scr->{0} = {0}_{1}_0;\n".format(func_name, lower_prog_iface)
                     struct_init_len  += "  scr->{0}_len = sizeof({0}_{1}_0);\n".format(func_name, lower_prog_iface)
-                    common_func.append(func_name)
+                    
                 #else:      # is done by a memset
                 #    struct_init_func += "  scr->{0} = NULL;\n".format(func_name)
                 #    struct_init_len  += "  scr->{0}_len = 0;\n".format(func_name)
@@ -411,7 +417,6 @@ def convert_xml(xml_path, c_funcs):
                 c_file.write("    return GetDeviceID_updi_0;\n")
                 c_file.write("  else                                // DU, EB\n")
                 c_file.write("    return GetDeviceID_updi_1;\n}\n\n")
-
 
             c_file.write("int get_pickit_{0}_script(SCRIPT *scr, const char* partdesc)".format(lower_prog_iface) + " {\n")
             c_file.write("  if ((scr == NULL) || (partdesc == NULL)) {\n    return -1;\n  }\n")

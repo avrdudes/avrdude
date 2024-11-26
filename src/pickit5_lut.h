@@ -91,6 +91,10 @@ struct avr_script_lut {
          unsigned int  WriteSRAM_len;
   const unsigned char *ReadSRAM;
          unsigned int  ReadSRAM_len;
+  const unsigned char *WriteBootMem;
+         unsigned int  WriteBootMem_len;
+  const unsigned char *ReadBootMem;
+         unsigned int  ReadBootMem_len;
 
 };
 
