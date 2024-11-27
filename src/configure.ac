@@ -645,6 +645,12 @@ else
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_BEGIN@/,/^@HAVE_LINUXSPI_END@/d"
 fi
 
+AS_VAR_IF([enabled_linuxspi], [yes], [dnl
+  BUILDINFO_ITEM([linuxspi], [ENABLED])
+], [dnl
+  BUILDINFO_ITEM([linuxspi], [DISABLED])
+])
+
 
 # If we are compiling with gcc, enable all warnings and make warnings errors.
 ENABLE_WARNINGS=""
@@ -828,10 +834,3 @@ if test "x$enabled_linuxgpio" = xyes; then
 else
    echo "DISABLED   linuxgpio"
 fi
-
-if test "x$enabled_linuxspi" = xyes; then
-   echo "ENABLED    linuxspi"
-else
-   echo "DISABLED   linuxspi"
-fi
-

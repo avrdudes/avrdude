@@ -484,9 +484,9 @@ else()
 endif()
 
 if(HAVE_LINUXSPI)
-    message(STATUS "ENABLED    linuxspi")
+  buildinfo_item("linuxspi" "ENABLED")
 else()
-    message(STATUS "DISABLED   linuxspi")
+  buildinfo_item("linuxspi" "DISABLED")
 endif()
 
 if(HAVE_SWIG)
