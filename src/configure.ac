@@ -321,6 +321,12 @@ if test "x$have_libhidapi" = xyes; then
 fi
 AC_SUBST([LIBHIDAPI])
 
+AS_VAR_IF([have_libhidapi], [yes], [dnl
+  BUILDINFO_ITEM([libhidapi], [DO HAVE])
+], [dnl
+  BUILDINFO_ITEM([libhidapi], [DON'THAVE])
+])
+
 AH_TEMPLATE([HAVE_LIBSERIALPORT],
             [Define if libserialport is found])
 AC_CHECK_LIB([serialport], [sp_open],
@@ -776,12 +782,6 @@ if test "x$have_libhid" = xyes; then
    echo "DO HAVE    libhid"
 else
    echo "DON'T HAVE libhid"
-fi
-
-if test "x$have_libhidapi" = xyes; then
-   echo "DO HAVE    libhidapi"
-else
-   echo "DON'T HAVE libhidapi"
 fi
 
 if test "x$have_libreadline" = xyes; then

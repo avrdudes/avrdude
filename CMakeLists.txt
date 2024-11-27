@@ -423,9 +423,9 @@ else()
 endif()
 
 if(HAVE_LIBHIDAPI)
-    message(STATUS "DO HAVE    libhidapi")
+  buildinfo_item("libhidapi" "DO HAVE")
 else()
-    message(STATUS "DON'T HAVE libhidapi")
+  buildinfo_item("libhidapi" "DON'T HAVE")
 endif()
 
 if(HAVE_LIBFTDI)
