@@ -8,6 +8,8 @@ function(buildinfo_setup)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/src/buildinfo-include.c"
     "${BUILDINFO_INCLUDE_TOP}")
   string(CONCAT BUILDINFO_SUMMARY_TOP
+    "\n"
+    "\n"
     "Configuration summary:\n"
     "----------------------\n"
     "\n"
@@ -19,13 +21,13 @@ endfunction()
 
 function(buildinfo_item KEY VAL)
   cmake_parse_arguments(arg "" "" "" ${ARGN})
-  message(STATUS "BEGIN buildinfo_item")
-  message(STATUS "  K,V: ${KEY}, ${VAL}")
+  # message(STATUS "BEGIN buildinfo_item")
+  # message(STATUS "  K,V: ${KEY}, ${VAL}")
   file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/src/buildinfo-include.c"
-    "  {\"AUTO-BUIDLINFO ${KEY}\", \"${VAL}\"},\n")
+    "  {\"AUTO-BUILDINFO ${KEY}\", \"${VAL}\"},\n")
   file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/buildinfo-summary.txt"
     "  * ${KEY}: ${VAL}\n")
-  message(STATUS "END buildinfo_item")
+  # message(STATUS "END buildinfo_item")
 endfunction()
 
 function(buildinfo_output)
@@ -35,8 +37,8 @@ function(buildinfo_output)
   #file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/buildinfo-summary.txt"
   #  "\nThe End.\n")
   file(READ "${CMAKE_CURRENT_BINARY_DIR}/buildinfo-summary.txt" msg)
-  message("\n${msg}")
-  # message(STATUS "END buildinfo_output")
+  message(STATUS ${msg})
+  message(STATUS "END buildinfo_output")
 endfunction()
 
 buildinfo_setup()
