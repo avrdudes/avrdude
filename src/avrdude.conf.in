@@ -3147,7 +3147,7 @@ programmer # pickit5_dw
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 200000;   # dW default clock
+    baudrate               = 125000;   # default clock for ISP on switch
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;

@@ -522,6 +522,13 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       mem->page_size = mem->size < 1024? mem->size : 1024;
       mem->readsize = mem->size < 1024? mem->size : 1024;
     }
+    if((mem = avr_locate_eeprom(p))) {
+      if (mem->mode == 0x04) {
+        mem->page_size = 0x04;
+        mem->readsize = 0x04;
+        mem->blocksize = 0x04;
+      }
+    }
   }
   if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
     if((mem = avr_locate_flash(p))) {
@@ -1305,6 +1312,8 @@ static void pickit5_dw_switch_to_isp(const PROGRAMMER *pgm, const AVRPART *p) {
         pmsg_error("Failed switching scripts, aborting.\n");
         return;
       }
+      pmsg_notice("Switched to ISP mode");
+      pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
       pickit5_program_enable(pgm, p);
     }
   }
@@ -1607,7 +1616,7 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
         return 0; // debugWire
       }
     } else {
-      rc = -6;  // Something went wrong
+      return 0; // part has no prodsig nor ReadConfigmem
     }
   }
   if (rc >= 0) {  // No errors, copy data
