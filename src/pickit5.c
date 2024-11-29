@@ -523,10 +523,15 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       mem->readsize = mem->size < 1024? mem->size : 1024;
     }
     if((mem = avr_locate_eeprom(p))) {
-      if (mem->mode == 0x04) {
+      if (mem->mode == 0x04) {  // Increasing minimal write/read length so that the old AVRs work with PK5
         mem->page_size = 0x04;
         mem->readsize = 0x04;
         mem->blocksize = 0x04;
+      }
+    }
+    if((mem = avr_locate_calibration(p))) {
+      if(mem->size == 1) {  // any 1 byte wide calibration is also in prodsig
+        mem->offset = 1;    // add an offset to profit of the prodsig buffering
       }
     }
   }
@@ -908,7 +913,7 @@ static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
     } else if(is_updi(pgm)) {
       rc = pickit5_updi_read_byte(pgm, p, mem, addr, value);
     }
-  } else if(mem_is_in_sigrow(mem)) {
+  } else if(mem_is_in_sigrow(mem) || mem_is_calibration(mem)) { // For some weird reason this OR is needed?
     rc = pickit5_read_prodsig(pgm, p, mem, addr, 1, value);
   }
   if(rc == 0) {
