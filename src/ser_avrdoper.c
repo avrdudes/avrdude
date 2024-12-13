@@ -113,11 +113,13 @@ static int usbGetReport(const union filedescriptor *fdp, int reportType, int rep
 
   switch(reportType) {
   case USB_HID_REPORT_TYPE_INPUT:
+    buffer[0] = reportNumber;
     bytesReceived = hid_read_timeout(udev, (unsigned char *) buffer, *len, 300);
     break;
   case USB_HID_REPORT_TYPE_OUTPUT:
     break;
   case USB_HID_REPORT_TYPE_FEATURE:
+    buffer[0] = reportNumber;
     bytesReceived = hid_get_feature_report(udev, (unsigned char *) buffer, *len);
     break;
   }
