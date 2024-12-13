@@ -19,6 +19,7 @@ Changes since version 8.0:
   * Issues fixed:
 
     - Missing devices in udev rules output? #1915
+    - AVR-Doper support has been broken since version 6.4 #1626
 
   * Pull requests:
 
@@ -30,6 +31,7 @@ Changes since version 8.0:
     - Document elf2tag script #1916
     - Add AVR32EBxx parts #1932
     - Fix ATxmega fuses memory sizes #1933
+    - Fix avrdoper header sequence for hidusb #1937
 
   * Internals:
 
