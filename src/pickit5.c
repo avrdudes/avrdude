@@ -92,6 +92,8 @@ struct pdata {
 
   unsigned char dW_switched_isp;
 
+  unsigned int overwrite_flash;
+
   unsigned char devID[4];       // Last byte has the Chip Revision of the target
   unsigned char app_version[3]; // Buffer for display() sent by get_fw()
   unsigned char fw_info[16];    // Buffer for display() sent by get_fw()
@@ -276,6 +278,10 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
     if(str_starts(extended_param, "hvupdi")) {
       my.hvupdi_enabled = 1;
+      continue;
+    }
+    if(str_starts(extended_param, "f=")) {
+      sscanf(extended_param, "f=%d", &my.overwrite_flash);
       continue;
     }
 
@@ -513,14 +519,21 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
   if(is_debugwire(pgm)) {
     if((mem = avr_locate_flash(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024; // The Flash Write function needs 1600 bytes
+      mem->page_size = mem->size < 1024? mem->size : 1024; // The Flash Write function on DW needs 1600 bytes
       mem->readsize = mem->size < 1024? mem->size : 1024;  // this reduces overhead and speeds things up
     }
   }
   if(is_isp(pgm)){
     if((mem = avr_locate_flash(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024;
-      mem->readsize = mem->size < 1024? mem->size : 1024;
+      if (mem->mode != 0x04) {  // Don't change default flash settings on old AVRs
+        mem->page_size = mem->size < 1024? mem->size : 1024;
+        mem->readsize = mem->size < 1024? mem->size : 1024;
+      }
+      if(my.overwrite_flash > 0) {
+        mem->page_size = my.overwrite_flash;
+        mem->readsize = my.overwrite_flash;
+        mem->blocksize = my.overwrite_flash;
+      }
     }
     if((mem = avr_locate_eeprom(p))) {
       if (mem->mode == 0x04) {  // Increasing minimal write/read length so that the old AVRs work with PK5
@@ -577,16 +590,15 @@ static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 }
 
 static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_target) {
-  // Get SIB so we can get the NVM Version
   if(pickit5_program_enable(pgm, p) < 0)
     return -1;
   
+  // Get SIB so we can get the NVM Version
   if(pickit5_updi_read_sib(pgm, p, my.sib_string) < 0) {
       pmsg_error("failed to obtain System Info Block\n");
       return -1;
   }
   
-
   if(pickit5_read_dev_id(pgm, p) < 0) {
     pmsg_error("failed to obtain device ID\n");
     return -1;
@@ -630,6 +642,7 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
       }
     }
   }
+
   if(pickit5_set_sck_period(pgm, 1.0 / baud) >= 0) {
     pmsg_notice("UPDI speed set to %i kHz\n", baud / 1000);
     my.actual_pgm_clk = baud;
@@ -715,10 +728,14 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         return -1;              // Verify voltage
 
       // Make sure the voltage is in our requested range. Due to voltage drop on
-      // the LDO and on USB itself, the lower voltage has a wider allowed range
-      if(v_target < my.target_voltage - 0.5
-        || v_target > my.target_voltage + 0.15) {
-        pmsg_error("target voltage out of range, aborting\n");
+      // the LDO and on USB itself, the lower limit is capped at 4.4V
+      double upper_limit = my.target_voltage + 0.2;
+      double lower_limit = my.target_voltage - 0.3;
+      if (lower_limit > 4.4) {
+        lower_limit = 4.4;
+      }
+      if((v_target < lower_limit) || (v_target > upper_limit)) {
+        pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
         return -1;
       }
     } else {
@@ -788,26 +805,22 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
   if(my.pk_op_mode == PK_OP_READY) {
-    if(pickit5_send_script(pgm, SCR_CMD, enter_prog, enter_prog_len, NULL, 0, 0) < 0)
+    if(pickit5_send_script_cmd(pgm, enter_prog, enter_prog_len, NULL, 0) < 0) {
       return -1;
-
-    if(pickit5_read_response(pgm) < 0)
-      return -1;
+    }
   }
   return 0;
 }
 
 static int pickit5_program_disable(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
-  const unsigned char *enter_prog = my.scripts.ExitProgMode;
-  unsigned int enter_prog_len = my.scripts.ExitProgMode_len;
+  const unsigned char *exit_prog = my.scripts.ExitProgMode;
+  unsigned int exit_prog_len = my.scripts.ExitProgMode_len;
 
   if(my.pk_op_mode == PK_OP_READY) {
-    if(pickit5_send_script(pgm, SCR_CMD, enter_prog, enter_prog_len, NULL, 0, 0) < 0)
+    if(pickit5_send_script_cmd(pgm, exit_prog, exit_prog_len, NULL, 0) < 0) {
       return -1;
-
-    if(pickit5_read_response(pgm) < 0)
-      return -1;
+    }
   }
   return 0;
 }
@@ -822,14 +835,12 @@ static int pickit5_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   const unsigned char *chip_erase = my.scripts.EraseChip;
   unsigned int chip_erase_len = my.scripts.EraseChip_len;
 
-  if(pickit5_send_script(pgm, SCR_CMD, chip_erase, chip_erase_len, NULL, 0, 0) >= 0) {
-    if(pickit5_read_response(pgm) >= 0) {
-      if(pickit5_array_to_uint32(&(my.rxBuf[16])) == 0x00) {
-        pmsg_info("target successfully erased\n");
-        my.pk_op_mode = PK_OP_READY;
-        pickit5_program_enable(pgm, p);
-        return 0;
-      }
+  if(pickit5_send_script_cmd(pgm, chip_erase, chip_erase_len, NULL, 0) >= 0) {
+    if(pickit5_array_to_uint32(&(my.rxBuf[16])) == 0x00) {
+      pmsg_info("target successfully erased\n");
+      my.pk_op_mode = PK_OP_READY;
+      pickit5_program_enable(pgm, p);
+      return 0;
     }
   }
 
@@ -856,13 +867,12 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   const unsigned char *set_speed = my.scripts.SetSpeed;
   unsigned int set_speed_len = my.scripts.SetSpeed_len;
   unsigned char buf[4];
-  if(set_speed == NULL) {  // debugWire is fun . . .
-    return 0; // No script, to execute, return success
+  if(set_speed == NULL) {  // debugWire has no set speed, return success
+    return 0;
   }
 
   pickit5_uint32_to_array(buf, frq);
-  if(pickit5_send_script(pgm, SCR_CMD, set_speed, set_speed_len, buf, 4, 0) >= 0) {
-    if(pickit5_read_response(pgm) >= 0)
+  if(pickit5_send_script_cmd(pgm, set_speed, set_speed_len, buf, 4) >= 0) {
     return 0;
   }
 

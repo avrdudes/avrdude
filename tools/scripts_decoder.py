@@ -86,8 +86,11 @@ c_func_list = [
     "ReadBootMem",
 ]
 
-# List of MCUs that are supported by avrdude, extracted from the .conf file
-mcu_list = []
+# List of MCUs Names that are not supported by avrdude
+mcu_to_exclude = [
+    "ATA5700M322", "ATA5702M322", "ATA5782", "ATA5787", "ATA5831", "ATA5835", "ATA8210", "ATA8510", 
+    "ATtiny416auto", "AVR16DV14", "AVR16DV20", "AVR64EC48"
+]
 
 
 import platform
@@ -243,7 +246,6 @@ def convert_xml(xml_path, c_funcs):
     # Prepare directories
     parent_dir = os.getcwd()
     src_dir = os.path.join(parent_dir, "src")
-    conf_path = os.path.join(src_dir, "avrdude.conf.in")
     print("Opening file {0}".format(xml_path))
     print("Parent Dir: {0}".format(parent_dir))
     print("Src directory: {0}".format(src_dir))
@@ -252,21 +254,10 @@ def convert_xml(xml_path, c_funcs):
     # create h-File (make sure to provide all function definitions)
     generate_h_file(c_funcs, src_dir)
 
-    with open(conf_path, "r") as conf_file:
-        while True:
-            line = conf_file.readline()
-            if line == "":
-                print("List of MCUs created with {0} devices".format(len(mcu_list)))
-                break   # Exit on end of file
-            if line.startswith("part"):
-                desc = conf_file.readline().split('"', 3)[1]
-                if desc.lower().find("common") < 0:     # Skip any desc that contains the word "common"
-                    mcu_list.append(desc)
-
 
     with open(xml_path, "r") as xml_script:
         print ("XML File opened")
-        scr_bytes_buffer = bytearray(2048)   # allocate 2kB of memory in advance
+        scr_bytes_buffer = bytearray(2048)   # allocate 2kB of memory in advance, avoids memory managment
         while True:
             line = xml_script.readline()    # go line by line, hopefully reducing memory usage compared to readlines()
             if line == "":
@@ -288,11 +279,11 @@ def convert_xml(xml_path, c_funcs):
                 if programming_mode not in ["UPDI", "PDI", "dW", "ISP", "TPI", "JTAG"]:
                     continue    # Filters out "FPGA" and other edge cases
 
-                if function_name not in c_funcs:
-                    continue    # Filter out debug Functions. Do that before mcu check, as there are over 300 MCUs and less then 50 functions
-
-                if chip_name not in mcu_list:
+                if chip_name in mcu_to_exclude:
                     continue    # don't handle chips avrdude doesn't know anyway
+
+                if function_name not in c_funcs:
+                    continue    # Filter out debug Functions
 
                 func_bytes = None
                 counter = 0
@@ -326,7 +317,7 @@ def convert_xml(xml_path, c_funcs):
 
                 if chip_name not in program_iface[programming_mode]:
                     program_iface[programming_mode][chip_name] = [(function_name, index)]
-                    #print("Added to " + programming_mode + ": " + chip_name)
+                    #print("Added to " + programming_mode + ": " + chip_name)   # Debugging
                 else:
                     program_iface[programming_mode][chip_name].append((function_name, index))
                 #program_iface = {
@@ -383,16 +374,12 @@ def convert_xml(xml_path, c_funcs):
                     common_func.append(func_name)                   
                     struct_init_func += "  scr->{0} = {0}_{1}_0;\n".format(func_name, lower_prog_iface)
                     struct_init_len  += "  scr->{0}_len = sizeof({0}_{1}_0);\n".format(func_name, lower_prog_iface)
-                    
-                #else:      # is done by a memset
-                #    struct_init_func += "  scr->{0} = NULL;\n".format(func_name)
-                #    struct_init_len  += "  scr->{0}_len = 0;\n".format(func_name)
 
                 # EOFL   
                     
             
             c_file.write("\n\n\nstatic void pickit_{0}_script_init(SCRIPT *scr);\n".format(lower_prog_iface))   # declaration
-            c_file.write("static void pickit_{0}_script_init(SCRIPT *scr)".format(lower_prog_iface) + " {\n")        # definition
+            c_file.write("static void pickit_{0}_script_init(SCRIPT *scr)".format(lower_prog_iface) + " {\n")   # definition
             c_file.write("  memset(scr, 0x00, sizeof(SCRIPT));  // Make sure everything is NULL\n\n")
             c_file.write(struct_init_func)
             c_file.write("\n")              # improve readability
@@ -460,9 +447,7 @@ def convert_xml(xml_path, c_funcs):
             # End of switch case
             print("finished " + prog_iface)
 
-        
     print("c-File generated")
-    pass
 
 
 
