@@ -944,7 +944,7 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
     return -1;
   }
   addr += mem->offset;
-  pmsg_debug("%s(0x%4X, %i)\n", __func__, (unsigned) addr, value);
+  pmsg_debug("%s(addr: 0x%4X, value: %i)\n", __func__, (unsigned) addr, value);
 
   // This script is based on WriteCSreg; reduces overhead by avoiding writing data EP
   unsigned char write8_fast[] = {
@@ -972,7 +972,7 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
       return -1;
     }
     addr += mem->offset;
-    pmsg_debug("%s(0x%4X)\n", __func__, (unsigned int) addr);
+    pmsg_debug("%s(addr: 0x%4X)\n", __func__, (unsigned int) addr);
 
     unsigned char read8_fast[] = {
       0x90, 0x00, 0x00, 0x00, 0x00, 0x00, // load address (overwritten below)
@@ -1263,7 +1263,7 @@ static int pickit5_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsign
 }
 
 static int pickit5_updi_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char value) {
-  pmsg_debug("%s(%u, %i)", __func__, addr, value);
+  pmsg_debug("%s(CS Addr: %u, Value:%i)", __func__, addr, value);
   const unsigned char *write_cs = my.scripts.WriteCSreg;
   unsigned int write_cs_len = my.scripts.WriteCSreg_len;
 
@@ -1286,7 +1286,7 @@ static int pickit5_updi_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, u
 }
 
 static int pickit5_updi_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char *value) {
-  pmsg_debug("%s(%i)\n", __func__, addr);
+  pmsg_debug("%s(CS Addr: %u)", __func__, addr);
   const unsigned char *read_cs = my.scripts.ReadCSreg;
   unsigned int read_cs_len = my.scripts.ReadCSreg_len;
 
@@ -1362,58 +1362,83 @@ static void pickit5_isp_switch_to_dw(const PROGRAMMER *pgm, const AVRPART *p) {
 // doing a custom script felt easier to integrate into avrdude,
 // especially as we already have all the programming commands
 static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned char value) {
-  unsigned char write_fuse_isp [] = {
-    0x90, 0x00, 0x32, 0x00, 0x00, 0x00, // load 0x32 to r00
-    0x1E, 0x37, 0x00,                   // Enable Programming?
-    0x90, 0x01, 0x00, 0x00, 0x00, 0x00, // load programming command to r01 (set later)
-    0x1E, 0x34, 0x01,                   // Execute write command placed in r01
-  };
-  unsigned int write_fuse_isp_len = sizeof(write_fuse_isp);
+  pmsg_debug("%s(offset: %i, val: %i)", __func__, mem->offset, value);
+  
   unsigned int cmd;
   avr_set_bits(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd);
   avr_set_addr(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, mem_fuse_offset(mem));
   avr_set_input(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, value);
 
+  unsigned char write_fuse_isp [] = {
+    0x90, 0x00, 0x32, 0x00, 0x00, 0x00, // load 0x32 to r00
+    0x1E, 0x37, 0x00,                   // Enable Programming?
+    0x9F,                               // Send status byte from temp_reg to host
+    0xA8, 0x00, 0x00, 0x00, 0x00,       // ???
+    0x90, 0x01, (cmd >> 24), (cmd >> 16), (cmd >> 8), cmd, // load programming command to r01 (swapped bitorder)
+    0x1E, 0x34, 0x01,                   // Execute write command placed in r01
+  };
+  unsigned int write_fuse_isp_len = sizeof(write_fuse_isp);
+
+/*
   write_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
   write_fuse_isp[13] = (uint8_t) (cmd >> 8);
   write_fuse_isp[12] = (uint8_t) (cmd >> 16);
   write_fuse_isp[11] = (uint8_t) (cmd >> 24);
-
+*/
   if(pickit5_send_script_cmd(pgm, write_fuse_isp, write_fuse_isp_len, NULL, 0) < 0) {
     pmsg_error("Write Fuse Script failed");
+    return -1;
+  }
+  if(0x01 != my.rxBuf[20]) { // length
+    pmsg_error("Write Fuse Script did not receive a status response");
+    return -1;
+  }
+  if (0x00 != my.rxBuf[24]) {
+    pmsg_error("Failed to start fuse write operation");
     return -1;
   }
   return 1;
 }
 
 static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned long addr, unsigned char *value) {
+  pmsg_debug("%s(offset: %i)", __func__, mem->offset);
+
+  unsigned int cmd;
+  avr_set_bits(mem->op[AVR_OP_READ], (unsigned char*)&cmd);
+  avr_set_addr(mem->op[AVR_OP_READ], (unsigned char*)&cmd, addr + mem->offset);
+
+
   unsigned char read_fuse_isp [] = {    // as we pull the command from avrdude's conf file, this isn't limited to fuses
     0x90, 0x00, 0x32, 0x00, 0x00, 0x00, // load 0x32 to r00
     0x1E, 0x37, 0x00,                   // Enable Programming?
-    0x90, 0x01, 0x00, 0x00, 0x00, 0x00, // load programming command to r01 (set below)
+    0x9F,                               // Send status from temp_reg to host
+    0xA8, 0x00, 0x00, 0x00, 0x00,       // ???
+    0x90, 0x01, (cmd >> 24), (cmd >> 16), (cmd >> 8), cmd, // load programming command to r01 (swapped bitorder)
     0x9B, 0x02, 0x03,                   // load 0x03 to r02
     0x9B, 0x03, 0x00,                   // load 0x00 to r03
     0x1E, 0x35, 0x01, 0x02, 0x03,       // Execute Command placed in r01
     0x9F                                // Send data from temp_reg to host
   };
   unsigned int read_fuse_isp_len = sizeof(read_fuse_isp);
-  unsigned int cmd;
-  avr_set_bits(mem->op[AVR_OP_READ], (unsigned char*)&cmd);
-  avr_set_addr(mem->op[AVR_OP_READ], (unsigned char*)&cmd, addr + mem->offset);
   
+/*  
   read_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
   read_fuse_isp[13] = (uint8_t) (cmd >> 8);
   read_fuse_isp[12] = (uint8_t) (cmd >> 16);
   read_fuse_isp[11] = (uint8_t) (cmd >> 24);
-
+*/
   if(pickit5_send_script_cmd(pgm, read_fuse_isp, read_fuse_isp_len, NULL, 0) < 0) {
     pmsg_error("Read Fuse Script failed");
     return -1;
   }
-  if(0x01 != my.rxBuf[20]) { // length
+  if(0x02 != my.rxBuf[20]) { // length
     return -1;
   }
-  *value = my.rxBuf[24];      // return value
+  if (0x00 != my.rxBuf[24]) {
+    pmsg_error("Failed to start fuse read operation");
+    return -1;
+  }
+  *value = my.rxBuf[25];      // return value
   return 1;
 }
 
@@ -1435,6 +1460,7 @@ static int pickit5_dw_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const A
 // gave JTAG also a custom script to make integration into avrdude
 // easier. Also encodes all data in script itself instead of using paramters
 static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value) {
+  pmsg_debug("%s(offset: %i, val: %i)", __func__, mem->offset, value);
   unsigned char fuse_cmd = 0x33;  // value for lfuse
   unsigned char fuse_poll = 0x33; // value for lfuse
   if(mem_is_hfuse(mem)) {
@@ -1477,6 +1503,8 @@ static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, cons
 }
 
 static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value) {
+  pmsg_debug("%s(offset: %i)", __func__, mem->offset);
+
   unsigned char fuse_cmd = 0x33;  // value for lfuse
   if(mem_is_hfuse(mem)) {
     fuse_cmd = 0x3F;
@@ -1516,6 +1544,7 @@ static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const
 // decision tree found in the "read/write array" functions
 static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
 
   const unsigned char* write_bytes = my.scripts.WriteProgmem;
   unsigned int write_bytes_len = my.scripts.WriteProgmem_len;
@@ -1536,6 +1565,7 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
 
 static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
 
   const unsigned char* read_bytes = my.scripts.ReadProgmem;
   unsigned int read_bytes_len = my.scripts.ReadProgmem_len;
