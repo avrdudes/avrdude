@@ -637,6 +637,10 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       if (mem->mode != 0x04) {  // Don't change default flash settings on old AVRs
         mem->page_size = mem->size < 1024? mem->size : 1024;
         mem->readsize = mem->size < 1024? mem->size : 1024;
+      } else {
+        mem->page_size = 256;
+        mem->readsize = 256;
+        mem->blocksize = 256;
       }
     }
     if((mem = avr_locate_eeprom(p))) {
