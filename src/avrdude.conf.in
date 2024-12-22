@@ -3100,7 +3100,6 @@ programmer # pickit5_jtag
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 200000;   # JTAG default clock
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
@@ -3116,7 +3115,6 @@ programmer # pickit5_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 200000;   # UPDI default clock
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
     hvupdi_support         = 0, 1, 2;
@@ -3132,7 +3130,6 @@ programmer # pickit5_isp
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 125000;   # ISP default clock
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
@@ -3147,7 +3144,6 @@ programmer # pickit5_dw
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 125000;   # default clock for ISP on switch
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
@@ -3162,7 +3158,6 @@ programmer # pickit5_tpi
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 125000;   # TPI default clock
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
@@ -3177,7 +3172,6 @@ programmer # pickit5_tpi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 125000;   # PDI default clock
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;

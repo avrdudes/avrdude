@@ -634,7 +634,7 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
   if(is_isp(pgm)){
     if((mem = avr_locate_flash(p))) {
-      if (mem->mode != 0x04) {  // Don't change default flash settings on old AVRs
+      if(mem->mode != 0x04) {   // Don't change default flash settings on old AVRs
         mem->page_size = mem->size < 1024? mem->size : 1024;
         mem->readsize = mem->size < 1024? mem->size : 1024;
       } else {
@@ -644,7 +644,7 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
     if((mem = avr_locate_eeprom(p))) {
-      if (mem->mode == 0x04) {  // Increasing minimal write/read length so that the old AVRs work with PK5
+      if(mem->mode == 0x04) {   // Increasing minimal write/read length so that the old AVRs work with PK5
         mem->page_size = 0x04;
         mem->readsize = 0x04;
         mem->blocksize = 0x04;
@@ -654,6 +654,12 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       if(mem->size == 1) {  // any 1 byte wide calibration is also in prodsig
         mem->offset = 1;    // add an offset to profit of the prodsig buffering
       }
+    }
+  }
+  if(is_jtag(pgm)) {
+    if((mem = avr_locate_flash(p))) {
+      mem->page_size = mem->size < 1024? mem->size : 1024;
+      mem->readsize = mem->size < 1024? mem->size : 1024;
     }
   }
   if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
@@ -712,20 +718,7 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
     return -1;
   }
 
-  double bitclock = pgm->bitclock;
-  unsigned int baud = pgm->baudrate;
-
-  if(baud == 200000) {          // If baud unchanged
-    if(bitclock > 0.0) {
-      baud = (unsigned int) (1.0 / pgm->bitclock); // Bitclock in us
-    }
-  } else {
-    if(bitclock > 0.0) {
-      pmsg_error("both -b baudrate and -B bitclock given; please use only one, aborting\n");
-      return -1;
-    }
-  }
-
+  unsigned int baud = my.actual_pgm_clk;
   if(baud < 300) {              // Better be safe than sorry
     pmsg_warning("UPDI needs a higher clock for operation, increasing UPDI to 300 Hz\n");
     baud = 300;
@@ -739,7 +732,7 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
         pmsg_warning("requested clock %u Hz too high, limiting UPDI to 900 kHz\n", baud);
         baud = 900000;
       }
-      pickit5_set_sck_period(pgm, 1.0 / 100000);       // Start with 200 kHz
+      pickit5_set_sck_period(pgm, 1.0 / 100000);       // Start with 100 kHz
       pickit5_updi_write_cs_reg(pgm, UPDI_ASI_CTRLA, 0x01); // Change UPDI clock to 16 MHz
       unsigned char ret_val = 0;
 
@@ -756,7 +749,6 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
     my.actual_pgm_clk = baud;
   } else {
     pmsg_warning("failed to set UPDI speed, continuing\n");
-    my.actual_pgm_clk = 100000;       // Default clock?
   }
   return 1;
 }
@@ -773,19 +765,26 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   int rc = -1;
+  unsigned int default_baud;
 
   if(both_debugwire(pgm, p)) {
     rc = get_pickit_dw_script(&(my.scripts), p->desc);
+    default_baud = 125000;    // debugWire does not allow to select speed, this is for ISP mode
   } else if(both_isp(pgm, p)) {
     rc = get_pickit_isp_script(&(my.scripts), p->desc);
+    default_baud = 125000;
   } else if(both_jtag(pgm, p) || both_xmegajtag(pgm, p)) {
     rc = get_pickit_jtag_script(&(my.scripts), p->desc);
+    default_baud = 200000;
   } else if(both_updi(pgm, p)) {
     rc = get_pickit_updi_script(&(my.scripts), p->desc);
+    default_baud = 200000;
   } else if(both_tpi(pgm, p)) {
     rc = get_pickit_tpi_script(&(my.scripts), p->desc);
+    default_baud = 125000;
   } else if(both_pdi(pgm, p)) {
     rc = get_pickit_pdi_script(&(my.scripts), p->desc);
+    default_baud = 400000;
   }
 
   if(rc == -1) {
@@ -840,7 +839,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       // the LDO and on USB itself, the lower limit is capped at 4.4V
       double upper_limit = my.target_voltage + 0.2;
       double lower_limit = my.target_voltage - 0.3;
-      if (lower_limit > 4.4) {
+      if(lower_limit > 4.4) {
         lower_limit = 4.4;
       }
       if((v_target < lower_limit) || (v_target > upper_limit)) {
@@ -859,28 +858,28 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   my.pk_op_mode = PK_OP_READY;
   my.dW_switched_isp = 0;
 
+  double bitclock = pgm->bitclock;
+  unsigned int baud = pgm->baudrate;
+
+  if(baud != 0) {
+    if(bitclock != 0.0) {
+      pmsg_warning("both -b baudrate and -B bitclock given; using -b setting.\n");
+    }
+  } else if(bitclock != 0.0) {
+    baud = (unsigned int) (1.0 / pgm->bitclock); // Bitclock in us
+  } else {  // Neither set, use default
+    baud = default_baud;
+  }
+  my.actual_pgm_clk = baud;
+
   if(is_updi(pgm)) {  // UPDI got it's own init as it is well enough documented to select the
     if(pickit5_updi_init(pgm, p, v_target) < 0) {  //  CLKDIV based on the voltage and requested baud
       return -1;
     }
   } else {
-    double bitclock = pgm->bitclock;
-    unsigned int baud = pgm->baudrate;
-
-    if(baud == 125000) {          // If baud unchanged
-      if(bitclock > 0.0) {
-        baud = (unsigned int) (1.0 / pgm->bitclock); // Bitclock in us
-      }
-    } else {
-      if(bitclock > 0.0) {
-        pmsg_error("both -b baudrate and -B bitclock given; please use only one, aborting\n");
-        return -1;
-      }
-    }
 
     // JTAG __requires__ setting the speed before program enable
-    pickit5_set_sck_period(pgm, 1.0 / baud);
-    my.actual_pgm_clk = baud;
+    pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
 
     if(pickit5_program_enable(pgm, p) < 0) {
       pmsg_error("Failed to enable programming mode\n");
@@ -1059,7 +1058,7 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   };
 
   int rc = pickit5_send_script_cmd(pgm, write8_fast, sizeof(write8_fast), NULL, 0);
-  if (rc < 0) {
+  if(rc < 0) {
     return -1;
   } 
   return 1;
@@ -1084,7 +1083,7 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
     };
 
     int rc = pickit5_send_script_cmd(pgm, read8_fast, sizeof(read8_fast), NULL, 0);
-    if (rc < 0) {
+    if(rc < 0) {
       return -1;
     } else {
       *value = my.rxBuf[24];
@@ -1500,7 +1499,7 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
     pmsg_error("Write Fuse Script did not receive a status response");
     return -1;
   }
-  if (0x00 != my.rxBuf[24]) {
+  if(0x00 != my.rxBuf[24]) {
     pmsg_error("Failed to start fuse write operation(%d)", my.rxBuf[24]);
     return -1;
   }
@@ -1542,7 +1541,7 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
     pmsg_error("Unexpected amount (%d) of bytes returned.", my.rxBuf[20]);
     return -1;
   }
-  if (0x00 != my.rxBuf[24]) {
+  if(0x00 != my.rxBuf[24]) {
     pmsg_error("Failed to start fuse read operation (%d)", my.rxBuf[24]);
     return -1;
   }
@@ -1700,10 +1699,10 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
   int rc = 0;
 
   AVRMEM *prodsig = avr_locate_prodsig(p);
-  if (prodsig == NULL) {
+  if(prodsig == NULL) {
     return 0;  // no prodsig on this device, try again in read_array
   }
-  if (mem->offset < prodsig->offset || 
+  if(mem->offset < prodsig->offset || 
     (mem->offset + mem->size) > (prodsig->offset) + (prodsig->size)) {
     return 0;  // Requested memory not in prodsig, try again in read_array
   }
@@ -1711,7 +1710,7 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
   int max_mem_len = sizeof(my.prodsig);  // Current devices have not more than 128 bytes
   unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len; 
 
-  if ((addr + len) > mem_len) {
+  if((addr + len) > mem_len) {
     pmsg_warning("Requested memory is outside of the progsig on the device");
     return 0;
   }
@@ -1719,7 +1718,7 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
   unsigned int prod_addr = addr + mem->offset - prodsig->offset;  // adjust offset
 
   if(prod_addr == 0x00 || (my.prod_sig_len == 0x00)) { // update buffer
-    if (my.scripts.ReadConfigmem != NULL) {
+    if(my.scripts.ReadConfigmem != NULL) {
       unsigned char param_buf[8];
       pickit5_uint32_to_array(&param_buf[0], prodsig->offset);
       pickit5_uint32_to_array(&param_buf[4], mem_len);
@@ -1772,9 +1771,9 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
       return 0; // part has no prodsig nor ReadConfigmem
     }
   }
-  if (rc >= 0) {  // No errors, copy data
+  if(rc >= 0) {  // No errors, copy data
     my.prod_sig_len = mem_len;
-    if (len == 1) {
+    if(len == 1) {
       *value = my.prodsig[prod_addr];
     } else {
       memcpy(value, &my.prodsig[prod_addr], len);
