@@ -81,16 +81,8 @@ struct avr_script_lut {
          unsigned int  ReadSIB_len;
   const unsigned char *switchtoISP;
          unsigned int  switchtoISP_len;
-  const unsigned char *ReadMemIO;
-         unsigned int  ReadMemIO_len;
-  const unsigned char *WriteMemIO;
-         unsigned int  WriteMemIO_len;
   const unsigned char *ReadCalibrationByte;
          unsigned int  ReadCalibrationByte_len;
-  const unsigned char *WriteSRAM;
-         unsigned int  WriteSRAM_len;
-  const unsigned char *ReadSRAM;
-         unsigned int  ReadSRAM_len;
   const unsigned char *WriteBootMem;
          unsigned int  WriteBootMem_len;
   const unsigned char *ReadBootMem;

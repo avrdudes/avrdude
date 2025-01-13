@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -201,8 +202,8 @@ static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr
 
 
 // Extra-USB related functions, because we need more then 2 endpoints
-static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
-static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
+static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
+static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
 
 inline static void pickit5_uint32_to_array(unsigned char *buf, uint32_t num) {
   *(buf++) = (uint8_t) num;
@@ -446,7 +447,7 @@ static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr
   if(pickit5_read_response(pgm) < 0) {
     return -2;
   }
-  if(usbdev_data_send(&pgm->fd, send_buf, send_len) < 0) {
+  if(usbdev_bulk_send(&pgm->fd, send_buf, send_len) < 0) {
     pmsg_error("Transmission failed on the data channel\n");
     return -3;
   }
@@ -474,7 +475,7 @@ static int pickit5_upload_data(const PROGRAMMER *pgm, const unsigned char *scr, 
   if(pickit5_read_response(pgm) < 0) {
     return -2;
   }
-  if(usbdev_data_recv(&pgm->fd, recv_buf, recv_len) < 0) {
+  if(usbdev_bulk_recv(&pgm->fd, recv_buf, recv_len) < 0) {
     pmsg_error("reading data memory failed\n");
     return -3;
   }
@@ -656,10 +657,10 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
   }
-  if(is_jtag(pgm)) {
+  if(both_jtag(pgm, p)) {
     if((mem = avr_locate_flash(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024;
-      mem->readsize = mem->size < 1024? mem->size : 1024;
+      mem->page_size = mem->size < 512? mem->size : 512;
+      mem->readsize = mem->size < 512? mem->size : 512;
     }
   }
   if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
@@ -1132,14 +1133,10 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   } else if(mem_is_boot(mem) && my.scripts.WriteBootMem != NULL) {
     write_bytes     = my.scripts.WriteBootMem;
     write_bytes_len = my.scripts.WriteBootMem_len;
-  } else if(mem_is_io(mem) && my.scripts.WriteMemIO != NULL) {
-    write_bytes     = my.scripts.WriteMemIO;
-    write_bytes_len = my.scripts.WriteMemIO_len;
   } else if(mem_is_eeprom(mem) && my.scripts.WriteDataEEmem != NULL) {
     write_bytes     = my.scripts.WriteDataEEmem;
     write_bytes_len = my.scripts.WriteDataEEmem_len;
-  } else if((mem_is_a_fuse(mem) || mem_is_in_fuses(mem)) 
-            && my.scripts.WriteConfigmemFuse != NULL) {
+  } else if((mem_is_a_fuse(mem) || mem_is_in_fuses(mem)) && my.scripts.WriteConfigmemFuse != NULL) {
     write_bytes     = my.scripts.WriteConfigmemFuse;
     write_bytes_len = my.scripts.WriteConfigmemFuse_len;
   } else if(mem_is_lock(mem) && my.scripts.WriteConfigmemLock != NULL) {
@@ -1161,6 +1158,9 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
 
 
   addr += mem->offset;
+  if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
+    addr /= 2;  
+  }
 
   unsigned char param[8];
   pickit5_uint32_to_array(&param[0], addr);
@@ -1217,13 +1217,10 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   } else if(mem_is_calibration(mem) && my.scripts.ReadCalibrationByte != NULL) {
     read_bytes      = my.scripts.ReadCalibrationByte;
     read_bytes_len  = my.scripts.ReadCalibrationByte_len;
-  } else if(mem_is_io(mem) && my.scripts.ReadMemIO != NULL) {
-    read_bytes      = my.scripts.ReadMemIO;
-    read_bytes_len  = my.scripts.ReadMemIO_len;
   } else if(mem_is_eeprom(mem) && my.scripts.ReadDataEEmem != NULL) {
     read_bytes      = my.scripts.ReadDataEEmem;
     read_bytes_len  = my.scripts.ReadDataEEmem_len;
-  } else if(mem_is_a_fuse(mem) && my.scripts.ReadConfigmemFuse != NULL) {
+  } else if((mem_is_a_fuse(mem) || mem_is_in_fuses(mem)) && my.scripts.ReadConfigmemFuse != NULL) {
     read_bytes      = my.scripts.ReadConfigmemFuse;
     read_bytes_len  = my.scripts.ReadConfigmemFuse_len;
   } else if(mem_is_lock(mem) && my.scripts.ReadConfigmemLock != NULL) {
@@ -1241,8 +1238,7 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
       return 32;
     }
     return -1;
-  } else if((mem_is_in_sigrow(mem) || mem_is_user_type(mem) || mem_is_a_fuse(mem))
-            && my.scripts.ReadConfigmem != NULL) {
+  } else if((mem_is_in_sigrow(mem) || mem_is_user_type(mem)) && my.scripts.ReadConfigmem != NULL) {
     read_bytes      = my.scripts.ReadConfigmem;
     read_bytes_len  = my.scripts.ReadConfigmem_len;
   } else if(!mem_is_readonly(mem)) { // SRAM, IO, LOCK, USERROW
@@ -1261,6 +1257,9 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   }
 
   addr += mem->offset;
+  if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
+    addr /= 2;  
+  }
   unsigned char param[8];
 
   pickit5_uint32_to_array(&param[0], addr);
@@ -1934,23 +1933,9 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   This functions are hardcoded on the Pickit endpoint numbers
 */
 #if defined(HAVE_USB_H)
-static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer) {
-  int rv = (use_interrupt_xfer? usb_interrupt_read: usb_bulk_read)(fd->usb.handle, ep, cx->usb_buf,
-    maxsize, 10000);
 
-  if(rv < 0) {
-    pmsg_notice2("%s(): usb_%s_read() error: %s\n", __func__,
-      use_interrupt_xfer? "interrupt": "bulk", usb_strerror());
-    return -1;
-  }
 
-  cx->usb_buflen = rv;
-  cx->usb_bufptr = 0;
-
-  return 0;
-}
-
-static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
+static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   int i, amnt;
   unsigned char *p = buf;
 
@@ -1959,9 +1944,17 @@ static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, 
 
   for(i = 0; nbytes > 0;) {
     if(cx->usb_buflen <= cx->usb_bufptr) {
-      if(usb_fill_buf(fd, fd->usb.max_xfer, USB_PK5_DATA_READ_EP, fd->usb.use_interrupt_xfer) < 0)
+      int rv = usb_bulk_read(fd->usb.handle, USB_PK5_DATA_READ_EP, cx->usb_buf, fd->usb.max_xfer, 10000);
+      
+      if(rv < 0) {
+        pmsg_notice2("%s(): usb_bulk_read() error: %s\n", __func__, usb_strerror());
         return -1;
+      }
+
+      cx->usb_buflen = rv;
+      cx->usb_bufptr = 0;
     }
+
     amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
     memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
     cx->usb_bufptr += amnt;
@@ -1975,11 +1968,10 @@ static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, 
   return 0;
 }
 
-static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
+static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   int rv;
-  int i = mlen;
   const unsigned char *p = bp;
-  int tx_size;
+  int tx_size, i = 0;
 
   if(fd->usb.handle == NULL)
     return -1;
@@ -1992,22 +1984,22 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
    */
   do {
     tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
-    if(fd->usb.use_interrupt_xfer)
-      rv = usb_interrupt_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *) bp, tx_size, 10000);
-    else
-      rv = usb_bulk_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *) bp, tx_size, 10000);
+
+    rv = usb_bulk_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *) bp, tx_size, 10000);
     if(rv != tx_size) {
       pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
       return -1;
     }
     bp += tx_size;
     mlen -= tx_size;
+    i += tx_size;
   } while(mlen > 0);
 
   if(verbose > 3)
     trace_buffer(__func__, p, i);
   return 0;
 }
+
 #else
 
 /*
@@ -2016,11 +2008,11 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
  * This does not seem to be possible with usbhid
  */
 
-static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
+static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   return -1;
 }
 
-static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
+static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   return -1;
 }
 #endif

@@ -1258,26 +1258,6 @@ const unsigned char ReadConfigmem_jtag_0[106] = {
   0x06, 0xc4, 0x01, 0x00, 0x01, 0x1e, 0x06, 0x06, 0x0b, 0x5a, 
 };
 
-const unsigned char WriteSRAM_jtag_0[70] = {  
-  0x91, 0x00, 0x91, 0x01, 0x90, 0x07, 0x00, 0x00, 0x00, 0x00, 0x90, 0x03, 0x00, 0x00, 0x01, 0x00, 
-  0xfa, 0x01, 0x03, 0x1b, 0x00, 0x60, 0x04, 0x01, 0xfb, 0x21, 0x00, 0x90, 0x04, 0x00, 0x00, 0x01, 
-  0x00, 0x6a, 0x01, 0x04, 0x90, 0x02, 0xca, 0x01, 0x00, 0x01, 0x90, 0x03, 0x00, 0x00, 0x00, 0x00, 
-  0x1e, 0x06, 0x02, 0x03, 0x1e, 0x09, 0x00, 0x1e, 0x10, 0x04, 0x1e, 0x0a, 0x04, 0x6e, 0x00, 0x04, 
-  0xfc, 0x01, 0x07, 0x0a, 0x00, 0x5a, 
-};
-
-const unsigned char ReadSRAM_jtag_0[130] = {  
-  0x91, 0x00, 0x91, 0x01, 0x95, 0x90, 0x04, 0xc0, 0x01, 0x00, 0x00, 0x90, 0x05, 0x00, 0x00, 0x00, 
-  0x00, 0xfc, 0x04, 0x05, 0x26, 0x00, 0xad, 0x01, 0x1e, 0x03, 0x00, 0x9f, 0x92, 0x00, 0x01, 0x00, 
-  0x00, 0x00, 0xae, 0xfb, 0x81, 0x00, 0x90, 0x06, 0xca, 0x01, 0x00, 0x01, 0x1e, 0x03, 0x06, 0x6c, 
-  0x0a, 0x90, 0x06, 0xc4, 0x01, 0x00, 0x01, 0x1e, 0x03, 0x06, 0x6c, 0x0b, 0x90, 0x07, 0x00, 0x00, 
-  0x00, 0x00, 0x90, 0x03, 0x00, 0x00, 0x01, 0x00, 0xfa, 0x01, 0x03, 0x53, 0x00, 0x60, 0x04, 0x01, 
-  0xfb, 0x59, 0x00, 0x90, 0x04, 0x00, 0x00, 0x01, 0x00, 0x6a, 0x01, 0x04, 0x1e, 0x09, 0x00, 0x1e, 
-  0x10, 0x04, 0x1e, 0x0c, 0x04, 0x6e, 0x00, 0x04, 0xfc, 0x01, 0x07, 0x42, 0x00, 0x90, 0x06, 0xca, 
-  0x01, 0x00, 0x01, 0x1e, 0x06, 0x06, 0x0a, 0x90, 0x06, 0xc4, 0x01, 0x00, 0x01, 0x1e, 0x06, 0x06, 
-  0x0b, 0x5a, 
-};
-
 const unsigned char WriteCSreg_jtag_0[8] = {  
   0x99, 0x00, 0x99, 0x01, 0x1e, 0x0f, 0x00, 0x01, 
 };
@@ -1294,32 +1274,28 @@ static void pickit_jtag_script_init(SCRIPT *scr) {
   memset(scr, 0x00, sizeof(SCRIPT));  // Make sure everything is NULL
 
   scr->ReadCalibrationByte = ReadCalibrationByte_jtag_0;
-  scr->WriteSRAM = WriteSRAM_jtag_0;
-  scr->ReadSRAM = ReadSRAM_jtag_0;
   scr->WriteCSreg = WriteCSreg_jtag_0;
   scr->ReadCSreg = ReadCSreg_jtag_0;
 
   scr->ReadCalibrationByte_len = sizeof(ReadCalibrationByte_jtag_0);
-  scr->WriteSRAM_len = sizeof(WriteSRAM_jtag_0);
-  scr->ReadSRAM_len = sizeof(ReadSRAM_jtag_0);
   scr->WriteCSreg_len = sizeof(WriteCSreg_jtag_0);
   scr->ReadCSreg_len = sizeof(ReadCSreg_jtag_0);
 }
 
 
 const char * const pickit5_jtag_chip_lut[] = {  
-      "AT90CAN128",      "AT90CAN32",      "AT90CAN64",    "AT90USB1286",    "AT90USB1287",     "AT90USB646",     "AT90USB647",      "ATmega128", 
-      "ATmega1280",     "ATmega1281",     "ATmega1284",    "ATmega1284P", "ATmega1284RFR2",     "ATmega128A",  "ATmega128RFA1",  "ATmega128RFR2", 
-        "ATmega16",      "ATmega162",     "ATmega164A",     "ATmega164P",    "ATmega164PA",     "ATmega165A",     "ATmega165P",    "ATmega165PA", 
-      "ATmega169A",     "ATmega169P",    "ATmega169PA",      "ATmega16A",     "ATmega16U4",     "ATmega2560",     "ATmega2561", "ATmega2564RFR2", 
-   "ATmega256RFR2",       "ATmega32",     "ATmega324A",     "ATmega324P",    "ATmega324PA",    "ATmega324PB",      "ATmega325",     "ATmega3250", 
-     "ATmega3250A",    "ATmega3250P",   "ATmega3250PA",     "ATmega325A",     "ATmega325P",    "ATmega325PA",      "ATmega329",     "ATmega3290", 
-     "ATmega3290A",    "ATmega3290P",   "ATmega3290PA",     "ATmega329A",     "ATmega329P",    "ATmega329PA",      "ATmega32A",     "ATmega32U4", 
-       "ATmega406",       "ATmega64",      "ATmega640",      "ATmega644",     "ATmega644A",     "ATmega644P",    "ATmega644PA",  "ATmega644RFR2", 
-       "ATmega645",     "ATmega6450",    "ATmega6450A",    "ATmega6450P",     "ATmega645A",     "ATmega645P",      "ATmega649",     "ATmega6490", 
-     "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",   "ATmega64RFR2",   "ATxmega128A1",  "ATxmega128A1U", 
-    "ATxmega128A3",  "ATxmega128A3U",   "ATxmega192A3",  "ATxmega192A3U",   "ATxmega256A3",  "ATxmega256A3B", "ATxmega256A3BU",  "ATxmega256A3U", 
-     "ATxmega64A1",   "ATxmega64A1U",    "ATxmega64A3",   "ATxmega64A3U",   "ATxmega128B1",   "ATxmega128B3",    "ATxmega64B1",    "ATxmega64B3", 
+       "AT90CAN128",      "AT90CAN32",      "AT90CAN64",    "AT90USB1286",    "AT90USB1287",     "AT90USB646",     "AT90USB647",      "ATmega128",
+       "ATmega1280",     "ATmega1281",     "ATmega1284",    "ATmega1284P", "ATmega1284RFR2",     "ATmega128A",  "ATmega128RFA1",  "ATmega128RFR2",
+         "ATmega16",      "ATmega162",     "ATmega164A",     "ATmega164P",    "ATmega164PA",     "ATmega165A",     "ATmega165P",    "ATmega165PA",
+       "ATmega169A",     "ATmega169P",    "ATmega169PA",      "ATmega16A",     "ATmega16U4",     "ATmega2560",     "ATmega2561", "ATmega2564RFR2",
+    "ATmega256RFR2",       "ATmega32",     "ATmega324A",     "ATmega324P",    "ATmega324PA",    "ATmega324PB",      "ATmega325",     "ATmega3250",
+      "ATmega3250A",    "ATmega3250P",   "ATmega3250PA",     "ATmega325A",     "ATmega325P",    "ATmega325PA",      "ATmega329",     "ATmega3290",
+      "ATmega3290A",    "ATmega3290P",   "ATmega3290PA",     "ATmega329A",     "ATmega329P",    "ATmega329PA",      "ATmega32A",     "ATmega32U4",
+        "ATmega406",       "ATmega64",      "ATmega640",      "ATmega644",     "ATmega644A",     "ATmega644P",    "ATmega644PA",  "ATmega644RFR2",
+        "ATmega645",     "ATmega6450",    "ATmega6450A",    "ATmega6450P",     "ATmega645A",     "ATmega645P",      "ATmega649",     "ATmega6490",
+      "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",   "ATmega64RFR2",   "ATxmega128A1",  "ATxmega128A1U",
+     "ATxmega128A3",  "ATxmega128A3U",   "ATxmega192A3",  "ATxmega192A3U",   "ATxmega256A3",  "ATxmega256A3B", "ATxmega256A3BU",  "ATxmega256A3U",
+      "ATxmega64A1",   "ATxmega64A1U",    "ATxmega64A3",   "ATxmega64A3U",   "ATxmega128B1",   "ATxmega128B3",    "ATxmega64B1",    "ATxmega64B3",
 };
 
 int get_pickit_jtag_script(SCRIPT *scr, const char* partdesc) {
@@ -1328,7 +1304,7 @@ int get_pickit_jtag_script(SCRIPT *scr, const char* partdesc) {
   }
   int namepos = -1;
   for (int i = 0; i < 96; i++) {
-    if (strncmp(pickit5_jtag_chip_lut[i], partdesc, 10) == 0) {
+    if (strcmp(pickit5_jtag_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
     }

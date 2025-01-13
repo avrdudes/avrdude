@@ -73,15 +73,15 @@ c_func_list = [
 
     # Added from dW
     "switchtoISP",
-    "ReadMemIO",
-    "WriteMemIO",
+    #"ReadMemIO",
+    #"WriteMemIO",
 
     # Added from ISP
     "ReadCalibrationByte",
 
     # Added from JTAG/PDI
-    "WriteSRAM",
-    "ReadSRAM",
+    #"WriteSRAM",   # Is a duplicate of WriteMem8
+    #"ReadSRAM",
     "WriteBootMem",
     "ReadBootMem",
 ]
@@ -89,7 +89,7 @@ c_func_list = [
 # List of MCUs Names that are not supported by avrdude
 mcu_to_exclude = [
     "ATA5700M322", "ATA5702M322", "ATA5782", "ATA5787", "ATA5831", "ATA5835", "ATA8210", "ATA8510", 
-    "ATtiny416auto", "AVR16DV14", "AVR16DV20", "AVR64EC48"
+    "ATtiny416auto", "AVR16DV14", "AVR16DV20"
 ]
 
 
@@ -195,11 +195,16 @@ def find_xml():
     for root, dirs, files in os.walk(home_dir_A):
         for name in files:
             if fnmatch.fnmatch(name, "scripts.xml"):
-                result.append(os.path.join(root, name))
+                file_path = os.path.join(root, name)
+                result.append((os.path.getctime(file_path), file_path))
 
     print("List of scripts.xml files:")
     print(result)
-    return result[-1]
+    time, path = 0, ""
+    for t, p in result:
+        if t > time:
+            time, path = t, p
+    return path
     # EOF
 
 
@@ -392,7 +397,7 @@ def convert_xml(xml_path, c_funcs):
                 if (iter % 8 == 0):
                     c_file.write(chip_line)                     # new line after 8 Chips
                     chip_line = "\n  "
-                chip_line += "{0:>16}, ".format( '"' + chip_name + '"')      # and generate String
+                chip_line += "{0:>17},".format( '"' + chip_name + '"')      # and generate String
             c_file.write(chip_line + "\n};\n\n")                # complete array
 
 
@@ -409,7 +414,7 @@ def convert_xml(xml_path, c_funcs):
             c_file.write("  if ((scr == NULL) || (partdesc == NULL)) {\n    return -1;\n  }\n")
             c_file.write("  int namepos = -1;\n")
             c_file.write("  for (int i = 0; i < {0}; i++)".format(len(prog_mcu_list.keys())) + " {\n")
-            c_file.write("    if (strncmp(pickit5_{0}_chip_lut[i], partdesc, 10) == 0)".format(lower_prog_iface) + " {\n")
+            c_file.write("    if (strcmp(pickit5_{0}_chip_lut[i], partdesc) == 0)".format(lower_prog_iface) + " {\n")
             c_file.write("      namepos = i;\n      break;\n    }\n  }\n")
             c_file.write("  if (namepos == -1) {\n    return -2;\n  }\n\n")
             c_file.write("  pickit_{0}_script_init(scr);   // load common functions\n\n".format(lower_prog_iface))

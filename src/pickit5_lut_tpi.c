@@ -151,7 +151,7 @@ static void pickit_tpi_script_init(SCRIPT *scr) {
 
 
 const char * const pickit5_tpi_chip_lut[] = {  
-        "ATtiny10",      "ATtiny102",      "ATtiny104",       "ATtiny20",        "ATtiny4",       "ATtiny40",        "ATtiny5",        "ATtiny9", 
+         "ATtiny10",      "ATtiny102",      "ATtiny104",       "ATtiny20",        "ATtiny4",       "ATtiny40",        "ATtiny5",        "ATtiny9",
 };
 
 int get_pickit_tpi_script(SCRIPT *scr, const char* partdesc) {
@@ -160,7 +160,7 @@ int get_pickit_tpi_script(SCRIPT *scr, const char* partdesc) {
   }
   int namepos = -1;
   for (int i = 0; i < 8; i++) {
-    if (strncmp(pickit5_tpi_chip_lut[i], partdesc, 10) == 0) {
+    if (strcmp(pickit5_tpi_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
     }

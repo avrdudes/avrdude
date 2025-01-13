@@ -2454,22 +2454,22 @@ const unsigned char WriteConfigmemFuse_isp_2[71] = {
   0x92, 0x03, 0x01, 0x00, 0x00, 0x00, 0xae, 
 };
 
-const unsigned char WriteConfigmemLock_isp_0[40] = {  
-  0x91, 0x05, 0x91, 0x06, 0x9b, 0x00, 0x00, 0x9b, 0x0c, 0x32, 0x1e, 0x37, 0x0c, 0x6c, 0x0d, 0x9b, 
-  0x0c, 0x00, 0xfc, 0x0d, 0x0c, 0x25, 0x00, 0x66, 0x00, 0x00, 0xff, 0xff, 0xff, 0x99, 0x0c, 0x7c, 
-  0x00, 0x0c, 0x1e, 0x34, 0x00, 0x94, 0x0a, 0x00, 
+const unsigned char WriteConfigmemLock_isp_0[43] = {  
+  0x91, 0x05, 0x91, 0x06, 0x90, 0x00, 0x00, 0x00, 0xe0, 0xac, 0x9b, 0x0c, 0x32, 0x1e, 0x37, 0x0c, 
+  0x6c, 0x0d, 0x9b, 0x0c, 0x00, 0xfc, 0x0d, 0x0c, 0x28, 0x00, 0x66, 0x00, 0x00, 0xff, 0xff, 0xff, 
+  0x99, 0x0c, 0x7c, 0x00, 0x0c, 0x1e, 0x34, 0x00, 0x94, 0x0a, 0x00, 
 };
 
-const unsigned char WriteConfigmemLock_isp_1[40] = {  
-  0x91, 0x05, 0x91, 0x06, 0x9b, 0x00, 0x00, 0x9b, 0x0c, 0x32, 0x1e, 0x37, 0x0c, 0x6c, 0x0d, 0x9b, 
-  0x0c, 0x00, 0xfc, 0x0d, 0x0c, 0x25, 0x00, 0x66, 0x00, 0x00, 0xff, 0xff, 0xff, 0x99, 0x0c, 0x7c, 
-  0x00, 0x0c, 0x1e, 0x34, 0x00, 0x94, 0x06, 0x00, 
+const unsigned char WriteConfigmemLock_isp_1[43] = {  
+  0x91, 0x05, 0x91, 0x06, 0x90, 0x00, 0x00, 0x00, 0xe0, 0xac, 0x9b, 0x0c, 0x32, 0x1e, 0x37, 0x0c, 
+  0x6c, 0x0d, 0x9b, 0x0c, 0x00, 0xfc, 0x0d, 0x0c, 0x28, 0x00, 0x66, 0x00, 0x00, 0xff, 0xff, 0xff, 
+  0x99, 0x0c, 0x7c, 0x00, 0x0c, 0x1e, 0x34, 0x00, 0x94, 0x06, 0x00, 
 };
 
-const unsigned char WriteConfigmemLock_isp_2[40] = {  
-  0x91, 0x05, 0x91, 0x06, 0x9b, 0x00, 0x00, 0x9b, 0x0c, 0x32, 0x1e, 0x37, 0x0c, 0x6c, 0x0d, 0x9b, 
-  0x0c, 0x00, 0xfc, 0x0d, 0x0c, 0x25, 0x00, 0x66, 0x00, 0x00, 0xff, 0xff, 0xff, 0x99, 0x0c, 0x7c, 
-  0x00, 0x0c, 0x1e, 0x34, 0x00, 0x94, 0x32, 0x00, 
+const unsigned char WriteConfigmemLock_isp_2[43] = {  
+  0x91, 0x05, 0x91, 0x06, 0x90, 0x00, 0x00, 0x00, 0xe0, 0xac, 0x9b, 0x0c, 0x32, 0x1e, 0x37, 0x0c, 
+  0x6c, 0x0d, 0x9b, 0x0c, 0x00, 0xfc, 0x0d, 0x0c, 0x28, 0x00, 0x66, 0x00, 0x00, 0xff, 0xff, 0xff, 
+  0x99, 0x0c, 0x7c, 0x00, 0x0c, 0x1e, 0x34, 0x00, 0x94, 0x32, 0x00, 
 };
 
 const unsigned char ReadConfigmemFuse_isp_0[66] = {  
@@ -2524,26 +2524,26 @@ static void pickit_isp_script_init(SCRIPT *scr) {
 
 
 const char * const pickit5_isp_chip_lut[] = {  
-      "AT90CAN128",      "AT90CAN32",      "AT90CAN64",       "AT90PWM1",     "AT90PWM161",     "AT90PWM216",      "AT90PWM2B",       "AT90PWM3", 
-      "AT90PWM316",      "AT90PWM3B",      "AT90PWM81",    "AT90USB1286",    "AT90USB1287",     "AT90USB162",     "AT90USB646",     "AT90USB647", 
-       "AT90USB82",      "ATmega128",     "ATmega1280",     "ATmega1281",     "ATmega1284",    "ATmega1284P", "ATmega1284RFR2",     "ATmega128A", 
-   "ATmega128RFA1",  "ATmega128RFR2",       "ATmega16",      "ATmega162",     "ATmega164A",     "ATmega164P",    "ATmega164PA",     "ATmega165A", 
-      "ATmega165P",    "ATmega165PA",      "ATmega168",     "ATmega168A",     "ATmega168P",    "ATmega168PA",    "ATmega168PB",     "ATmega169A", 
-      "ATmega169P",    "ATmega169PA",      "ATmega16A",    "ATmega16HVA",    "ATmega16HVB", "ATmega16HVBrevB",     "ATmega16M1",     "ATmega16U2", 
-      "ATmega16U4",     "ATmega2560",     "ATmega2561", "ATmega2564RFR2",  "ATmega256RFR2",       "ATmega32",     "ATmega324A",     "ATmega324P", 
-     "ATmega324PA",    "ATmega324PB",      "ATmega325",     "ATmega3250",    "ATmega3250A",    "ATmega3250P",   "ATmega3250PA",     "ATmega325A", 
-      "ATmega325P",    "ATmega325PA",      "ATmega328",     "ATmega328P",    "ATmega328PB",      "ATmega329",     "ATmega3290",    "ATmega3290A", 
-     "ATmega3290P",   "ATmega3290PA",     "ATmega329A",     "ATmega329P",    "ATmega329PA",      "ATmega32A",     "ATmega32C1",    "ATmega32HVB", 
-  "ATmega32HVBrevB",     "ATmega32M1",     "ATmega32U2",     "ATmega32U4",       "ATmega48",      "ATmega48A",      "ATmega48P",     "ATmega48PA", 
-      "ATmega48PB",       "ATmega64",      "ATmega640",      "ATmega644",     "ATmega644A",     "ATmega644P",    "ATmega644PA",  "ATmega644RFR2", 
-       "ATmega645",     "ATmega6450",    "ATmega6450A",    "ATmega6450P",     "ATmega645A",     "ATmega645P",      "ATmega649",     "ATmega6490", 
-     "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",     "ATmega64C1",   "ATmega64HVE2",     "ATmega64M1", 
-    "ATmega64RFR2",        "ATmega8",     "ATmega8515",     "ATmega8535",       "ATmega88",      "ATmega88A",      "ATmega88P",     "ATmega88PA", 
-      "ATmega88PB",       "ATmega8A",     "ATmega8HVA",      "ATmega8U2",       "ATtiny12",       "ATtiny13",      "ATtiny13A",       "ATtiny15", 
-      "ATtiny1634",      "ATtiny167",     "ATtiny2313",    "ATtiny2313A",       "ATtiny24",      "ATtiny24A",       "ATtiny25",       "ATtiny26", 
-       "ATtiny261",     "ATtiny261A",     "ATtiny4313",      "ATtiny43U",       "ATtiny44",      "ATtiny441",      "ATtiny44A",       "ATtiny45", 
-       "ATtiny461",     "ATtiny461A",       "ATtiny48",      "ATtiny828",       "ATtiny84",      "ATtiny841",      "ATtiny84A",       "ATtiny85", 
-       "ATtiny861",     "ATtiny861A",       "ATtiny87",       "ATtiny88", 
+       "AT90CAN128",      "AT90CAN32",      "AT90CAN64",       "AT90PWM1",     "AT90PWM161",     "AT90PWM216",      "AT90PWM2B",       "AT90PWM3",
+       "AT90PWM316",      "AT90PWM3B",      "AT90PWM81",    "AT90USB1286",    "AT90USB1287",     "AT90USB162",     "AT90USB646",     "AT90USB647",
+        "AT90USB82",      "ATmega128",     "ATmega1280",     "ATmega1281",     "ATmega1284",    "ATmega1284P", "ATmega1284RFR2",     "ATmega128A",
+    "ATmega128RFA1",  "ATmega128RFR2",       "ATmega16",      "ATmega162",     "ATmega164A",     "ATmega164P",    "ATmega164PA",     "ATmega165A",
+       "ATmega165P",    "ATmega165PA",      "ATmega168",     "ATmega168A",     "ATmega168P",    "ATmega168PA",    "ATmega168PB",     "ATmega169A",
+       "ATmega169P",    "ATmega169PA",      "ATmega16A",    "ATmega16HVA",    "ATmega16HVB","ATmega16HVBrevB",     "ATmega16M1",     "ATmega16U2",
+       "ATmega16U4",     "ATmega2560",     "ATmega2561", "ATmega2564RFR2",  "ATmega256RFR2",       "ATmega32",     "ATmega324A",     "ATmega324P",
+      "ATmega324PA",    "ATmega324PB",      "ATmega325",     "ATmega3250",    "ATmega3250A",    "ATmega3250P",   "ATmega3250PA",     "ATmega325A",
+       "ATmega325P",    "ATmega325PA",      "ATmega328",     "ATmega328P",    "ATmega328PB",      "ATmega329",     "ATmega3290",    "ATmega3290A",
+      "ATmega3290P",   "ATmega3290PA",     "ATmega329A",     "ATmega329P",    "ATmega329PA",      "ATmega32A",     "ATmega32C1",    "ATmega32HVB",
+  "ATmega32HVBrevB",     "ATmega32M1",     "ATmega32U2",     "ATmega32U4",       "ATmega48",      "ATmega48A",      "ATmega48P",     "ATmega48PA",
+       "ATmega48PB",       "ATmega64",      "ATmega640",      "ATmega644",     "ATmega644A",     "ATmega644P",    "ATmega644PA",  "ATmega644RFR2",
+        "ATmega645",     "ATmega6450",    "ATmega6450A",    "ATmega6450P",     "ATmega645A",     "ATmega645P",      "ATmega649",     "ATmega6490",
+      "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",     "ATmega64C1",   "ATmega64HVE2",     "ATmega64M1",
+     "ATmega64RFR2",        "ATmega8",     "ATmega8515",     "ATmega8535",       "ATmega88",      "ATmega88A",      "ATmega88P",     "ATmega88PA",
+       "ATmega88PB",       "ATmega8A",     "ATmega8HVA",      "ATmega8U2",       "ATtiny12",       "ATtiny13",      "ATtiny13A",       "ATtiny15",
+       "ATtiny1634",      "ATtiny167",     "ATtiny2313",    "ATtiny2313A",       "ATtiny24",      "ATtiny24A",       "ATtiny25",       "ATtiny26",
+        "ATtiny261",     "ATtiny261A",     "ATtiny4313",      "ATtiny43U",       "ATtiny44",      "ATtiny441",      "ATtiny44A",       "ATtiny45",
+        "ATtiny461",     "ATtiny461A",       "ATtiny48",      "ATtiny828",       "ATtiny84",      "ATtiny841",      "ATtiny84A",       "ATtiny85",
+        "ATtiny861",     "ATtiny861A",       "ATtiny87",       "ATtiny88",
 };
 
 int get_pickit_isp_script(SCRIPT *scr, const char* partdesc) {
@@ -2552,7 +2552,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char* partdesc) {
   }
   int namepos = -1;
   for (int i = 0; i < 156; i++) {
-    if (strncmp(pickit5_isp_chip_lut[i], partdesc, 10) == 0) {
+    if (strcmp(pickit5_isp_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
     }

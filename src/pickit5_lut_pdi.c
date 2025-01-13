@@ -382,26 +382,6 @@ const unsigned char ReadIDmem_pdi_2[126] = {
   0x06, 0x06, 0x0a, 0x90, 0x06, 0xc4, 0x01, 0x00, 0x01, 0x1e, 0x06, 0x06, 0x0b, 0x5a, 
 };
 
-const unsigned char WriteSRAM_pdi_0[70] = {  
-  0x91, 0x00, 0x91, 0x01, 0x90, 0x07, 0x00, 0x00, 0x00, 0x00, 0x90, 0x03, 0x00, 0x00, 0x01, 0x00, 
-  0xfa, 0x01, 0x03, 0x1b, 0x00, 0x60, 0x04, 0x01, 0xfb, 0x21, 0x00, 0x90, 0x04, 0x00, 0x00, 0x01, 
-  0x00, 0x6a, 0x01, 0x04, 0x90, 0x02, 0xca, 0x01, 0x00, 0x01, 0x90, 0x03, 0x00, 0x00, 0x00, 0x00, 
-  0x1e, 0x06, 0x02, 0x03, 0x1e, 0x09, 0x00, 0x1e, 0x10, 0x04, 0x1e, 0x0a, 0x04, 0x6e, 0x00, 0x04, 
-  0xfc, 0x01, 0x07, 0x0a, 0x00, 0x5a, 
-};
-
-const unsigned char ReadSRAM_pdi_0[130] = {  
-  0x91, 0x00, 0x91, 0x01, 0x95, 0x90, 0x04, 0xc0, 0x01, 0x00, 0x00, 0x90, 0x05, 0x00, 0x00, 0x00, 
-  0x00, 0xfc, 0x04, 0x05, 0x26, 0x00, 0xad, 0x01, 0x1e, 0x03, 0x00, 0x9f, 0x92, 0x00, 0x01, 0x00, 
-  0x00, 0x00, 0xae, 0xfb, 0x81, 0x00, 0x90, 0x06, 0xca, 0x01, 0x00, 0x01, 0x1e, 0x03, 0x06, 0x6c, 
-  0x0a, 0x90, 0x06, 0xc4, 0x01, 0x00, 0x01, 0x1e, 0x03, 0x06, 0x6c, 0x0b, 0x90, 0x07, 0x00, 0x00, 
-  0x00, 0x00, 0x90, 0x03, 0x00, 0x00, 0x01, 0x00, 0xfa, 0x01, 0x03, 0x53, 0x00, 0x60, 0x04, 0x01, 
-  0xfb, 0x59, 0x00, 0x90, 0x04, 0x00, 0x00, 0x01, 0x00, 0x6a, 0x01, 0x04, 0x1e, 0x09, 0x00, 0x1e, 
-  0x10, 0x04, 0x1e, 0x0c, 0x04, 0x6e, 0x00, 0x04, 0xfc, 0x01, 0x07, 0x42, 0x00, 0x90, 0x06, 0xca, 
-  0x01, 0x00, 0x01, 0x1e, 0x06, 0x06, 0x0a, 0x90, 0x06, 0xc4, 0x01, 0x00, 0x01, 0x1e, 0x06, 0x06, 
-  0x0b, 0x5a, 
-};
-
 const unsigned char WriteCSreg_pdi_0[8] = {  
   0x99, 0x00, 0x99, 0x01, 0x1e, 0x0f, 0x00, 0x01, 
 };
@@ -450,8 +430,6 @@ static void pickit_pdi_script_init(SCRIPT *scr) {
   scr->ReadConfigmem = ReadConfigmem_pdi_0;
   scr->ReadConfigmemFuse = ReadConfigmemFuse_pdi_0;
   scr->ReadConfigmemLock = ReadConfigmemLock_pdi_0;
-  scr->WriteSRAM = WriteSRAM_pdi_0;
-  scr->ReadSRAM = ReadSRAM_pdi_0;
   scr->WriteCSreg = WriteCSreg_pdi_0;
   scr->ReadCSreg = ReadCSreg_pdi_0;
   scr->WriteMem8 = WriteMem8_pdi_0;
@@ -470,8 +448,6 @@ static void pickit_pdi_script_init(SCRIPT *scr) {
   scr->ReadConfigmem_len = sizeof(ReadConfigmem_pdi_0);
   scr->ReadConfigmemFuse_len = sizeof(ReadConfigmemFuse_pdi_0);
   scr->ReadConfigmemLock_len = sizeof(ReadConfigmemLock_pdi_0);
-  scr->WriteSRAM_len = sizeof(WriteSRAM_pdi_0);
-  scr->ReadSRAM_len = sizeof(ReadSRAM_pdi_0);
   scr->WriteCSreg_len = sizeof(WriteCSreg_pdi_0);
   scr->ReadCSreg_len = sizeof(ReadCSreg_pdi_0);
   scr->WriteMem8_len = sizeof(WriteMem8_pdi_0);
@@ -480,12 +456,12 @@ static void pickit_pdi_script_init(SCRIPT *scr) {
 
 
 const char * const pickit5_pdi_chip_lut[] = {  
-    "ATxmega128A1",  "ATxmega128A1U",   "ATxmega128A3",  "ATxmega128A3U",  "ATxmega128A4U",    "ATxmega16A4",   "ATxmega16A4U",   "ATxmega192A3", 
-   "ATxmega192A3U",   "ATxmega256A3",  "ATxmega256A3B", "ATxmega256A3BU",  "ATxmega256A3U",    "ATxmega32A4",   "ATxmega32A4U",    "ATxmega64A1", 
-    "ATxmega64A1U",    "ATxmega64A3",   "ATxmega64A3U",   "ATxmega64A4U",   "ATxmega128B1",   "ATxmega128B3",    "ATxmega64B1",    "ATxmega64B3", 
-    "ATxmega128C3",    "ATxmega16C4",   "ATxmega192C3",   "ATxmega256C3",    "ATxmega32C3",    "ATxmega32C4",   "ATxmega384C3",    "ATxmega64C3", 
-    "ATxmega128D3",   "ATxmega128D4",    "ATxmega16D4",   "ATxmega192D3",   "ATxmega256D3",    "ATxmega32D3",    "ATxmega32D4",   "ATxmega384D3", 
-     "ATxmega64D3",    "ATxmega64D4",    "ATxmega16E5",    "ATxmega32E5",     "ATxmega8E5", 
+     "ATxmega128A1",  "ATxmega128A1U",   "ATxmega128A3",  "ATxmega128A3U",  "ATxmega128A4U",    "ATxmega16A4",   "ATxmega16A4U",   "ATxmega192A3",
+    "ATxmega192A3U",   "ATxmega256A3",  "ATxmega256A3B", "ATxmega256A3BU",  "ATxmega256A3U",    "ATxmega32A4",   "ATxmega32A4U",    "ATxmega64A1",
+     "ATxmega64A1U",    "ATxmega64A3",   "ATxmega64A3U",   "ATxmega64A4U",   "ATxmega128B1",   "ATxmega128B3",    "ATxmega64B1",    "ATxmega64B3",
+     "ATxmega128C3",    "ATxmega16C4",   "ATxmega192C3",   "ATxmega256C3",    "ATxmega32C3",    "ATxmega32C4",   "ATxmega384C3",    "ATxmega64C3",
+     "ATxmega128D3",   "ATxmega128D4",    "ATxmega16D4",   "ATxmega192D3",   "ATxmega256D3",    "ATxmega32D3",    "ATxmega32D4",   "ATxmega384D3",
+      "ATxmega64D3",    "ATxmega64D4",    "ATxmega16E5",    "ATxmega32E5",     "ATxmega8E5",
 };
 
 int get_pickit_pdi_script(SCRIPT *scr, const char* partdesc) {
@@ -494,7 +470,7 @@ int get_pickit_pdi_script(SCRIPT *scr, const char* partdesc) {
   }
   int namepos = -1;
   for (int i = 0; i < 45; i++) {
-    if (strncmp(pickit5_pdi_chip_lut[i], partdesc, 10) == 0) {
+    if (strcmp(pickit5_pdi_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
     }
