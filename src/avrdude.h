@@ -20,6 +20,7 @@
 #define avrdude_h
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define SYSTEM_CONF_FILE "avrdude.conf"
 
