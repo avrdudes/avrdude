@@ -28,7 +28,7 @@
 #
 # The idea behind this program is to extract the sub-programs defined in the
 # script.xml. The original file has a size of about 300MB, containing a lot of
-# redundand information (like the XML tags) as well as sub-programs for chips 
+# redundant information (like the XML tags) as well as sub-programs for chips 
 # avrdude doesn't support, like ARM MCUs.
 # This python script goes through all functions, removing identical ones,
 # and indexes those. The index is then used to connect the MCUs with those functions
@@ -42,7 +42,6 @@ from pathlib import Path
 
 
 # The list of functions, as a Python Dictionary, that will be used by avr-dude
-# The complete list of available functions can be found below
 c_func_list = [
     # Started with UPDI
     "EnterProgMode",
@@ -201,7 +200,7 @@ def find_xml():
     print("List of scripts.xml files:")
     print(result)
     time, path = 0, ""
-    for t, p in result:
+    for t, p in result:     # find the most recent scripts file in out list
         if t > time:
             time, path = t, p
     return path
@@ -224,8 +223,6 @@ def find_xml():
 
 
 
-# A sum of the previous functions, generating the c/h files
-# without needing any intermediate files
 def convert_xml(xml_path, c_funcs):
     if xml_path == None:
         print("No Path to XML file provided")

@@ -449,10 +449,29 @@ static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr
   }
   if(usbdev_bulk_send(&pgm->fd, send_buf, send_len) < 0) {
     pmsg_error("Transmission failed on the data channel\n");
+    if(pickit5_send_script_done(pgm) < 0) {
+      pmsg_error("Failed to abort download mode, please power-cycle the programmer and part\n");
+      return -3;
+    }
+    pmsg_notice("Attemting to recover from transmission error\n");
+    if(pickit5_program_disable(pgm, NULL) < 0) {
+      pmsg_error("Failed to disable programming mode, please power-cycle the programmer and part\n");
+      return -3;
+    }
+    if(pickit5_program_enable(pgm, NULL) < 0) {
+      pmsg_error("Failed to reenable programming mode, please power-cycle the programmer and part\n");
+      return -3;
+    }
+    pmsg_notice("Successfully recovered from transmission error, please retry the previous operation\n");
     return -3;
   }
   if(pickit5_get_status(pgm, CHECK_ERROR) < 0) {
-    pmsg_error("error check not 'NONE'\n");
+    pmsg_error("error check not 'NONE' on download\n");
+
+    if(pickit5_send_script_done(pgm) < 0) {
+      pmsg_error("Failed to abort download mode, please power-cycle the programmer and part\n");
+      return -4;
+    }
     return -4;
   }
   if(pickit5_send_script_done(pgm) < 0) {
@@ -473,11 +492,23 @@ static int pickit5_upload_data(const PROGRAMMER *pgm, const unsigned char *scr, 
     return -1;
   }
   if(pickit5_read_response(pgm) < 0) {
+    if(pickit5_send_script_done(pgm) < 0) {
+      pmsg_error("Failed to abort upload mode, please power-cycle the programmer and part\n");
+      return -2;
+    }
+    if(pickit5_program_disable(pgm, NULL) < 0) {
+      pmsg_error("Failed to disable programming mode, please power-cycle the programmer and part\n");
+      return -2;
+    }
+    if(pickit5_program_enable(pgm, NULL) < 0) {
+      pmsg_error("Failed to reenable programming mode, please power-cycle the programmer and part\n");
+      return -2;
+    }
     return -2;
   }
   if(usbdev_bulk_recv(&pgm->fd, recv_buf, recv_len) < 0) {
     pmsg_error("reading data memory failed\n");
-    return -3;
+    //return -3; // Do not abort here, try to send script done
   }
   if(pickit5_send_script_done(pgm) < 0) {
     pmsg_error("sending script done message failed\n");
@@ -735,13 +766,14 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
       }
       pickit5_set_sck_period(pgm, 1.0 / 100000);       // Start with 100 kHz
       pickit5_updi_write_cs_reg(pgm, UPDI_ASI_CTRLA, 0x01); // Change UPDI clock to 16 MHz
-      unsigned char ret_val = 0;
 
+      unsigned char ret_val = 0;
       pickit5_updi_read_cs_reg(pgm, UPDI_ASI_CTRLA, &ret_val);
       if(ret_val != 0x01) {
         pmsg_warning("failed to change UPDI clock, falling back to 225 kHz\n");
         baud = 225000;
       }
+      // Possible speed optimization: Reduce Guard Time Value and maybe response signature?
     }
   }
 
@@ -776,7 +808,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     default_baud = 125000;
   } else if(both_jtag(pgm, p) || both_xmegajtag(pgm, p)) {
     rc = get_pickit_jtag_script(&(my.scripts), p->desc);
-    default_baud = 200000;
+    default_baud = 500000;
   } else if(both_updi(pgm, p)) {
     rc = get_pickit_updi_script(&(my.scripts), p->desc);
     default_baud = 200000;
@@ -785,7 +817,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     default_baud = 125000;
   } else if(both_pdi(pgm, p)) {
     rc = get_pickit_pdi_script(&(my.scripts), p->desc);
-    default_baud = 400000;
+    default_baud = 500000;
   }
 
   if(rc == -1) {
@@ -900,6 +932,7 @@ static int pickit5_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 }
 
 static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
+  (void) p; // Warning! this file is passing NULL at some point
   pmsg_debug("%s()\n", __func__);
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
@@ -922,6 +955,7 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int pickit5_program_disable(const PROGRAMMER *pgm, const AVRPART *p) {
+  (void) p; // Warning! this file is passing NULL at some point
   pmsg_debug("%s()\n", __func__);
   const unsigned char *exit_prog = my.scripts.ExitProgMode;
   unsigned int exit_prog_len = my.scripts.ExitProgMode_len;
@@ -1168,7 +1202,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   int rc = pickit5_download_data(pgm, write_bytes, write_bytes_len, param, 8, value, len);
   if(rc < 0) {
-    return -1;
+    return LIBAVRDUDE_EXIT; // Any error here means that a write fail occured, so restart
   } else {
     return len; 
   }
@@ -1268,7 +1302,7 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, param, 8, value, len);
   
   if(rc < 0) {
-    return -1;
+    return LIBAVRDUDE_EXIT; // Any error here means that a read fail occured, better restart
   } else {
     return len; 
   }
@@ -1971,7 +2005,7 @@ static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, 
 static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   int rv;
   const unsigned char *p = bp;
-  int tx_size, i = 0;
+  int tx_size, i = mlen;
 
   if(fd->usb.handle == NULL)
     return -1;
