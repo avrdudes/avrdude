@@ -3058,38 +3058,122 @@ programmer # pickit4_tpi
 # Microchip PICkit 5. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164150
 #
-# Currently -c pickit5 only supports UPDI programming
+# The PICkit 5 supports the following programming modes
+# using different programmer names:
 #
-# PIN  UPDI  
-# > 1  !RST(*)
-#   2  VCC
-#   3  GND
-#   4  UPDI(*)
-#   5
-#   6
-#   7
-#   8                       
+# Interface:   Programmer name:
+# JTAG         pickit5, pickit5_jtag
+# PDI          pickit5_pdi
+# UPDI         pickit5_updi
+# debugWIRE    pickit5_dw   (can auto-switch to ISP to write fuses)
+# ISP          pickit5_isp
+# TPI          pickit5_tpi
+#
+# PIN  JTAG PDI   UPDI    ISP/dW  TPI   UART(°)
+# > 1             RST(*)
+#   2  VCC  VCC   VCC     VCC     VCC   VCC
+#   3  GND  GND   GND     GND     GND   GND
+#   4  TDO  DATA  UPDI(*) SDI     DATA
+#   5  TCK                SCK     SCK
+#   6  RST  SCK           RST/dW  RST
+#   7  TDI                SDO           TX (target)
+#   8  TMS                              RX (target)
+#
+# Note: pickit5_dw does not support flash erase and must switch
+#         to ISP, thus requires all 6 Pins when modifing the flash
 #
 # (*): The PICkit5 can generate a High-Voltage (12V) Pulse on this pins
-#      to restore the UPDI Pin functionality, if it was changed through fuses.
-#      AVRDUDE automatically selects the correct pin, if the HV pulse is
-#      enabled through the '-x hvupdi' flag.
+#        to restore the UPDI Pin functionality, if it was changed through fuses.
+#        AVRDUDE automatically selects the correct pin, if the HV pulse is
+#        enabled through the '-x hvupdi' flag.
+# (°): The PICkit5 can also be used as a USB to UART
+#        interface for simple serial debugging.
 
 #------------------------------------------------------------
-# pickit5 /pickit5_updi
+# pickit5 /pickit5_jtag
 #------------------------------------------------------------
 
+programmer # pickit5_jtag
+    id                     = "pickit5", "pickit5_jtag";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in JTAG Mode";
+    type                   = "pickit5_jtag";
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+;
+
+
+#------------------------------------------------------------
+# pickit5_updi
+#------------------------------------------------------------
 programmer # pickit5_updi
     id                     = "pickit5_updi";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC)";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in UPDI Mode";
     type                   = "pickit5_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    baudrate               = 200000;   # UPDI default clock
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
     hvupdi_support         = 0, 1, 2;
+;
+
+#------------------------------------------------------------
+# pickit5_isp
+#------------------------------------------------------------
+programmer # pickit5_isp
+    id                     = "pickit5_isp";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in ISP Mode";
+    type                   = "pickit5_isp";
+    prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+;
+
+#------------------------------------------------------------
+# pickit5_dw
+#------------------------------------------------------------
+programmer # pickit5_dw
+    id                     = "pickit5_dw";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in dW Mode";
+    type                   = "pickit5_dw";
+    prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+;
+
+#------------------------------------------------------------
+# pickit5_tpi
+#------------------------------------------------------------
+programmer # pickit5_tpi
+    id                     = "pickit5_tpi";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in TPI Mode";
+    type                   = "pickit5_tpi";
+    prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+;
+
+#------------------------------------------------------------
+# pickit5_pdi
+#------------------------------------------------------------
+programmer # pickit5_tpi
+    id                     = "pickit5_pdi";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in PDI Mode";
+    type                   = "pickit5_pdi";
+    prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
 
 #------------------------------------------------------------

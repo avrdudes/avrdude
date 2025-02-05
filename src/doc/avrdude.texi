@@ -400,11 +400,10 @@ See below for some hints about FLIP version 1 protocol behaviour.
 @cindex PICkit 4
 @cindex PICkit 5
 @cindex SNAP
-The MPLAB(R) PICkit 4 and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
+The MPLAB(R) PICkit 4/5 and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
 @cindex Curiosity nano
 The Curiosity Nano board is supported in UPDI mode. It is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
-The MPLAB(R) PICkit 5 is currently only supported in UPDI mode.
 
 @cindex SerialUPDI
 SerialUPDI programmer implementation is based on Microchip's
@@ -1338,8 +1337,9 @@ The PICkit 5 and PICkit 4 (PIC Mode) programmer can accept following extended pa
 Specify a voltage between 1.8 and 5.5@w{ }V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,
 this setting will be ignored. When AVRDUDE detects an external voltage outside
-of this range, it will terminate the operation. You can disable this by
-setting the voltage to 0@w{ }V.
+of this range, it will terminate the operation. You can disable this check by
+setting the voltage to 0@w{ }V. If an XMEGA part was selected, a requested voltage
+above 3.49@w{ }V will lead to an abort of operation. 
 @item hvupdi
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use @code{-x hvupdi} to enable high-voltage UPDI

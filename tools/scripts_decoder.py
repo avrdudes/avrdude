@@ -19,117 +19,77 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# this is a small python sketch that tries to find the PICkit5_TP folder
+# this is a small python skript that tries to find the PICkit5_TP folder
 # created by MPLAB X that contains the scripts.xml file.
 # Works on Windows and Linux (MacOS untested), as long as the default installation
 # folder was not changed. If it was changed, and the program is unable to locate
 # the scripts.xml file, you should be promted to enter a path. You can
 # either provide the path to the file, or to the directory providing the file.
 #
-# This file contains some functions that were used in initial develeopment
-# but are not needed anymore. However, they might provide useful, thus they
-# can be enabled by setting "user_input" to 1.
-#
 # The idea behind this program is to extract the sub-programs defined in the
 # script.xml. The original file has a size of about 300MB, containing a lot of
-# redundand information as well as sub-programs for chips avrdude doesn't
-# support, like ARM MCUs.
-# This python scripts iterates through all functions, removing identical ones,
+# redundant information (like the XML tags) as well as sub-programs for chips 
+# avrdude doesn't support, like ARM MCUs.
+# This python script goes through all functions, removing identical ones,
 # and indexes those. The index is then used to connect the MCUs with those functions
 # so that the correct array pointers can be loaded.
 # Warning: If you run this python program, the previously generated files will be
 # overwritten without warning.
 # 
-# As the XML file is fairly large, a machine with at least 16GB RAM is recommended
 
 import os, fnmatch, mmap
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
-user_input = 0
 
 # The list of functions, as a Python Dictionary, that will be used by avr-dude
-# The complete list of available functions can be found below
-c_dict = {
-    "EnterProgMode" : [],
-    "EnterProgModeHvSp" : [],       # High Voltage Pulse on UPDI line
-    "EnterProgModeHvSpRst" : [],    # High Voltage Pulse on Reset Pin
-    "EnterProgModeHvUpt" : [],
-    "ExitProgMode" : [],
-    "SetSpeed" : [],
-    "GetDeviceID" : [],
-    "EraseChip" : [],
-    "WriteProgmem" : [],
-    "ReadProgmem" : [],
-    "WriteDataEEmem" : [],
-    "ReadDataEEmem" : [],
-    "WriteCSreg" : [],
-    "ReadCSreg" : [],
-    "WriteMem8" : [],
-    "ReadMem8" : [],
-    "WriteConfigmem" : [],
-    "ReadConfigmem" : [],
-    "WriteIDmem" : [],
-    "ReadIDmem" : [],
-    "ReadSIB" : [],
-}
+c_func_list = [
+    # Started with UPDI
+    "EnterProgMode",
+    "EnterProgModeHvSp",       # High Voltage Pulse on UPDI line
+    "EnterProgModeHvSpRst",    # High Voltage Pulse on Reset Pin
+    "EnterProgModeHvUpt",      # User Power Toggle
+    "ExitProgMode",
+    "SetSpeed",
+    "GetDeviceID",
+    "EraseChip",
+    "WriteProgmem",
+    "ReadProgmem",
+    "WriteDataEEmem",
+    "ReadDataEEmem",
+    "WriteCSreg",
+    "ReadCSreg",
+    "WriteMem8",
+    "ReadMem8",
+    "WriteConfigmem",
+    "WriteConfigmemFuse",
+    "WriteConfigmemLock",
+    "ReadConfigmem",
+    "ReadConfigmemFuse",
+    "ReadConfigmemLock",
+    "WriteIDmem",
+    "ReadIDmem",
+    "ReadSIB",
 
-# List of MCUs that should not end up in the lookup-table,
-# preferably only those that are known not be released in the future
-mcu_blacklist = [
-    "AVR16DV14", "AVR16DV20"
+    # Added from dW
+    "switchtoISP",
+    #"ReadMemIO",
+    #"WriteMemIO",
+
+    # Added from ISP
+    "ReadCalibrationByte",
+
+    # Added from JTAG/PDI
+    #"WriteSRAM",   # Is a duplicate of WriteMem8
+    #"ReadSRAM",
+    "WriteBootMem",
+    "ReadBootMem",
 ]
 
-# A complete list of Functions defined in the scripts.xml
-# This string was used to generate an intermediate python file
-dict_header = \
-'''
-func_dict =  {
-    "EnterProgMode" : [],
-    "EnterProgModeHvSp" : [],
-    "EnterProgModeHvSpRst" : [],
-    "EnterProgModeHvUpt" : [],
-    "ExitProgMode" : [],
-    "SetSpeed" : [],
-    "GetDeviceID" : [],
-    "EraseChip" : [],
-    "WriteProgmem" : [],
-    "ReadProgmem" : [],
-    "WriteDataEEmem" : [],
-    "ReadDataEEmem" : [],
-    "WriteConfigmem" : [],
-    "WriteConfigmemFuse" : [],
-    "WriteConfigmemLock" : [],
-    "ReadConfigmem" : [],
-    "ReadConfigmemFuse" : [],
-    "ReadConfigmemLock" : [],
-    "WriteIDmem" : [],
-    "ReadIDmem" : [],
-    "WriteCSreg" : [],
-    "ReadCSreg" : [],
-    "WriteMem8" : [],
-    "WriteMem16" : [],
-    "ReadMem8" : [],
-    "ReadMem16" : [],
-    "ReadSIB" : [],
-    "HoldInReset" : [],
-    "ReleaseFromReset" : [],
-    "EnterDebugMode" : [],
-    "EnterDebugModeHvSp" : [],
-    "EnterDebugModeHvSpRst" : [],
-    "EnterDebugModeHvUpt" : [],
-    "ExitDebugMode" : [],
-    "SetPC" : [],
-    "GetPC" : [],
-    "Run" : [],
-    "Halt" : [],
-    "DebugReset" : [],
-    "GetHaltStatus" : [],
-    "SingleStep" : [],
-    "SetHWBP" : [],
-    "ClearHWBP" : [],
-}\n
-'''
+# List of MCUs Names that are not supported by avrdude
+mcu_to_exclude = [
+    "ATA5700M322", "ATA5702M322", "ATA5782", "ATA5787", "ATA5831", "ATA5835", "ATA8210", "ATA8510", 
+    "ATtiny416auto", "AVR16DV14", "AVR16DV20"
+]
 
 
 import platform
@@ -141,155 +101,13 @@ print(work_dir)
 print(cache_dir)
 
 
-# Tries to locate the xml file in a known location
-def find_xml():
-    home_dir = str(Path.home())
-    print("Home Path: {0}".format(home_dir))
-    if home_dir == None:
-        return
-    home_dir = os.path.join(home_dir, ".mchp_packs", "Microchip")
-    home_dir_A = os.path.join(home_dir, "PICkit5_TP")
-    result = []
-    for root, dirs, files in os.walk(home_dir_A):
-        for name in files:
-            if fnmatch.fnmatch(name, "scripts.xml"):
-                result.append(os.path.join(root, name))
-
-    print("List of scripts.xml files:")
-    print(result)
-    return result[-1]
-    # EOF
-
-# extracts only the functions from the scripts.xml that end with "UPDI"
-def cache_xml(file):
-    if file == None:
-        return
-    print("Opening file {0}".format(file))
-    global cache_dir
-    origin_tree = ET.parse(file)
-    origin_root = origin_tree.getroot()
-    work_root = ET.Element("scripts")
-    old_chip_name = ""
-    print("List of UPDI MCUs:")
-    for script in origin_root.findall('script'):
-        function_name = script[0].text      # the function name is always on the first place
-        if (function_name.endswith("UPDI")):
-            chip_name = script[1].text
-            if (old_chip_name != chip_name):
-                print(chip_name)
-                old_chip_name = chip_name
-            work_root.append(script)        # copy UPDI entries to our working element
-
-    
-    work_tree = ET.ElementTree(work_root)
-    work_tree.write(os.path.join(cache_dir, "scripts_updi.xml"))
-    # EOF
-
-
-# generates a python file out of the reduced scripts.xml file
-def decode_xml_cache(xml_path):
-    global cache_dir
-    dict_path = os.path.join(cache_dir, "scripts_dict.py")
-
-    xml_tree = ET.parse(xml_path) 
-    xml_root = xml_tree.getroot()
-
-    if (os.path.exists(dict_path)):
-        os.remove(dict_path)
-
-    with open(dict_path, 'w') as dict_file:
-        dict_list = []
-        dict_iterator = -1
-        old_chip_name = ""
-        old_function_name = ""
-        for script in xml_root:
-            function_string = ""
-            function_name = script[0].text
-            chip_name = script[1].text
-            if (old_chip_name != chip_name):
-                if (dict_iterator >= 0):
-                    dict_list[dict_iterator] += "    },\n"   # trailing bracket
-                    print("{0} generated".format(old_chip_name))
-
-                dict_iterator += 1
-                dict_list.append("")
-                dict_list[dict_iterator] = "   \"{0}\" : ".format(chip_name)  # thisdict : {
-                dict_list[dict_iterator] += "{\n"
-                old_chip_name = chip_name
-
-            if (old_function_name != function_name):
-                dict_list[dict_iterator] += "       \"{0}\" : ".format(function_name[0:-5]) #    "function_name" : 
-                old_function_name = function_name
-
-            scrbytes = script[3]
-            for bytes in scrbytes:
-                function_string += bytes.text
-                function_string += ", "
-            
-            dict_list[dict_iterator] += "[{0}],\n".format(function_string[0:-2])    # "function string", 
-        
-        dict_file.write(dict_header)
-        dict_file.write("scripts = {\n")
-        for x in range (dict_iterator):
-            dict_file.write(dict_list[x])   # store decoded dictionary
-        dict_file.write("}")
-       
-
-
-
-# tries to reduce file size, reuires the previous function to be executed
-# in order to provide the python file
-def optimize_dict():
-    import scripts_cache.scripts_dict as dict
-    global cache_dir
-    for chip_name in dict.scripts:                  # Go through every chip
-        for func_name in dict.scripts[chip_name]:   # Go through every function for each chip
-            if func_name in dict.func_dict:         # Only handle the function if we care
-                func_array = dict.func_dict[func_name]          # Use the array
-                position = -1
-                for x in range (len(func_array)):               # go through
-                    if func_array[x] == dict.scripts[chip_name][func_name]:
-                        position = x
-                        break
-                if position >= 0:
-                    dict.scripts[chip_name][func_name] = position
-                else:
-                    func_array.append(dict.scripts[chip_name][func_name])
-                    dict.scripts[chip_name][func_name] = position + 1
-    
-    lut_path = os.path.join(cache_dir, "scripts_lut.py")
-    if (os.path.exists(lut_path)):
-        os.remove(lut_path)
-    
-    with open(lut_path, 'w') as lut_file:                   # Create file
-        lut_file.write("func_dict = {\n")                   # start with function look-up Table
-        for func in dict.func_dict:
-            lut_file.write("    \"{0}\" : [\n".format(func))    # function start
-            func_array = dict.func_dict[func]
-            
-            for array_elem in func_array:                       # function list start
-                func_string = "        ["                               
-                for i in array_elem:                            # iterate through the sub-function elements
-                    func_string += "0x{0:02X}, ".format(i)      # format for readability
-                func_string += "],\n"                           # end of sub-function
-                lut_file.write(func_string)                     # write to file
-            lut_file.write("    ],\n")                          # end of function
-        lut_file.write("}\n\n\n")                               # end of lut
-
-        lut_file.write("scripts = {\n")
-        for chip_name in dict.scripts:                  # Go through every chip
-            lut_file.write("    \""+ chip_name + "\" : {\n")
-            for func_name in dict.scripts[chip_name]:   # Go through every function for each chip
-                lut_file.write("        \"{0}\" : {1},\n".format(func_name, dict.scripts[chip_name][func_name]))
-            lut_file.write("    },\n")
-        lut_file.write("}")                             # close dict
-        print("done")
-    #EOF
-
 
 # Beginning of C and H Files
 common_header = \
-'''/* This file was auto-generated by scripts_decoder.py, any changes will be overwritten */
+'''\
+/* This file was auto-generated by scripts_decoder.py. 
+ * Any changes will be overwritten on regeneration 
+ */
 
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
@@ -312,7 +130,7 @@ common_header = \
 '''
 
 # generates the h-file. generates the struct definition
-def generate_h_file(c_dict, file_dir):
+def generate_h_file(c_funcs, file_dir):
     h_header = \
 '''
 #ifndef pickit5_lut_h
@@ -331,7 +149,12 @@ struct avr_script_lut {
 
 typedef struct avr_script_lut SCRIPT;
 const unsigned char * get_devid_script_by_nvm_ver(unsigned char version);
+int get_pickit_dw_script(SCRIPT *scr, const char *partdesc);
+int get_pickit_isp_script(SCRIPT *scr, const char *partdesc);
+int get_pickit_jtag_script(SCRIPT *scr, const char *partdesc);
 int get_pickit_updi_script(SCRIPT *scr, const char *partdesc);
+int get_pickit_pdi_script(SCRIPT *scr, const char *partdesc);
+int get_pickit_tpi_script(SCRIPT *scr, const char *partdesc);
 
 #ifdef __cplusplus
 }
@@ -346,10 +169,11 @@ int get_pickit_updi_script(SCRIPT *scr, const char *partdesc);
     h_lut_path = os.path.join(file_dir, "pickit5_lut.h")  # first - handle defining the structure
     if (os.path.exists(h_lut_path)):
         os.remove(h_lut_path)
+
     with open(h_lut_path, 'w') as h_file:
         h_file.write(common_header)
         h_file.write(h_header)
-        for func_name in c_dict:
+        for func_name in c_funcs:
             h_file.write("  const unsigned char *{0};\n         unsigned int  {0}_len;\n".format(func_name))
         h_file.write(h_trailer)
         print("h-File generated")
@@ -357,106 +181,69 @@ int get_pickit_updi_script(SCRIPT *scr, const char *partdesc);
 
 
 
-# generates the c-file out of a previously generated python file
-def generate_c_file(c_dict, file_dir):
-    import scripts_cache.scripts_lut as lut
- 
-    if file_dir is None:
+
+# Tries to locate the xml file in a known location
+def find_xml():
+    home_dir = str(Path.home())
+    print("Home Path: {0}".format(home_dir))
+    if home_dir == None:
         return
-    
-    c_lut_path = os.path.join(file_dir, "pickit5_lut.c")
-    if (os.path.exists(c_lut_path)):
-        os.remove(c_lut_path)
-    with open(c_lut_path, 'w') as c_file:
-        non_unique_func = []
-        c_file.write("/* this file was auto-generated */\n")
-        c_file.write("#include <ac_cfg.h>\n")
-        c_file.write("#include <stddef.h>\n")
-        c_file.write("#include <string.h>\n")
-        c_file.write("#include \"pickit5_lut.h\"\n\n\n")
-        struct_init_func = ""
-        struct_init_len = ""
-        for func_name in lut.func_dict:                             # for each function in our database
-            if func_name in c_dict:                                 # if the function exists in our c-list
-                function = lut.func_dict[func_name]                 # load data associated with the function
-                array_iterator = 0
-                for array in function:                              # for each array in function
-                    array_str  = "const unsigned char {0}_{1}[{2}]".format(func_name, array_iterator, len(array))
-                    array_str += " = {\n  "                         # begin array
-                    for i in range (len(array)):                    # go through every byte
-                        array_str += "0x{0:02x}, ".format(array[i]) # and generate String
-                    array_str += "\n};\n"                           # complete array
-                    array_iterator += 1
-                    c_file.write(array_str)
+    home_dir = os.path.join(home_dir, ".mchp_packs", "Microchip")
+    home_dir_A = os.path.join(home_dir, "PICkit5_TP")
+    result = []
+    for root, dirs, files in os.walk(home_dir_A):
+        for name in files:
+            if fnmatch.fnmatch(name, "scripts.xml"):
+                file_path = os.path.join(root, name)
+                result.append((os.path.getctime(file_path), file_path))
 
-                if array_iterator == 1:
-                    struct_init_func += "  .{0} = {0}_0,\n".format(func_name)
-                    struct_init_len  += "  .{0}_len = sizeof({0}_0),\n".format(func_name)
-                else:
-                    struct_init_func += "  .{0} = NULL,\n".format(func_name)
-                    struct_init_len  += "  .{0}_len = 0,\n".format(func_name)
-                    non_unique_func.append(func_name)
+    print("List of scripts.xml files:")
+    print(result)
+    time, path = 0, ""
+    for t, p in result:     # find the most recent scripts file in out list
+        if t > time:
+            time, path = t, p
+    return path
+    # EOF
 
 
-        c_file.write("\n\n\nstruct avr_script_lut avr_scripts = {\n")
-        c_file.write(struct_init_func)
-        c_file.write(struct_init_len)
-        c_file.write("};\n\n\n")
-
-        chip_lut_str = "const char *chip_lut[] = {\n  "
-        chip_name_iterator = 0
-        for chip_name in lut.scripts:
-            chip_lut_str += "\""
-            chip_lut_str += chip_name
-            chip_lut_str += "\", "
-            chip_name_iterator += 1
-            if chip_name_iterator % 8 == 0:
-                chip_lut_str += "\n  "
-        chip_lut_str += "\n};\n\n\n"
-        c_file.write(chip_lut_str)
-
-        c_func_str = "struct avr_script_lut* get_pickit_script(const char* partdesc) { \n"
-        c_func_str += "  int namepos = -1;\n"
-        c_func_str += "  for (int i = 0; i < {0}; i++)".format(chip_name_iterator)
-        c_func_str += " {\n"
-        c_func_str += "    if (strncmp(chip_lut[i], partdesc, 10) == 0) {\n"
-        c_func_str += "      namepos = i;\n      break;\n    }\n  }\n"
-        c_func_str += "  if (namepos == -1) {\n    return NULL;\n  }\n"
-        c_file.write(c_func_str)
-
-        switch_iterator = 0
-        c_file.write("  switch (namepos) {\n")
-        for chip_name in lut.scripts:
-            case_str = "    case {0}:\n".format(switch_iterator)
-            chip_func = lut.scripts[chip_name]
-            for func_lut in chip_func:
-                if func_lut in non_unique_func:
-                    case_str += "      avr_scripts.{0} = {0}_{1};\n".format(func_lut, chip_func[func_lut])
-                    case_str += "      avr_scripts.{0}_len = sizeof({0}_{1});\n".format(func_lut, chip_func[func_lut])
-            case_str += "      break;\n"
-            switch_iterator += 1
-            c_file.write(case_str)
-        c_file.write("    }\n    return &avr_scripts;\n  }")
-    print("c-File generated")
-    #EOF
-
-
-def convert_to_c(c_dict, file_dir):
-    
-    generate_h_file(c_dict, file_dir)
-    generate_c_file(c_dict, file_dir)
-    #EOF
+# Example of a function declaration in the XML-File
+#  <script>
+#    <function>SetSpeedFromDevice</function>
+#    <processor>ATSAM4LC2A</processor>
+#    <ri4command>0x00001504</ri4command>
+#    <scrbytes>
+#      <byte>0x3B</byte>
+#      <byte>0x02</byte>
+#      <byte>0x00</byte>
+#      <byte>0x00</byte>
+#      <byte>0x00</byte>
+#    </scrbytes>
+#  </script>
 
 
 
-# A sum of the previous functions, generating the c/h files
-# without needing any intermediate files
-def convert_xml(xml_path, c_dict):
+def convert_xml(xml_path, c_funcs):
     if xml_path == None:
         print("No Path to XML file provided")
         return
-    
-    mcu_dict = dict()
+
+    program_iface = {
+        "UPDI": dict(),
+        "PDI": dict(),
+        "dW": dict(),
+        "ISP": dict(),
+        "TPI": dict(),
+        "JTAG": dict()
+    }
+    function_dict = {
+        "UPDI": dict(),
+        "PDI": dict(),
+        "dW": dict(),
+        "ISP": dict(),
+        "TPI": dict(),
+        "JTAG": dict()
+    }
 
     # Prepare directories
     parent_dir = os.getcwd()
@@ -465,211 +252,216 @@ def convert_xml(xml_path, c_dict):
     print("Parent Dir: {0}".format(parent_dir))
     print("Src directory: {0}".format(src_dir))
 
-    # open XML file
-    origin_tree = ET.parse(xml_path)
-    origin_root = origin_tree.getroot()
-    work_root = ET.Element("scripts")
-    print ("XML File loaded")
+     
+    # create h-File (make sure to provide all function definitions)
+    generate_h_file(c_funcs, src_dir)
 
-    # scan scripts file
-    for script in origin_root.findall('script'):
-        function_name = script[0].text              # the function name is always on the first place
-        if (function_name.endswith("UPDI")):        # We're only intrested in UPDI functions
-            function_name = function_name[0:-5]     # remove "_UPDI" from function name
-            if (function_name in c_dict):           # filter out unneded functions
-                chip_name = script[1].text          # get chip name
-                if (chip_name in mcu_blacklist):    # filter out chips in blacklist
-                    continue
-                if (chip_name not in mcu_dict):
-                    mcu_dict[chip_name] = dict()
-                if (function_name not in mcu_dict[chip_name]):
-                    mcu_dict[chip_name][function_name] = []
-                scrbytes = script[3]
-                for bytes in scrbytes:
-                    mcu_dict[chip_name][function_name].append(int(bytes.text, 16))
-    # the mcu dict has following layout "mcu_name" : "function1" : [], "function2" : []
-    print("XML File processed")
 
-    # reorder mcu_dict to a func_dict
-    func_dict = dict()
-    for mcu_name in mcu_dict:                                   # Go through every MCU
-        for function_name in mcu_dict[mcu_name]:                # Go through every Function for every CPU
-            if (function_name not in func_dict):
-                func_dict[function_name] = []
+    with open(xml_path, "r") as xml_script:
+        print ("XML File opened")
+        scr_bytes_buffer = bytearray(2048)   # allocate 2kB of memory in advance, avoids memory managment
+        while True:
+            line = xml_script.readline()    # go line by line, hopefully reducing memory usage compared to readlines()
+            if line == "":
+                break       # exit when End of file
+
+            if line.startswith("    <function>"):
+                function = line[14:]                        # remove "    <function>"
+                function = function.split("<", 2)[0]        # remove trailing element
+
+                scr_header = xml_script.readlines(3)        # read 3 more lines
+                processor = scr_header[0][15:]              # remove "    <processor>"
+                chip_name = processor.split("<", 2)[0]      # remove trailing element
             
-            funct_bytes = mcu_dict[mcu_name][function_name]     # get Function bytes
-            entries = len(func_dict[function_name])
-            for x in range (entries + 1):                       # try to find an existing entry
-                if x == entries:                                # if we reached the end
-                    func_dict[function_name].append(funct_bytes)   # add an entry to our dict
-                    mcu_dict[mcu_name][function_name] = x       # remember the postion in dict
-                    break
-                if func_dict[function_name][x] == funct_bytes:  # if match found
-                    mcu_dict[mcu_name][function_name] = x       # remember the postion
-                    break
-    # the funct dict has following layout: "function1" : [[], []], "function2" : [[], []],
-    # the mcu dict has following layout "mcu_name" : "function1" : 1, "function2" : 0
- 
-    # create h-File
-    generate_h_file(c_dict, src_dir)
+                try:
+                    function_name, programming_mode = function.split('_')
+                except:
+                    continue    # If the function did not contain any '_', continue to next line
+
+                if programming_mode not in ["UPDI", "PDI", "dW", "ISP", "TPI", "JTAG"]:
+                    continue    # Filters out "FPGA" and other edge cases
+
+                if chip_name in mcu_to_exclude:
+                    continue    # don't handle chips avrdude doesn't know anyway
+
+                if function_name not in c_funcs:
+                    continue    # Filter out debug Functions
+
+                func_bytes = None
+                counter = 0
+                while True:
+                    byte = xml_script.readline()
+                    if (byte.startswith("      ")):         # 6 spaces is already unique enough
+                        scr_bytes_buffer[counter] = int(byte[14:16], 16) # only handle the value
+                        counter += 1
+                    elif (byte.startswith("    </scrbytes>")):  # done with the list
+                        func_bytes = bytes(scr_bytes_buffer[:counter])  # create an immutable bytes array
+                        break
+
+                if func_bytes == None or len(func_bytes) == 0:
+                    continue    # continue with next chip if somethin went wrong or is empty (SetSpeed_dw)
+
+                if function_name not in function_dict[programming_mode].keys():
+                    function_dict[programming_mode][function_name] = []
+
+                if func_bytes not in function_dict[programming_mode][function_name]:
+                    function_dict[programming_mode][function_name].append(func_bytes)
+
+                index = function_dict[programming_mode][function_name].index(func_bytes)
+
+                #function_dict = {
+                #  "UPDI": {
+                #    "EnterProgMode" : [bytes_0, bytes_1]},
+                #    "SetSpeed"      : [bytes_2, bytes_3]}
+                #  }
+                #}
+
+
+                if chip_name not in program_iface[programming_mode]:
+                    program_iface[programming_mode][chip_name] = [(function_name, index)]
+                    #print("Added to " + programming_mode + ": " + chip_name)   # Debugging
+                else:
+                    program_iface[programming_mode][chip_name].append((function_name, index))
+                #program_iface = {
+                #    "UPDI": {
+                #        "Attiny1614": [
+                #            ("EnterProgMode", 0),
+                #            ("ExitProgMode", 0),
+                #            ("...", 1),
+                #        ]
+                #    }
+                #}
+            # /if starts with
+        # /while True
+    # /with open
+
+    print("XML File processed")
 
     # create c-File
     global common_header
-    c_lut_path = os.path.join(src_dir, "pickit5_updi_lut.c")
-    if (os.path.exists(c_lut_path)):
-        os.remove(c_lut_path)
-    with open(c_lut_path, 'w') as c_file:
-        non_unique_func = []
-        c_file.write(common_header)
-        c_file.write("#include <ac_cfg.h>\n")
-        c_file.write("#include <stddef.h>\n")
-        c_file.write("#include <string.h>\n")
-        c_file.write("#include \"pickit5_lut.h\"\n\n\n")
 
-        # Generate the arrays for the functions
-        struct_init_func = ""
-        struct_init_len = ""
-        for func_name in func_dict:                             # for each function in our database
-            function = func_dict[func_name]                     # load data associated with the function
-            array_iterator = 0
-            for array in function:                              # for each array in function
-                array_str  = "const unsigned char {0}_{1}[{2}]".format(func_name, array_iterator, len(array))
-                array_str += " = {"                             # begin array
-                for i in range (len(array)):                    # go through every byte
-                    if (i % 16 == 0):
-                        array_str += "\n  "                     # new line after 16 bytes
-                    array_str += "0x{0:02x}, ".format(array[i]) # and generate String
-                array_str += "\n};\n\n"                         # complete array
-                array_iterator += 1
-                c_file.write(array_str)
+    for prog_iface, prog_mcu_list in program_iface.items():
+        lower_prog_iface = prog_iface.lower()
+        c_lut_path = os.path.join(src_dir, "pickit5_lut_" + lower_prog_iface + ".c")
+        if (os.path.exists(c_lut_path)):
+            os.remove(c_lut_path)
+        with open(c_lut_path, 'w') as c_file:
+            c_file.write(common_header)
+            c_file.write("#include <ac_cfg.h>\n")
+            c_file.write("#include <stddef.h>\n")
+            c_file.write("#include <string.h>\n")
+            c_file.write("#include \"pickit5_lut.h\"\n\n\n")
 
-            if array_iterator == 1:
-                struct_init_func += "  scr->{0} = {0}_0;\n".format(func_name)
-                struct_init_len  += "  scr->{0}_len = sizeof({0}_0);\n".format(func_name)
-            else:
-                struct_init_func += "  scr->{0} = NULL;\n".format(func_name)
-                struct_init_len  += "  scr->{0}_len = 0;\n".format(func_name)
-                non_unique_func.append(func_name)
+            struct_init_func = ""
+            struct_init_len = ""
+            common_func = []        # List of Functions that exist once
 
+            for (func_name, func_array_bytes) in function_dict[prog_iface].items():
+                for (array_iter, func_bytes) in enumerate(func_array_bytes):
+                    func_length = len(func_bytes)
+                    c_file.write("const unsigned char {0}_{1}_{2}[{3}]".format(
+                        func_name, lower_prog_iface, array_iter, func_length) + " = {")
+                    num_line = "  "
+                    for (iter, byte) in enumerate(func_bytes):      # go through every byte
+                        if (iter % 16 == 0):
+                            c_file.write(num_line)                  # new line after 16 bytes
+                            num_line = "\n  "
+                        num_line += "0x{0:02x}, ".format(byte)      # and generate String
+                    c_file.write(num_line + "\n};\n\n")             # complete array
 
-        c_file.write("\n\n\nstatic void pickit_updi_script_init(SCRIPT *scr);\n")   # declaration
-        c_file.write("static void pickit_updi_script_init(SCRIPT *scr) {\n")        # definition
-        c_file.write(struct_init_func)
-        c_file.write("\n")              # improve readability
-        c_file.write(struct_init_len)
-        c_file.write("}\n\n\n")
+                if len(func_array_bytes) == 1:     # look for common function
+                    if (prog_iface == "JTAG"):                      # This handles the edge case in JTAG where only the
+                        if (func_name == "ReadConfigmem") or (func_name == "WriteConfigmem"):
+                            continue                                # XMEGA has the functions, but not the old JTAG
+                    common_func.append(func_name)                   
+                    struct_init_func += "  scr->{0} = {0}_{1}_0;\n".format(func_name, lower_prog_iface)
+                    struct_init_len  += "  scr->{0}_len = sizeof({0}_{1}_0);\n".format(func_name, lower_prog_iface)
 
-        # Lookup Table for Chip Names
-        chip_lut_str = "const char * const pickit5_updi_chip_lut[] = {\n  "
-        chip_name_iterator = 0
-        for chip_name in mcu_dict:
-            chip_lut_str += "\""
-            chip_lut_str += chip_name
-            chip_lut_str += "\", "
-            chip_name_iterator += 1
-            if chip_name_iterator % 8 == 0:
-                chip_lut_str += "\n  "
-        chip_lut_str += "\n};\n\n\n"
-        c_file.write(chip_lut_str)
+                # EOFL   
+                    
+            
+            c_file.write("\n\n\nstatic void pickit_{0}_script_init(SCRIPT *scr);\n".format(lower_prog_iface))   # declaration
+            c_file.write("static void pickit_{0}_script_init(SCRIPT *scr)".format(lower_prog_iface) + " {\n")   # definition
+            c_file.write("  memset(scr, 0x00, sizeof(SCRIPT));  // Make sure everything is NULL\n\n")
+            c_file.write(struct_init_func)
+            c_file.write("\n")              # improve readability
+            c_file.write(struct_init_len)
+            c_file.write("}\n\n\n")
 
-        # Provide a way to get the DevID Script by NVM Version stored in SIB
-        devid_str = "const unsigned char * get_devid_script_by_nvm_ver(unsigned char version) {\n"
-        devid_str += "  if (version >= '0') version -= '0'; // allow chars\n"
-        devid_str += "  if (version > 9) return NULL;       // Not a valid number\n"
-        devid_str += "  if (version <= 3)                   // tiny, mega, DA, DB, DD, EA\n"
-        devid_str += "    return GetDeviceID_0;\n"
-        devid_str += "  else                                // DU, EB\n"
-        devid_str += "    return GetDeviceID_1;\n}\n\n"
-        c_file.write(devid_str)
-
-        # Main Function to load the data into the structure
-        c_func_str = "int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) { \n"
-        c_func_str += "  if ((scr == NULL) || (partdesc == NULL))\n    return -1;\n\n"
-        c_func_str += "  int namepos = -1;\n"
-        c_func_str += "  for (int i = 0; i < {0}; i++)".format(chip_name_iterator)
-        c_func_str += " {\n"
-        c_func_str += "    if (strncmp(pickit5_updi_chip_lut[i], partdesc, 10) == 0) {\n"
-        c_func_str += "      namepos = i;\n      break;\n    }\n  }\n"
-        c_func_str += "  if (namepos == -1) {\n    return -2;\n  }\n\n"
-        c_func_str += "  pickit_updi_script_init(scr);   // load common functions\n\n"
-        c_file.write(c_func_str)
+            c_file.write("const char * const pickit5_{0}_chip_lut[]".format(lower_prog_iface) + " = {")
+            chip_line = "  "
+            for (iter, chip_name) in enumerate(prog_mcu_list.keys()):     # go through every chip
+                if (iter % 8 == 0):
+                    c_file.write(chip_line)                     # new line after 8 Chips
+                    chip_line = "\n  "
+                chip_line += "{0:>17},".format( '"' + chip_name + '"')      # and generate String
+            c_file.write(chip_line + "\n};\n\n")                # complete array
 
 
-        switch_iterator = 0
-        c_file.write("  switch (namepos) {\n")
-        case_str_list = []
-        break_str_list = []
-        for chip_name in mcu_dict:
-            case_str_list.append("")
-            break_str_list.append("")
-            case_str_list[switch_iterator] = "    case {0}:  /* {1} */\n".format(switch_iterator, chip_name)
-            chip_func = mcu_dict[chip_name]
-            for func_lut in chip_func:
-                if func_lut in non_unique_func:
-                    break_str_list[switch_iterator] += "      scr->{0} = {0}_{1};\n".format(func_lut, chip_func[func_lut])
-                    break_str_list[switch_iterator] += "      scr->{0}_len = sizeof({0}_{1});\n".format(func_lut, chip_func[func_lut])
-            break_str_list[switch_iterator] += "      break;\n"
-            switch_iterator += 1
-        
+            if (prog_iface == "UPDI"):
+                c_file.write("const unsigned char * get_devid_script_by_nvm_ver(unsigned char version) {\n")
+                c_file.write("  if (version >= '0') version -= '0'; // allow chars\n")
+                c_file.write("  if (version > 9) return NULL;       // Not a valid number\n")
+                c_file.write("  if (version <= 3)                   // tiny, mega, DA, DB, DD, EA\n")
+                c_file.write("    return GetDeviceID_updi_0;\n")
+                c_file.write("  else                                // DU, EB\n")
+                c_file.write("    return GetDeviceID_updi_1;\n}\n\n")
 
-        for x in range (0, switch_iterator):
-            if (case_str_list[x] != ""):                # ignore already "filtered" out cases
-                file_str = case_str_list[x]             # start with a case
-                temp_str = break_str_list[x]            # buffer the content of the case
-                for y in range(x + 1, switch_iterator): # go through all future entries
-                    if temp_str == break_str_list[y]:   # if we find one that is identical
-                        file_str += case_str_list[y]    # add it to the case at the beginning
-                        case_str_list[y] = ""           # clear case entry
-                        break_str_list[y] = ""          # clear content entry to speed up filtering
-                file_str += temp_str                    # add the content of the case
-                c_file.write(file_str)
+            c_file.write("int get_pickit_{0}_script(SCRIPT *scr, const char* partdesc)".format(lower_prog_iface) + " {\n")
+            c_file.write("  if ((scr == NULL) || (partdesc == NULL)) {\n    return -1;\n  }\n")
+            c_file.write("  int namepos = -1;\n")
+            c_file.write("  for (int i = 0; i < {0}; i++)".format(len(prog_mcu_list.keys())) + " {\n")
+            c_file.write("    if (strcmp(pickit5_{0}_chip_lut[i], partdesc) == 0)".format(lower_prog_iface) + " {\n")
+            c_file.write("      namepos = i;\n      break;\n    }\n  }\n")
+            c_file.write("  if (namepos == -1) {\n    return -2;\n  }\n\n")
+            c_file.write("  pickit_{0}_script_init(scr);   // load common functions\n\n".format(lower_prog_iface))
 
+            case_list = []
+            case_func_list = []
+            #print(common_func)
+            c_file.write("  switch (namepos) {\n")
+            for (switch_iterator, (chip_name, functions)) in enumerate(prog_mcu_list.items()):
+                new_case = "    case {0}:  /* {1} */\n".format(switch_iterator, chip_name)
+                new_func_str = ""
+                
+                for func_name, func_num in functions:       # generate list of unique function assignments
+                    if func_name in common_func:
+                        continue        # skip common functions, they were set in _init()
+                    new_func_str += "{0}_{1}_{2}\n".format(func_name, lower_prog_iface, func_num)
 
-        c_file.write("  }\n  return 0;\n}")
+                
+                if new_func_str not in case_func_list:      # Check if there is an already existing function set
+                    case_list.append(new_case)
+                    case_func_list.append(new_func_str)
+                else:                                       # if it exists, figure out the index at which to add the case
+                    case_list[case_func_list.index(new_func_str)] += new_case
+            
+            for (case_str, func_list) in zip(case_list, case_func_list):
+                c_file.write(case_str)
+                func_list = func_list.split("\n")[:-1]      # Remove last Element that will be an empty string
+                for func in func_list:
+                    func_name = func.split("_")[0]
+                    c_file.write("      scr->{0} = {1};\n".format(func_name, func))
+                    c_file.write("      scr->{0}_len = sizeof({1});\n".format(func_name, func))
+                c_file.write("      break;\n")
+
+            c_file.write("  }\n  return 0;\n}")
+            # End of switch case
+            print("finished " + prog_iface)
+
     print("c-File generated")
-    pass
 
 
 
-if not user_input:
-    xml_path = find_xml()
-    if xml_path == None:
-        print("Unable to find scripts.xml in the default location.")
-        print("Please Enter a Path to the File or Directory:")
-        xml_path = input(">")
-        if (os.path.isdir(xml_path)):
-            os.path.join(xml_path, "scripts.xml")
-        if (os.path.exists(xml_path) == False):
-            print("File not found, exiting")
-            quit()
-    convert_xml(xml_path, c_dict)   
-    quit()
-
-
-while user_input:
-    user_in = input(">")
-
-    if (user_in == "cache"):
-        xml_path = find_xml()
-        cache_xml(xml_path)
-    elif (user_in == "decode"):
-        xml_path = os.path.join(cache_dir, "scripts_updi.xml")
-        decode_xml_cache(xml_path)
-    elif (user_in == "optimize"):
-        optimize_dict()
-    elif (user_in == "cfy"):
-        convert_to_c(c_dict, cache_dir)
-    elif (user_in == "dude"):
-        xml_path = find_xml()
-        if xml_path == None:
-            print("Unable to find scripts.xml in the default location.")
-            print("Please Enter a Path to the File or Directory:")
-            xml_path = input(">")
-            if (os.path.isdir(xml_path)):
-                os.path.join(xml_path, "scripts.xml")
-            if (os.path.exists(xml_path) == False):
-                print("File not found, exiting")
-                quit()
-        convert_xml(xml_path, c_dict)   
+xml_path = find_xml()
+if xml_path == None:
+    print("Unable to find scripts.xml in the default location.")
+    print("Please Enter a Path to the File or Directory:")
+    xml_path = input(">")
+    if (os.path.isdir(xml_path)):
+        os.path.join(xml_path, "scripts.xml")
+    if (os.path.exists(xml_path) == False):
+        print("File not found, exiting")
         quit()
-        pass
+convert_xml(xml_path, c_func_list)   
+quit()

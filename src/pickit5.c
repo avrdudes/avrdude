@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -51,46 +52,56 @@
 #define USB_PK5_DATA_READ_EP  0x83
 #define USB_PK5_DATA_WRITE_EP 0x04
 
-#define USB_PK5_MAX_XFER    512
+#define USB_PK5_MAX_XFER    512   // That's the size Pickit reports
 
 #define CHECK_ERROR        0x01
 #define BIST_TEST          0x02
 #define BIST_RESULT        0x03
 
-#define PGM_TYPE_PK5       0x00 // Default
-#define PGM_TYPE_PK4       0x01 // PICkit4
-#define PGM_TYPE_SNAP      0x02 // SNAP
+#define PGM_TYPE_PK5       0x00   // Default
+#define PGM_TYPE_PK4       0x01   // PICkit4
+#define PGM_TYPE_SNAP      0x02   // SNAP
 
-#define PK_OP_NONE         0x00 // Init
-#define PK_OP_FOUND        0x01 // PK is connected to USB
-#define PK_OP_RESPONDS     0x02 // Responds to get_fw() requests
-#define PK_OP_READY        0x03 // Voltage Set, Clock Set
+#define PK_OP_NONE         0x00   // Init
+#define PK_OP_FOUND        0x01   // PK is connected to USB
+#define PK_OP_RESPONDS     0x02   // Responds to get_fw() requests
+#define PK_OP_READY        0x03   // Voltage Set, Clock Set
 
 #define POWER_SOURCE_EXT   0x00
 #define POWER_SOURCE_INT   0x01
 #define POWER_SOURCE_NONE  0x02
 
+#define ERROR_USB_SEND            -10  // Start at 10 to avoid collisions
+#define ERROR_USB_RECV            -11
+#define ERROR_SCRIPT_PARAM_SIZE   -12
+#define ERROR_BAD_RESPONSE        -13
+#define ERROR_SCRIPT_EXECUTION    -14
+
 // Private data for this programmer
 struct pdata {
-  unsigned char pgm_type;       // Used to skip unsupported functions
-  unsigned char pk_op_mode;     // See PK_OP_ defines
-  unsigned char power_source;   // 0: external / 1: from PICkit / 2: ignore check
-  unsigned char hvupdi_enabled; // 0: no HV / 1: HV generation enabled
-  double target_voltage;        // Voltage to supply to target
+  unsigned char pgm_type;         // Used to skip unsupported functions
+  unsigned char pk_op_mode;       // See PK_OP_ defines
+  unsigned char power_source;     // 0: external / 1: from PICkit / 2: ignore check
+  unsigned char hvupdi_enabled;   // 0: no HV / 1: HV generation enabled
+  double target_voltage;          // Voltage to supply to target
 
-  double measured_vcc;          // This and below for print_params()
+  double measured_vcc;            // This and below for print_params()
   unsigned int measured_current;
-  unsigned int actual_updi_clk;
+  unsigned int actual_pgm_clk;
 
-  unsigned char nvm_version;    // Used to determine the offset for SIGROW/DevID
+  unsigned char nvm_version;      // Used to determine the offset for SIGROW/DevID on UPDI
 
-  unsigned char devID[4];       // Last byte has the Chip Revision of the target
-  unsigned char app_version[3]; // Buffer for display() sent by get_fw()
-  unsigned char fw_info[16];    // Buffer for display() sent by get_fw()
+  unsigned char dW_switched_isp;  // for debugWIRE: Flag to indicate we switch to ISP
+
+  unsigned char devID[4];         // Last byte has the Chip Revision of the target
+  unsigned char app_version[3];   // Buffer for display() sent by get_fw()
+  unsigned char fw_info[16];      // Buffer for display() sent by get_fw()
   unsigned char sernum_string[20]; // Buffer for display() sent by get_fw()
   char sib_string[32];
-  unsigned char txBuf[512];
-  unsigned char rxBuf[512];
+  unsigned char prodsig[256];     // Buffer for Prodsig that contains more then one memory
+  unsigned int prod_sig_len;      // length of read prodsig (to know if it got  filled) 
+  unsigned char txBuf[2048];      // Buffer for transfers
+  unsigned char rxBuf[2048];      // 2048 because of WriteEEmem_dw with 1728 bytes length
   SCRIPT scripts;
 };
 
@@ -122,7 +133,6 @@ static int pickit5_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value);
 static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p);
-static int pickit5_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib);
 static int pickit5_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev);
 static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value);
@@ -130,10 +140,34 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value);
 
 // UPDI-specific functions
+static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_target);
 static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char value);
 static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char *value);
+static int pickit5_updi_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib);
+static int pickit5_updi_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char value);
+static int pickit5_updi_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char *value);
+
+// ISP-specific
+static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned char value);
+static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned long addr, unsigned char *value);
+
+// debugWIRE-specific
+static int pickit5_dw_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value);
+static int pickit5_dw_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value);
+static void pickit5_dw_switch_to_isp(const PROGRAMMER *pgm, const AVRPART *p);
+static void pickit5_isp_switch_to_dw(const PROGRAMMER *pgm, const AVRPART *p);
+
+// TPI-specific
+static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value);
+static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value);
+
+// JTAG-Specific
+static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value);
+static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value);
 
 // Extra functions
 static int pickit5_get_fw_info(const PROGRAMMER *pgm);
@@ -141,27 +175,35 @@ static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v);
 static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v);
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm);
 static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod);
-static int pickit5_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char value);
-static int pickit5_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char *value);
+
 
 // Internal functions
 inline static void pickit5_uint32_to_array(unsigned char *buf, uint32_t num);
 inline static unsigned int pickit5_array_to_uint32(unsigned char *buf);
 inline static void pickit5_create_payload_header(unsigned char *buf, unsigned int type,
-  unsigned int msg_len, unsigned int trans_len);
+  unsigned int msg_len, unsigned int transfer_len);
 inline static void pickit5_create_script_header(unsigned char *buf, unsigned int arg_len, unsigned int script_len);
-inline static int pickit5_check_ret_status(const PROGRAMMER *pgm);
+
+static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value);
 
 static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status);
 static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
   const unsigned char *script, unsigned int script_len,
   const unsigned char *param, unsigned int param_len, unsigned int payload_len);
-static int pickit5_send_script_done(const PROGRAMMER *pgm, char *func);
-static int pickit5_read_response(const PROGRAMMER *pgm, char *fn_name);
+static int pickit5_send_script_done(const PROGRAMMER *pgm);
+static int pickit5_read_response(const PROGRAMMER *pgm);
+static int pickit5_send_script_cmd(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
+  const unsigned char *param, unsigned int param_len);
+static int pickit5_upload_data(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
+  const unsigned char *param, unsigned int param_len, unsigned char *recv_buf, unsigned int recv_len);
+static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
+  const unsigned char *param, unsigned int param_len, unsigned char *send_buf, unsigned int send_len);
+
 
 // Extra-USB related functions, because we need more then 2 endpoints
-static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
-static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
+static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
+static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
 
 inline static void pickit5_uint32_to_array(unsigned char *buf, uint32_t num) {
   *(buf++) = (uint8_t) num;
@@ -181,11 +223,11 @@ inline static unsigned int pickit5_array_to_uint32(unsigned char *buf) {
 }
 
 inline static void pickit5_create_payload_header(unsigned char *buf, unsigned int type,
-  unsigned int msg_len, unsigned int trans_len) {
+  unsigned int msg_len, unsigned int transfer_len) {
   pickit5_uint32_to_array(&buf[0], type);
   pickit5_uint32_to_array(&buf[4], 0);
   pickit5_uint32_to_array(&buf[8], msg_len);
-  pickit5_uint32_to_array(&buf[12], trans_len);
+  pickit5_uint32_to_array(&buf[12], transfer_len);
 }
 
 inline static void pickit5_create_script_header(unsigned char *buf, unsigned int arg_len, unsigned int script_len) {
@@ -245,7 +287,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       return LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
+    pmsg_error("invalid extended parameter: %s\n", extended_param);
     rv = -1;
   }
   return rv;
@@ -262,16 +304,20 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
   const unsigned char *script, unsigned int script_len,
   const unsigned char *param, unsigned int param_len, unsigned int payload_len) {
 
-  if(script == NULL)
-    return -1;
+  if(script == NULL) {
+    pmsg_error("invalid script pointer passed\n");
+    return -3;
+  }
 
   unsigned int header_len = 16 + 8;     // Header info + script header
   unsigned int preamble_len = header_len + param_len;
   unsigned int message_len = preamble_len + script_len;
+  pmsg_debug("%s(scr_len: %u, param_len: %u, data_len: %u)\n", __func__, script_len, param_len, payload_len);
 
-  if(message_len > 1023)        // Required memory will exceed buffer size, abort
-    return -1;                  // 1 kB should be enough for everything
-
+  if(message_len >= 2048){       // Required memory will exceed buffer size, abort
+    pmsg_error("requested message size (%u) too large\n", message_len);
+    return ERROR_SCRIPT_PARAM_SIZE;     // 2 kB should be enough for everything
+  }
   unsigned char *buf = my.txBuf;
 
   pickit5_create_payload_header(&buf[0], script_type, message_len, payload_len);
@@ -282,35 +328,193 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
 
   memcpy(&buf[preamble_len], script, script_len);
 
-  return serial_send(&pgm->fd, buf, message_len);
+  int ret_val = serial_send(&pgm->fd, buf, message_len);
+  if(ret_val < 0) {
+    pmsg_error("sending script failed\n");
+  }
+  return ret_val;
 }
 
-static int pickit5_read_response(const PROGRAMMER *pgm, char *fn_name) {
+static int pickit5_read_response(const PROGRAMMER *pgm) {
   unsigned char *buf = my.rxBuf;
 
   if(serial_recv(&pgm->fd, buf, 512) < 0) {
-    pmsg_error("reading from PICkit failed");
-    return -1;
+    pmsg_error("reading from programmer failed\n");
+    return ERROR_USB_RECV;
   }
   unsigned int status = pickit5_array_to_uint32(&buf[0]);
+  unsigned int error_code = pickit5_array_to_uint32(&buf[16]);
 
   if(status != 0x0D) {
-    pmsg_error("unexpected response in function %s", fn_name);
-    return -1;
+    pmsg_error("unexpected read response: 0x%2X\n", status);
+    return ERROR_BAD_RESPONSE;
+  }
+
+  if(error_code != 0x00) {
+    pmsg_error("Script Error returned: 0x%2X\n", error_code);
+    return ERROR_SCRIPT_EXECUTION;
   }
 
   return 0;
 }
 
-static int pickit5_send_script_done(const PROGRAMMER *pgm, char *func) {
+/*
+  Terminates the data stream over the data endpoint
+*/
+static int pickit5_send_script_done(const PROGRAMMER *pgm) {
   unsigned char script_done[16];
   unsigned int script_done_type = 0x0103;
 
   pickit5_create_payload_header(script_done, script_done_type, 16, 0);
-  if(serial_send(&pgm->fd, script_done, 16) >= 0)
-    return pickit5_read_response(pgm, func);
-  pmsg_error("failed sending script done message");
-  return -1;
+  if(serial_send(&pgm->fd, script_done, 16) < 0) {
+    pmsg_error("failed sending script done message\n");
+    return ERROR_USB_SEND;
+  }
+  return pickit5_read_response(pgm);
+}
+
+
+static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status) {
+  unsigned char *buf = my.txBuf;
+  const unsigned int type = 0x0105;
+  unsigned int key_len = 0;
+
+  if(CHECK_ERROR == status) {
+    key_len = strlen("ERROR_STATUS_KEY") + 1;
+    memcpy(&buf[16], "ERROR_STATUS_KEY", key_len);
+  } else if(BIST_TEST == status) {
+    key_len = strlen("BIST Tested") + 1;
+    memcpy(&buf[16], "BIST Tested", key_len);
+  } else if(BIST_RESULT == status) {
+    key_len = strlen("BIST Results") + 1;
+    memcpy(&buf[16], "BIST Results", key_len);
+  }
+  if(0 == key_len) {
+    pmsg_error("unknown key type %d passed to %s()\n", status, __func__);
+    return -1;
+  }
+  unsigned int msg_len = 16 + key_len;
+
+  pickit5_create_payload_header(buf, type, msg_len, 0);
+  serial_send(&pgm->fd, buf, msg_len);
+  serial_recv(&pgm->fd, my.rxBuf, 512);
+
+  if(0x0D != my.rxBuf[0]) {
+    pmsg_error("bad response from programmer: %i\n", my.rxBuf[0]);
+    return -1;
+  }
+
+  unsigned int status_len = pickit5_array_to_uint32(&(my.rxBuf[8]));
+
+  if(status_len > 64)
+    status_len = 64;
+  my.rxBuf[16 + status_len] = 0x00;    // Known zero-terminator
+  if(str_starts((const char *) &(my.rxBuf[16]), "NONE") == 0) {
+    pmsg_error("programmer's status report: %s\n", buf);
+    return -1;
+  }
+  return 0;
+}
+
+
+/*
+  Sends a script without any data on the data endpoint
+*/
+static int pickit5_send_script_cmd(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
+  const unsigned char *param, unsigned int param_len) {
+
+  if(pickit5_send_script(pgm, SCR_CMD, scr, scr_len, param, param_len, 0) < 0) {
+    pmsg_error("sending script failed\n");
+    return -1;
+  }
+  if(pickit5_read_response(pgm) < 0) {
+    pmsg_error("reading script response failed\n");
+    return -2;
+  }
+  return 0;
+}
+
+/*
+  Sends a script and sends the send_buf array over the data endpoint
+*/
+static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
+  const unsigned char *param, unsigned int param_len, unsigned char *send_buf, unsigned int send_len) {
+
+  if(pickit5_send_script(pgm, SCR_DOWNLOAD, scr, scr_len, param, param_len, send_len) < 0) {
+    pmsg_error("sending script with download failed\n");
+    return -1;
+  }
+  if(pickit5_read_response(pgm) < 0) {
+    return -2;
+  }
+  if(usbdev_bulk_send(&pgm->fd, send_buf, send_len) < 0) {
+    pmsg_error("transmission failed on the data channel\n");
+    if(pickit5_send_script_done(pgm) < 0) {
+      pmsg_error("failed to abort download mode, please power-cycle the programmer and part\n");
+      return -3;
+    }
+    pmsg_notice("attempting to recover from transmission error\n");
+    if(pickit5_program_disable(pgm, NULL) < 0) {
+      pmsg_error("failed to disable programming mode, please power-cycle the programmer and part\n");
+      return -3;
+    }
+    if(pickit5_program_enable(pgm, NULL) < 0) {
+      pmsg_error("failed to re-enable programming mode, please power-cycle the programmer and part\n");
+      return -3;
+    }
+    pmsg_notice("successfully recovered from transmission error, please retry the previous operation\n");
+    return -3;
+  }
+  if(pickit5_get_status(pgm, CHECK_ERROR) < 0) {
+    pmsg_error("status check not 'NONE' on download\n");
+
+    if(pickit5_send_script_done(pgm) < 0) {
+      pmsg_error("failed to abort download mode, please power-cycle the programmer and part\n");
+      return -4;
+    }
+    return -4;
+  }
+  if(pickit5_send_script_done(pgm) < 0) {
+    pmsg_error("sending script done message failed\n");
+    return -5;
+  }
+  return 0;
+}
+
+/*
+  Sends a script and reads data from the data channel into recv_buf.
+*/
+static int pickit5_upload_data(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
+  const unsigned char *param, unsigned int param_len, unsigned char *recv_buf, unsigned int recv_len) {
+
+  if(pickit5_send_script(pgm, SCR_UPLOAD, scr, scr_len, param, param_len, recv_len) < 0) {
+    pmsg_error("sending script with upload failed\n");
+    return -1;
+  }
+  if(pickit5_read_response(pgm) < 0) {
+    if(pickit5_send_script_done(pgm) < 0) {
+      pmsg_error("failed to abort upload mode, please power-cycle the programmer and part\n");
+      return -2;
+    }
+    if(pickit5_program_disable(pgm, NULL) < 0) {
+      pmsg_error("failed to disable programming mode, please power-cycle the programmer and part\n");
+      return -2;
+    }
+    if(pickit5_program_enable(pgm, NULL) < 0) {
+      pmsg_error("failed to re-enable programming mode, please power-cycle the programmer and part\n");
+      return -2;
+    }
+    return -2;
+  }
+  if(usbdev_bulk_recv(&pgm->fd, recv_buf, recv_len) < 0) {
+    pmsg_error("reading data memory failed\n");
+    //return -3; // Do not abort here, try to send script done
+  }
+  if(pickit5_send_script_done(pgm) < 0) {
+    pmsg_error("sending script done message failed\n");
+    return -4;
+  }
+  return 0;
 }
 
 static int pickit5_open(PROGRAMMER *pgm, const char *port) {
@@ -358,7 +562,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       if(vidp != pidp) {        // User specified an VID
         // First: Handle VID input
         if(sscanf(vidp, "%x", &new_vid) != 1) {
-          pmsg_error("failed to parse -P VID input %s: unexpected format", vidp);
+          pmsg_error("failed to parse -P VID input %s: unexpected format\n", vidp);
           return -1;
         }
       } else {                  // VID space empty: default to Microchip
@@ -367,7 +571,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       // Now handle PID input
       if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
-        pmsg_error("failed to parse -P PID input %s: unexpected format", pidp+1);
+        pmsg_error("failed to parse -P PID input %s: unexpected format\n", pidp+1);
         return -1;
       }
 
@@ -442,13 +646,71 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // This will reduce overhead and increase speed
   AVRMEM *mem;
 
-  if((mem = avr_locate_sram(p)))
-    mem->page_size = mem->size < 256? mem->size: 256;
-  if((mem = avr_locate_eeprom(p)))
-    mem->page_size = mem->size < 32? mem->size: 32;
-  if((mem = avr_locate_sib(p))) {       // This is mandatory as PICkit is reading all 32 bytes at once
-    mem->page_size = 32;
-    mem->readsize = 32;
+  if(is_updi(pgm)){
+    if((mem = avr_locate_sram(p))) {
+      mem->page_size = mem->size < 256? mem->size : 256;
+    }
+    if((mem = avr_locate_eeprom(p))) {
+      mem->page_size = mem->size < 32? mem->size : 32;
+    }
+    if((mem = avr_locate_sib(p))) {       // This is mandatory as PICkit is reading all 32 bytes at once
+      mem->page_size = 32;
+      mem->readsize = 32;
+    }
+  }
+  if(is_debugwire(pgm)) {
+    if((mem = avr_locate_flash(p))) {
+      mem->page_size = mem->size < 1024? mem->size : 1024; // The Flash Write function on DW needs 1600 bytes
+      mem->readsize = mem->size < 1024? mem->size : 1024;  // this reduces overhead and speeds things up
+    }
+  }
+  if(is_isp(pgm)){
+    if((mem = avr_locate_flash(p))) {
+      if(mem->mode != 0x04) {   // Don't change default flash settings on old AVRs
+        mem->page_size = mem->size < 1024? mem->size : 1024;
+        mem->readsize = mem->size < 1024? mem->size : 1024;
+      } else {
+        mem->page_size = 256;
+        mem->readsize = 256;
+        mem->blocksize = 256;
+      }
+    }
+    if((mem = avr_locate_eeprom(p))) {
+      if(mem->mode == 0x04) {   // Increasing minimal write/read length so that the old AVRs work with PK5
+        mem->page_size = 0x04;
+        mem->readsize = 0x04;
+        mem->blocksize = 0x04;
+      }
+    }
+    if((mem = avr_locate_calibration(p))) {
+      if(mem->size == 1) {  // any 1 byte wide calibration is also in prodsig
+        mem->offset = 1;    // add an offset to profit of the prodsig buffering
+      }
+    }
+  }
+  if(both_jtag(pgm, p)) {
+    if((mem = avr_locate_flash(p))) {
+      mem->page_size = mem->size < 512? mem->size : 512;
+      mem->readsize = mem->size < 512? mem->size : 512;
+    }
+  }
+  if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
+    if((mem = avr_locate_flash(p))) {
+      mem->page_size = mem->size < 1024? mem->size : 1024;
+      mem->readsize = mem->size < 1024? mem->size : 1024;
+    }
+    if((mem = avr_locate_application(p))) {
+      mem->page_size = mem->size < 1024? mem->size : 1024;
+      mem->readsize = mem->size < 1024? mem->size : 1024;
+    }
+    if((mem = avr_locate_apptable(p))) {
+      mem->page_size = mem->size < 1024? mem->size : 1024;
+      mem->readsize = mem->size < 1024? mem->size : 1024;
+    }
+    if((mem = avr_locate_boot(p))) {
+      mem->page_size = mem->size < 1024? mem->size : 1024;
+      mem->readsize = mem->size < 1024? mem->size : 1024;
+    }
   }
 }
 
@@ -468,10 +730,62 @@ static void pickit5_display(const PROGRAMMER *pgm, const char *p) {
 
 static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   pickit5_get_vtarget(pgm, NULL);
-  fmsg_out(fp, "UPDI clock            : %u kHz\n", my.actual_updi_clk / 1000);
-  fmsg_out(fp, "Target Vcc            : %1.2f V\n", my.measured_vcc);
+  fmsg_out(fp, "Target programming clk: %u kHz\n", my.actual_pgm_clk / 1000);
+  fmsg_out(fp, "Target vcc            : %1.2f V\n", my.measured_vcc);
   fmsg_out(fp, "Target current        : %3u mA\n", my.measured_current);
 }
+
+static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_target) {
+  if(pickit5_program_enable(pgm, p) < 0)
+    return -1;
+  
+  // Get SIB so we can get the NVM Version
+  if(pickit5_updi_read_sib(pgm, p, my.sib_string) < 0) {
+      pmsg_error("failed to obtain System Info Block\n");
+      return -1;
+  }
+  
+  if(pickit5_read_dev_id(pgm, p) < 0) {
+    pmsg_error("failed to obtain device ID\n");
+    return -1;
+  }
+
+  unsigned int baud = my.actual_pgm_clk;
+  if(baud < 300) {              // Better be safe than sorry
+    pmsg_warning("UPDI needs a higher clock for operation, increasing UPDI to 300 Hz\n");
+    baud = 300;
+  }
+  if(baud > 225000) {
+    if(v_target < 2.9) {
+      pmsg_warning("UPDI needs a voltage of more than 2.9 V for a faster baudrate, limiting UPDI to 225 kHz\n");
+      baud = 225000;
+    } else {
+      if(baud > 900000) {
+        pmsg_warning("requested clock %u Hz too high, limiting UPDI to 900 kHz\n", baud);
+        baud = 900000;
+      }
+      pickit5_set_sck_period(pgm, 1.0 / 100000);       // Start with 100 kHz
+      pickit5_updi_write_cs_reg(pgm, UPDI_ASI_CTRLA, 0x01); // Change UPDI clock to 16 MHz
+
+      unsigned char ret_val = 0;
+      pickit5_updi_read_cs_reg(pgm, UPDI_ASI_CTRLA, &ret_val);
+      if(ret_val != 0x01) {
+        pmsg_warning("failed to change UPDI clock, falling back to 225 kHz\n");
+        baud = 225000;
+      }
+      // Possible speed optimization: Reduce Guard Time Value and maybe response signature?
+    }
+  }
+
+  if(pickit5_set_sck_period(pgm, 1.0 / baud) >= 0) {
+    pmsg_notice("UPDI speed set to %i kHz\n", baud / 1000);
+    my.actual_pgm_clk = baud;
+  } else {
+    pmsg_warning("failed to set UPDI speed, continuing\n");
+  }
+  return 1;
+}
+
 
 static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
@@ -484,12 +798,32 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   int rc = -1;
+  unsigned int default_baud;
 
-  if(pgm->prog_modes == PM_UPDI)
+  if(both_debugwire(pgm, p)) {
+    rc = get_pickit_dw_script(&(my.scripts), p->desc);
+    default_baud = 125000;    // debugWIRE does not allow to select speed, this is for ISP mode
+  } else if(both_isp(pgm, p)) {
+    rc = get_pickit_isp_script(&(my.scripts), p->desc);
+    default_baud = 125000;
+  } else if(both_jtag(pgm, p) || both_xmegajtag(pgm, p)) {
+    rc = get_pickit_jtag_script(&(my.scripts), p->desc);
+    default_baud = 500000;
+  } else if(both_updi(pgm, p)) {
     rc = get_pickit_updi_script(&(my.scripts), p->desc);
+    default_baud = 200000;
+  } else if(both_tpi(pgm, p)) {
+    rc = get_pickit_tpi_script(&(my.scripts), p->desc);
+    default_baud = 125000;
+  } else if(both_pdi(pgm, p)) {
+    rc = get_pickit_pdi_script(&(my.scripts), p->desc);
+    default_baud = 500000;
+  }
 
-  if(rc == -1)
+  if(rc == -1) {
+    pmsg_error("no matching prog_mode found, aborting\n");
     return -1;
+  }
   if(rc == -2) {
     pmsg_error("failed to match scripts to %s, aborting\n", p->desc);
     return -1;
@@ -497,14 +831,15 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(my.hvupdi_enabled > 0) {
     if(p->hvupdi_variant == 0)
-      pmsg_notice("high-voltage SYSCFG0 override on UPDI Pin enabled\n");
+      pmsg_notice("high-voltage SYSCFG0 override on UPDI pin enabled\n");
     if(p->hvupdi_variant == 2)
-      pmsg_notice("high-voltage SYSCFG0 override on RST Pin enabled\n");
+      pmsg_notice("high-voltage SYSCFG0 override on RST pin enabled\n");
   }
 
   if(my.pk_op_mode < PK_OP_RESPONDS) {
-    if(pickit5_get_fw_info(pgm) < 0)    // PK responds: we can try to enable voltage
+    if(pickit5_get_fw_info(pgm) < 0) {    // PK responds: we can try to enable voltage
       return -1;
+    }
     my.pk_op_mode = PK_OP_RESPONDS;
   }
 
@@ -519,7 +854,13 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.power_source == POWER_SOURCE_NONE) {
       pmsg_warning("no external voltage detected but continuing anyway\n");
     } else if(my.power_source == POWER_SOURCE_INT) {
-      pmsg_notice("no extenal Voltage detected; trying to supply from PICkit\n");
+      pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
+        if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
+          if(my.target_voltage > 3.49) {
+            pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
+            return -1;
+          }
+        }
 
       if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
         return -1;              // Set requested voltage
@@ -527,9 +868,15 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(pickit5_get_vtarget(pgm, &v_target) < 0)
         return -1;              // Verify voltage
 
-      if(v_target < my.target_voltage - 0.25   // Voltage supply is not accurate: allow some room
-        || v_target > my.target_voltage + 0.15) {
-        pmsg_error("target voltage out of range, aborting\n");
+      // Make sure the voltage is in our requested range. Due to voltage drop on
+      // the LDO and on USB itself, the lower limit is capped at 4.4V
+      double upper_limit = my.target_voltage + 0.2;
+      double lower_limit = my.target_voltage - 0.3;
+      if(lower_limit > 4.4) {
+        lower_limit = 4.4;
+      }
+      if((v_target < lower_limit) || (v_target > upper_limit)) {
+        pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
         return -1;
       }
     } else {
@@ -538,73 +885,45 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   } else {
     my.power_source = POWER_SOURCE_EXT;        // Overwrite user input
-    pmsg_notice("external Voltage detected: will not supply power\n");
+    pmsg_notice("external voltage detected: will not supply power\n");
   }
 
   my.pk_op_mode = PK_OP_READY;
-
-  // Target is powered, set the UPDI baudrate; adjust UPDICLKSEL if possible and neccessary
-  if(pickit5_program_enable(pgm, p) < 0)
-    return -1;
-
-  // Get SIB so we can get the NVM Version
-  if(pickit5_read_sib(pgm, p, my.sib_string) < 0) {
-    pmsg_error("failed to obtain System Info Block\n");
-    return -1;
-  }
-
-  if(pickit5_read_dev_id(pgm, p) < 0) {
-    pmsg_error("failed to obtain device ID\n");
-    return -1;
-  }
+  my.dW_switched_isp = 0;
 
   double bitclock = pgm->bitclock;
   unsigned int baud = pgm->baudrate;
 
-  if(baud == 200000) {          // If baud unchanged
-    if(bitclock > 0.0) {
-      baud = (unsigned int) (1.0 / pgm->bitclock); // Bitclock in us
+  if(baud != 0) {
+    if(bitclock != 0.0) {
+      pmsg_warning("both -b baudrate and -B bitclock given; using -b setting.\n");
     }
-  } else {
-    if(bitclock > 0.0) {
-      pmsg_error("both -b baudrate and -B bitclock given; please use only one, aborting\n");
+  } else if(bitclock != 0.0) {
+    baud = (unsigned int) (1.0 / pgm->bitclock); // Bitclock in us
+  } else {  // Neither set, use default
+    baud = default_baud;
+  }
+  my.actual_pgm_clk = baud;
+
+  if(is_updi(pgm)) {  // UPDI got it's own init as it is well enough documented to select the
+    if(pickit5_updi_init(pgm, p, v_target) < 0) {  //  CLKDIV based on the voltage and requested baud
       return -1;
     }
-  }
-
-  if(baud < 300) {              // Better be safe than sorry
-    pmsg_warning("UPDI needs a higher clock for operation, increasing UPDI to 300 Hz\n");
-    baud = 300;
-  }
-  if(baud > 225000) {
-    if(v_target < 2.9) {
-      pmsg_warning("UPDI needs a voltage of more than 2.9 V for a faster baudrate, limiting UPDI to 225 kHz\n");
-      baud = 225000;
-    } else {
-      if(baud > 900000) {
-        pmsg_warning("requested clock %u Hz too high, limiting UPDI to 900 kHz\n", baud);
-        baud = 900000;
-      }
-      pickit5_set_sck_period(pgm, 1.0 / 100000);       // Start with 200 kHz
-      pickit5_write_cs_reg(pgm, UPDI_ASI_CTRLA, 0x01); // Change UPDI clock to 16 MHz
-      unsigned char ret_val = 0;
-
-      pickit5_read_cs_reg(pgm, UPDI_ASI_CTRLA, &ret_val);
-      if(ret_val != 0x01) {
-        pmsg_warning("failed to change UPDI clock, falling back to 225 kHz\n");
-        baud = 225000;
-      }
-    }
-  }
-  if(pickit5_set_sck_period(pgm, 1.0 / baud) >= 0) {
-    pmsg_notice("UPDI speed set to %i kHz\n", baud / 1000);
-    my.actual_updi_clk = baud;
   } else {
-    pmsg_warning("failed to set UPDI speed, continuing\n");
-    my.actual_updi_clk = 100000;       // Default clock?
-  }
 
-  pickit5_program_enable(pgm, p);
+    // JTAG __requires__ setting the speed before program enable
+    pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
+
+    if(pickit5_program_enable(pgm, p) < 0) {
+      pmsg_error("failed to enable programming mode\n");
+      return -1;
+    }
+    if(pickit5_read_dev_id(pgm, p) < 0) {
+      pmsg_error("failed to obtain device ID\n");
+      return -1;
+    }
+
+  }
   return 0;
 }
 
@@ -613,6 +932,7 @@ static int pickit5_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 }
 
 static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
+  (void) p; // Warning! this file is passing NULL at some point
   pmsg_debug("%s()\n", __func__);
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
@@ -627,26 +947,23 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
   if(my.pk_op_mode == PK_OP_READY) {
-    if(pickit5_send_script(pgm, SCR_CMD, enter_prog, enter_prog_len, NULL, 0, 0) < 0)
+    if(pickit5_send_script_cmd(pgm, enter_prog, enter_prog_len, NULL, 0) < 0) {
       return -1;
-
-    if(pickit5_read_response(pgm, "Enter Programming Mode") < 0)
-      return -1;
+    }
   }
   return 0;
 }
 
 static int pickit5_program_disable(const PROGRAMMER *pgm, const AVRPART *p) {
+  (void) p; // Warning! this file is passing NULL at some point
   pmsg_debug("%s()\n", __func__);
-  const unsigned char *enter_prog = my.scripts.ExitProgMode;
-  unsigned int enter_prog_len = my.scripts.ExitProgMode_len;
+  const unsigned char *exit_prog = my.scripts.ExitProgMode;
+  unsigned int exit_prog_len = my.scripts.ExitProgMode_len;
 
   if(my.pk_op_mode == PK_OP_READY) {
-    if(pickit5_send_script(pgm, SCR_CMD, enter_prog, enter_prog_len, NULL, 0, 0) < 0)
+    if(pickit5_send_script_cmd(pgm, exit_prog, exit_prog_len, NULL, 0) < 0) {
       return -1;
-
-    if(pickit5_read_response(pgm, "Exit Programming Mode") < 0)
-      return -1;
+    }
   }
   return 0;
 }
@@ -655,17 +972,18 @@ static int pickit5_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
 
   pickit5_program_enable(pgm, p);
+  if(is_debugwire(pgm)) {    // dW Chip erase doesn't seem to be working, use ISP
+    pickit5_dw_switch_to_isp(pgm, p);
+  }
   const unsigned char *chip_erase = my.scripts.EraseChip;
   unsigned int chip_erase_len = my.scripts.EraseChip_len;
 
-  if(pickit5_send_script(pgm, SCR_CMD, chip_erase, chip_erase_len, NULL, 0, 0) >= 0) {
-    if(pickit5_read_response(pgm, "Erase Chip") >= 0) {
-      if(pickit5_array_to_uint32(&(my.rxBuf[16])) == 0x00) {
-        pmsg_info("target successfully erased\n");
-        my.pk_op_mode = PK_OP_READY;
-        pickit5_program_enable(pgm, p);
-        return 0;
-      }
+  if(pickit5_send_script_cmd(pgm, chip_erase, chip_erase_len, NULL, 0) >= 0) {
+    if(pickit5_array_to_uint32(&(my.rxBuf[16])) == 0x00) {
+      pmsg_info("target successfully erased\n");
+      my.pk_op_mode = PK_OP_READY;
+      pickit5_program_enable(pgm, p);
+      return 0;
     }
   }
 
@@ -685,25 +1003,41 @@ static int pickit5_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   return pickit5_write_array(pgm, p, mem, address, n_bytes, &mem->buf[address]);
 }
 
-// Sets UPDI Frequency in kHz
+// Sets Frequency in kHz
 static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   pmsg_debug("%s()\n", __func__);
   double frq = (0.001 / sckperiod) + 0.5;       // 1ms/period = kHz; round up
   const unsigned char *set_speed = my.scripts.SetSpeed;
-  int set_speed_len = my.scripts.SetSpeed_len;
+  unsigned int set_speed_len = my.scripts.SetSpeed_len;
   unsigned char buf[4];
+  if(set_speed == NULL) {  // debugWIRE has no set speed, just return success
+    return 0;
+  }
 
   pickit5_uint32_to_array(buf, frq);
-  if(pickit5_send_script(pgm, SCR_CMD, set_speed, set_speed_len, buf, 4, 0) < 0)
-    return -1;
-  if(pickit5_read_response(pgm, "Set UPDI Speed") < 0)
-    return -1;
-  return 0;
+  if(pickit5_send_script_cmd(pgm, set_speed, set_speed_len, buf, 4) >= 0) {
+    return 0;
+  }
+
+  pmsg_error("failed to set speed.\n");
+  return -1;
 }
 
 static int pickit5_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char value) {
-  int rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
+  int rc = 0;
+  if(mem_is_a_fuse(mem)) {
+    if(is_isp(pgm)){
+      rc = pickit5_isp_write_fuse(pgm, mem, value);
+    } else if(is_debugwire(pgm)){
+      rc = pickit5_dw_write_fuse(pgm, p, mem, value);
+    } else if(both_jtag(pgm, p)){
+      rc = pickit5_jtag_write_fuse(pgm, p, mem, value);
+    }
+  }
+  if(rc == 0) {
+    rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
+  }
 
   if(rc < 0)
     return rc;
@@ -712,7 +1046,28 @@ static int pickit5_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 
 static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char *value) {
-  int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
+  int rc = 0;
+  if(mem_is_signature(mem)) {
+    if(addr < 4) {
+      *value = my.devID[addr];
+      rc = 1;
+    } else {
+      rc = -1;
+    }
+  } else if(mem_is_a_fuse(mem)) {
+    if(is_isp(pgm)) {
+      rc = pickit5_isp_read_fuse(pgm, mem, addr, value);
+    } else if(is_debugwire(pgm)) {
+      rc = pickit5_dw_read_fuse(pgm, p, mem, value);
+    } else if(both_jtag(pgm, p)) {
+      rc = pickit5_jtag_read_fuse(pgm, p, mem, value);
+    }
+  } else if(mem_is_in_sigrow(mem) || mem_is_calibration(mem)) { // For some weird reason this OR is needed?
+    rc = pickit5_read_prodsig(pgm, p, mem, addr, 1, value);
+  }
+  if(rc == 0) {
+    rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
+  }
 
   if(rc < 0)
     return rc;
@@ -728,43 +1083,20 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
     return -1;
   }
   addr += mem->offset;
-  pmsg_debug("%s(0x%4X, %i)\n", __func__, (unsigned) addr, value);
+  pmsg_debug("%s(addr: 0x%4X, value: %i)\n", __func__, (unsigned) addr, value);
+
   // This script is based on WriteCSreg; reduces overhead by avoiding writing data EP
-  const unsigned char h_len = 24;       // 16 + 8
-  const unsigned char p_len = 8;
-  const unsigned char s_len = 8;
-  const unsigned char m_len = h_len + p_len + s_len;
-
   unsigned char write8_fast[] = {
-    0x00, 0x01, 0x00, 0x00,     // [0]  SCR_CMD
-    0x00, 0x00, 0x00, 0x00,     // [4]  always 0
-    m_len, 0x00, 0x00, 0x00,    // [8]  message length = 16 + 8 + param (8) + script (8) = 40
-    0x00, 0x00, 0x00, 0x00,     // [12] keep at 0 to receive the data in the "response"
-
-    p_len, 0x00, 0x00, 0x00,    // [16] param length: 8 bytes
-    s_len, 0x00, 0x00, 0x00,    // [20] length of script: 8 bytes
-
-    0x00, 0x00, 0x00, 0x00,     // [24] param: address to write to, will be overwritten
-    0x00, 0x00, 0x00, 0x00,     // [28] param: byte to write, will be overwritten
-
-    // Script itself:
-    0x91, 0x00,                 // Copy first 4 bytes of param to reg 0
-    0x91, 0x01,                 // Copy second 4 bytes of param to reg 1
-    0x1E, 0x06, 0x00, 0x01,     // Store to address in reg 0 the byte in reg 1
+    0x90, 0x00, addr, (addr >> 8), 0x00, 0x00,  // Place address in r0
+    0x9B, 0x01, value,                          // Place value in r1
+    0x1E, 0x06, 0x00, 0x01,                     // Store to address in reg 0 the byte in reg 1
   };
-  write8_fast[24] = (((unsigned char *) &addr)[0]);
-  write8_fast[25] = (((unsigned char *) &addr)[1]);
-  write8_fast[28] = value;
 
-  serial_send(&pgm->fd, write8_fast, m_len);
-  unsigned char *buf = my.rxBuf;
-
-  if(serial_recv(&pgm->fd, buf, 512) >= 0) { // Read response
-    if(buf[0] == 0x0D) {
-      return 0;
-    }
-  }
-  return -1;
+  int rc = pickit5_send_script_cmd(pgm, write8_fast, sizeof(write8_fast), NULL, 0);
+  if(rc < 0) {
+    return -1;
+  } 
+  return 1;
 }
 
 // UPDI-specific function providing a reduced overhead when reading a single byte
@@ -777,85 +1109,78 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
       return -1;
     }
     addr += mem->offset;
-    pmsg_debug("%s(0x%4X)\n", __func__, (unsigned int) addr);
-    // This script is based on ReadSIB; reduces overhead by avoiding readind data EP
-    const unsigned char h_len = 24;     // 16 + 8
-    const unsigned char p_len = 4;
-    const unsigned char s_len = 6;
-    const unsigned char m_len = h_len + p_len + s_len;
+    pmsg_debug("%s(addr: 0x%4X)\n", __func__, (unsigned int) addr);
 
     unsigned char read8_fast[] = {
-      0x00, 0x01, 0x00, 0x00,   // [0]  SCR_CMD
-      0x00, 0x00, 0x00, 0x00,   // [4]  always 0
-      m_len, 0x00, 0x00, 0x00,  // [8]  message length = 16 + 8 + param (4) + script (6) = 34
-      0x00, 0x00, 0x00, 0x00,   // [12] keep at 0 to receive the data in the "response"
-
-      p_len, 0x00, 0x00, 0x00,  // [16] param length: 4 bytes
-      s_len, 0x00, 0x00, 0x00,  // [20] length of script: 6 bytes
-
-      0x00, 0x00, 0x00, 0x00,   // [24] param: address to read from, will be overwritten
-
-      // Script itself:
-      0x91, 0x00,               // Copy first 4 bytes of param to reg 0
-      0x1E, 0x03, 0x00,         // Load byte from address in reg 0
-      0x9F                      // Send data from 0x1E to "response"
+      0x90, 0x00, addr, (addr >> 8), 0x00, 0x00,  // load address (only 16-bit wide)
+      0x1E, 0x03, 0x00,                           // Load byte from address in reg 0
+      0x9F                                        // Send data from 0x1E to "response"
     };
-    read8_fast[24] = (((unsigned char *) &addr)[0]);
-    read8_fast[25] = (((unsigned char *) &addr)[1]);
 
-    serial_send(&pgm->fd, read8_fast, m_len);
-    unsigned char *buf = my.rxBuf;
-
-    if(serial_recv(&pgm->fd, buf, 512) >= 0) {  // Read response
-      if(buf[0] == 0x0D) {
-        if(buf[20] == 0x01) {
-          *value = buf[24];
-          return 0;
-        }
-      }
+    int rc = pickit5_send_script_cmd(pgm, read8_fast, sizeof(read8_fast), NULL, 0);
+    if(rc < 0) {
+      return -1;
+    } else {
+      *value = my.rxBuf[24];
+      return 1;
     }
-    return -1;
-  } else {                      // Fall back to standard function
+  } 
+  return 0;
+  /*else {                      // Fall back to standard function
     int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
 
     if(rc < 0)
       return rc;
-    return 0;
+    return 1;
   }
+  */
 }
 
 // Return numbers of byte written
 static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
-  pmsg_debug("%s(%s, 0x%04x, %i)", __func__, mem->desc, (unsigned int) addr, len);
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)\n", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
 
   if(len > mem->size || mem->size < 1) {
     pmsg_error("cannot write to %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
     return -1;
   }
   if(addr >= (unsigned long) mem->size) {
-    pmsg_error("cannot write to %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
+    pmsg_error("cannot write to %s %s as address 0x%04lx is not in range [0, 0x%04x]\n",
       p->desc, mem->desc, addr, mem->size - 1);
     return -1;
+  }
+
+  if(is_debugwire(pgm) && !mem_is_in_flash(mem)) {  // for flash programming, stay in ISP mode
+    pickit5_isp_switch_to_dw(pgm, p);
+  }
+  if(is_tpi(pgm)) {
+    pickit5_tpi_write(pgm, p, mem, addr, len, value);
   }
 
   const unsigned char *write_bytes = NULL;
   unsigned int write_bytes_len = 0;
 
   if((mem_is_in_flash(mem) && (len == mem->page_size))) {
-    write_bytes = my.scripts.WriteProgmem;
+    write_bytes     = my.scripts.WriteProgmem;
     write_bytes_len = my.scripts.WriteProgmem_len;
-  } else if(mem_is_eeprom(mem)) {
-    write_bytes = my.scripts.WriteDataEEmem;
+  } else if(mem_is_boot(mem) && my.scripts.WriteBootMem != NULL) {
+    write_bytes     = my.scripts.WriteBootMem;
+    write_bytes_len = my.scripts.WriteBootMem_len;
+  } else if(mem_is_eeprom(mem) && my.scripts.WriteDataEEmem != NULL) {
+    write_bytes     = my.scripts.WriteDataEEmem;
     write_bytes_len = my.scripts.WriteDataEEmem_len;
-  } else if(mem_is_user_type(mem)) {
-    write_bytes = my.scripts.WriteIDmem;
+  } else if((mem_is_a_fuse(mem) || mem_is_in_fuses(mem)) && my.scripts.WriteConfigmemFuse != NULL) {
+    write_bytes     = my.scripts.WriteConfigmemFuse;
+    write_bytes_len = my.scripts.WriteConfigmemFuse_len;
+  } else if(mem_is_lock(mem) && my.scripts.WriteConfigmemLock != NULL) {
+    write_bytes     = my.scripts.WriteConfigmemLock;
+    write_bytes_len = my.scripts.WriteConfigmemLock_len;
+  } else if(mem_is_user_type(mem) && my.scripts.WriteIDmem != NULL) {
+    write_bytes     = my.scripts.WriteIDmem;
     write_bytes_len = my.scripts.WriteIDmem_len;
-  } else if(mem_is_in_fuses(mem)) {
-    write_bytes = my.scripts.WriteConfigmem;
-    write_bytes_len = my.scripts.WriteConfigmem_len;
   } else if(!mem_is_readonly(mem)) { // SRAM, IO, LOCK
-    if((len == 1) && (pgm->prog_modes == PM_UPDI)) {
+    if((len == 1) && is_updi(pgm)) {
       return pickit5_updi_write_byte(pgm, p, mem, addr, value[0]);
     }
     write_bytes = my.scripts.WriteMem8;
@@ -864,64 +1189,80 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -2;
   }
+
+
   addr += mem->offset;
-
-  unsigned char buf[8];
-
-  pickit5_uint32_to_array(&buf[0], addr);
-  pickit5_uint32_to_array(&buf[4], len);
-
-  if(pickit5_send_script(pgm, SCR_DOWNLOAD, write_bytes, write_bytes_len, buf, 8, len) < 0) {
-    pmsg_error("sending script failed\n");
-    return -1;
+  if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
+    addr /= 2;  
   }
 
-  if(pickit5_read_response(pgm, "Write Bytes") < 0) {
-    pmsg_error("reading script response failed\n");
-    return -1;
+  unsigned char param[8];
+  pickit5_uint32_to_array(&param[0], addr);
+  pickit5_uint32_to_array(&param[4], len);
+
+  int rc = pickit5_download_data(pgm, write_bytes, write_bytes_len, param, 8, value, len);
+  if(rc < 0) {
+    return LIBAVRDUDE_EXIT; // Any error here means that a write fail occured, so restart
+  } else {
+    return len; 
   }
-  if(usbdev_data_send(&pgm->fd, value, len) < 0) {
-    pmsg_error("failed when sending data\n");
-    return -1;
-  }
-  if(pickit5_get_status(pgm, CHECK_ERROR) < 0) {
-    pmsg_error("error check failed\n");
-    return -1;
-  }
-  if(pickit5_send_script_done(pgm, "Write Bytes") < 0) {
-    pmsg_error("sending script done message failed\n");
-    return -1;
-  }
-  return len;
 }
 
 // Return numbers of byte read
 static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
-  pmsg_debug("%s(%u, %u)\n", __func__, (unsigned) addr, len);
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)\n", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
+
 
   if(len > mem->size || mem->size < 1) {
     pmsg_error("cannot read from %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
     return -1;
   }
   if(addr >= (unsigned long) mem->size) {
-    pmsg_error("cannot read from %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
+    pmsg_error("cannot read from %s %s as address 0x%04lx is not in range [0, 0x%04x]\n",
       p->desc, mem->desc, addr, mem->size - 1);
     return -1;
+  }
+
+  if(mem_is_signature(mem)) { // DeviceID is read only once and buffered
+    if(len == 1) {
+      *value = my.devID[addr];
+      return 0;
+    }
+    return -1;
+  }
+
+  if(is_debugwire(pgm)) {
+    pickit5_isp_switch_to_dw(pgm, p);
+  }
+  if(is_tpi(pgm)) {
+    return pickit5_tpi_read(pgm, p, mem, addr, len, value);
   }
 
   const unsigned char *read_bytes = NULL;
   unsigned int read_bytes_len = 0;
 
   if(mem_is_in_flash(mem)) {
-    read_bytes = my.scripts.ReadProgmem;
-    read_bytes_len = my.scripts.ReadProgmem_len;
-  } else if(mem_is_eeprom(mem)) {
-    read_bytes = my.scripts.ReadDataEEmem;
-    read_bytes_len = my.scripts.ReadDataEEmem_len;
-  } else if(mem_is_user_type(mem)) {
-    read_bytes = my.scripts.ReadIDmem;
-    read_bytes_len = my.scripts.ReadIDmem_len;
+    read_bytes      = my.scripts.ReadProgmem;
+    read_bytes_len  = my.scripts.ReadProgmem_len;
+  } else if(mem_is_boot(mem) && my.scripts.ReadBootMem != NULL) {
+    read_bytes     = my.scripts.ReadBootMem;
+    read_bytes_len = my.scripts.ReadBootMem_len;
+  } else if(mem_is_calibration(mem) && my.scripts.ReadCalibrationByte != NULL) {
+    read_bytes      = my.scripts.ReadCalibrationByte;
+    read_bytes_len  = my.scripts.ReadCalibrationByte_len;
+  } else if(mem_is_eeprom(mem) && my.scripts.ReadDataEEmem != NULL) {
+    read_bytes      = my.scripts.ReadDataEEmem;
+    read_bytes_len  = my.scripts.ReadDataEEmem_len;
+  } else if((mem_is_a_fuse(mem) || mem_is_in_fuses(mem)) && my.scripts.ReadConfigmemFuse != NULL) {
+    read_bytes      = my.scripts.ReadConfigmemFuse;
+    read_bytes_len  = my.scripts.ReadConfigmemFuse_len;
+  } else if(mem_is_lock(mem) && my.scripts.ReadConfigmemLock != NULL) {
+    read_bytes      = my.scripts.ReadConfigmemLock;
+    read_bytes_len  = my.scripts.ReadConfigmemLock_len;
+  } else if(mem_is_user_type(mem) && my.scripts.ReadIDmem != NULL) {
+    read_bytes      = my.scripts.ReadIDmem;
+    read_bytes_len  = my.scripts.ReadIDmem_len;
   } else if(mem_is_sib(mem)) {
     if(len == 1) {
       *value = my.sib_string[addr];
@@ -931,87 +1272,112 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
       return 32;
     }
     return -1;
-  } else if(mem_is_signature(mem)) {
-    if(len == 1) {
-      *value = my.devID[addr];
-      return 0;
-    }
-    return -1;
-  } else if(mem_is_in_sigrow(mem) || mem_is_user_type(mem) || mem_is_a_fuse(mem)) {
-    read_bytes = my.scripts.ReadConfigmem;
-    read_bytes_len = my.scripts.ReadConfigmem_len;
+  } else if((mem_is_in_sigrow(mem) || mem_is_user_type(mem)) && my.scripts.ReadConfigmem != NULL) {
+    read_bytes      = my.scripts.ReadConfigmem;
+    read_bytes_len  = my.scripts.ReadConfigmem_len;
   } else if(!mem_is_readonly(mem)) { // SRAM, IO, LOCK, USERROW
-    if((len == 1) && (pgm->prog_modes == PM_UPDI)) {
-      return pickit5_updi_read_byte(pgm, p, mem, addr, value);
+    if((len == 1) && is_updi(pgm)) {
+      if(pickit5_updi_read_byte(pgm, p, mem, addr, value) < 0) {
+        return -1;
+      } else {
+        return 0;
+      }
     }
-    read_bytes = my.scripts.ReadMem8;
-    read_bytes_len = my.scripts.ReadMem8_len;
+    read_bytes      = my.scripts.ReadMem8;
+    read_bytes_len  = my.scripts.ReadMem8_len;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -2;
   }
 
   addr += mem->offset;
-  unsigned char buf[8];
+  if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
+    addr /= 2;  
+  }
+  unsigned char param[8];
 
-  pickit5_uint32_to_array(&buf[0], addr);
-  pickit5_uint32_to_array(&buf[4], len);
+  pickit5_uint32_to_array(&param[0], addr);
+  pickit5_uint32_to_array(&param[4], len);
 
-  if(pickit5_send_script(pgm, SCR_UPLOAD, read_bytes, read_bytes_len, buf, 8, len) < 0) {
-    pmsg_error("sending script failed\n");
-    return -1;
+  int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, param, 8, value, len);
+  
+  if(rc < 0) {
+    return LIBAVRDUDE_EXIT; // Any error here means that a read fail occured, better restart
+  } else {
+    return len; 
   }
-  if(pickit5_read_response(pgm, "Read Bytes") < 0) {
-    pmsg_error("unexpected read response\n");
-    return -1;
-  }
-  if(usbdev_data_recv(&pgm->fd, value, len) < 0) {
-    pmsg_error("reading data memory failed\n");
-    return -1;
-  }
-  if(pickit5_send_script_done(pgm, "Read Bytes") < 0) {
-    pmsg_error("sending script done message failed\n");
-    return -1;
-  }
-  return len;
 }
+
 
 static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
   const unsigned char *read_id = my.scripts.GetDeviceID; // Defaults
   unsigned int read_id_len = my.scripts.GetDeviceID_len;
 
-  if(my.nvm_version >= '0' && my.nvm_version <= '9') {
-    read_id = get_devid_script_by_nvm_ver(my.nvm_version); // Only address changes, not length
-  }
-
-  if(pickit5_send_script(pgm, SCR_CMD, read_id, read_id_len, NULL, 0, 0) < 0)
-    return -1;
-  if(pickit5_read_response(pgm, "Read Device ID") >= 0) {
-    if(my.rxBuf[0] == 0x0D) {
-      if(my.rxBuf[20] == 0x04) {
-        memcpy(my.devID, &my.rxBuf[24], 4);
-        return 0;
+  if(is_updi(pgm)) {
+    if(my.nvm_version >= '0' && my.nvm_version <= '9') {
+      read_id = get_devid_script_by_nvm_ver(my.nvm_version); // Only address changes, not length
+    }
+  } else if(is_debugwire(pgm)) {
+    unsigned char scr [] = {0x7D, 0x00, 0x00, 0x00};  // Not sure what this does
+    unsigned int scr_len = sizeof(scr);
+    pickit5_send_script_cmd(pgm, scr, scr_len, NULL, 0);
+    pickit5_program_enable(pgm, p);
+    if(my.rxBuf[17] == 0x0E) {   // Errors figured out during 6 hours of failing to get it to work
+      if(my.rxBuf[16] == 0x10 || my.rxBuf[16] == 58) {  // with the serial/bootloader auto-reset circuit on Arduino board
+        pmsg_error("debugWIRE transmission error, Aborting.");
+         msg_error("(make sure there are no caps and a pullup >= 10kOhm on the Reset line)\n");
       } else {
-        if(my.hvupdi_enabled && p->hvupdi_variant == HV_UPDI_VARIANT_2) {
-          pmsg_info("failed to get DeviceID with activated HV Pulse on RST\n");
-          pmsg_info("if the wiring is correct, try connecting a 16 V, 1 uF cap between RST and GND\n");
-        }
+        pmsg_error("%d\n", my.rxBuf[16]);
+      }
+      return -1;
+    }
+    const unsigned char get_sig [] = {  // *screams* why was this function not in the scripts?? 
+      0x90, 0x0C, 0x03, 0x00, 0x00, 0x00, // Set reg to 0x03
+      0x1e, 0x45, 0x0C,                   // Send 0xF0 + reg and receive 2 bytes (found by trial and error)
+      0x9D,                               // place word into status response
+    };
+    if(pickit5_send_script_cmd(pgm, get_sig, sizeof(get_sig), NULL, 0) >= 0) {
+      unsigned char len = my.rxBuf[20];
+      if(len == 0x02) {  // if debugWIRE
+        my.devID[0] = 0x1E;     // dW doesn't send the first byte, fill it in
+        my.devID[1] = my.rxBuf[25]; // Flip byte order
+        my.devID[2] = my.rxBuf[24];
+        return 0;
       }
     }
+    return -1;
   }
-  return -1;
+
+  if(pickit5_send_script_cmd(pgm, read_id, read_id_len, NULL, 0) < 0) {
+    return -1;
+  }
+
+  if(my.rxBuf[0] == 0x0D) {
+    unsigned char len = my.rxBuf[20];
+    if(len == 0x03 || len == 0x04) {  // just DevId or UPDI with revision
+      memcpy(my.devID, &my.rxBuf[24], len);
+    } else {
+      if(my.hvupdi_enabled && p->hvupdi_variant == HV_UPDI_VARIANT_2) {
+        pmsg_info("failed to get DeviceID with activated HV Pulse on RST");
+         msg_info("if the wiring is correct, try connecting a 16 V, 1 uF cap between RST and GND\n");
+      } else {
+        pmsg_error("length (%u) mismatch of returned Device ID.\n", len);
+      }
+      return -1;
+    }
+  }
+  return 0;
 }
 
-static int pickit5_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
+static int pickit5_updi_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
   pmsg_debug("%s()\n", __func__);
   const unsigned char *read_sib = my.scripts.ReadSIB;
   unsigned int read_sib_len = my.scripts.ReadSIB_len;
 
-  if(pickit5_send_script(pgm, SCR_CMD, read_sib, read_sib_len, NULL, 0, 0) < 0)
+  if(pickit5_send_script_cmd(pgm, read_sib, read_sib_len, NULL, 0) < 0) {
     return -1;
-  if(pickit5_read_response(pgm, "Read SIB") < 0)
-    return -1;
+  }
   unsigned int ret_len = pickit5_array_to_uint32(&(my.rxBuf[20]));
 
   if(ret_len == 32) {
@@ -1026,17 +1392,21 @@ static int pickit5_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) 
 
 static int pickit5_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev) {
   pmsg_debug("%s()\n", __func__);
-  *chip_rev = my.devID[3];
+  if(is_updi(pgm)) {  // on UPDI Devices, the chip revision is sent as the 4th byte
+    *chip_rev = my.devID[3];
+  } else {            // for the rest, more research is neccessary.
+    chip_rev = 0x00;
+  }
   return 0;
 }
 
-static int pickit5_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char value) {
-  pmsg_debug("%s(%u, %i)", __func__, addr, value);
+static int pickit5_updi_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char value) {
+  pmsg_debug("%s(CS Addr: %u, Value:%i)\n", __func__, addr, value);
   const unsigned char *write_cs = my.scripts.WriteCSreg;
   unsigned int write_cs_len = my.scripts.WriteCSreg_len;
 
   if(addr > 0x0C) {
-    pmsg_error("CS reg %i out of range [0x00, 0x0C], addr\n", addr);
+    pmsg_error("CS reg %i out of range [0x00, 0x0C]\n", addr);
     return -1;
   }
 
@@ -1045,20 +1415,16 @@ static int pickit5_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsign
   buf[0] = addr;
   buf[1] = value;
 
-  if(pickit5_send_script(pgm, SCR_CMD, write_cs, write_cs_len, buf, 2, 0) < 0) {
-    pmsg_error("sending script failed\n");
+  if(pickit5_send_script_cmd(pgm, write_cs, write_cs_len, buf, 2) < 0) {
+    pmsg_error("CS reg write failed\n");
     return -1;
   }
 
-  if(pickit5_read_response(pgm, "Write CS reg") < 0) {
-    pmsg_error("reading script response failed\n");
-    return -1;
-  }
   return 1;
 }
 
-static int pickit5_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char *value) {
-  pmsg_debug("%s(%i)\n", __func__, addr);
+static int pickit5_updi_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char *value) {
+  pmsg_debug("%s(CS Addr: %u)\n", __func__, addr);
   const unsigned char *read_cs = my.scripts.ReadCSreg;
   unsigned int read_cs_len = my.scripts.ReadCSreg_len;
 
@@ -1070,25 +1436,385 @@ static int pickit5_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigne
   unsigned char buf[1];
 
   buf[0] = addr;
+  int ret_val = pickit5_upload_data(pgm, read_cs, read_cs_len, buf, 1, value, 1);
 
-  if(pickit5_send_script(pgm, SCR_UPLOAD, read_cs, read_cs_len, buf, 1, 1) < 0) {
+  if(ret_val == -1) {
     pmsg_error("sending script failed\n");
     return -1;
-  }
-  if(pickit5_read_response(pgm, "Read CS") < 0) {
+  } else if(ret_val == -2) {
     pmsg_error("unexpected read response\n");
     return -1;
-  }
-  if(usbdev_data_recv(&pgm->fd, value, 1) < 0) {
-    pmsg_error("reading CS memory failed\n");
+  } else if(ret_val == -3) {
+    pmsg_error("reading CS reg failed\n");
     return -1;
-  }
-  if(pickit5_send_script_done(pgm, "Read CS") < 0) {
+  } else if(ret_val == -4) {
     pmsg_error("sending script done message failed\n");
     return -1;
   }
   return 0;
 }
+
+
+static void pickit5_dw_switch_to_isp(const PROGRAMMER *pgm, const AVRPART *p) {
+  pmsg_debug("%s(%u)\n", __func__, my.dW_switched_isp);
+  if(my.dW_switched_isp == 0) {
+    if(pickit5_send_script_cmd(pgm, my.scripts.switchtoISP, my.scripts.switchtoISP_len, NULL, 0) >= 0) {
+      my.dW_switched_isp = 1;
+      pickit5_program_disable(pgm, p);
+      if(get_pickit_isp_script(&(my.scripts), p->desc) < 0) {
+        pmsg_error("failed switching scripts, aborting.\n");
+        return;
+      }
+      pmsg_notice("switched to ISP mode\n");
+      pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
+      pickit5_program_enable(pgm, p);
+    }
+  }
+}
+
+static void pickit5_isp_switch_to_dw(const PROGRAMMER *pgm, const AVRPART *p) {
+  if(my.dW_switched_isp) {
+    // dW_switched_isp is set when accessing fuses where dW has to be switched to ISP
+    // we have to power cycle to switch back to dW so that the scripts work.
+    // For now, only support power-cycling through PICkit.
+    // Maybe in the future: monitor voltages and wait for voltage falling and rising
+    if(my.power_source == POWER_SOURCE_INT) {
+      pickit5_program_disable(pgm, p);
+      pickit5_set_vtarget(pgm, 0.0);    // has a little delay already built in
+      if(get_pickit_dw_script(&(my.scripts), p->desc) < 0) {
+        pmsg_error("failed switching scripts, aborting.\n");
+        return;
+      }
+      pickit5_set_vtarget(pgm, my.target_voltage);
+      pickit5_program_enable(pgm, p);
+      my.dW_switched_isp = 0;
+    } else {
+      pmsg_error("programmer switched the part to ISP mode when writing fuses.");
+       msg_error("to continue, the part has to be power cycled and the operation restarted.\n");
+    }
+  }
+}
+
+
+// Original Script only supports doing all three bytes at once,
+// doing a custom script felt easier to integrate into avrdude,
+// especially as we already have all the programming commands in the .conf file
+static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned char value) {
+  pmsg_debug("%s(offset: %i, val: %i)\n", __func__, mem->offset, value);
+  
+  unsigned int cmd;
+  avr_set_bits(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd);
+  avr_set_addr(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, mem_fuse_offset(mem));
+  avr_set_input(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, value);
+
+  unsigned char write_fuse_isp [] = {
+    0x90, 0x00, 0x32, 0x00, 0x00, 0x00, // load 0x32 to r00
+    0x1E, 0x37, 0x00,                   // Enable Programming?
+    0x9F,                               // Send status byte from temp_reg to host
+    0xA8, 0x00, 0x00, 0x00, 0x00,       // ???
+    0x90, 0x01, (cmd >> 24), (cmd >> 16), (cmd >> 8), cmd, // load programming command to r01 (swapped bitorder)
+    0x1E, 0x34, 0x01,                   // Execute write command placed in r01
+  };
+  unsigned int write_fuse_isp_len = sizeof(write_fuse_isp);
+
+/*
+  write_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
+  write_fuse_isp[13] = (uint8_t) (cmd >> 8);
+  write_fuse_isp[12] = (uint8_t) (cmd >> 16);
+  write_fuse_isp[11] = (uint8_t) (cmd >> 24);
+*/
+  if(pickit5_send_script_cmd(pgm, write_fuse_isp, write_fuse_isp_len, NULL, 0) < 0) {
+    pmsg_error("write fuse script failed\n");
+    return -1;
+  }
+  if(0x01 != my.rxBuf[20]) { // length
+    pmsg_error("write fuse script did not receive a status response\n");
+    return -1;
+  }
+  if(0x00 != my.rxBuf[24]) {
+    pmsg_error("failed to start fuse write operation(%d)\n", my.rxBuf[24]);
+    return -1;
+  }
+  return 1;
+}
+
+static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned long addr, unsigned char *value) {
+  pmsg_debug("%s(offset: %i)\n", __func__, mem->offset);
+
+  unsigned int cmd;
+  avr_set_bits(mem->op[AVR_OP_READ], (unsigned char*)&cmd);
+  avr_set_addr(mem->op[AVR_OP_READ], (unsigned char*)&cmd, addr + mem->offset);
+
+
+  unsigned char read_fuse_isp [] = {    // as we pull the command from avrdude's conf file, this isn't limited to fuses
+    0x90, 0x00, 0x32, 0x00, 0x00, 0x00, // load 0x32 to r00
+    0x1E, 0x37, 0x00,                   // Enable Programming?
+    0x9F,                               // Send status from temp_reg to host
+    0xA8, 0x00, 0x00, 0x00, 0x00,       // ???
+    0x90, 0x01, (cmd >> 24), (cmd >> 16), (cmd >> 8), cmd, // load programming command to r01 (swapped bitorder)
+    0x9B, 0x02, 0x03,                   // load 0x03 to r02
+    0x9B, 0x03, 0x00,                   // load 0x00 to r03
+    0x1E, 0x35, 0x01, 0x02, 0x03,       // Execute Command placed in r01
+    0x9F                                // Send data from temp_reg to host
+  };
+  unsigned int read_fuse_isp_len = sizeof(read_fuse_isp);
+  
+/*  
+  read_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
+  read_fuse_isp[13] = (uint8_t) (cmd >> 8);
+  read_fuse_isp[12] = (uint8_t) (cmd >> 16);
+  read_fuse_isp[11] = (uint8_t) (cmd >> 24);
+*/
+  if(pickit5_send_script_cmd(pgm, read_fuse_isp, read_fuse_isp_len, NULL, 0) < 0) {
+    pmsg_error("read fuse script failed\n");
+    return -1;
+  }
+  if(0x02 != my.rxBuf[20]) { // length
+    pmsg_error("unexpected amount (%d) of bytes returned.\n", my.rxBuf[20]);
+    return -1;
+  }
+  if(0x00 != my.rxBuf[24]) {
+    pmsg_error("failed to start fuse read operation (%d)\n", my.rxBuf[24]);
+    return -1;
+  }
+  *value = my.rxBuf[25];      // return value
+  return 1;
+}
+
+
+// debugWIRE cannot write nor read fuses, have to change to ISP for that.
+// Luckily, there is a custom script doing fuse access on ISP anyway,
+// so no need to switch between script sets
+static int pickit5_dw_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value) {
+  pickit5_dw_switch_to_isp(pgm, p);
+  return pickit5_isp_write_fuse(pgm, mem, value);
+}
+
+static int pickit5_dw_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value) {
+  pickit5_dw_switch_to_isp(pgm, p);
+  return pickit5_isp_read_fuse(pgm, mem, 0, value);
+}
+
+
+// gave JTAG also a custom script to make integration into avrdude
+// easier. Also encodes all data in script itself instead of using paramters
+static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value) {
+  pmsg_debug("%s(offset: %i, val: %i)\n", __func__, mem->offset, value);
+  unsigned char fuse_cmd = 0x33;  // value for lfuse
+  unsigned char fuse_poll = 0x33; // value for lfuse
+  if(mem_is_hfuse(mem)) {
+    fuse_cmd = 0x37;
+    fuse_poll = 0x37;
+  } else if(mem_is_efuse(mem)) {
+    fuse_cmd = 0x3B;
+    fuse_poll = 0x37;
+  }
+  
+  unsigned char write_fuse_jtag [] = {
+    0x9C, 0x00, 0x00,   fuse_cmd,         // Write fuse write command A to r00
+    0x9C, 0x06, 0x00,  (fuse_cmd & 0xFD), // Write fuse write command B to r06
+    0x9C, 0x07, 0x00,  fuse_poll,         // Write fuse poll command to r07
+    0x9C, 0x01, value, 0x13,              // Write new fuse value plus load command (0x13) into r01
+    0x9b, 0x02, 0x0F,                     // Set r02 to 0x0F
+    0x9b, 0x03, 0x05,                     // Set r03 to 0x05    (PROG_COMMANDS)
+    0x1e, 0x66, 0x03,                     // JTAG Write to Instruction Reg the value in r03
+    0x90, 0x04, 0x40, 0x23, 0x00, 0x00,   // set r04 to 0x2340  (Enter Fuse Write)
+    0x1e, 0x67, 0x04, 0x02,               // JTAG: Write to Data Reg the value in r04 with a length in r02(16)
+    0x1e, 0x67, 0x01, 0x02,               // JTAG: Write to Data Reg the value in r01 with a length in r02(16)
+
+    0x1e, 0x67, 0x00, 0x02,               // JTAG: Write to Data Reg the value in r00 with a length in r02(16)
+    0x1e, 0x67, 0x06, 0x02,               // JTAG: Write to Data Reg the value in r06 with a length in r02(16)
+    0x1e, 0x67, 0x00, 0x02,               // JTAG: Write to Data Reg the value in r00 with a length in r02(16)
+    0x1e, 0x67, 0x00, 0x02,               // JTAG: Write to Data Reg the value in r00 with a length in r02(16)
+
+    0xa2,                                 // do
+    0x1e, 0x6b, 0x07, 0x02,               // JTAG: Write/read Data Reg the value in r07 with a length in r02(16)
+    0xa5, 0x00, 0x02, 0x00, 0x00,         // while ((temp_reg & 0x200) != 0x200)
+    0x00, 0x02, 0x00, 0x00, 0x0a, 0x00,   //
+  };
+  unsigned int write_fuse_isp_len = sizeof(write_fuse_jtag);
+
+  if(pickit5_send_script_cmd(pgm, write_fuse_jtag, write_fuse_isp_len, NULL, 0) < 0) {
+    pmsg_error("write fuse script failed\n");
+    return -1;
+  }
+  return 1;
+}
+
+static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value) {
+  pmsg_debug("%s(offset: %i)\n", __func__, mem->offset);
+
+  unsigned char fuse_cmd = 0x33;  // value for lfuse
+  if(mem_is_hfuse(mem)) {
+    fuse_cmd = 0x3F;
+  } else if(mem_is_efuse(mem)) {
+    fuse_cmd = 0x3B;
+  }
+  
+  unsigned char read_fuse_jtag [] = {
+    0x9C, 0x00, 0x00,  fuse_cmd,          // load fuse read command A in r00
+    0x9C, 0x01, 0x00, (fuse_cmd & 0xFE),  // load fuse read command B in r01
+    0x9b, 0x02, 0x0f,                     // set r02 to 0x07
+    0x9b, 0x03, 0x05,                     // set r03 to 0x05 (PROG COMMANDS)
+    0x1e, 0x66, 0x03,                     // Write JTAG Instruction in r03
+    0x9C, 0x04, 0x04, 0x23,               // set r04 to 0x2304 (Enter Fuse Bit Read)
+    0x1e, 0x67, 0x04, 0x02,               // Write JTAG instruction in r04 with length in r02 (7 bits)
+    0x1e, 0x67, 0x01, 0x02,               // Write JTAG instruction in r01 with length in r02 (7 bits)
+    0x1E, 0x6B, 0x00, 0x02,               // Write JTAG instruction in r00 with length in r02 (7 bits) and shift data in
+    0x9F,                                 // Send temp-reg to return status
+  };
+
+  unsigned int read_fuse_jtag_len = sizeof(read_fuse_jtag);
+
+  if(pickit5_send_script_cmd(pgm, read_fuse_jtag, read_fuse_jtag_len, NULL, 0) < 0) {
+    pmsg_error("read fuse script failed\n");
+    return -1;
+  }
+  if(0x01 != my.rxBuf[20]) { // length
+    return -1;
+  }
+  *value = my.rxBuf[24];      // return value
+  return 1;
+}
+
+
+// TPI has an unified memory space, meaning that any memory (even SRAM) 
+// can be accessed by the same command, meaning that we don't need the
+// decision tree found in the "read/write array" functions
+static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)\n", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
+
+  const unsigned char* write_bytes = my.scripts.WriteProgmem;
+  unsigned int write_bytes_len = my.scripts.WriteProgmem_len;
+  addr += mem->offset;
+
+  unsigned char buf[8];
+
+  pickit5_uint32_to_array(&buf[0], addr);
+  pickit5_uint32_to_array(&buf[4], len);
+
+  int rc = pickit5_download_data(pgm, write_bytes, write_bytes_len, buf, 8, value, len);
+  if(rc < 0) {
+    return -1;
+  } else {
+    return len; 
+  }
+}
+
+static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)\n", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
+
+  const unsigned char* read_bytes = my.scripts.ReadProgmem;
+  unsigned int read_bytes_len = my.scripts.ReadProgmem_len;
+
+  addr += mem->offset;
+  unsigned char buf[8];
+  pickit5_uint32_to_array(&buf[0], addr);
+  pickit5_uint32_to_array(&buf[4], len);
+  int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, buf, 8, value, len);
+
+  if(rc < 0) {
+    return -1;
+  } else {
+    return len; 
+  }
+}
+
+
+// There are often multiple memories located in prodsig, we try to read it once
+// and handle all further requests through a buffer.
+static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s(%s, addr: 0x%04x, offset: %i, len: %i)\n", __func__, mem->desc, (unsigned int) addr, mem->offset, len);
+  int rc = 0;
+
+  AVRMEM *prodsig = avr_locate_prodsig(p);
+  if(prodsig == NULL) {
+    return 0;  // no prodsig on this device, try again in read_array
+  }
+  if(mem->offset < prodsig->offset || 
+    (mem->offset + mem->size) > (prodsig->offset) + (prodsig->size)) {
+    return 0;  // Requested memory not in prodsig, try again in read_array
+  }
+
+  int max_mem_len = sizeof(my.prodsig);  // Current devices have not more than 128 bytes
+  unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len; 
+
+  if((addr + len) > mem_len) {
+    pmsg_warning("requested memory is outside of the progsig on the device\n");
+    return 0;
+  }
+
+  unsigned int prod_addr = addr + mem->offset - prodsig->offset;  // adjust offset
+
+  if(prod_addr == 0x00 || (my.prod_sig_len == 0x00)) { // update buffer
+    if(my.scripts.ReadConfigmem != NULL) {
+      unsigned char param_buf[8];
+      pickit5_uint32_to_array(&param_buf[0], prodsig->offset);
+      pickit5_uint32_to_array(&param_buf[4], mem_len);
+      rc = pickit5_upload_data(pgm, my.scripts.ReadConfigmem, my.scripts.ReadConfigmem_len, param_buf, 8, my.prodsig, mem_len);
+    } else if(mem->op[AVR_OP_READ] != NULL) {
+      if(both_jtag(pgm, p)){
+        const unsigned char read_prodsigmem_jtag [] = {
+          0x90, 0x00, 0x00, 0x03, 0x00, 0x00,   // set r00 to 0x0300 (Load Address byte command (0x3bb))
+          0x9b, 0x01, 0x0f,                     // set r01 to 0x0F
+          0x9b, 0x02, 0x05,                     // set r02 to 0x05 (PROG COMMANDS)
+          0x90, 0x03, 0x08, 0x23, 0x00, 0x00,   // set r03 to 0x2308 (Enter Signature Read)
+          0x90, 0x05, 0x00, 0x32, 0x00, 0x00,   // set r05 to 0x3200 (Read Signature byte I)
+          0x90, 0x06, 0x00, 0x33, 0x00, 0x00,   // set r06 to 0x3300 (Read Signature byte II)
+
+          0xAC, mem_len, 0x00,                  // loop for mem length
+          0x1e, 0x66, 0x02,                     // Write JTAG Instruction in r03 (PROG COMMANDS)
+          0x1e, 0x67, 0x03, 0x01,               // Write JTAG instruction in r02 with length in r01 (15 bits)
+          0x1e, 0x67, 0x00, 0x01,               // Write JTAG instruction in r00 with length in r01 (15 bits)
+          0x1e, 0x67, 0x05, 0x01,               // Write JTAG instruction in r05 with length in r01 (15 bits)
+          0x1E, 0x6B, 0x06, 0x01,               // Write JTAG instruction in r06 with length in r01 (15 bits) and shift data in
+          0x9F,                                 // Send temp-reg to return status
+          0x92, 0x00, 0x01, 0x00, 0x00, 0x00,   // increase address (r00) by 1
+          0xA4,                                 // End of for loop
+        };
+        rc = pickit5_upload_data(pgm, read_prodsigmem_jtag, sizeof(read_prodsigmem_jtag), NULL, 0, my.prodsig, mem_len);
+      } else if(is_isp(pgm)) {
+        // Ok, this one is tricky due to the lsb being on another position compared to the rest,
+        // The solution is to read two bytes in one while loop and toggle the LSB
+        const unsigned char read_prodsig_isp [] = {
+          0x90, 0x00, 0x32, 0x00, 0x00, 0x00,   // load 0x32 to r00
+          0x90, 0x01, 0x00, 0x00, 0x00, 0x30,   // load programming command to r01 (the same on all)
+          0x9B, 0x02, 0x03,                     // load 0x03 to r02
+          0x9B, 0x03, 0x00,                     // load 0x00 to r03
+          0x1E, 0x37, 0x00,                     // Enable Programming?
+          0xAC, (mem_len / 2), 0x00,            // loop for half the mem length
+          0x1E, 0x35, 0x01, 0x02, 0x03,         // Execute ISP Read command in r01
+          0x9F,                                 // Send Data back to USB
+          0x92, 0x01, 0x00, 0x00, 0x00, 0x08,   // set LSB of prodsig address
+          0x1E, 0x35, 0x01, 0x02, 0x03,         // Execute ISP Read command in r01
+          0x9F,                                 // Send Data back to USB
+          0x69, 0x01, 0x00, 0x00, 0x00, 0x08,   // clr LSB of prodsig address
+          0x92, 0x01, 0x00, 0x01, 0x00, 0x00,   // increase address by "2"
+          0xA4,                                 // End of for loop
+        };
+        rc = pickit5_upload_data(pgm, read_prodsig_isp, sizeof(read_prodsig_isp), NULL, 0, my.prodsig, mem_len);
+      } else {
+        return 0; // debugWIRE
+      }
+    } else {
+      return 0; // part has no prodsig nor ReadConfigmem
+    }
+  }
+  if(rc >= 0) {  // No errors, copy data
+    my.prod_sig_len = mem_len;
+    if(len == 1) {
+      *value = my.prodsig[prod_addr];
+    } else {
+      memcpy(value, &my.prodsig[prod_addr], len);
+    }
+    return 1; // Success
+  }
+  return rc;  // Error Code from transfer functions
+}
+
 
 static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
@@ -1118,9 +1844,6 @@ static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
 }
 
 static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
-  if(my.pgm_type >= PGM_TYPE_SNAP)  // SNAP can't supply power, ignore
-    return 0;
-
   unsigned char set_vtarget[] = {
     0x40,
     0x00, 0x00, 0x00, 0x00,     // Vdd
@@ -1135,24 +1858,22 @@ static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
     0x44
   };
 
+  if(my.pgm_type >= PGM_TYPE_SNAP) { // SNAP can't supply power, ignore
+    return 0;
+  }
+
   if(v < 1.0) {                 // Anything below 1 V equals disabling Power
     pmsg_debug("%s(disable)\n", __func__);
-    if(pickit5_send_script(pgm, SCR_CMD, power_source, 5, NULL, 0, 0) < 0)
-      return -1;
-    if(pickit5_read_response(pgm, "Select external power source") < 0)
+    if(pickit5_send_script_cmd(pgm, power_source, 5, NULL, 0) < 0)
       return -1;
 
-    if(pickit5_send_script(pgm, SCR_CMD, disable_power, 1, NULL, 0, 0) < 0)
-      return -1;
-    if(pickit5_read_response(pgm, "Disabling Power") < 0)
+    if(pickit5_send_script_cmd(pgm, disable_power, 1, NULL, 0) < 0)
       return -1;
     usleep(50000);              // There might be some caps, let them discharge
   } else {
     pmsg_debug("%s(%1.2f V)\n", __func__, v);
     power_source[1] = 0x01;
-    if(pickit5_send_script(pgm, SCR_CMD, power_source, 5, NULL, 0, 0) < 0)
-      return -1;
-    if(pickit5_read_response(pgm, "Select internal power source") < 0)
+    if(pickit5_send_script_cmd(pgm, power_source, 5, NULL, 0) < 0)
       return -1;
 
     int vtarg = (int) (v * 1000.0);
@@ -1161,10 +1882,7 @@ static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
     pickit5_uint32_to_array(&set_vtarget[5], vtarg);
     pickit5_uint32_to_array(&set_vtarget[9], vtarg);
 
-    if(pickit5_send_script(pgm, SCR_CMD, set_vtarget, 15, NULL, 0, 0) < 0)
-      return -1;
-
-    if(pickit5_read_response(pgm, "set_vtarget") < 0)
+    if(pickit5_send_script_cmd(pgm, set_vtarget, 15, NULL, 0) < 0)
       return -1;
   }
   return 0;
@@ -1176,11 +1894,8 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
 
   pmsg_debug("%s()\n", __func__);
 
-  if(pickit5_send_script(pgm, SCR_CMD, get_vtarget, 1, NULL, 0, 0) < 0)
-    return -1;
-
-  if(pickit5_read_response(pgm, "get_vtarget") < 0)
-    return -1;
+  if(pickit5_send_script_cmd(pgm, get_vtarget, 1, NULL, 0) < 0)
+      return -1;
 
   // 24 - internal Vdd [mV]
   // 28 - target Vdd [mV]
@@ -1197,7 +1912,7 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
 
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
   if(my.pgm_type >= PGM_TYPE_SNAP)  // Don't bother if Programmer doesn't support PTG
-    return 0;                       // Side note: Bitmask would be probably better in the future
+    return 0;                       // Note: Bitmask would be probably better in the future
 
   unsigned char ptg_mode[] = {
     0x5E, 0x00, 0x00, 0x00, 0x00,
@@ -1206,66 +1921,12 @@ static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
 
   pmsg_debug("%s()\n", __func__);
 
-  if(pickit5_send_script(pgm, SCR_UPLOAD, ptg_mode, 5, NULL, 0, 4) < 0)
-    return -1;
-  if(pickit5_read_response(pgm, "Set PTG mode") < 0)
-    return -1;
-
-  if(usbdev_data_recv(&pgm->fd, buf, 4) < 0)
-    return -1;
-  if(pickit5_send_script_done(pgm, "Set PTG Mode") < 0)
-    return -1;
-  return 0;
-}
-
-static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status) {
-  unsigned char *buf = my.txBuf;
-  const unsigned int type = 0x0105;
-  unsigned int key_len = 0;
-
-  if(CHECK_ERROR == status) {
-    key_len = strlen("ERROR_STATUS_KEY") + 1;
-    memcpy(&buf[16], "ERROR_STATUS_KEY", key_len);
-  } else if(BIST_TEST == status) {
-    key_len = strlen("BIST Tested") + 1;
-    memcpy(&buf[16], "BIST Tested", key_len);
-  } else if(BIST_RESULT == status) {
-    key_len = strlen("BIST Results") + 1;
-    memcpy(&buf[16], "BIST Results", key_len);
-  }
-  if(0 == key_len) {
-    pmsg_error("unknown key type %d passed to %s()", status, __func__);
-    return -1;
-  }
-  unsigned int msg_len = 16 + key_len;
-
-  pickit5_create_payload_header(buf, type, msg_len, 0);
-  serial_send(&pgm->fd, buf, msg_len);
-  serial_recv(&pgm->fd, my.rxBuf, 512);
-  if(pickit5_check_ret_status(pgm) < 0) {
-    return -1;
-  }
-  unsigned int status_len = pickit5_array_to_uint32(&(my.rxBuf[8]));
-
-  if(status_len > 64)
-    status_len = 64;
-  my.rxBuf[16 + status_len] = 0x00;    // Known zero-terminator
-  if(str_starts((const char *) &(my.rxBuf[16]), "NONE") == 0) {
-    pmsg_error("PICkit error status report: %s", buf);
+  if(pickit5_upload_data(pgm, ptg_mode, 5, NULL, 0, buf, 4)) {
     return -1;
   }
   return 0;
 }
 
-inline static int pickit5_check_ret_status(const PROGRAMMER *pgm) {
-  unsigned char ret = my.rxBuf[0];
-
-  if(0x0D != ret) {
-    pmsg_error("PICkit5 bad response %i", ret);
-    return -1;
-  }
-  return 0;
-}
 
 void pickit5_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "pickit5");
@@ -1291,7 +1952,7 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   pgm->teardown = pickit5_teardown;
   pgm->set_sck_period = pickit5_set_sck_period;
   pgm->end_programming = pickit5_program_disable;
-  pgm->read_sib = pickit5_read_sib;
+  pgm->read_sib = pickit5_updi_read_sib;
   pgm->read_chip_rev = pickit5_read_chip_rev;
   pgm->set_vtarget = pickit5_set_vtarget;
   pgm->get_vtarget = pickit5_get_vtarget;
@@ -1299,24 +1960,15 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
 
 }
 
+
+/*
+  The following functions are required to handle the data read and write Endpoints of the Pickit.
+  This functions are hardcoded on the Pickit endpoint numbers
+*/
 #if defined(HAVE_USB_H)
-static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer) {
-  int rv = (use_interrupt_xfer? usb_interrupt_read: usb_bulk_read)(fd->usb.handle, ep, cx->usb_buf,
-    maxsize, 10000);
 
-  if(rv < 0) {
-    pmsg_notice2("%s(): usb_%s_read() error: %s\n", __func__,
-      use_interrupt_xfer? "interrupt": "bulk", usb_strerror());
-    return -1;
-  }
 
-  cx->usb_buflen = rv;
-  cx->usb_bufptr = 0;
-
-  return 0;
-}
-
-static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
+static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   int i, amnt;
   unsigned char *p = buf;
 
@@ -1325,9 +1977,17 @@ static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, 
 
   for(i = 0; nbytes > 0;) {
     if(cx->usb_buflen <= cx->usb_bufptr) {
-      if(usb_fill_buf(fd, fd->usb.max_xfer, USB_PK5_DATA_READ_EP, fd->usb.use_interrupt_xfer) < 0)
+      int rv = usb_bulk_read(fd->usb.handle, USB_PK5_DATA_READ_EP, cx->usb_buf, fd->usb.max_xfer, 10000);
+      
+      if(rv < 0) {
+        pmsg_notice2("%s(): usb_bulk_read() error: %s\n", __func__, usb_strerror());
         return -1;
+      }
+
+      cx->usb_buflen = rv;
+      cx->usb_bufptr = 0;
     }
+
     amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
     memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
     cx->usb_bufptr += amnt;
@@ -1341,11 +2001,10 @@ static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, 
   return 0;
 }
 
-static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
+static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   int rv;
-  int i = mlen;
   const unsigned char *p = bp;
-  int tx_size;
+  int tx_size, i = mlen;
 
   if(fd->usb.handle == NULL)
     return -1;
@@ -1358,22 +2017,22 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
    */
   do {
     tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
-    if(fd->usb.use_interrupt_xfer)
-      rv = usb_interrupt_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *) bp, tx_size, 10000);
-    else
-      rv = usb_bulk_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *) bp, tx_size, 10000);
+
+    rv = usb_bulk_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *) bp, tx_size, 10000);
     if(rv != tx_size) {
       pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
       return -1;
     }
     bp += tx_size;
     mlen -= tx_size;
+    i += tx_size;
   } while(mlen > 0);
 
   if(verbose > 3)
     trace_buffer(__func__, p, i);
   return 0;
 }
+
 #else
 
 /*
@@ -1382,11 +2041,11 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
  * This does not seem to be possible with usbhid
  */
 
-static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
+static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   return -1;
 }
 
-static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
+static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   return -1;
 }
 #endif

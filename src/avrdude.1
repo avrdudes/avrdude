@@ -239,13 +239,12 @@ The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
 See below for some hints about FLIP version 1 protocol behaviour.
 .Pp
-The MPLAB(R) PICkit 4 and MPLAB(R) SNAP, are supported in JTAG, TPI, ISP,
+The MPLAB(R) PICkit 4/5 and MPLAB(R) SNAP, are supported in JTAG, TPI, ISP,
 PDI and UPDI mode.
 The Curiosity Nano board is supported in UPDI mode. It is dubbed
 .Dq PICkit on Board ,
 thus the name
 .Pa pkobn_updi .
-The MPLAB(R) PICkit 5 is currently only supported in UPDI mode.
 .Pp
 SerialUPDI programmer implementation is based on Microchip's
 .Em pymcuprog Li https://github.com/microchip-pic-avr-tools/pymcuprog
@@ -1610,8 +1609,9 @@ Show help menu and exit.
 Specify a voltage between 1.8 and 5.5 V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,
 this setting will be ignored. When AVRDUDE detects an external voltage outside
-of this range, it will terminate the operation. You can disable this by
-setting the voltage to 0 V.
+of this range, it will terminate the operation. You can disable this check by
+setting the voltage to 0 V. If an XMEGA part was selected, a requested voltage
+above 3.49 V will lead to an abort of operation. 
 .It Ar hvupdi
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use -x hvupdi to enable high-voltage UPDI
