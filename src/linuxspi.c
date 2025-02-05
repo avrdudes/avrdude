@@ -244,9 +244,14 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     goto close_gpiochip;
   }
 
-  ret = linuxspi_reset_mcu(pgm, true);
-  if(ret)
+  // Ensure part is up for some 100 ms before resetting it
+  if((ret = linuxspi_reset_mcu(pgm, false)))
     goto close_out;
+  usleep(100*1000);
+
+  if((ret = linuxspi_reset_mcu(pgm, true)))
+    goto close_out;
+  usleep(20000);
 
   if(pgm->baudrate != 0) {
     pmsg_warning("obsolete use of -b <clock> option for bit clock; use -B <clock>\n");
