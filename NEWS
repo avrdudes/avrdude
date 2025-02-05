@@ -14,12 +14,17 @@ Changes since version 8.0:
 
   * New programmers supported:
 
+    - pickit5 = pickit5_jtag, pickit5_dw, pickit5_isp, pickit5_pdi, pickit5_tpi
+
   * New serial adapters supported:
 
   * Issues fixed:
 
     - Missing devices in udev rules output? #1915
     - AVR-Doper support has been broken since version 6.4 #1626
+    - CI: upload-artifacts@v3 fails #1944
+    - Linuxspi won't connect #1929
+    - Fails to build on Windows with recent clang #1940
 
   * Pull requests:
 
@@ -32,6 +37,10 @@ Changes since version 8.0:
     - Add AVR32EBxx parts #1932
     - Fix ATxmega fuses memory sizes #1933
     - Fix avrdoper header sequence for hidusb #1937
+    - Fix GitHub upload artifact #1945
+    - PICKit5 ISP, dW, TPI, JTAG and PDI support #1935
+    - Ensure linuxspi part is up for 100 ms before reset #1939
+    - Fix missing stdlib.h include for free() #1941
 
   * Internals:
 
