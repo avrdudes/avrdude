@@ -85,8 +85,8 @@ jobs:
         tar -czv ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }} -f ${{ env.PROJECT_NAME }}_${GITHUB_REF##*/}_${{ matrix.config.os }}_${{ matrix.config.arch }}.tar.gz
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         if-no-files-found: error
-        name: ${{ env.ARTIFACT_NAME }}
+        name: ${{ env.ARTIFACT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}
         path: ${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}_*

@@ -130,7 +130,7 @@ jobs:
         run: printf "\n\n" | ./tools/test-avrdude -v -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-linux-x86_64
           path: |
@@ -138,7 +138,7 @@ jobs:
             !**/*.d
             !**/*.o
       - name: Archive executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: avrdude-linux-x86_64
           path: |
@@ -200,7 +200,7 @@ jobs:
         run: build/src/avrdude -?
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-linux-${{matrix.processor}}
           path: |
@@ -208,7 +208,7 @@ jobs:
             !**/*.d
             !**/*.o
       - name: Archive executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: avrdude-linux-${{matrix.processor}}
           path: |
@@ -259,7 +259,7 @@ jobs:
         run: printf "\n\n" | ./tools/test-avrdude -v -e build/src/avrdude -c '-C build/src/avrdude.conf' -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-macos-x86_64
           path: |
@@ -267,7 +267,7 @@ jobs:
             !**/*.d
             !**/*.o
       - name: Archive executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: avrdude-macos-x86_64
           path: |
@@ -368,7 +368,7 @@ jobs:
           Write-Host "`n`n" -NoNewline | bash tools/test-avrdude -v -t "$tmp_slash" -e build/src/${{env.BUILD_TYPE}}/avrdude.exe -c "-C build/src/avrdude.conf" -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-msvc-${{matrix.arch}}
           path: |
@@ -380,7 +380,7 @@ jobs:
           mv build/src/${{env.BUILD_TYPE}}/avrdude.exe build/src
           mv build/src/${{env.BUILD_TYPE}}/avrdude.pdb build/src
       - name: Archive executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: avrdude-msvc-${{matrix.arch}}
           path: |
@@ -436,13 +436,13 @@ jobs:
       #   run: printf "\n\n" | ./tools/test-avrdude -v -e build/src/avrdude.exe -c "-C build/src/avrdude.conf" -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-mingw-${{matrix.env}}
           path: |
             build/
       - name: Archive executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: avrdude-mingw-${{matrix.env}}
           path: |
