@@ -1724,8 +1724,14 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             }
             imsg_error("run %s again to continue the session\n\n", progname);
           } else {
-            pmsg_error("to switch into AVR mode try\n");
-            imsg_error("$ %s -c %s%s -P %s -x mode=avr\n", progname, pgmid, partdesc? strcat(" -p ", partdesc): "", port);
+
+            const char *partsdesc_flag = partdesc? " -p ": "";
+            const char *partsdesc_str = partdesc? partdesc: "";
+            const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+            imsg_error("to switch into AVR mode try\n");
+            imsg_error("$ %s -c %s%s%s -P %s -x mode=avr\n\n", progname, pgmid, partsdesc_flag, partsdesc_str, port);
+            imsg_error("or use PIC mode by using the pickit5%s programmer option:\n", pgm_suffix);
+            imsg_error("$ %s -c pickit5%s%s%s -P %s\n", progname, pgm_suffix, partsdesc_flag, partsdesc_str, port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;
