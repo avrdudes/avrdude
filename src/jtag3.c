@@ -1725,7 +1725,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             imsg_error("run %s again to continue the session\n\n", progname);
           } else {
             pmsg_error("to switch into AVR mode try\n");
-            imsg_error("$ %s -c %s -p %s -P %s -x mode=avr\n", progname, pgmid, partdesc, port);
+            imsg_error("$ %s -c %s%s -P %s -x mode=avr\n", progname, pgmid, partdesc? strcat(" -p ", partdesc): "", port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;
