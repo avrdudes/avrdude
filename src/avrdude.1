@@ -25,33 +25,32 @@
 .Nd driver program for ``simple'' Atmel AVR MCU programmer
 .Sh SYNOPSIS
 .Nm
-.Fl p Ar partno
-.Op Fl b Ar baudrate
-.Op Fl r
-.Op Fl B Ar bitclock
-.Op Fl c Ar programmer-id
-.Op Fl C Ar config-file
-.Op Fl N
+.Op Fl p, \-part Ar partno
+.Op Fl b, \-baud Ar baudrate
+.Op Fl B, \-bitclock Ar bitclock
+.Op Fl c, \-programmer Ar programmer-id
+.Op Fl C, \-config Ar config-file
+.Op Fl N, \-noconfig
 .Op Fl A
-.Op Fl D
-.Op Fl e
+.Op Fl D, \-noerase
+.Op Fl e, \-erase
 .Oo Fl E Ar exitspec Ns
 .Op \&, Ns Ar exitspec
 .Oc
 .Op Fl F
 .Op Fl i Ar delay
-.Op Fl l Ar logfile
-.Op Fl n
-.Op Fl O
-.Op Fl P Ar port
-.Op Fl r
-.Op Fl q
+.Op Fl l, \-logfile Ar logfile
+.Op Fl n, \-test
+.Op Fl O, \-osccal 
+.Op Fl P, \-port Ar port
+.Op Fl r, \-reconnect
+.Op Fl q, \-quell
 .Op Fl T Ar cmd
-.Op Fl t
-.Op Fl U Ar memory:op:filename:filefmt
-.Op Fl v
+.Op Fl t, \-terminal
+.Op Fl U, \-memory Ar memory:op:filename:filefmt
+.Op Fl v, \-verbose
 .Op Fl x Ar extended_param
-.Op Fl V
+.Op Fl V, \-noverify
 .Sh DESCRIPTION
 .Nm Avrdude
 is a program for downloading and uploading on-chip memories of Atmel AVR
@@ -326,7 +325,7 @@ In order to control all the different operation modi, a number of options
 need to be specified to
 .Nm avrdude .
 .Bl -tag -offset indent -width indent
-.It Fl p Ar partno
+.It Fl p \-part Ar partno
 This option specifies the MCU connected to the programmer. The MCU
 descriptions are read from the config file. To see a list of currently
 supported MCUs use ? as partno, which will print the part ids and official
@@ -351,19 +350,18 @@ programmers talking the STK500v2 protocol.
 .It "AT90S2343"
 The AT90S2323 and ATtiny22 use the same algorithm.
 .It "ATmega2560, ATmega2561"
-Flash addressing above 128 KB is not supported by all
-programming hardware.  Known to work are jtag2, stk500v2,
-and bit-bang programmers.
+Flash addressing above 128 KB may not be supported by all
+programming hardware.
 .It "ATtiny11"
 The ATtiny11 can only be
 programmed in high-voltage serial mode.
 .El
-.It Fl p Ar wildcard/flags
+.It Fl p \-part Ar wildcard/flags
 Run developer options for MCUs that are matched by wildcard. Whilst
 their main use is for developers some flags can be of utility for users, e.g.,
 avrdude -p m328p/S outputs AVRDUDE's understanding of ATmega328P MCU properties;
 for more information run avrdude -p x/h.
-.It Fl b Ar baudrate
+.It Fl b \-baud Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file or defined by the default_baudrate
 entry in your user configuration file
@@ -371,7 +369,7 @@ entry in your user configuration file
 or
 .Pa ${HOME}/.avrduderc
 if no baudrate was defined for this programmer.
-.It Fl r
+.It Fl r \-reconnect
 Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
 for each -r on the command line and then establishes communication with
 the programmer. This is commonly known as a "1200bps touch", and is used
@@ -379,7 +377,7 @@ to trigger programming mode for certain boards like Arduino Leonardo,
 Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
 therefore multiple -r options, are sometimes needed for slower, less
 powerful hosts.
-.It Fl B Ar bitclock
+.It Fl B \-bitclock
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
 interface. The value is a floating-point number in microseconds.
 Alternatively, the value might be suffixed with "Hz", "kHz" or
@@ -404,7 +402,7 @@ will continue to use it until a different value is provided. This applies to
 "3rd gen"programmers (JTAGICE3, Atmel ICE, Power Debugger). "4th gen"
 programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
 until the programmer is disconnected from the computer.
-.It Fl c Ar programmer-id
+.It Fl c \-programmer Ar programmer-id
 Use the programmer specified by the argument.  Programmers and their pin
 configurations are read from the config file (see the
 .Fl C
@@ -426,12 +424,12 @@ If -c ? is specified with a specific part, see
 to be able to handle this part, together with the programming interface(s) that can be
 used in that combination. In reality there can be deviations from this list,
 particularly if programming is directly via a bootloader.
-.It Fl c Ar wildcard/flags
+.It Fl c \-programmer Ar wildcard/flags
 Run developer options for programmers that are matched by wildcard. Whilst
 their main use is for developers some flags can be of utility for users, e.g.,
 avrdude -c usbtiny/S shows AVRDUDE's understanding of usbtiny's properties;
 for more information run avrdude -c x/h.
-.It Fl C Ar config-file
+.It Fl C \-config Ar config-file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
 .Nm avrdude
@@ -449,7 +447,7 @@ files. This can be used to add entries to the configuration
 without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command
 line.
-.It Fl N
+.It Fl N \-noconfig
 Do not load the personal configuration file that is usually located at
 ~/.config/avrdude/avrdude.rc, ~/.avrduderc or in the same directory as the
 avrdude executable
@@ -467,9 +465,9 @@ Arduino bootloaders exhibit this behaviour; for this reason
 is engaged by default when specifying
 . Fl c
 arduino.
-.It Fl D
+.It Fl D \-noerase
 Disable auto-erase for flash. When the
-.Fl U
+.Fl U \-memory
 option for writing to any flash memory is specified,
 .Nm
 will perform a chip erase before starting any of the programming
@@ -482,7 +480,7 @@ operation will retain its previous contents. Setting
 .Fl D
 implies
 .Fl A.
-.It Fl e
+.It Fl e \-erase
 Causes a chip erase to be executed. This will reset the contents of the
 flash ROM and EEPROM to the value
 .Ql 0xff ,
@@ -572,7 +570,7 @@ is running.
 On Win32 operating systems, a preconfigured number of cycles per
 microsecond is assumed that might be off a bit for very fast or very
 slow machines.
-.It Fl l Ar logfile
+.It Fl l \-logfile Ar logfile
 Use
 .Ar logfile
 rather than
@@ -582,18 +580,18 @@ Note that initial diagnostic messages (during option parsing) are still
 written to
 .Va stderr
 anyway.
-.It Fl n
+.It Fl n \-test
 No-write: disables writing data to the MCU whilst processing -U
 (useful for debugging
 .Nm avrdude
 ). The terminal mode continues to write to the device.
-.It Fl O
+.It Fl O \-osccal
 Perform an RC oscillator run-time calibration according to Atmel
 application note AVR053.
 This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
 hardware.
 Note that the result will be stored in the EEPROM cell at address 0.
-.It Fl P Ar port
+.It Fl P \-port Ar port
 Use
 .Ar port
 to identify the connection through which the programmer is attached. This
@@ -718,7 +716,7 @@ for a STK500.
 .Pp
 Note: The ability to handle IPv6 hostnames and addresses is limited to
 Posix systems (by now).
-.It Fl q
+.It Fl q \-quell
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it more often for even quieter operations.
 .It Fl s, u
@@ -733,13 +731,13 @@ of terminal commands the argument
 .Ar cmd
 will most likely need to be set in quotes, see your OS shell manual for
 details. See below for a detailed description of all terminal commands.
-.It Fl t
+.It Fl t \-terminal
 Tells
 .Nm
 to run an interactive terminal when it is its turn in relation to
 other -t interactive terminals, -T terminal commands and -U memory
 operations.
-.It Xo Fl U Ar memory Ns
+.It Xo Fl U \-memory Ar memory Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
 .Op \&: Ns Ar format
@@ -928,12 +926,12 @@ This will only work if
 does not have a pair of colons in it that sandwich a single character
 as otherwise the first part might be interpreted as memory, and the single
 character as memory operation.
-.It Fl v
+.It Fl v \-verbose
 Enable verbose output.
 More
 .Fl v
 options increase verbosity level.
-.It Fl V
+.It Fl V \-noverify
 Disable automatic verify check when writing data to the AVR with -U.
 .It Fl x Ar extended_param
 Pass
@@ -2125,6 +2123,7 @@ This option will leave the 8 data pins on the parallel port active.
 This option will leave the 8 data pins on the parallel port inactive.
 .Pq \&i. \&e. Em low
 .El
+.El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
 .It Pa /dev/ppi0
@@ -2191,7 +2190,9 @@ normal ISP communication.
 .Pp
 The AVR microcontroller product description can be found at
 .Pp
-.Dl "https://www.microchip.com/en-us/products/microcontrollers-and-microprocessors/8-bit-mcus/avr-mcus"
+.nf
+https://www.microchip.com/en-us/products/microcontrollers-and-microprocessors/8-bit-mcus/avr-mcus
+.fi
 .\" .Sh HISTORY
 .Sh AUTHORS
 .Nm Avrdude
