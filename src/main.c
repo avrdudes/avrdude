@@ -273,7 +273,7 @@ static void usage(void) {
     "  -E <exitsp>[,<exitsp>]    List programmer exit specifications\n"
     "  -x <extended_param>       Pass <extended_param> to programmer, see -x help\n"
     "  -v, --verbose             Verbose output; -v -v for more\n"
-    "  -q, --quiet               Quell progress output; -q -q for less\n"
+    "  -q, --quell               Quell progress output; -q -q for less\n"
     "  -l, --logfile logfile     Use logfile rather than stderr for diagnostics\n"
     "  -?, --help                Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
@@ -834,7 +834,7 @@ int main(int argc, char *argv[]) {
     {"osccal",     no_argument,       NULL, 'O'},
     {"part",       required_argument, NULL, 'p'},
     {"port",       required_argument, NULL, 'P'},
-    {"quiet",      no_argument,       NULL, 'q'},
+    {"quell",      no_argument,       NULL, 'q'},
     {"reconnect",  no_argument,       NULL, 'r'},
     {"terminal",   no_argument,       NULL, 't'},
     {"memory",     required_argument, NULL, 'U'},
