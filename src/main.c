@@ -238,14 +238,17 @@ static void usage(void) {
 
   msg_error("Usage: %s [options]\n"
     "Options:\n"
-    "  -p <partno>               Specify AVR device; -p ? lists all known parts\n"
-    "  -p <wildcard>/<flags>     Run developer options for matched AVR devices,\n"
+    "  -p, --part <partno>       Specify AVR device; -p ? lists all known parts\n"
+    "  -p, --part <wildcard>/<flags>\n"
+    "                            Run developer options for matched AVR devices,\n"
     "                            e.g., -p ATmega328P/s or /S for part definition\n"
     "  -b, --baud <baudrate>     Override RS-232 baud rate\n"
     "  -B, --bitclock <bitclock> Specify bit clock period (us)\n"
-    "  -C <config-file>          Specify location of configuration file\n"
-    "  -C +<config-file>         Specify additional config file, can be repeated\n"
-    "  -N                        Do not load %s%s\n"
+    "  -C, --config <config-file>\n"
+    "                            Specify location of configuration file\n"
+    "  -C, --config +<config-file>\n"
+    "                            Specify additional config file, can be repeated\n"
+    "  -N, --noconfig            Do not load %s%s\n"
     "  -c, --programmer <programmer>\n"
     "                            Specify programmer; -c ? and -c ?type list all\n"
     "  -c, --programmer <wildcard>/<flags>\n"
@@ -259,8 +262,8 @@ static void usage(void) {
     "                            400 ms for each -r; needed for some USB boards\n"
     "  -F                        Override invalid signature or initial checks\n"
     "  -e, --erase               Perform a chip erase at the beginning\n"
-    "  -O                        Perform RC oscillator calibration (see AVR053)\n"
-    "  -t, --terminal, --tty     Run an interactive terminal when it is its turn\n"
+    "  -O, --osccal              Perform RC oscillator calibration (see AVR053)\n"
+    "  -t, --terminal,            Run an interactive terminal when it is its turn\n"
     "  -T <terminal cmd line>    Run terminal line when it is its turn\n"
     "  -U, --memory <memstr>:r|w|v:<filename>[:format]\n"
     "                            Carry out memory operation when it is its turn\n"
@@ -270,7 +273,7 @@ static void usage(void) {
     "  -E <exitsp>[,<exitsp>]    List programmer exit specifications\n"
     "  -x <extended_param>       Pass <extended_param> to programmer, see -x help\n"
     "  -v, --verbose             Verbose output; -v -v for more\n"
-    "  -q                        Quell progress output; -q -q for less\n"
+    "  -q, --quiet               Quell progress output; -q -q for less\n"
     "  -l, --logfile logfile     Use logfile rather than stderr for diagnostics\n"
     "  -?, --help                Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
@@ -828,13 +831,12 @@ int main(int argc, char *argv[]) {
     {"logfile",    required_argument, NULL, 'l'},
     {"test",       no_argument,       NULL, 'n'},
     {"noconfig",   no_argument,       NULL, 'N'},
+    {"osccal",     no_argument,       NULL, 'O'},
     {"part",       required_argument, NULL, 'p'},
-    {"chip",       required_argument, NULL, 'p'},
     {"port",       required_argument, NULL, 'P'},
     {"quiet",      no_argument,       NULL, 'q'},
     {"reconnect",  no_argument,       NULL, 'r'},
     {"terminal",   no_argument,       NULL, 't'},
-    {"tty",        no_argument,       NULL, 't'},
     {"memory",     required_argument, NULL, 'U'},
     {"verbose",    no_argument,       NULL, 'v'},
     {"noverify",   no_argument,       NULL, 'V'},
