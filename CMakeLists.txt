@@ -48,7 +48,11 @@ include(FetchContent)
 include(FindPackageMessage)
 include(GNUInstallDirs)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/build-helpers")
+include(buildinfo)
+
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
+set(AVRDUDE_BUILDSYSTEM "cmake")
 set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}${EXTRA_VERSION_SUFFIX}")
 
 # =====================================
@@ -364,8 +368,8 @@ endif()
 # Configuration
 # =====================================
 
-message(STATUS "Configuration summary:")
-message(STATUS "----------------------")
+message(STATUS "Configuration details:")
+message(STATUS "---------------------")
 
 if (DEBUG_CMAKE)
     message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
@@ -401,27 +405,27 @@ if (DEBUG_CMAKE)
 endif()
 
 if(HAVE_LIBELF)
-    message(STATUS "DO HAVE    libelf")
+  buildinfo_item("libelf" "DO HAVE")
 else()
-    message(STATUS "DON'T HAVE libelf")
+  buildinfo_item("libelf" "DON'T HAVE")
 endif()
 
 if(HAVE_LIBUSB)
-    message(STATUS "DO HAVE    libusb")
+  buildinfo_item("libusb" "DO HAVE")
 else()
-    message(STATUS "DON'T HAVE libusb")
+  buildinfo_item("libusb" "DON'T HAVE")
 endif()
 
 if(HAVE_LIBUSB_1_0)
-    message(STATUS "DO HAVE    libusb_1_0")
+  buildinfo_item("libusb_1_0" "DO HAVE")
 else()
-    message(STATUS "DON'T HAVE libusb_1_0")
+  buildinfo_item("libusb_1_0" "DON'T HAVE")
 endif()
 
 if(HAVE_LIBHIDAPI)
-    message(STATUS "DO HAVE    libhidapi")
+  buildinfo_item("libhidapi" "DO HAVE")
 else()
-    message(STATUS "DON'T HAVE libhidapi")
+  buildinfo_item("libhidapi" "DON'T HAVE")
 endif()
 
 if(HAVE_LIBFTDI)
@@ -480,9 +484,9 @@ else()
 endif()
 
 if(HAVE_LINUXSPI)
-    message(STATUS "ENABLED    linuxspi")
+  buildinfo_item("linuxspi" "ENABLED")
 else()
-    message(STATUS "DISABLED   linuxspi")
+  buildinfo_item("linuxspi" "DISABLED")
 endif()
 
 if(HAVE_SWIG)
@@ -492,3 +496,6 @@ else()
 endif()
 
 message(STATUS "----------------------")
+
+# print the output collected by earlier calls to buildinfo_item()
+buildinfo_output()

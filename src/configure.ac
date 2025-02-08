@@ -93,6 +93,9 @@ AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
                    [The full avrdude version as displayed in -? and avrdude.conf])
 AC_SUBST([AVRDUDE_FULL_VERSION])
 
+AC_DEFINE_UNQUOTED([AVRDUDE_BUILDSYSTEM], ["autotools"],
+                   [The buildsystem used to build avrdude])
+
 
 # Define libavrdude libtool version from cmake libavrdude information
 dnl
@@ -119,6 +122,10 @@ libavrdude_lt_age=0
 AC_SUBST([LIBAVRDUDE_VERSION_INFO],
          [${libavrdude_lt_cur}:${libavrdude_lt_rev}:${libavrdude_lt_age}])
 AC_MSG_RESULT([$LIBAVRDUDE_VERSION_INFO])
+
+
+m4_pattern_forbid([^BUILDINFO_])dnl
+BUILDINFO_SETUP()
 
 
 # Checks for programs.
@@ -197,11 +204,17 @@ if test "x$have_libelf" = xyes; then
    esac
    AC_DEFINE([HAVE_LIBELF])
    AC_CHECK_HEADERS([libelf.h libelf/libelf.h])
+   BUILDINFO_ITEM([libelf], [DO HAVE])
+else
+   BUILDINFO_ITEM([libelf], [DON'T HAVE])
 fi
 AC_SUBST([LIBELF])
 
+
 AC_SEARCH_LIBS([gethostent], [nsl])
 AC_SEARCH_LIBS([setsockopt], [socket])
+
+
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
@@ -220,6 +233,12 @@ if test "x$have_libusb" = xyes; then
    AC_CHECK_HEADERS([lusb0_usb.h])
 fi
 AC_SUBST([LIBUSB])
+
+AS_VAR_IF([have_libusb], [yes], [dnl
+  BUILDINFO_ITEM([libusb], [DO HAVE])
+], [dnl
+  BUILDINFO_ITEM([libusb], [DON'T HAVE])
+])
 
 AC_ARG_ENABLE(
 	[libusb_1_0],
@@ -272,6 +291,17 @@ if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
 fi
 AC_SUBST([LIBUSB_1_0])
 
+AS_VAR_IF([have_libusb_1_0], [yes], [dnl
+  AS_VAR_IF([enabled_libusb_1_0], [yes], [dnl
+    BUILDINFO_ITEM([libusb_1_0], [DO HAVE])
+  ], [dnl
+    BUILDINFO_ITEM([libusb_1_0], [DISABLED])
+  ])
+], [dnl
+  BUILDINFO_ITEM([libusb_1_0], [DON'T HAVE])
+])
+
+
 AH_TEMPLATE([HAVE_LIBHIDAPI],
             [Define if HID support is enabled via libhidapi])
 AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw],
@@ -290,6 +320,12 @@ if test "x$have_libhidapi" = xyes; then
    AC_CHECK_HEADERS([hidapi/hidapi.h])
 fi
 AC_SUBST([LIBHIDAPI])
+
+AS_VAR_IF([have_libhidapi], [yes], [dnl
+  BUILDINFO_ITEM([libhidapi], [DO HAVE])
+], [dnl
+  BUILDINFO_ITEM([libhidapi], [DON'THAVE])
+])
 
 AH_TEMPLATE([HAVE_LIBSERIALPORT],
             [Define if libserialport is found])
@@ -609,6 +645,12 @@ else
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_BEGIN@/,/^@HAVE_LINUXSPI_END@/d"
 fi
 
+AS_VAR_IF([enabled_linuxspi], [yes], [dnl
+  BUILDINFO_ITEM([linuxspi], [ENABLED])
+], [dnl
+  BUILDINFO_ITEM([linuxspi], [DISABLED])
+])
+
 
 # If we are compiling with gcc, enable all warnings and make warnings errors.
 ENABLE_WARNINGS=""
@@ -717,32 +759,14 @@ AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
 
 AC_OUTPUT
 
+
+# print the output collected by earlier calls to BUILDINFO_ITEM()
+BUILDINFO_OUTPUT()
+
 echo ""
 echo ""
 echo "Configuration summary:"
 echo "----------------------"
-
-if test "x$have_libelf" = xyes; then
-   echo "DO HAVE    libelf"
-else
-   echo "DON'T HAVE libelf"
-fi
-
-if test "x$have_libusb" = xyes; then
-   echo "DO HAVE    libusb"
-else
-   echo "DON'T HAVE libusb"
-fi
-
-if test "x$have_libusb_1_0" = xyes; then
-   if test "x$enabled_libusb_1_0" = xyes; then
-       echo "DO HAVE    libusb_1_0"
-   else
-       echo "DISABLED   libusb_1_0"
-   fi
-else
-   echo "DON'T HAVE libusb_1_0"
-fi
 
 if test "x$have_libftdi1" = xyes; then
    echo "DO HAVE    libftdi1"
@@ -764,12 +788,6 @@ if test "x$have_libhid" = xyes; then
    echo "DO HAVE    libhid"
 else
    echo "DON'T HAVE libhid"
-fi
-
-if test "x$have_libhidapi" = xyes; then
-   echo "DO HAVE    libhidapi"
-else
-   echo "DON'T HAVE libhidapi"
 fi
 
 if test "x$have_libreadline" = xyes; then
@@ -816,10 +834,3 @@ if test "x$enabled_linuxgpio" = xyes; then
 else
    echo "DISABLED   linuxgpio"
 fi
-
-if test "x$enabled_linuxspi" = xyes; then
-   echo "ENABLED    linuxspi"
-else
-   echo "DISABLED   linuxspi"
-fi
-

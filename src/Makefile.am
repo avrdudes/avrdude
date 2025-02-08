@@ -33,6 +33,7 @@ EXTRA_DIST   = \
 
 BUILT_SOURCES  =
 CLEANFILES     =
+DISTCLEANFILES =
 
 built_sources  =
 built_sources += config_gram.c
@@ -42,6 +43,7 @@ built_sources += lexer.c
 BUILT_SOURCES += $(built_sources)
 CLEANFILES    += $(built_sources)
 
+include build-helpers/buildinfo.mk
 include build-helpers/versioninfo.mk
 
 #SUBDIRS      = doc
@@ -106,6 +108,7 @@ libavrdude_la_SOURCES = \
 	avr_opcodes.c \
 	bitbang.c \
 	bitbang.h \
+	buildinfo.c \
 	buspirate.c \
 	buspirate.h \
 	butterfly.c \

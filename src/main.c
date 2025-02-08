@@ -40,6 +40,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -47,6 +48,8 @@
 #if !defined(WIN32)
 #include <dirent.h>
 #endif
+
+#include <getopt.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -228,6 +231,52 @@ const char *pgmid;              // Programmer -c string
 
 static char usr_config[PATH_MAX];       // Per-user config file
 
+
+static
+const avr_buildinfo avrdude_buildinfo = {
+  "avrdude", AVRDUDE_FULL_VERSION,
+  {
+    {"buildsystem", AVRDUDE_BUILDSYSTEM},
+    {NULL, NULL},
+  }
+};
+
+
+static void print_buildinfo(const avr_buildinfo *const buildinfo)
+{
+  msg_info("  * %s %s\n",
+           buildinfo->name, buildinfo->version);
+
+  for (unsigned int i=0; buildinfo->items[i].key; ++i) {
+    if (buildinfo->items[i].value) {
+      msg_info("    %3u. %s: %s\n",
+               i+1,
+               buildinfo->items[i].key,
+               buildinfo->items[i].value);
+    }
+  }
+}
+
+
+static void print_version_message(void)
+{
+  msg_info("avrdude %s\n", AVRDUDE_FULL_VERSION);
+  msg_info("Copyright (C) ...2024...\n");
+  msg_info("License GPL...\n");
+  msg_info("This is free software...\n");
+
+  const avr_buildinfo *const all_buildinfos[] = {
+    &avrdude_buildinfo,
+    &libavrdude_buildinfo,
+    NULL,
+  };
+
+  for (unsigned int i=0; all_buildinfos[i]; ++i) {
+    print_buildinfo(all_buildinfos[i]);
+  }
+}
+
+
 // Usage message
 static void usage(void) {
   char *home = getenv("HOME");
@@ -237,39 +286,42 @@ static void usage(void) {
 
   msg_error("Usage: %s [options]\n"
     "Options:\n"
-    "  -p <partno>            Specify AVR device; -p ? lists all known parts\n"
-    "  -p <wildcard>/<flags>  Run developer options for matched AVR devices,\n"
-    "                         e.g., -p ATmega328P/s or /S for part definition\n"
-    "  -b <baudrate>          Override RS-232 baud rate\n"
-    "  -B <bitclock>          Specify bit clock period (us)\n"
-    "  -C <config-file>       Specify location of configuration file\n"
-    "  -C +<config-file>      Specify additional config file, can be repeated\n"
-    "  -N                     Do not load %s%s\n"
-    "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
-    "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
-    "                         e.g., -c 'ur*'/s for programmer info/definition\n"
-    "  -A                     Disable trailing-0xff removal for file/AVR read\n"
-    "  -D                     Disable auto-erase for flash memory; implies -A\n"
-    "  -i <delay>             ISP Clock Delay [in microseconds]\n"
-    "  -P <port>              Connection; -P ?s or -P ?sa lists serial ones\n"
-    "  -r                     Reconnect to -P port after \"touching\" it; wait\n"
-    "                         400 ms for each -r; needed for some USB boards\n"
-    "  -F                     Override invalid signature or initial checks\n"
-    "  -e                     Perform a chip erase at the beginning\n"
-    "  -O                     Perform RC oscillator calibration (see AVR053)\n"
-    "  -t                     Run an interactive terminal when it is its turn\n"
-    "  -T <terminal cmd line> Run terminal line when it is its turn\n"
-    "  -U <memstr>:r|w|v:<filename>[:format]\n"
-    "                         Carry out memory operation when it is its turn\n"
-    "                         Multiple -t, -T and -U options can be specified\n"
-    "  -n                     Do not write to the device whilst processing -U\n"
-    "  -V                     Do not automatically verify during -U\n"
-    "  -E <exitsp>[,<exitsp>] List programmer exit specifications\n"
-    "  -x <extended_param>    Pass <extended_param> to programmer, see -x help\n"
-    "  -v                     Verbose output; -v -v for more\n"
-    "  -q                     Quell progress output; -q -q for less\n"
-    "  -l logfile             Use logfile rather than stderr for diagnostics\n"
-    "  -?                     Display this usage\n"
+    "  -p <partno>               Specify AVR device; -p ? lists all known parts\n"
+    "  -p <wildcard>/<flags>     Run developer options for matched AVR devices,\n"
+    "                            e.g., -p ATmega328P/s or /S for part definition\n"
+    "  -b, --baud <baudrate>     Override RS-232 baud rate\n"
+    "  -B, --bitclock <bitclock> Specify bit clock period (us)\n"
+    "  -C <config-file>          Specify location of configuration file\n"
+    "  -C +<config-file>         Specify additional config file, can be repeated\n"
+    "  -N                        Do not load %s%s\n"
+    "  -c, --programmer <programmer>\n"
+    "                            Specify programmer; -c ? and -c ?type list all\n"
+    "  -c, --programmer <wildcard>/<flags>\n"
+    "                            Run developer options for matched programmers,\n"
+    "                            e.g., -c 'ur*'/s for programmer info/definition\n"
+    "  -A                        Disable trailing-0xff removal for file/AVR read\n"
+    "  -D, --noerase             Disable auto-erase for flash memory; implies -A\n"
+    "  -i <delay>                ISP Clock Delay [in microseconds]\n"
+    "  -P, --port <port>         Connection; -P ?s or -P ?sa lists serial ones\n"
+    "  -r, --reconnect           Reconnect to -P port after \"touching\" it; wait\n"
+    "                            400 ms for each -r; needed for some USB boards\n"
+    "  -F                        Override invalid signature or initial checks\n"
+    "  -e, --erase               Perform a chip erase at the beginning\n"
+    "  -O                        Perform RC oscillator calibration (see AVR053)\n"
+    "  -t, --terminal, --tty     Run an interactive terminal when it is its turn\n"
+    "  -T <terminal cmd line>    Run terminal line when it is its turn\n"
+    "  -U, --memory <memstr>:r|w|v:<filename>[:format]\n"
+    "                            Carry out memory operation when it is its turn\n"
+    "                            Multiple -t, -T and -U options can be specified\n"
+    "  -n, --test                Do not write to the device whilst processing -U\n"
+    "  -V, --noverify            Do not automatically verify during -U\n"
+    "  -E <exitsp>[,<exitsp>]    List programmer exit specifications\n"
+    "  -x <extended_param>       Pass <extended_param> to programmer, see -x help\n"
+    "  -v, --verbose             Verbose output; -v -v for more\n"
+    "  -q                        Quell progress output; -q -q for less\n"
+    "  -l, --logfile logfile     Use logfile rather than stderr for diagnostics\n"
+    "  -?, --help                Display this usage\n"
+    "  --version                 Display build and version information\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
     progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
 
@@ -814,7 +866,34 @@ int main(int argc, char *argv[]) {
 #endif
 
   // Process command line arguments
-  while((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:")) != -1) {
+#define LONGOPT_VERSION 0x2342
+  struct option longopts[] = {
+    {"help",       no_argument,       NULL, '?'},
+    {"baud",       required_argument, NULL, 'b'},
+    {"bitclock",   required_argument, NULL, 'B'},
+    {"programmer", required_argument, NULL, 'c'},
+    {"config",     required_argument, NULL, 'C'},
+    {"noerase",    no_argument,       NULL, 'D'},
+    {"erase",      no_argument,       NULL, 'e'},
+    {"logfile",    required_argument, NULL, 'l'},
+    {"test",       no_argument,       NULL, 'n'},
+    {"noconfig",   no_argument,       NULL, 'N'},
+    {"part",       required_argument, NULL, 'p'},
+    {"chip",       required_argument, NULL, 'p'},
+    {"port",       required_argument, NULL, 'P'},
+    {"quiet",      no_argument,       NULL, 'q'},
+    {"reconnect",  no_argument,       NULL, 'r'},
+    {"terminal",   no_argument,       NULL, 't'},
+    {"tty",        no_argument,       NULL, 't'},
+    {"memory",     required_argument, NULL, 'U'},
+    {"verbose",    no_argument,       NULL, 'v'},
+    {"noverify",   no_argument,       NULL, 'V'},
+    {"version",    no_argument,       NULL, LONGOPT_VERSION},
+    {NULL,         0,                 NULL, 0}
+  };
+  while((ch = getopt_long(argc, argv,
+			  "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:",
+			  longopts, NULL)) != -1) {
     switch(ch) {
     case 'b':                  // Override default programmer baud rate
       baudrate = str_int(optarg, STR_INT32, &errstr);
@@ -957,6 +1036,11 @@ int main(int argc, char *argv[]) {
 
     case '?':                  // Help
       usage();
+      exit(0);
+      break;
+
+    case LONGOPT_VERSION:
+      print_version_message();
       exit(0);
       break;
 
