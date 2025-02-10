@@ -4,8 +4,6 @@
 [![Gh-pages docs](https://img.shields.io/badge/Docs-online-blue)](https://avrdudes.github.io/avrdude/)
 [![GitHub Release](https://img.shields.io/github/v/release/avrdudes/avrdude?color=yellow)](https://github.com/avrdudes/avrdude/releases)
 
-
-
 AVRDUDE - AVR Downloader Uploader - is a program for downloading and uploading
 the on-chip memories of Microchip’s [AVR microcontrollers](https://en.wikipedia.org/wiki/AVR_microcontrollers).
 It can program the Flash and EEPROM, and where supported by the programming
