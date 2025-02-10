@@ -663,7 +663,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     cx->usb_access_error = 0;
 
     pmsg_error("MPLAB SNAP in AVR mode detected\n");
-
     imsg_error("to switch into PIC mode try\n");
     imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
     imsg_error("or use the programmer in AVR mode with the following command:\n");
@@ -672,11 +671,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     serial_close(&pgm->fd);
     return LIBAVRDUDE_EXIT;
   }
-  pinfo.usbinfo.flags = PINFO_FL_SILENT;
-  pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
-  pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
-  pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-  pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
   pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
   rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
 
@@ -685,7 +679,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     cx->usb_access_error = 0;
 
     pmsg_error("PICkit 4 in AVR mode detected\n");
-
     imsg_error("to switch into PIC mode try\n");
     imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
     imsg_error("or use the programmer in AVR mode with the following command:\n");
