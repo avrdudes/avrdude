@@ -268,8 +268,8 @@ static void usage(void) {
     "  -U, --memory <memstr>:r|w|v:<filename>[:format]\n"
     "                            Carry out memory operation when it is its turn\n"
     "                            Multiple -t, -T and -U options can be specified\n"
-    "  -n, --test                Do not write to the device whilst processing -U\n"
-    "  -V, --noverify            Do not automatically verify during -U\n"
+    "  -n, --test-memory         Do not write to the device whilst processing -U\n"
+    "  -V, --noverify-memory     Do not automatically verify during -U\n"
     "  -E <exitsp>[,<exitsp>]    List programmer exit specifications\n"
     "  -x <extended_param>       Pass <extended_param> to programmer, see -x help\n"
     "  -v, --verbose             Verbose output; -v -v for more\n"
@@ -829,7 +829,7 @@ int main(int argc, char *argv[]) {
     {"noerase",    no_argument,       NULL, 'D'},
     {"erase",      no_argument,       NULL, 'e'},
     {"logfile",    required_argument, NULL, 'l'},
-    {"test",       no_argument,       NULL, 'n'},
+    {"test-memory",no_argument,       NULL, 'n'},
     {"noconfig",   no_argument,       NULL, 'N'},
     {"osccal",     no_argument,       NULL, 'O'},
     {"part",       required_argument, NULL, 'p'},
@@ -839,7 +839,7 @@ int main(int argc, char *argv[]) {
     {"terminal",   no_argument,       NULL, 't'},
     {"memory",     required_argument, NULL, 'U'},
     {"verbose",    no_argument,       NULL, 'v'},
-    {"noverify",   no_argument,       NULL, 'V'},
+    {"noverify-memory",no_argument,   NULL, 'V'},
     {NULL,         0,                 NULL, 0}
   };
   while((ch = getopt_long(argc, argv,

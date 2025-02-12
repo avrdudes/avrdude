@@ -40,7 +40,7 @@
 .Op Fl F
 .Op Fl i Ar delay
 .Op Fl l, \-logfile Ar logfile
-.Op Fl n, \-test
+.Op Fl n, \-test-memory
 .Op Fl O, \-osccal 
 .Op Fl P, \-port Ar port
 .Op Fl r, \-reconnect
@@ -50,7 +50,7 @@
 .Op Fl U, \-memory Ar memory:op:filename:filefmt
 .Op Fl v, \-verbose
 .Op Fl x Ar extended_param
-.Op Fl V, \-noverify
+.Op Fl V, \-noverify-memory
 .Sh DESCRIPTION
 .Nm Avrdude
 is a program for downloading and uploading on-chip memories of Atmel AVR
@@ -580,7 +580,7 @@ Note that initial diagnostic messages (during option parsing) are still
 written to
 .Va stderr
 anyway.
-.It Fl n \-test
+.It Fl n \-test-memory
 No-write: disables writing data to the MCU whilst processing -U
 (useful for debugging
 .Nm avrdude
@@ -931,7 +931,7 @@ Enable verbose output.
 More
 .Fl v
 options increase verbosity level.
-.It Fl V \-noverify
+.It Fl V \-noverify-memory
 Disable automatic verify check when writing data to the AVR with -U.
 .It Fl x Ar extended_param
 Pass

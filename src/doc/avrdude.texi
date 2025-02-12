@@ -764,9 +764,9 @@ Note that initial diagnostic messages (during option parsing) are still
 written to @var{stderr} anyway.
 
 @item -n
-@item --test
-@cindex Option @code{-n, --test}
-@cindex @code{-n, --test}
+@item --test-memory
+@cindex Option @code{-n, --test-memory}
+@cindex @code{-n, --test-memory}
 No-write: disables writing data to the MCU whilst processing @code{-U}
 (useful for debugging AVRDUDE). The terminal mode continues to write to
 the device.
@@ -1100,9 +1100,9 @@ Enable verbose output.
 More @code{-v} options increase verbosity level.
 
 @item -V
-@item --noverify
-@cindex Option @code{-V, --noverify}
-@cindex @code{-V, --noverify}
+@item --noverify-memory
+@cindex Option @code{-V, --noverify-memory}
+@cindex @code{-V, --noverify-memory}
 Disable automatic verify check when writing data to the AVR with @code{-U}.
 
 @item -x @var{extended_param}
