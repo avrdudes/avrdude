@@ -14926,9 +14926,9 @@ part parent ".classic" # m406
 # ATA6612C
 #------------------------------------------------------------
 
-part parent ".classic" # ata6612c
+part parent ".classic" # a6612c
     desc                   = "ATA6612C";
-    id                     = "ata6612c";
+    id                     = "a6612c";
     variants               =
         "ATA6612C-PLQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
         "ATA6612C-PLQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
@@ -15055,9 +15055,9 @@ part parent ".classic" # ata6612c
 # ATA6613C
 #------------------------------------------------------------
 
-part parent "ata6612c" # ata6613c
+part parent "a6612c" # a6613c
     desc                   = "ATA6613C";
-    id                     = "ata6613c";
+    id                     = "a6613c";
     variants               =
         "ATA6613C-PLQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
         "ATA6613C-PLQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
@@ -15088,9 +15088,9 @@ part parent "ata6612c" # ata6613c
 # ATA6616C
 #------------------------------------------------------------
 
-part parent ".classic" # ata6616c
+part parent ".classic" # a6616c
     desc                   = "ATA6616C";
-    id                     = "ata6616c";
+    id                     = "a6616c";
     variants               =
         "ATA6616C-P3PW:   VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
         "ATA6616C-P3QW:   VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
@@ -15216,9 +15216,9 @@ part parent ".classic" # ata6616c
 # ATA6617C
 #------------------------------------------------------------
 
-part parent "ata6616c" # ata6617c
+part parent "a6616c" # a6617c
     desc                   = "ATA6617C";
-    id                     = "ata6617c";
+    id                     = "a6617c";
     variants               =
         "ATA6617C-P3QW:   VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
         "ATA6617C-P3QW-1: VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
@@ -15239,9 +15239,9 @@ part parent "ata6616c" # ata6617c
 # ATA5505
 #------------------------------------------------------------
 
-part parent ".classic" # ata5505
+part parent ".classic" # a5505
     desc                   = "ATA5505";
-    id                     = "ata5505";
+    id                     = "a5505";
     variants               =
         "ATA5505:      N/A,     Fmax=N/A, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
         "ATA5505-P3QW: VFQFN38, Fmax=N/A, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
@@ -15366,9 +15366,9 @@ part parent ".classic" # ata5505
 # ATA6614Q
 #------------------------------------------------------------
 
-part parent ".classic" # ata6614q
+part parent ".classic" # a6614q
     desc                   = "ATA6614Q";
-    id                     = "ata6614q";
+    id                     = "a6614q";
     variants               =
         "ATA6614Q-PLQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
         "ATA6614Q-PLQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
@@ -15491,9 +15491,9 @@ part parent ".classic" # ata6614q
 # ATA664251
 #------------------------------------------------------------
 
-part parent ".classic" # ata664251
+part parent ".classic" # a664251
     desc                   = "ATA664251";
-    id                     = "ata664251";
+    id                     = "a664251";
     variants               =
         "ATA664251:        N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
         "ATA664251-WGQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
