@@ -3090,13 +3090,13 @@ programmer # pickit4_tpi
 #        interface for simple serial debugging.
 
 #------------------------------------------------------------
-# pickit5 /pickit5_jtag
+# pickit5 / pickit5_jtag
 #------------------------------------------------------------
 
-programmer # pickit5_jtag
+programmer # pickit5
     id                     = "pickit5", "pickit5_jtag";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in JTAG Mode";
-    type                   = "pickit5_jtag";
+    type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
@@ -3108,10 +3108,11 @@ programmer # pickit5_jtag
 #------------------------------------------------------------
 # pickit5_updi
 #------------------------------------------------------------
+
 programmer # pickit5_updi
     id                     = "pickit5_updi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in UPDI Mode";
-    type                   = "pickit5_updi";
+    type                   = "pickit5";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
@@ -3123,10 +3124,11 @@ programmer # pickit5_updi
 #------------------------------------------------------------
 # pickit5_isp
 #------------------------------------------------------------
+
 programmer # pickit5_isp
     id                     = "pickit5_isp";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in ISP Mode";
-    type                   = "pickit5_isp";
+    type                   = "pickit5";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
@@ -3137,10 +3139,11 @@ programmer # pickit5_isp
 #------------------------------------------------------------
 # pickit5_dw
 #------------------------------------------------------------
+
 programmer # pickit5_dw
     id                     = "pickit5_dw";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in dW Mode";
-    type                   = "pickit5_dw";
+    type                   = "pickit5";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
@@ -3151,10 +3154,11 @@ programmer # pickit5_dw
 #------------------------------------------------------------
 # pickit5_tpi
 #------------------------------------------------------------
+
 programmer # pickit5_tpi
     id                     = "pickit5_tpi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in TPI Mode";
-    type                   = "pickit5_tpi";
+    type                   = "pickit5";
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
@@ -3165,10 +3169,11 @@ programmer # pickit5_tpi
 #------------------------------------------------------------
 # pickit5_pdi
 #------------------------------------------------------------
-programmer # pickit5_tpi
+
+programmer # pickit5_pdi
     id                     = "pickit5_pdi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in PDI Mode";
-    type                   = "pickit5_pdi";
+    type                   = "pickit5";
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
