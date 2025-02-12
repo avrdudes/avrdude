@@ -510,9 +510,10 @@ following options are recognized:
 @table @code
 @item -p @var{partname}
 @item --part @var{partname}
-@cindex Option @code{-p ,--part} @var{partname}
-@cindex @code{-p, --part} @var{partname}
-
+@cindex Option @code{-p} @var{partname}
+@cindex Option @code{--part} @var{partname}
+@cindex @code{-p} @var{partname}
+@cindex @code{--part} @var{partname}
 This option tells AVRDUDE what part (MCU) is connected to the programmer.
 The @var{partname} parameter is the part's id listed in the configuration
 file. To see a list of currently supported MCUs use @code{?} as partname,
@@ -535,8 +536,10 @@ listing of supported parts.
 
 @item -p @var{wildcard/flags}
 @item --part @var{wildcard/flags}
-@cindex Option @code{-p, --part} @var{wildcard/flags}
-@cindex @code{-p, --part} @var{wildcard/flags}
+@cindex Option @code{-p} @var{wildcard/flags}
+@cindex Option @code{--part} @var{wildcard/flags}
+@cindex @code{-p} @var{wildcard/flags}
+@cindex @code{--part} @var{wildcard/flags}
 Run developer options for MCUs that are matched by @var{wildcard}. Whilst
 their main use is for developers some @var{flags} can be of utility for
 users, e.g.,  @code{avrdude -p m328p/S} outputs AVRDUDE's understanding of
@@ -544,8 +547,10 @@ ATmega328P MCU properties; for more information run @code{avrdude -p x/h}.
 
 @item -b @var{baudrate}
 @item --baud @var{baudrate}
-@cindex Option @code{-b, --baud} @var{baudrate}
-@cindex @code{-b, baud} @var{baudrate}
+@cindex Option @code{-b} @var{baudrate}
+@cindex Option @code{--baud} @var{baudrate}
+@cindex @code{-b} @var{baudrate}
+@cindex @code{--baud} @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
 programmer's @code{baudrate} entry of the configuration file
 or defined by the @code{default_baudrate} entry in your
@@ -554,8 +559,10 @@ file if no @code{baudrate} entry was provided for this programmer.
 
 @item -B @var{bitclock}
 @item --bitclock @var{bitclock}
-@cindex Option @code{-B, --bitclock} @var{bitclock}
-@cindex @code{-B, --bitclock} @var{bitclock}
+@cindex Option @code{-B} @var{bitclock}
+@cindex Option @code{--bitclock} @var{bitclock}
+@cindex @code{-B} @var{bitclock}
+@cindex @code{--bitclock} @var{bitclock}
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
 interface. The value is a floating-point number in microseconds.
 Alternatively, the value might be suffixed with Hz, kHz or
@@ -582,9 +589,10 @@ the computer.
 
 @item -c @var{programmer-id}
 @item --programmer @var{programmer-id}
-@cindex Option @code{-c, --programmer} @var{programmer-id}
-@cindex @code{-c, --programmer} @var{programmer-id}
-
+@cindex Option @code{-c} @var{programmer-id}
+@cindex Option @code{--programmer} @var{programmer-id}
+@cindex @code{-c} @var{programmer-id}
+@cindex @code{--programmer} @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about quite a few
 programmers. The @var{programmer-id} parameter is the programmer's id
 listed in the configuration file.  Specify @code{-c ?} to list all
@@ -602,8 +610,10 @@ of known programmers.
 
 @item -c @var{wildcard/flags}
 @item --programmer @var{wildcard/flags}
-@cindex Option @code{-c, --programmer} @var{wildcard/flags}
-@cindex @code{-c, --programmer} @var{wildcard/flags}
+@cindex Option @code{-c} @var{wildcard/flags}
+@cindex Option @code{--programmer} @var{wildcard/flags}
+@cindex @code{-c} @var{wildcard/flags}
+@cindex @code{--programmer} @var{wildcard/flags}
 Run developer options for programmers that are matched by @var{wildcard}.
 Whilst their main use is for developers some @var{flags} can be of utility
 for users, e.g., @code{avrdude -c usbtiny/S} shows AVRDUDE's understanding of
@@ -611,8 +621,10 @@ usbtiny's properties; for more information run @code{avrdude -c x/h}.
 
 @item -C @var{config-file}
 @item --config @var{config-file}
-@cindex Option @code{-C, --config} @var{config-file}
-@cindex @code{-C, --config} @var{config-file}
+@cindex Option @code{-c} @var{config-file}
+@cindex Option @code{--config} @var{config-file}
+@cindex @code{-C} @var{config-file}
+@cindex @code{--config} @var{config-file}
 @cindex Configuration files
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
@@ -642,8 +654,10 @@ line.
 
 @item -N
 @item --noconfig
-@cindex Option @code{-N, --noconfig}
-@cindex @code{-N, --noconfig}
+@cindex Option @code{-N}
+@cindex Option @code{--noconfig}
+@cindex @code{-N}
+@cindex @code{--noconfig}
 Do not load the personal configuration file that is usually located at
 @code{~/.config/avrdude/avrdude.rc}, @code{~/.avrduderc} or in the same
 directory as the avrdude executable.
@@ -663,8 +677,10 @@ The popular Arduino bootloader exhibits this behaviour; for this reason
 
 @item -D
 @item --noerase
-@cindex Option @code{-D, --noerase}
-@cindex @code{-D, --noerase}
+@cindex Option @code{-D}
+@cindex Option @code{--noerase}
+@cindex @code{-D}
+@cindex @code{--noerase}
 @cindex @code{flash}
 Disable auto-erase for flash. When the @code{-U} option for writing to any
 flash memory is specified, avrdude will perform a chip erase before
@@ -678,8 +694,10 @@ contents. Setting @code{-D} implies @code{-A}.
 
 @item -e
 @item --erase
-@cindex Option @code{-e, --erase}
-@cindex @code{-e, --erase}
+@cindex Option @code{-e}
+@cindex Option @code{--erase}
+@cindex @code{-e}
+@cindex @code{--erase}
 @cindex @code{flash}
 @cindex @code{eeprom}
 Causes a chip erase to be executed. This will reset the contents of the
@@ -757,24 +775,30 @@ slow machines.
 
 @item -l @var{logfile}
 @item --logfile @var{logfile}
-@cindex Option @code{-l, --logfile} @var{logfile}
-@cindex @code{-l, --logfile} @var{logfile}
+@cindex Option @code{-l} @var{logfile}
+@cindex Option @code{--logfile} @var{logfile}
+@cindex @code{-l} @var{logfile}
+@cindex @code{--logfile} @var{logfile}
 Use @var{logfile} rather than @var{stderr} for diagnostics output.
 Note that initial diagnostic messages (during option parsing) are still
 written to @var{stderr} anyway.
 
 @item -n
 @item --test-memory
-@cindex Option @code{-n, --test-memory}
-@cindex @code{-n, --test-memory}
+@cindex Option @code{-n}
+@cindex Option @code{--test-memory}
+@cindex @code{-n}
+@cindex @code{--test-memory}
 No-write: disables writing data to the MCU whilst processing @code{-U}
 (useful for debugging AVRDUDE). The terminal mode continues to write to
 the device.
 
 @item -O
 @item --osccal
-@cindex Option @code{-O, --osccal}
-@cindex @code{-O, --osccal}
+@cindex Option @code{-O}
+@cindex Option @code{--osccal}
+@cindex @code{-O}
+@cindex @code{--osccal}
 @cindex @code{calibration}
 Perform a RC oscillator run-time calibration according to Atmel
 application note AVR053.
@@ -785,9 +809,10 @@ Note that the result will be stored in the EEPROM cell at address 0.
 
 @item -P @var{port}
 @item --port @var{port}
-@cindex Option @code{-P, --port} @var{port}
-@cindex @code{-P, --port} @var{port}
-
+@cindex Option @code{-P} @var{port}
+@cindex Option @code{--port} @var{port}
+@cindex @code{-P} @var{port}
+@cindex @code{--port} @var{port}
 Use @var{port} to identify the connection through which the programmer is
 attached. This can be a parallel, serial, spi or linuxgpio connection. The
 programmer normally specifies the connection type; in absence of a @code{-P}
@@ -873,8 +898,10 @@ Posix systems (by now).
 
 @item -r
 @item --reconnect
-@cindex Option @code{-r, --reconnect}
-@cindex @code{-r, --reconnect}
+@cindex Option @code{-r}
+@cindex Option @code{--reconnect}
+@cindex @code{-r}
+@cindex @code{--reconnect}
 Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
 for each @code{-r} on the command line and then establishes communication
 with the programmer. This is commonly known as a "1200bps touch", and is
@@ -885,8 +912,10 @@ powerful hosts.
 
 @item -q
 @item --quell
-@cindex Option @code{-q, --quell}
-@cindex @code{-q, --quell}
+@cindex Option @code{-q}
+@cindex Option @code{--quell}
+@cindex @code{-q}
+@cindex @code{--quell}
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
 
@@ -908,16 +937,20 @@ terminal commands.
 
 @item -t
 @item --terminal
-@cindex Option @code{-t, --terminal}
-@cindex @code{-t, --terminal}
+@cindex Option @code{-t}
+@cindex Option @code{--terminal}
+@cindex @code{-t}
+@cindex @code{--terminal}
 Tells AVRDUDE to run an interactive terminal when it is its turn in
 relation to other @code{-t} interactive terminals, @code{-T}
 terminal commands and @code{-U} memory operations.
 
 @item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
 @item --memory @var{memory}:@var{op}:@var{filename}[:@var{format}]
-@cindex Option @code{-U, --memory} @var{memory}:@var{op}:@var{filename}[:@var{format}]
-@cindex @code{-U, --memory} @var{memory}:@var{op}:@var{filename}[:@var{format}]
+@cindex Option @code{-U} @var{memory}:@var{op}:@var{filename}[:@var{format}]
+@cindex Option @code{--memory} @var{memory}:@var{op}:@var{filename}[:@var{format}]
+@cindex @code{-U} @var{memory}:@var{op}:@var{filename}[:@var{format}]
+@cindex @code{--memory} @var{memory}:@var{op}:@var{filename}[:@var{format}]
 
 Perform a memory operation when it is its turn in relation to other
 @code{-t} interactive terminals, @code{-T} terminal commands and @code{-U}
@@ -1094,15 +1127,19 @@ interpreted as memory, and the single character as memory operation.
 
 @item -v
 @item --verbose
-@cindex Option @code{-v, --verbose}
-@cindex @code{-v, --verbose}
+@cindex Option @code{-v}
+@cindex Option @code{--verbose}
+@cindex @code{-v}
+@cindex @code{--verbose}
 Enable verbose output.
 More @code{-v} options increase verbosity level.
 
 @item -V
 @item --noverify-memory
-@cindex Option @code{-V, --noverify-memory}
-@cindex @code{-V, --noverify-memory}
+@cindex Option @code{-V}
+@cindex Option @code{--noverify-memory}
+@cindex @code{-V}
+@cindex @code{--noverify-memory}
 Disable automatic verify check when writing data to the AVR with @code{-U}.
 
 @item -x @var{extended_param}
