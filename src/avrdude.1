@@ -25,7 +25,7 @@
 .Nd driver program for ``simple'' Atmel AVR MCU programmer
 .Sh SYNOPSIS
 .Nm
-.Op Fl p, \-part Ar partno
+.Op Fl p, \-part Ar partname
 .Op Fl b, \-baud Ar baudrate
 .Op Fl B, \-bitclock Ar bitclock
 .Op Fl c, \-programmer Ar programmer-id
@@ -325,10 +325,10 @@ In order to control all the different operation modi, a number of options
 need to be specified to
 .Nm avrdude .
 .Bl -tag -offset indent -width indent
-.It Fl p \-part Ar partno
+.It Fl p \-part Ar partname
 This option specifies the MCU connected to the programmer. The MCU
 descriptions are read from the config file. To see a list of currently
-supported MCUs use ? as partno, which will print the part ids and official
+supported MCUs use ? as partname, which will print the part ids and official
 part names. In connection with -v, this will also print a list of variant
 part names followed by an optional colon, the package code and some
 absolute maximum ratings. The part id, their official part name, any of

@@ -500,7 +500,7 @@ Roth.
 AVRDUDE is a command line tool, used as follows:
 
 @smallexample
-avrdude -p partno @var{options} @dots{}
+avrdude -p partname @var{options} @dots{}
 @end smallexample
 
 @noindent
@@ -508,14 +508,14 @@ Command line options are used to control AVRDUDE's behaviour.  The
 following options are recognized:
 
 @table @code
-@item -p @var{partno}
-@item --part @var{partno}
-@cindex Option @code{-p ,--part} @var{partno}
-@cindex @code{-p, --part} @var{partno}
+@item -p @var{partname}
+@item --part @var{partname}
+@cindex Option @code{-p ,--part} @var{partname}
+@cindex @code{-p, --part} @var{partname}
 
 This option tells AVRDUDE what part (MCU) is connected to the programmer.
-The @var{partno} parameter is the part's id listed in the configuration
-file. To see a list of currently supported MCUs use @code{?} as partno,
+The @var{partname} parameter is the part's id listed in the configuration
+file. To see a list of currently supported MCUs use @code{?} as partname,
 which will, for each part, print its id; its official part name;
 alternative names, if any; and the list of available programming
 interfaces. In connection with @code{-v}, this will also print a table of
