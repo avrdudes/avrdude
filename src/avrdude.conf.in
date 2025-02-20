@@ -15624,9 +15624,9 @@ part parent ".classic" # a664251
 # Logic Green parts
 #------------------------------------------------------------
 
-part parent "m88" # lgt8f88p
+part parent "m88" # lgt88p
     desc                   = "LGT8F88P";
-    id                     = "lgt8f88p";
+    id                     = "lgt88p";
     mcuid                  = 227;
     signature              = 0x1e 0x93 0x0f;
     autobaud_sync          = 0x1c;
@@ -15654,9 +15654,9 @@ part parent "m88" # lgt8f88p
 # LGT8F168P
 #------------------------------------------------------------
 
-part parent "m168" # lgt8f168p
+part parent "m168" # lgt168p
     desc                   = "LGT8F168P";
-    id                     = "lgt8f168p";
+    id                     = "lgt168p";
     mcuid                  = 228;
     signature              = 0x1e 0x94 0x0b;
     autobaud_sync          = 0x1c;
@@ -15684,9 +15684,9 @@ part parent "m168" # lgt8f168p
 # LGT8F328P
 #------------------------------------------------------------
 
-part parent "m328" # lgt8f328p
+part parent "m328" # lgt328p
     desc                   = "LGT8F328P";
-    id                     = "lgt8f328p";
+    id                     = "lgt328p";
     mcuid                  = 229;
     signature              = 0x1e 0x95 0x0f;
     autobaud_sync          = 0x1c;
