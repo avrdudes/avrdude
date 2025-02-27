@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.40
- * 16.11.2024
+ * v 1.41
+ * 28.02.2025
  *
  */
 
@@ -73,12 +73,24 @@ typedef struct {                // Value of -1 typically means unknown
   const Configitem *cfgtable;   // Configuration bitfield table
   uint16_t nregisters;          // Number of I/O registers
   const Register_file *regf;    // Register file
+  uint8_t numuarts;             // Number of UART interfaces
+  uint8_t uarttype;             // UARTTYPE_UNKNOWN, _NONE, _CLASSIC, _LIN, XMEGA, _AVR8X
+  uint8_t has_u2x;              // 1 = 2x speed possible (8 samples), 0 = 1x speed only
+  uint8_t brr_nbits;            // Number of baud rate divisor bits (integer part)
+  uint8_t brr_nfraction;        // Number of bits for fractional part of baud rate divisor
 } Avrintel;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
 #define F_AVR8                2 // ISP programming with SPI, "classic" AVRs
 #define F_XMEGA               4 // PDI programming, ATxmega family
 #define F_AVR8X               8 // UPDI programming, newer 8-bit MCUs
+
+#define UARTTYPE_UNKNOWN    (-1)
+#define UARTTYPE_NONE         0
+#define UARTTYPE_CLASSIC      1
+#define UARTTYPE_LIN          2
+#define UARTTYPE_XMEGA        3
+#define UARTTYPE_AVR8X        4
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
