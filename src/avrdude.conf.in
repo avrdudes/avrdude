@@ -24067,3 +24067,240 @@ part parent "16eb32" # 32eb32
         offset             = 0x7400;
     ;
 ;
+
+#------------------------------------------------------------
+# AVR-Sx family common values
+#------------------------------------------------------------
+
+part # .avrsx
+    desc                   = "AVR-Sx family common values";
+    id                     = ".avrsx";
+    family_id              = "AVR    ";
+    prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
+    boot_section_size      = 512;
+    hvupdi_variant         = 2;
+    nvm_base               = 0x1000;
+    ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
+    factory_fcpu           = 4000000;
+
+    memory "eeprom"
+        size               = 256;
+        offset             = 0x1400;
+        readsize           = 256;
+    ;
+
+    memory "flash"
+        size               = 0x8000;
+        page_size          = 512;
+        offset             = 0x800000;
+        readsize           = 256;
+    ;
+
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "fuse0"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "wdtcfg"
+        alias "fuse0";
+    ;
+
+    memory "fuse1"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1051;
+        readsize           = 1;
+    ;
+
+    memory "bodcfg"
+        alias "fuse1";
+    ;
+
+    memory "fuse5"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0xc3;
+        offset             = 0x1055;
+        readsize           = 1;
+    ;
+
+    memory "syscfg0"
+        alias "fuse5";
+    ;
+
+    memory "fuse6"
+        size               = 1;
+        initval            = 0x48;
+        bitmask            = 0xdf;
+        offset             = 0x1056;
+        readsize           = 1;
+    ;
+
+    memory "syscfg1"
+        alias "fuse6";
+    ;
+
+    memory "fuse7"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1057;
+        readsize           = 1;
+    ;
+
+    memory "codesize"
+        alias "fuse7";
+    ;
+
+    memory "append"
+        alias "fuse7";
+    ;
+
+    memory "fuse8"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1058;
+        readsize           = 1;
+    ;
+
+    memory "bootsize"
+        alias "fuse8";
+    ;
+
+    memory "bootend"
+        alias "fuse8";
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+
+    memory "lock"
+        size               = 4;
+        initval            = 0x5cc5c55c;
+        offset             = 0x1040;
+        readsize           = 4;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1080;
+        readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1080;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 4;
+        offset             = 0x1084;
+        readsize           = 1;
+    ;
+
+    memory "sernum"
+        size               = 16;
+        offset             = 0x1090;
+        readsize           = 1;
+    ;
+
+    memory "bootrow"
+        size               = 256;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 256;
+    ;
+
+    memory "userrow"
+        size               = 512;
+        page_size          = 512;
+        offset             = 0x1200;
+        readsize           = 32;
+    ;
+
+    memory "usersig"
+        alias "userrow";
+    ;
+
+    memory "io"
+        size               = 4160;
+        readsize           = 1;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32SD20
+#------------------------------------------------------------
+
+part parent ".avrsx" # 32sd20s
+    desc                   = "AVR32SD20";
+    id                     = "32sd20s";
+    variants               =
+        "AVR32SD20-SSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 402;
+    n_interrupts           = 50;
+    signature              = 0x1e 0x95 0x54;
+;
+
+#------------------------------------------------------------
+# AVR32SD28
+#------------------------------------------------------------
+
+part parent ".avrsx" # 32sd28s
+    desc                   = "AVR32SD28";
+    id                     = "32sd28s";
+    variants               =
+        "AVR32SD28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR32SD28-VQFN:       QFP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 403;
+    n_interrupts           = 54;
+    signature              = 0x1e 0x95 0x53;
+;
+
+#------------------------------------------------------------
+# AVR32SD32
+#------------------------------------------------------------
+
+part parent ".avrsx" # 32sd32s
+    desc                   = "AVR32SD32";
+    id                     = "32sd32s";
+    variants               =
+        "AVR32SD32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 404;
+    n_interrupts           = 56;
+    signature              = 0x1e 0x95 0x52;
+;
