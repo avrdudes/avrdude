@@ -263,7 +263,7 @@ static void usage(void) {
     "  -F                        Override invalid signature or initial checks\n"
     "  -e, --erase               Perform a chip erase at the beginning\n"
     "  -O, --osccal              Perform RC oscillator calibration (see AVR053)\n"
-    "  -t, --terminal,            Run an interactive terminal when it is its turn\n"
+    "  -t, --terminal            Run an interactive terminal when it is its turn\n"
     "  -T <terminal cmd line>    Run terminal line when it is its turn\n"
     "  -U, --memory <memstr>:r|w|v:<filename>[:format]\n"
     "                            Carry out memory operation when it is its turn\n"
