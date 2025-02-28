@@ -21873,6 +21873,106 @@ part parent ".avrdx" # 128da64
 ;
 
 #------------------------------------------------------------
+# AVR64DA28S
+#------------------------------------------------------------
+
+part parent "64da28" # 64da28s
+    desc                   = "AVR64DA28S";
+    id                     = "64da28s";
+    variants               =
+        "AVR64DA28S-SPDIP: DIP28, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 408;
+    signature              = 0x1e 0x96 0x2e;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DA32S
+#------------------------------------------------------------
+
+part parent "64da32" # 64da32s
+    desc                   = "AVR64DA32S";
+    id                     = "64da32s";
+    variants               =
+        "AVR64DA32S-VQFN/TQFP: QFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 409;
+    signature              = 0x1e 0x96 0x2d;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DA48S
+#------------------------------------------------------------
+
+part parent "64da48" # 64da48s
+    desc                   = "AVR64DA48S";
+    id                     = "64da48s";
+    variants               =
+        "AVR64DA48S-VQFN/TQFP: QFP48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 410;
+    signature              = 0x1e 0x96 0x2c;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DA64S
+#------------------------------------------------------------
+
+part parent "64da64" # 64da64s
+    desc                   = "AVR64DA64S";
+    id                     = "64da64s";
+    variants               =
+        "AVR64DA64S-VQFN/TQFP: QFP64, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 411;
+    signature              = 0x1e 0x96 0x2b;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
 # AVR128DA28S
 #------------------------------------------------------------
 
