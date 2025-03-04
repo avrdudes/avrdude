@@ -641,12 +641,10 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
 
   const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
-  char part_option[32] = {};  // 32 should be enough
+  char part_option[128] = {0};
 
   if(partdesc)
-    snprintf(part_option, 31, "-p %s ", partdesc);
-  else
-    strcpy(part_option, "");
+    snprintf(part_option, sizeof(part_option), "-p %s ", partdesc);
 
 // Use LIBHIDAPI to connect to SNAP/PICkit4 if present.
 // For some reason, chances are smaller to get
