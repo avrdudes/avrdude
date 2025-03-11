@@ -627,7 +627,70 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       my.pgm_type = PGM_TYPE_SNAP;
   }
 
-  return rv;
+  // No PICkit4 / SNAP (PIC mode) nor PICkit5 found, look for programmer in AVR mode
+  if(rv >= 0)  // if a programmer in PIC mode found, we're done
+    return rv;
+
+  // otherwise, try to see if there is a SNAP or PK4 in AVR mode
+  pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+  pinfo.usbinfo.pid = USB_DEVICE_SNAP_AVR_MODE;
+
+  pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
+  pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
+  pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
+  pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
+
+  const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+  char part_option[128] = {0};
+
+  if(partdesc)
+    snprintf(part_option, sizeof(part_option), "-p %s ", partdesc);
+
+// Use LIBHIDAPI to connect to SNAP/PICkit4 if present.
+// For some reason, chances are smaller to get
+// permission denied errors when using LIBHIDAPI
+#if defined(HAVE_LIBHIDAPI)
+  serdev = &usbhid_serdev;
+  pgm->fd.usb.eep = 0;
+#endif
+
+  rv = serial_open(port, pinfo, &pgm->fd);  // Try SNAP PID
+
+  if(rv >= 0) {
+    msg_error("\n");
+    cx->usb_access_error = 0;
+
+    pmsg_error("MPLAB SNAP in AVR mode detected\n");
+    imsg_error("to switch into PIC mode try\n");
+    imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+    imsg_error("or use the programmer in AVR mode with the following command:\n");
+    imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
+
+    serial_close(&pgm->fd);
+    return LIBAVRDUDE_EXIT;
+  }
+  pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
+  rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
+
+  if(rv >= 0) {
+    msg_error("\n");
+    cx->usb_access_error = 0;
+
+    pmsg_error("PICkit 4 in AVR mode detected\n");
+    imsg_error("to switch into PIC mode try\n");
+    imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+    imsg_error("or use the programmer in AVR mode with the following command:\n");
+    imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
+
+    serial_close(&pgm->fd);
+    return LIBAVRDUDE_EXIT;
+  }
+
+  pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
+              USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
+  imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
+
+  return LIBAVRDUDE_EXIT;
 }
 
 static void pickit5_close(PROGRAMMER *pgm) {
