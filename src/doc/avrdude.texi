@@ -3668,7 +3668,7 @@ programmer
     usbvendor = <vendorname>;                # USB Vendor Name
     usbproduct = <productname>;              # USB Product Name
     usbsn    = <serialno>;                   # USB Serial Number
-    hvupdi_support = <num> [, <num>, ... ];  # UPDI HV Variants Support
+    hvupdi_support = <num> [, <num>, ... ];  # HV support for enabling UPDI
 ;
 @end smallexample
 
@@ -3836,7 +3836,7 @@ part
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
     n_boot_sections  = <num>;                 # Number of boot sections
     boot_section_size = <num>;                # Size of (smallest) boot section, if any
-    hvupdi_variant   = <num>;                 # numeric -1 (n/a) or 0..2
+    hvupdi_variant   = <num>;                 # numeric: -1 or 0..3; how to enable UPDI with HV
     stk500_devcode   = <num>;                 # numeric
     avr910_devcode   = <num>;                 # numeric
     is_at90s1200     = <yes/no>;              # AT90S1200 part

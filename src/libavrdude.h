@@ -19,6 +19,9 @@
 #ifndef libavrdude_h
 #define libavrdude_h
 
+// #define TO_BE_DEPRECATED_IN_2026
+// #define TO_BE_DEPRECATED_IN_2027
+
 #include <stdio.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -280,9 +283,15 @@ typedef struct opcode {
 #define both_awire(pgm, p)     (!!(joint_pm(pgm, p) & PM_aWire))
 #define both_classic(pgm, p)   (!!(joint_pm(pgm, p) & PM_Classic))
 
-#define HV_UPDI_VARIANT_0     0 // Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)
-#define HV_UPDI_VARIANT_1     1 // Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx)
-#define HV_UPDI_VARIANT_2     2 // Shared UPDI pin, HV on _RESET (AVR-DD/AVR-Ex)
+#define UPDI_ENABLE_HV_UPDI   0 // Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)
+#define UPDI_ENABLE_ALWAYS    1 // Dedicated UPDI pin, no HV needed (megaAVR0/AVR-DA/DB)
+#define UPDI_ENABLE_HV_RESET  2 // Shared UPDI/GPIO pin, HV on RESET (AVR-DD/DUEA/EB)
+
+#ifndef TO_BE_DEPRECATED_IN_2027
+#define HV_UPDI_VARIANT_0     UPDI_ENABLE_HV_UPDI
+#define HV_UPDI_VARIANT_1     UPDI_ENABLE_ALWAYS
+#define HV_UPDI_VARIANT_2     UPDI_ENABLE_HV_RESET
+#endif
 
 #define HAS_SUFFER            1
 #define HAS_VTARG_SWITCH      2
@@ -322,7 +331,7 @@ typedef struct avrpart {
   int n_page_erase;             // If set, number of pages erased during NVM erase
   int n_boot_sections;          // Number of boot sections
   int boot_section_size;        // Size of (smallest) boot section, if any
-  int hvupdi_variant;           // HV pulse on UPDI pin, no pin or RESET pin
+  int hvupdi_variant;           // HV pulse: on UPDI pin (0), not needed (1), on RESET (2/3)
   int stk500_devcode;           // Stk500 device code
   int avr910_devcode;           // Avr910 device code
   int chip_erase_delay;         // Microseconds
@@ -989,7 +998,7 @@ typedef struct programmer {
   const char *usbsn;
   const char *usbvendor;
   const char *usbproduct;
-  LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
+  LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see UPDI_ENABLE_x
 
   // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;

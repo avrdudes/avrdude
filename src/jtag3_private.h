@@ -470,6 +470,6 @@ struct updi_device_desc {
 
   unsigned char address_mode;   // 0x00 = 16-bit mode, 0x01 = 24-bit mode
 
-  unsigned char hvupdi_variant; // Indicates the target UPDI HV implementation
+  unsigned char hvupdi_variant; // How the target's UPDI can be enabled with HV
 };
 #endif                          // JTAG3_PRIVATE_EXPORTED
