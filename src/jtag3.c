@@ -1246,11 +1246,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
-    if(my.use_hvupdi == true && p->hvupdi_variant != HV_UPDI_VARIANT_1) {
+    if(my.use_hvupdi == true && p->hvupdi_variant != UPDI_ENABLE_ALWAYS) {
       parm[0] = PARM3_UPDI_HV_NONE;
       for(LNODEID ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
         if(*(int *) ldata(ln) == p->hvupdi_variant) {
-          pmsg_notice("sending HV pulse to targets %s pin\n", p->hvupdi_variant == HV_UPDI_VARIANT_0? "UPDI": "RESET");
+          pmsg_notice("sending HV pulse to targets %s pin\n", p->hvupdi_variant == UPDI_ENABLE_HV_UPDI? "UPDI": "RESET");
           parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
           break;
         }

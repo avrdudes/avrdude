@@ -893,9 +893,9 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if(my.hvupdi_enabled > 0) {
-    if(p->hvupdi_variant == 0)
+    if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI)
       pmsg_notice("high-voltage SYSCFG0 override on UPDI pin enabled\n");
-    if(p->hvupdi_variant == 2)
+    if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET)
       pmsg_notice("high-voltage SYSCFG0 override on RST pin enabled\n");
   }
 
@@ -1000,11 +1000,11 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
 
-  if(my.hvupdi_enabled && (my.pgm_type != PGM_TYPE_SNAP)) {   // SNAP has no HV generation
-    if(p->hvupdi_variant == HV_UPDI_VARIANT_0) {        // High voltage generation on UPDI line
+  if(my.hvupdi_enabled && (my.pgm_type != PGM_TYPE_SNAP)) { // SNAP has no HV generation
+    if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI) {          // High voltage generation on UPDI line
       enter_prog = my.scripts.EnterProgModeHvSp;
       enter_prog_len = my.scripts.EnterProgModeHvSp_len;
-    } else if(p->hvupdi_variant == HV_UPDI_VARIANT_2) { // High voltage generation on RST line
+    } else if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET) {  // High voltage generation on RST line
       enter_prog = my.scripts.EnterProgModeHvSpRst;
       enter_prog_len = my.scripts.EnterProgModeHvSpRst_len;
     }
@@ -1421,11 +1421,11 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
     if(len == 0x03 || len == 0x04) {  // just DevId or UPDI with revision
       memcpy(my.devID, &my.rxBuf[24], len);
     } else {
-      if(my.hvupdi_enabled && p->hvupdi_variant == HV_UPDI_VARIANT_2) {
-        pmsg_info("failed to get DeviceID with activated HV Pulse on RST");
+      if(my.hvupdi_enabled && p->hvupdi_variant == UPDI_ENABLE_HV_RESET) {
+        pmsg_info("failed to get DeviceID with activated HV Pulse on RST\n");
          msg_info("if the wiring is correct, try connecting a 16 V, 1 uF cap between RST and GND\n");
       } else {
-        pmsg_error("length (%u) mismatch of returned Device ID.\n", len);
+        pmsg_error("length (%u) mismatch of returned Device ID\n", len);
       }
       return -1;
     }
