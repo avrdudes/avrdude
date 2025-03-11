@@ -10,7 +10,10 @@ Changes since version 8.0:
   * New devices supported:
 
     - AVR128DA28S, AVR128DA32S, AVR128DA48S, AVR128DA64S
+    - AVR64DA28S, AVR64DA32S, AVR64DA48S, AVR64DA64S
+    - AVR32DA28S, AVR32DA32S, AVR32DA48S
     - AVR32EB14, AVR32EB20, AVR32EB28, AVR32EB32
+    - AVR32SD20, AVR32SD28, AVR32SD32
 
   * New programmers supported:
 
@@ -47,6 +50,8 @@ Changes since version 8.0:
     - Correct PICkit5 programmer type entries #1949
     - Shorten ID of ATA parts #1950
     - Shorten ID of LGT parts #1951
+    - Suggest compatible command for SNAP/PICKit4 in PIC mode #1947
+    - Add AVR64DAnnS, AVR32DAnnS and AVR32SDnn #1955
 
   * Internals:
 
