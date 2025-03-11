@@ -21148,12 +21148,12 @@ part parent ".avr8x_mega" # m4809
 ;
 
 #------------------------------------------------------------
-# AVR-Dx family common values
+# AVR-DA/DB family common values
 #------------------------------------------------------------
 
-part # .avrdx
-    desc                   = "AVR-Dx family common values";
-    id                     = ".avrdx";
+part # .avr-da-db
+    desc                   = "AVR-DA/DB family common values";
+    id                     = ".avr-da-db";
     family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
     n_boot_sections        = 1;
@@ -21320,7 +21320,7 @@ part # .avrdx
 # AVR32DA28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32da28
+part parent ".avr-da-db" # 32da28
     desc                   = "AVR32DA28";
     id                     = "32da28";
     variants               =
@@ -21372,7 +21372,7 @@ part parent ".avrdx" # 32da28
 # AVR32DA32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32da32
+part parent ".avr-da-db" # 32da32
     desc                   = "AVR32DA32";
     id                     = "32da32";
     variants               =
@@ -21422,7 +21422,7 @@ part parent ".avrdx" # 32da32
 # AVR32DA48
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32da48
+part parent ".avr-da-db" # 32da48
     desc                   = "AVR32DA48";
     id                     = "32da48";
     variants               =
@@ -21472,7 +21472,7 @@ part parent ".avrdx" # 32da48
 # AVR64DA28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64da28
+part parent ".avr-da-db" # 64da28
     desc                   = "AVR64DA28";
     id                     = "64da28";
     variants               =
@@ -21524,7 +21524,7 @@ part parent ".avrdx" # 64da28
 # AVR64DA32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64da32
+part parent ".avr-da-db" # 64da32
     desc                   = "AVR64DA32";
     id                     = "64da32";
     variants               =
@@ -21574,7 +21574,7 @@ part parent ".avrdx" # 64da32
 # AVR64DA48
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64da48
+part parent ".avr-da-db" # 64da48
     desc                   = "AVR64DA48";
     id                     = "64da48";
     variants               =
@@ -21624,7 +21624,7 @@ part parent ".avrdx" # 64da48
 # AVR64DA64
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64da64
+part parent ".avr-da-db" # 64da64
     desc                   = "AVR64DA64";
     id                     = "64da64";
     variants               =
@@ -21674,7 +21674,7 @@ part parent ".avrdx" # 64da64
 # AVR128DA28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128da28
+part parent ".avr-da-db" # 128da28
     desc                   = "AVR128DA28";
     id                     = "128da28";
     variants               =
@@ -21726,7 +21726,7 @@ part parent ".avrdx" # 128da28
 # AVR128DA32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128da32
+part parent ".avr-da-db" # 128da32
     desc                   = "AVR128DA32";
     id                     = "128da32";
     variants               =
@@ -21776,7 +21776,7 @@ part parent ".avrdx" # 128da32
 # AVR128DA48
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128da48
+part parent ".avr-da-db" # 128da48
     desc                   = "AVR128DA48";
     id                     = "128da48";
     variants               =
@@ -21826,7 +21826,7 @@ part parent ".avrdx" # 128da48
 # AVR128DA64
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128da64
+part parent ".avr-da-db" # 128da64
     desc                   = "AVR128DA64";
     id                     = "128da64";
     variants               =
@@ -22151,7 +22151,7 @@ part parent "128da64" # 128da64s
 # AVR32DB28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32db28
+part parent ".avr-da-db" # 32db28
     desc                   = "AVR32DB28";
     id                     = "32db28";
     variants               =
@@ -22197,7 +22197,7 @@ part parent ".avrdx" # 32db28
 # AVR32DB32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32db32
+part parent ".avr-da-db" # 32db32
     desc                   = "AVR32DB32";
     id                     = "32db32";
     variants               =
@@ -22241,7 +22241,7 @@ part parent ".avrdx" # 32db32
 # AVR32DB48
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32db48
+part parent ".avr-da-db" # 32db48
     desc                   = "AVR32DB48";
     id                     = "32db48";
     variants               =
@@ -22285,7 +22285,7 @@ part parent ".avrdx" # 32db48
 # AVR64DB28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64db28
+part parent ".avr-da-db" # 64db28
     desc                   = "AVR64DB28";
     id                     = "64db28";
     variants               =
@@ -22331,7 +22331,7 @@ part parent ".avrdx" # 64db28
 # AVR64DB32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64db32
+part parent ".avr-da-db" # 64db32
     desc                   = "AVR64DB32";
     id                     = "64db32";
     variants               =
@@ -22375,7 +22375,7 @@ part parent ".avrdx" # 64db32
 # AVR64DB48
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64db48
+part parent ".avr-da-db" # 64db48
     desc                   = "AVR64DB48";
     id                     = "64db48";
     variants               =
@@ -22419,7 +22419,7 @@ part parent ".avrdx" # 64db48
 # AVR64DB64
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64db64
+part parent ".avr-da-db" # 64db64
     desc                   = "AVR64DB64";
     id                     = "64db64";
     variants               =
@@ -22463,7 +22463,7 @@ part parent ".avrdx" # 64db64
 # AVR128DB28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128db28
+part parent ".avr-da-db" # 128db28
     desc                   = "AVR128DB28";
     id                     = "128db28";
     variants               =
@@ -22509,7 +22509,7 @@ part parent ".avrdx" # 128db28
 # AVR128DB32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128db32
+part parent ".avr-da-db" # 128db32
     desc                   = "AVR128DB32";
     id                     = "128db32";
     variants               =
@@ -22553,7 +22553,7 @@ part parent ".avrdx" # 128db32
 # AVR128DB48
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128db48
+part parent ".avr-da-db" # 128db48
     desc                   = "AVR128DB48";
     id                     = "128db48";
     variants               =
@@ -22597,7 +22597,7 @@ part parent ".avrdx" # 128db48
 # AVR128DB64
 #------------------------------------------------------------
 
-part parent ".avrdx" # 128db64
+part parent ".avr-da-db" # 128db64
     desc                   = "AVR128DB64";
     id                     = "128db64";
     variants               =
@@ -22638,19 +22638,21 @@ part parent ".avrdx" # 128db64
 ;
 
 #------------------------------------------------------------
-# AVR16DD14
+# AVR-DD/DU family common values
 #------------------------------------------------------------
 
-part parent ".avrdx" # 16dd14
-    desc                   = "AVR16DD14";
-    id                     = "16dd14";
-    variants               =
-        "AVR16DD14-I/SL: SOIC14, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "AVR16DD14-SOIC: DIP14,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
-    mcuid                  = 329;
-    n_interrupts           = 36;
+part # .avr-dd-du
+    desc                   = "AVR-DD/DU family common values";
+    id                     = ".avr-dd-du";
+    family_id              = "AVR    ";
+    prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
+    boot_section_size      = 512;
     hvupdi_variant         = 2;
-    signature              = 0x1e 0x94 0x34;
+    nvm_base               = 0x1000;
+    ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
+    factory_fcpu           = 4000000;
 
     memory "eeprom"
         size               = 256;
@@ -22658,20 +22660,177 @@ part parent ".avrdx" # 16dd14
         readsize           = 256;
     ;
 
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "fuse0"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "wdtcfg"
+        alias "fuse0";
+    ;
+
+    memory "fuse1"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1051;
+        readsize           = 1;
+    ;
+
+    memory "bodcfg"
+        alias "fuse1";
+    ;
+
+    memory "fuse2"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0x07;
+        offset             = 0x1052;
+        readsize           = 1;
+    ;
+
+    memory "osccfg"
+        alias "fuse2";
+    ;
+
+    memory "fuse5"
+        size               = 1;
+        initval            = 0xd0;
+        bitmask            = 0xf9;
+        offset             = 0x1055;
+        readsize           = 1;
+    ;
+
+    memory "syscfg0"
+        alias "fuse5";
+    ;
+
+    memory "fuse6"
+        size               = 1;
+        initval            = 0x08;
+        bitmask            = 0x1f;
+        offset             = 0x1056;
+        readsize           = 1;
+    ;
+
+    memory "syscfg1"
+        alias "fuse6";
+    ;
+
+    memory "fuse7"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1057;
+        readsize           = 1;
+    ;
+
+    memory "codesize"
+        alias "fuse7";
+    ;
+
+    memory "append"
+        alias "fuse7";
+    ;
+
+    memory "fuse8"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1058;
+        readsize           = 1;
+    ;
+
+    memory "bootsize"
+        alias "fuse8";
+    ;
+
+    memory "bootend"
+        alias "fuse8";
+    ;
+
+    memory "lock"
+        size               = 4;
+        initval            = 0x5cc5c55c;
+        offset             = 0x1040;
+        readsize           = 4;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1100;
+        readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1100;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 4;
+        offset             = 0x1104;
+        readsize           = 1;
+    ;
+
+    memory "sernum"
+        size               = 16;
+        offset             = 0x1110;
+        readsize           = 1;
+    ;
+
+    memory "userrow"
+        size               = 32;
+        page_size          = 32;
+        offset             = 0x1080;
+        readsize           = 32;
+    ;
+
+    memory "usersig"
+        alias "userrow";
+    ;
+
+    memory "io"
+        size               = 4160;
+        readsize           = 1;
+    ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16DD14
+#------------------------------------------------------------
+
+part parent ".avr-dd-du" # 16dd14
+    desc                   = "AVR16DD14";
+    id                     = "16dd14";
+    variants               =
+        "AVR16DD14-I/SL: SOIC14, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR16DD14-SOIC: DIP14,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 329;
+    n_interrupts           = 36;
+    signature              = 0x1e 0x94 0x34;
+
     memory "flash"
         size               = 0x4000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22684,7 +22843,7 @@ part parent ".avrdx" # 16dd14
 # AVR16DD20
 #------------------------------------------------------------
 
-part parent ".avrdx" # 16dd20
+part parent ".avr-dd-du" # 16dd20
     desc                   = "AVR16DD20";
     id                     = "16dd20";
     variants               =
@@ -22694,29 +22853,13 @@ part parent ".avrdx" # 16dd20
         "AVR16DD20-VQFN:  QFP20,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 330;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x33;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x4000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22729,7 +22872,7 @@ part parent ".avrdx" # 16dd20
 # AVR16DD28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 16dd28
+part parent ".avr-dd-du" # 16dd28
     desc                   = "AVR16DD28";
     id                     = "16dd28";
     variants               =
@@ -22741,29 +22884,13 @@ part parent ".avrdx" # 16dd28
         "AVR16DD28-VQFN:            QFP28,   Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 331;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x32;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x4000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22776,7 +22903,7 @@ part parent ".avrdx" # 16dd28
 # AVR16DD32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 16dd32
+part parent ".avr-dd-du" # 16dd32
     desc                   = "AVR16DD32";
     id                     = "16dd32";
     variants               =
@@ -22785,29 +22912,13 @@ part parent ".avrdx" # 16dd32
         "AVR16DD32-VQFN/TQFP: QFP32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 333;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x31;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x4000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22820,7 +22931,7 @@ part parent ".avrdx" # 16dd32
 # AVR32DD14
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32dd14
+part parent ".avr-dd-du" # 32dd14
     desc                   = "AVR32DD14";
     id                     = "32dd14";
     variants               =
@@ -22828,29 +22939,13 @@ part parent ".avrdx" # 32dd14
         "AVR32DD14-SOIC: DIP14,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 336;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x3b;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x8000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22863,7 +22958,7 @@ part parent ".avrdx" # 32dd14
 # AVR32DD20
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32dd20
+part parent ".avr-dd-du" # 32dd20
     desc                   = "AVR32DD20";
     id                     = "32dd20";
     variants               =
@@ -22873,29 +22968,13 @@ part parent ".avrdx" # 32dd20
         "AVR32DD20-VQFN:  QFP20,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 337;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x3a;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x8000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22908,7 +22987,7 @@ part parent ".avrdx" # 32dd20
 # AVR32DD28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32dd28
+part parent ".avr-dd-du" # 32dd28
     desc                   = "AVR32DD28";
     id                     = "32dd28";
     variants               =
@@ -22920,29 +22999,13 @@ part parent ".avrdx" # 32dd28
         "AVR32DD28-VQFN:            QFP28,   Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 340;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x39;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x8000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22955,7 +23018,7 @@ part parent ".avrdx" # 32dd28
 # AVR32DD32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 32dd32
+part parent ".avr-dd-du" # 32dd32
     desc                   = "AVR32DD32";
     id                     = "32dd32";
     variants               =
@@ -22964,29 +23027,13 @@ part parent ".avrdx" # 32dd32
         "AVR32DD32-VQFN/TQFP: QFP32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 344;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x38;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x8000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -22999,7 +23046,7 @@ part parent ".avrdx" # 32dd32
 # AVR64DD14
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64dd14
+part parent ".avr-dd-du" # 64dd14
     desc                   = "AVR64DD14";
     id                     = "64dd14";
     variants               =
@@ -23007,29 +23054,13 @@ part parent ".avrdx" # 64dd14
         "AVR64DD14-SOIC: DIP14,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 349;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1d;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x10000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -23042,7 +23073,7 @@ part parent ".avrdx" # 64dd14
 # AVR64DD20
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64dd20
+part parent ".avr-dd-du" # 64dd20
     desc                   = "AVR64DD20";
     id                     = "64dd20";
     variants               =
@@ -23050,29 +23081,13 @@ part parent ".avrdx" # 64dd20
         "AVR64DD20-SOIC: DIP20,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 350;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1c;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x10000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -23085,7 +23100,7 @@ part parent ".avrdx" # 64dd20
 # AVR64DD28
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64dd28
+part parent ".avr-dd-du" # 64dd28
     desc                   = "AVR64DD28";
     id                     = "64dd28";
     variants               =
@@ -23097,29 +23112,13 @@ part parent ".avrdx" # 64dd28
         "AVR64DD28-VQFN:            QFP28,   Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 353;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1b;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x10000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -23132,7 +23131,7 @@ part parent ".avrdx" # 64dd28
 # AVR64DD32
 #------------------------------------------------------------
 
-part parent ".avrdx" # 64dd32
+part parent ".avr-dd-du" # 64dd32
     desc                   = "AVR64DD32";
     id                     = "64dd32";
     variants               =
@@ -23141,29 +23140,13 @@ part parent ".avrdx" # 64dd32
         "AVR64DD32-VQFN/TQFP: QFP32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 357;
     n_interrupts           = 36;
-    hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1a;
-
-    memory "eeprom"
-        size               = 256;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
 
     memory "flash"
         size               = 0x10000;
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "fuse5"
-        initval            = 0xd0;
-        bitmask            = 0xf9;
-    ;
-
-    memory "lock"
-        initval            = 0x5cc5c55c;
     ;
 
     memory "sram"
@@ -23176,7 +23159,7 @@ part parent ".avrdx" # 64dd32
 # AVR64DU28
 #------------------------------------------------------------
 
-part parent "64dd28" # 64du28
+part parent ".avr-dd-du" # 64du28
     desc                   = "AVR64DU28";
     id                     = "64du28";
     variants               =
@@ -23185,6 +23168,13 @@ part parent "64dd28" # 64du28
     mcuid                  = 384;
     n_interrupts           = 34;
     signature              = 0x1e 0x96 0x22;
+
+    memory "flash"
+        size               = 0x10000;
+        page_size          = 512;
+        offset             = 0x800000;
+        readsize           = 256;
+    ;
 
     memory "fuse5"
         bitmask            = 0xfb;
@@ -23233,6 +23223,11 @@ part parent "64dd28" # 64du28
         size               = 512;
         page_size          = 512;
         offset             = 0x1200;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
     ;
 ;
 
@@ -23379,32 +23374,168 @@ part parent "32du14" # 32du32
 # AVR-Ex family common values
 #------------------------------------------------------------
 
-part parent ".avrdx" # .avrex
+part # .avr-ex
     desc                   = "AVR-Ex family common values";
-    id                     = ".avrex";
+    id                     = ".avr-ex";
+    family_id              = "AVR    ";
+    prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
     boot_section_size      = 256;
     # Shared UPDI pin, HV on _RESET
     hvupdi_variant         = 2;
+    nvm_base               = 0x1000;
+    ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
     factory_fcpu           = 20000000;
 
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "fuse0"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "wdtcfg"
+        alias "fuse0";
+    ;
+
+    memory "fuse1"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1051;
+        readsize           = 1;
+    ;
+
+    memory "bodcfg"
+        alias "fuse1";
+    ;
+
     memory "fuse2"
+        size               = 1;
+        initval            = 0x00;
         bitmask            = 0x08;
+        offset             = 0x1052;
+        readsize           = 1;
+    ;
+
+    memory "osccfg"
+        alias "fuse2";
     ;
 
     memory "fuse5"
+        size               = 1;
         initval            = 0xd0;
         bitmask            = 0xf9;
+        offset             = 0x1055;
+        readsize           = 1;
+    ;
+
+    memory "syscfg0"
+        alias "fuse5";
     ;
 
     memory "fuse6"
+        size               = 1;
         initval            = 0x07;
         bitmask            = 0x07;
+        offset             = 0x1056;
+        readsize           = 1;
+    ;
+
+    memory "syscfg1"
+        alias "fuse6";
+    ;
+
+    memory "fuse7"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1057;
+        readsize           = 1;
+    ;
+
+    memory "codesize"
+        alias "fuse7";
+    ;
+
+    memory "append"
+        alias "fuse7";
+    ;
+
+    memory "fuse8"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1058;
+        readsize           = 1;
+    ;
+
+    memory "bootsize"
+        alias "fuse8";
+    ;
+
+    memory "bootend"
+        alias "fuse8";
+    ;
+
+    memory "lock"
+        size               = 4;
+        offset             = 0x1040;
+        readsize           = 4;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1100;
+        readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1100;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 4;
+        offset             = 0x1104;
+        readsize           = 1;
+    ;
+
+    memory "sernum"
+        size               = 16;
+        offset             = 0x1110;
+        readsize           = 1;
     ;
 
     memory "userrow"
         size               = 64;
         page_size          = 64;
+        offset             = 0x1080;
         readsize           = 64;
+    ;
+
+    memory "usersig"
+        alias "userrow";
+    ;
+
+    memory "io"
+        size               = 4160;
+        readsize           = 1;
+    ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
     ;
 ;
 
@@ -23412,7 +23543,7 @@ part parent ".avrdx" # .avrex
 # AVR8EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # 8ea28
+part parent ".avr-ex" # 8ea28
     desc                   = "AVR8EA28";
     id                     = "8ea28";
     mcuid                  = 327;
@@ -23468,7 +23599,7 @@ part parent ".avrex" # 8ea28
 # AVR8EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # 8ea32
+part parent ".avr-ex" # 8ea32
     desc                   = "AVR8EA32";
     id                     = "8ea32";
     mcuid                  = 328;
@@ -23524,7 +23655,7 @@ part parent ".avrex" # 8ea32
 # AVR16EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # 16ea28
+part parent ".avr-ex" # 16ea28
     desc                   = "AVR16EA28";
     id                     = "16ea28";
     variants               =
@@ -23562,7 +23693,7 @@ part parent ".avrex" # 16ea28
 # AVR16EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # 16ea32
+part parent ".avr-ex" # 16ea32
     desc                   = "AVR16EA32";
     id                     = "16ea32";
     variants               =
@@ -23599,7 +23730,7 @@ part parent ".avrex" # 16ea32
 # AVR16EA48
 #------------------------------------------------------------
 
-part parent ".avrex" # 16ea48
+part parent ".avr-ex" # 16ea48
     desc                   = "AVR16EA48";
     id                     = "16ea48";
     variants               =
@@ -23636,7 +23767,7 @@ part parent ".avrex" # 16ea48
 # AVR32EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # 32ea28
+part parent ".avr-ex" # 32ea28
     desc                   = "AVR32EA28";
     id                     = "32ea28";
     variants               =
@@ -23674,7 +23805,7 @@ part parent ".avrex" # 32ea28
 # AVR32EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # 32ea32
+part parent ".avr-ex" # 32ea32
     desc                   = "AVR32EA32";
     id                     = "32ea32";
     variants               =
@@ -23711,7 +23842,7 @@ part parent ".avrex" # 32ea32
 # AVR32EA48
 #------------------------------------------------------------
 
-part parent ".avrex" # 32ea48
+part parent ".avr-ex" # 32ea48
     desc                   = "AVR32EA48";
     id                     = "32ea48";
     variants               =
@@ -23748,7 +23879,7 @@ part parent ".avrex" # 32ea48
 # AVR64EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # 64ea28
+part parent ".avr-ex" # 64ea28
     desc                   = "AVR64EA28";
     id                     = "64ea28";
     variants               =
@@ -23788,7 +23919,7 @@ part parent ".avrex" # 64ea28
 # AVR64EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # 64ea32
+part parent ".avr-ex" # 64ea32
     desc                   = "AVR64EA32";
     id                     = "64ea32";
     variants               =
@@ -23827,7 +23958,7 @@ part parent ".avrex" # 64ea32
 # AVR64EA48
 #------------------------------------------------------------
 
-part parent ".avrex" # 64ea48
+part parent ".avr-ex" # 64ea48
     desc                   = "AVR64EA48";
     id                     = "64ea48";
     variants               =
@@ -23866,7 +23997,7 @@ part parent ".avrex" # 64ea48
 # AVR16EB14
 #------------------------------------------------------------
 
-part parent ".avrex" # 16eb14
+part parent ".avr-ex" # 16eb14
     desc                   = "AVR16EB14";
     id                     = "16eb14";
     variants               =
@@ -24072,9 +24203,9 @@ part parent "16eb32" # 32eb32
 # AVR-Sx family common values
 #------------------------------------------------------------
 
-part # .avrsx
+part # .avr-sx
     desc                   = "AVR-Sx family common values";
-    id                     = ".avrsx";
+    id                     = ".avr-sx";
     family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
     n_boot_sections        = 1;
@@ -24266,7 +24397,7 @@ part # .avrsx
 # AVR32SD20
 #------------------------------------------------------------
 
-part parent ".avrsx" # 32sd20s
+part parent ".avr-sx" # 32sd20s
     desc                   = "AVR32SD20";
     id                     = "32sd20s";
     variants               =
@@ -24280,7 +24411,7 @@ part parent ".avrsx" # 32sd20s
 # AVR32SD28
 #------------------------------------------------------------
 
-part parent ".avrsx" # 32sd28s
+part parent ".avr-sx" # 32sd28s
     desc                   = "AVR32SD28";
     id                     = "32sd28s";
     variants               =
@@ -24295,7 +24426,7 @@ part parent ".avrsx" # 32sd28s
 # AVR32SD32
 #------------------------------------------------------------
 
-part parent ".avrsx" # 32sd32s
+part parent ".avr-sx" # 32sd32s
     desc                   = "AVR32SD32";
     id                     = "32sd32s";
     variants               =
