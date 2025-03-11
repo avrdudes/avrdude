@@ -20734,7 +20734,7 @@ part parent ".avr8x_tiny" # t3227
 # ATmega808
 #------------------------------------------------------------
 
-part parent ".avr8x_tiny" # m808
+part parent ".avr8x_mega" # m808
     desc                   = "ATmega808";
     id                     = "m808";
     variants               =
@@ -20769,12 +20769,13 @@ part parent ".avr8x_tiny" # m808
         readsize           = 256;
     ;
 
-    memory "fuse5"
-        bitmask            = 0xc9;
-    ;
-
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "userrow"
+        size               = 32;
+        page_size          = 32;
     ;
 
     memory "sram"
@@ -20787,7 +20788,7 @@ part parent ".avr8x_tiny" # m808
 # ATmega809
 #------------------------------------------------------------
 
-part parent ".avr8x_tiny" # m809
+part parent ".avr8x_mega" # m809
     desc                   = "ATmega809";
     id                     = "m809";
     variants               =
@@ -20818,12 +20819,13 @@ part parent ".avr8x_tiny" # m809
         readsize           = 256;
     ;
 
-    memory "fuse5"
-        bitmask            = 0xc9;
-    ;
-
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "userrow"
+        size               = 32;
+        page_size          = 32;
     ;
 
     memory "sram"
@@ -20836,7 +20838,7 @@ part parent ".avr8x_tiny" # m809
 # ATmega1608
 #------------------------------------------------------------
 
-part parent ".avr8x_tiny" # m1608
+part parent ".avr8x_mega" # m1608
     desc                   = "ATmega1608";
     id                     = "m1608";
     variants               =
@@ -20871,12 +20873,13 @@ part parent ".avr8x_tiny" # m1608
         readsize           = 256;
     ;
 
-    memory "fuse5"
-        bitmask            = 0xc9;
-    ;
-
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "userrow"
+        size               = 32;
+        page_size          = 32;
     ;
 
     memory "sram"
@@ -20889,7 +20892,7 @@ part parent ".avr8x_tiny" # m1608
 # ATmega1609
 #------------------------------------------------------------
 
-part parent ".avr8x_tiny" # m1609
+part parent ".avr8x_mega" # m1609
     desc                   = "ATmega1609";
     id                     = "m1609";
     variants               =
@@ -20920,12 +20923,13 @@ part parent ".avr8x_tiny" # m1609
         readsize           = 256;
     ;
 
-    memory "fuse5"
-        bitmask            = 0xc9;
-    ;
-
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "userrow"
+        size               = 32;
+        page_size          = 32;
     ;
 
     memory "sram"
