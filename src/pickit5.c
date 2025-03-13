@@ -58,10 +58,6 @@
 #define BIST_TEST          0x02
 #define BIST_RESULT        0x03
 
-#define PGM_TYPE_PK5       0x00   // Default
-#define PGM_TYPE_PK4       0x01   // PICkit4
-#define PGM_TYPE_SNAP      0x02   // SNAP
-
 #define PK_OP_NONE         0x00   // Init
 #define PK_OP_FOUND        0x01   // PK is connected to USB
 #define PK_OP_RESPONDS     0x02   // Responds to get_fw() requests
@@ -77,9 +73,17 @@
 #define ERROR_BAD_RESPONSE        -13
 #define ERROR_SCRIPT_EXECUTION    -14
 
+#define PGM_FEAT_TARGET_POWER 0x01
+#define PGM_FEAT_HV_PULSE     0x02
+#define PGM_FEAT_PTG          0x04
+
+#define can_power_target(data) (!!(data.pgm_features & PGM_FEAT_TARGET_POWER))
+#define can_gen_hv_pulse(data) (!!(data.pgm_features & PGM_FEAT_HV_PULSE))
+#define can_do_ptg(data)       (!!(data.pgm_features & PGM_FEAT_PTG))
+
 // Private data for this programmer
 struct pdata {
-  unsigned char pgm_type;         // Used to skip unsupported functions
+  unsigned char pgm_features;     // Bitmap of features 
   unsigned char pk_op_mode;       // See PK_OP_ defines
   unsigned char power_source;     // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled;   // 0: no HV / 1: HV generation enabled
@@ -282,7 +286,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -x vtarg=<dbl>  Enable power output; <dbl> must be in [1.8, 5.5] V\n");
-      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization\n");
+      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization (if supported)\n");
       msg_error("  -x help         Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }
@@ -620,11 +624,14 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     my.pk_op_mode = PK_OP_FOUND;
 
     if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT5)
-      my.pgm_type = PGM_TYPE_PK5;
+      my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
     else if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT4_PIC_MODE)
-      my.pgm_type = PGM_TYPE_PK4;
+      my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
     else if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE)
-      my.pgm_type = PGM_TYPE_SNAP;
+      my.pgm_features = 0;
+    else if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT_BASIC_PIC_MODE ||
+            pinfo.usbinfo.pid == USB_DEVICE_PICKIT_BASIC_PIC_MODE_CDC)
+      my.pgm_features = 0;
   }
 
   // No PICkit4 / SNAP (PIC mode) nor PICkit5 found, look for programmer in AVR mode
@@ -1000,11 +1007,12 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
 
-  if(my.hvupdi_enabled && (my.pgm_type != PGM_TYPE_SNAP)) { // SNAP has no HV generation
+  if(my.hvupdi_enabled && can_gen_hv_pulse(my)) {   // SNAP and Basic have no HV generation
     if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI) {          // High voltage generation on UPDI line
       enter_prog = my.scripts.EnterProgModeHvSp;
       enter_prog_len = my.scripts.EnterProgModeHvSp_len;
-    } else if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET) {  // High voltage generation on RST line
+    } else if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET ||  // High voltage generation on RST line
+              p->hvupdi_variant == 3) {  
       enter_prog = my.scripts.EnterProgModeHvSpRst;
       enter_prog_len = my.scripts.EnterProgModeHvSpRst_len;
     }
@@ -1921,7 +1929,7 @@ static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
     0x44
   };
 
-  if(my.pgm_type >= PGM_TYPE_SNAP) { // SNAP can't supply power, ignore
+  if(!can_power_target(my)) { // SNAP and Basic can't supply power, ignore
     return 0;
   }
 
@@ -1974,8 +1982,8 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
 }
 
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
-  if(my.pgm_type >= PGM_TYPE_SNAP)  // Don't bother if Programmer doesn't support PTG
-    return 0;                       // Note: Bitmask would be probably better in the future
+  if(!can_do_ptg(my))  // Don't bother if Programmer doesn't support PTG
+    return 0;
 
   unsigned char ptg_mode[] = {
     0x5E, 0x00, 0x00, 0x00, 0x00,

@@ -3082,11 +3082,11 @@ programmer # pickit4_tpi
 # Note: pickit5_dw does not support flash erase and must switch
 #         to ISP, thus requires all 6 Pins when modifing the flash
 #
-# (*): The PICkit5 can generate a High-Voltage (12V) Pulse on this pins
+# (*): The PICkit 5 can generate a High-Voltage (12V) Pulse on this pins
 #        to restore the UPDI Pin functionality, if it was changed through fuses.
 #        AVRDUDE automatically selects the correct pin, if the HV pulse is
 #        enabled through the '-x hvupdi' flag.
-# (°): The PICkit5 can also be used as a USB to UART
+# (°): The PICkit 5 and PICkit Basic can also be used as a USB to UART
 #        interface for simple serial debugging.
 
 #------------------------------------------------------------
@@ -3101,7 +3101,8 @@ programmer # pickit5
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
+                             0x9054, 0x9055; # Pickit basic (guess)
 ;
 
 
@@ -3117,8 +3118,9 @@ programmer # pickit5_updi
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
-    hvupdi_support         = 0, 1, 2;
+    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
+                             0x9054, 0x9055; # Pickit basic (guess)        
+    hvupdi_support         = 0, 1, 2, 3;
 ;
 
 #------------------------------------------------------------
@@ -3133,7 +3135,8 @@ programmer # pickit5_isp
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
+                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
@@ -3148,7 +3151,8 @@ programmer # pickit5_dw
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
+                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
@@ -3163,7 +3167,8 @@ programmer # pickit5_tpi
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
+                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
@@ -3178,7 +3183,8 @@ programmer # pickit5_pdi
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
+                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
