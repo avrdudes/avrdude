@@ -3110,16 +3110,10 @@ programmer # pickit5
 # pickit5_updi
 #------------------------------------------------------------
 
-programmer # pickit5_updi
+programmer parent "pickit5" # pickit5_updi
     id                     = "pickit5_updi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in UPDI Mode";
-    type                   = "pickit5";
-    prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
-                             0x9054, 0x9055; # Pickit basic (guess)        
+    prog_modes             = PM_UPDI;    
     hvupdi_support         = 0, 1, 2, 3;
 ;
 
@@ -3127,64 +3121,40 @@ programmer # pickit5_updi
 # pickit5_isp
 #------------------------------------------------------------
 
-programmer # pickit5_isp
+programmer parent "pickit5" # pickit5_isp
     id                     = "pickit5_isp";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in ISP Mode";
-    type                   = "pickit5";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
-                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
 # pickit5_dw
 #------------------------------------------------------------
 
-programmer # pickit5_dw
+programmer parent "pickit5" # pickit5_dw
     id                     = "pickit5_dw";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in dW Mode";
-    type                   = "pickit5";
     prog_modes             = PM_debugWIRE;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
-                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
 # pickit5_tpi
 #------------------------------------------------------------
 
-programmer # pickit5_tpi
+programmer parent "pickit5" # pickit5_tpi
     id                     = "pickit5_tpi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in TPI Mode";
-    type                   = "pickit5";
     prog_modes             = PM_TPI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
-                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
 # pickit5_pdi
 #------------------------------------------------------------
 
-programmer # pickit5_pdi
+programmer parent "pickit5" # pickit5_pdi
     id                     = "pickit5_pdi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in PDI Mode";
-    type                   = "pickit5";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018, # PK5, PK4 (pic mode), snap (pic mode)
-                             0x9054, 0x9055; # Pickit basic (guess) 
 ;
 
 #------------------------------------------------------------
