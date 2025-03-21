@@ -1141,6 +1141,10 @@ More @code{-v} options increase verbosity level.
 @cindex @code{--noverify-memory}
 Disable automatic verify check when writing data to the AVR with @code{-U}.
 
+@item --version
+@cindex Option @code{--version}
+Print avrdude version and exit
+
 @item -x @var{extended_param}
 @cindex Option @code{-x} @var{extended_param}
 @cindex @code{-x} @var{extended_param}
