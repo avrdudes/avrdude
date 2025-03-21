@@ -275,6 +275,7 @@ static void usage(void) {
     "  -v, --verbose             Verbose output; -v -v for more\n"
     "  -q, --quell               Quell progress output; -q -q for less\n"
     "  -l, --logfile logfile     Use logfile rather than stderr for diagnostics\n"
+    "  --version                 Print version and exit\n"
     "  -?, --help                Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
     progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
@@ -713,6 +714,7 @@ int main(int argc, char *argv[]) {
   int is_open;                  // Device open succeeded
   int ce_delayed;               // Chip erase delayed
   char *logfile;                // Use logfile rather than stderr for diagnostics
+  int showversion;              // Show version and exit
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY;  // Flags for do_op()
 
   init_cx(NULL);
@@ -801,6 +803,7 @@ int main(int argc, char *argv[]) {
   is_open = 0;
   ce_delayed = 0;
   logfile = NULL;
+  showversion = 0;
 
   if(argc == 1) {               // No arguments?
     usage();
@@ -840,11 +843,15 @@ int main(int argc, char *argv[]) {
     {"memory",     required_argument, NULL, 'U'},
     {"verbose",    no_argument,       NULL, 'v'},
     {"noverify-memory",no_argument,   NULL, 'V'},
+    {"version",    no_argument,       &showversion, 0},
     {NULL,         0,                 NULL, 0}
   };
+
+  int option_idx = 0;
+
   while((ch = getopt_long(argc, argv,
 			  "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:",
-			  longopts, NULL)) != -1) {
+			  longopts, &option_idx)) != -1) {
     switch(ch) {
     case 'b':                  // Override default programmer baud rate
       baudrate = str_int(optarg, STR_INT32, &errstr);
@@ -985,6 +992,11 @@ int main(int argc, char *argv[]) {
       ladd(extended_params, optarg);
       break;
 
+    case 0:
+      if(longopts[option_idx].flag)
+        *longopts[option_idx].flag = 1;
+      break;
+
     case '?':                  // Help
       usage();
       exit(0);
@@ -996,6 +1008,16 @@ int main(int argc, char *argv[]) {
       exit(1);
       break;
     }
+  }
+
+  if(showversion) {
+    printf(
+      "%c%s version %s\n"
+      "Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n"
+      "Use https://github.com/avrdudes/avrdude/issues to report bugs and ask questions\n",
+      toupper(*progname), *progname? progname+1: "", AVRDUDE_FULL_VERSION
+    );
+    exit(0);
   }
 
   if(logfile != NULL) {
