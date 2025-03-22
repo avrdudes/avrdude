@@ -917,45 +917,47 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pickit5_set_vtarget(pgm, 0.0);        // Avoid the edge case when avrdude was CTRL+C'd but still provides power
 
   // Now we try to figure out if we have to supply power from PICkit
-  double v_target;
+  double v_target = 3.30; // Placeholder in case no VTARG Read
+  if(pgm->extra_features & HAS_VTARG_READ){  // If not supported (PK Basic), use a place
 
-  pickit5_get_vtarget(pgm, &v_target);
-  if(v_target < 1.8) {
-    if(my.power_source == POWER_SOURCE_NONE) {
-      pmsg_warning("no external voltage detected but continuing anyway\n");
-    } else if(my.power_source == POWER_SOURCE_INT) {
-      pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
-        if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
-          if(my.target_voltage > 3.49) {
-            pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
-            return -1;
+    pickit5_get_vtarget(pgm, &v_target);
+    if(v_target < 1.8) {
+      if(my.power_source == POWER_SOURCE_NONE) {
+        pmsg_warning("no external voltage detected but continuing anyway\n");
+      } else if(my.power_source == POWER_SOURCE_INT) {
+        pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
+          if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
+            if(my.target_voltage > 3.49) {
+              pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
+              return -1;
+            }
           }
+
+        if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
+          return -1;              // Set requested voltage
+
+        if(pickit5_get_vtarget(pgm, &v_target) < 0)
+          return -1;              // Verify voltage
+
+        // Make sure the voltage is in our requested range. Due to voltage drop on
+        // the LDO and on USB itself, the lower limit is capped at 4.4V
+        double upper_limit = my.target_voltage + 0.2;
+        double lower_limit = my.target_voltage - 0.3;
+        if(lower_limit > 4.4) {
+          lower_limit = 4.4;
         }
-
-      if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
-        return -1;              // Set requested voltage
-
-      if(pickit5_get_vtarget(pgm, &v_target) < 0)
-        return -1;              // Verify voltage
-
-      // Make sure the voltage is in our requested range. Due to voltage drop on
-      // the LDO and on USB itself, the lower limit is capped at 4.4V
-      double upper_limit = my.target_voltage + 0.2;
-      double lower_limit = my.target_voltage - 0.3;
-      if(lower_limit > 4.4) {
-        lower_limit = 4.4;
-      }
-      if((v_target < lower_limit) || (v_target > upper_limit)) {
-        pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
+        if((v_target < lower_limit) || (v_target > upper_limit)) {
+          pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
+          return -1;
+        }
+      } else {
+        pmsg_error("no external voltage detected, aborting; overwrite this check with -x vtarg=0\n");
         return -1;
       }
     } else {
-      pmsg_error("no external voltage detected, aborting; overwrite this check with -x vtarg=0\n");
-      return -1;
+      my.power_source = POWER_SOURCE_EXT;        // Overwrite user input
+      pmsg_notice("external voltage detected: will not supply power\n");
     }
-  } else {
-    my.power_source = POWER_SOURCE_EXT;        // Overwrite user input
-    pmsg_notice("external voltage detected: will not supply power\n");
   }
 
   my.pk_op_mode = PK_OP_READY;
@@ -1012,7 +1014,7 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
       enter_prog = my.scripts.EnterProgModeHvSp;
       enter_prog_len = my.scripts.EnterProgModeHvSp_len;
     } else if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET ||  // High voltage generation on RST line
-              p->hvupdi_variant == 3) {  
+              p->hvupdi_variant == UPDI_ENABLE_RESET_HS) {  // Handshake for SD-Family
       enter_prog = my.scripts.EnterProgModeHvSpRst;
       enter_prog_len = my.scripts.EnterProgModeHvSpRst_len;
     }
@@ -1429,7 +1431,8 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
     if(len == 0x03 || len == 0x04) {  // just DevId or UPDI with revision
       memcpy(my.devID, &my.rxBuf[24], len);
     } else {
-      if(my.hvupdi_enabled && p->hvupdi_variant == UPDI_ENABLE_HV_RESET) {
+      if(my.hvupdi_enabled && 
+      (p->hvupdi_variant == UPDI_ENABLE_HV_RESET || p->hvupdi_variant == UPDI_ENABLE_RESET_HS)) {
         pmsg_info("failed to get DeviceID with activated HV Pulse on RST\n");
          msg_info("if the wiring is correct, try connecting a 16 V, 1 uF cap between RST and GND\n");
       } else {
@@ -1974,7 +1977,8 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
   my.measured_vcc = pickit5_array_to_uint32(&buf[28]) / 1000.0;
   my.measured_current = pickit5_array_to_uint32(&buf[48]);
 
-  pmsg_notice("target Vdd: %1.2f V, target current: %u mA\n", my.measured_vcc, my.measured_current);
+  if(pgm->extra_features & HAS_VTARG_READ) // If not supported (PK Basic), don't print placeholder value
+    pmsg_notice("target Vdd: %1.2f V, target current: %u mA\n", my.measured_vcc, my.measured_current);
 
   if(v != NULL)
     *v = my.measured_vcc;
@@ -1998,6 +2002,29 @@ static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
   return 0;
 }
 
+
+// Found sw reset command in basic firmware switcher.
+// other commands are
+// Enter Boot Mode: 0xEB
+// jump to app: 0xEC
+// erase flash: 0xE2
+// erase application: 0xFA
+// write page: 0xE3
+// read crc32: 0x5E
+/* currently unused, thus uncommented, but maybe useful in the future
+static int pickit5_software_reset(const PROGRAMMER *pgm) {
+  unsigned char sw_reset[] = {
+    0xED,
+  };
+
+  pmsg_debug("%s()\n", __func__);
+
+  if(pickit5_send_script_cmd(pgm, sw_reset, 1, NULL, 0)) {
+    return -1;
+  }
+  return 0;
+}
+*/
 
 void pickit5_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "pickit5");
