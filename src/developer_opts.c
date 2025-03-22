@@ -50,6 +50,7 @@
 
 #include "developer_opts.h"
 #include "developer_opts_private.h"
+#include "usbdevs.h"
 
 // Inject part parameters into a semi-automated rewrite of avrdude.conf
 //  - Add entries to the tables below; they get written on -p*/si or -c*/si
