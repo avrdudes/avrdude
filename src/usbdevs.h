@@ -21,50 +21,50 @@
 #ifndef usbdevs_h
 #define usbdevs_h
 
-#define USB_VENDOR_ATMEL                    0x03EB
-#define USB_VENDOR_MICROCHIP                0x04D8
+#define USB_VENDOR_ATMEL                     0x03EB
+#define USB_VENDOR_MICROCHIP                 0x04D8
 
-#define USB_DEVICE_JTAGICEMKII              0x2103
-#define USB_DEVICE_AVRISPMKII               0x2104
-#define USB_DEVICE_STK600                   0x2106
-#define USB_DEVICE_AVRDRAGON                0x2107
-#define USB_DEVICE_JTAGICE3                 0x2110
-#define USB_DEVICE_XPLAINEDPRO              0x2111
-#define USB_DEVICE_JTAG3_EDBG               0x2140
-#define USB_DEVICE_ATMEL_ICE                0x2141
-#define USB_DEVICE_POWERDEBUGGER            0x2144
-#define USB_DEVICE_XPLAINEDMINI             0x2145
-#define USB_DEVICE_PKOBN                    0x2175
-#define USB_DEVICE_PICKIT4_AVR_MODE         0x2177
-#define USB_DEVICE_PICKIT4_PIC_MODE         0x9012
-#define USB_DEVICE_PICKIT4_PIC_MODE_BL      0x9017  // PICkit4 in bootloader mode
-#define USB_DEVICE_PICKIT5                  0x9036
-#define USB_DEVICE_SNAP_AVR_MODE            0x2180
-#define USB_DEVICE_SNAP_PIC_MODE            0x9018
-#define USB_DEVICE_SNAP_PIC_MODE_BL         0x9019  // SNAP in bootloader mode
-#define USB_DEVICE_PICKIT_BASIC_PIC_MODE    0x9054  // PICkit Basic (app, vendor)
-#define USB_DEVICE_PICKIT_BASIC_PIC_MODE_CDC   0x9055 // PICkit Basic (app,  vendor + CDC)
+#define USB_DEVICE_JTAGICEMKII               0x2103
+#define USB_DEVICE_AVRISPMKII                0x2104
+#define USB_DEVICE_STK600                    0x2106
+#define USB_DEVICE_AVRDRAGON                 0x2107
+#define USB_DEVICE_JTAGICE3                  0x2110
+#define USB_DEVICE_XPLAINEDPRO               0x2111
+#define USB_DEVICE_JTAG3_EDBG                0x2140
+#define USB_DEVICE_ATMEL_ICE                 0x2141
+#define USB_DEVICE_POWERDEBUGGER             0x2144
+#define USB_DEVICE_XPLAINEDMINI              0x2145
+#define USB_DEVICE_PKOBN                     0x2175
+#define USB_DEVICE_PICKIT4_AVR_MODE          0x2177
+#define USB_DEVICE_PICKIT4_PIC_MODE          0x9012
+#define USB_DEVICE_PICKIT4_PIC_MODE_BL       0x9017 // PICkit4 in bootloader mode
+#define USB_DEVICE_PICKIT5                   0x9036
+#define USB_DEVICE_SNAP_AVR_MODE             0x2180
+#define USB_DEVICE_SNAP_PIC_MODE             0x9018
+#define USB_DEVICE_SNAP_PIC_MODE_BL          0x9019 // SNAP in bootloader mode
+#define USB_DEVICE_PICKIT_BASIC_PIC_MODE     0x9054 // PICkit Basic (app, vendor)
+#define USB_DEVICE_PICKIT_BASIC_PIC_MODE_CDC 0x9055 // PICkit Basic (app,  vendor + CDC)
 
-#define USB_VENDOR_FTDI     0x0403
-#define USB_DEVICE_FT2232   0x6010
-#define USB_DEVICE_FT245    0x6001
+#define USB_VENDOR_FTDI                      0x0403
+#define USB_DEVICE_FT2232                    0x6010
+#define USB_DEVICE_FT245                     0x6001
 
-#define USBASP_SHARED_VID   0x16C0      // VOTI
-#define USBASP_SHARED_PID   0x05DC      // Obdev's free shared PID
+#define USBASP_SHARED_VID                    0x16C0 // VOTI
+#define USBASP_SHARED_PID                    0x05DC // Obdev's free shared PID
 
-#define USBASP_OLD_VID      0x03EB      // ATMEL
-#define USBASP_OLD_PID      0xC7B4      // (unoffical) USBasp
+#define USBASP_OLD_VID                       0x03EB // ATMEL
+#define USBASP_OLD_PID                       0xC7B4 // (unoffical) USBasp
 
-#define USBASP_NIBOBEE_VID  0x16C0      // VOTI
-#define USBASP_NIBOBEE_PID  0x092F      // NIBObee PID
+#define USBASP_NIBOBEE_VID                   0x16C0 // VOTI
+#define USBASP_NIBOBEE_PID                   0x092F // NIBObee PID
 
 /*
  * These are specifically assigned to USBtiny, if you need your own VID and
  * PIDs you can get them for cheap from www.mecanique.co.uk so please don't
  * reuse these. Thanks!
  */
-#define USBTINY_VENDOR_DEFAULT  0x1781
-#define USBTINY_PRODUCT_DEFAULT 0x0C9F
+#define USBTINY_VENDOR_DEFAULT               0x1781
+#define USBTINY_PRODUCT_DEFAULT              0x0C9F
 
 // JTAGICEmkII, AVRISPmkII
 #define USBDEV_BULK_EP_WRITE_MKII 0x02
