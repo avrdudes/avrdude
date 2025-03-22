@@ -3054,7 +3054,6 @@ programmer # pickit4_tpi
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
-
 # Microchip PICkit 5. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164150
 #
@@ -3104,7 +3103,6 @@ programmer # pickit5
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
 
-
 #------------------------------------------------------------
 # pickit5_updi
 #------------------------------------------------------------
@@ -3112,7 +3110,7 @@ programmer # pickit5
 programmer parent "pickit5" # pickit5_updi
     id                     = "pickit5_updi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in UPDI Mode";
-    prog_modes             = PM_UPDI;    
+    prog_modes             = PM_UPDI;
     hvupdi_support         = 0, 1, 2, 3;
 ;
 
@@ -3171,7 +3169,6 @@ programmer # pickit_basic
     usbpid                 = 0x9055;    # PK Basic
 ;
 
-
 #------------------------------------------------------------
 # pickit_basic_updi
 #------------------------------------------------------------
@@ -3222,7 +3219,6 @@ programmer parent "pickit_basic" # pickit_basic_pdi
     desc                   = "MPLAB(R) PICkit Basic in PDI Mode";
     prog_modes             = PM_PDI;
 ;
-
 
 #------------------------------------------------------------
 # snap /snap_jtag
