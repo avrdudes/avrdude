@@ -1077,12 +1077,12 @@ const char * const pickit5_updi_chip_lut[] = {
         "AVR32DD20",      "AVR32DD28",      "AVR32DD32",      "AVR64DA28",      "AVR64DA32",      "AVR64DA48",      "AVR64DA64",      "AVR64DB28",
         "AVR64DB32",      "AVR64DB48",      "AVR64DB64",      "AVR64DD14",      "AVR64DD20",      "AVR64DD28",      "AVR64DD32",      "AVR64EA28",
         "AVR64EA32",      "AVR64EA48",     "AVR64DA28S",     "AVR64DA32S",     "AVR64DA48S",     "AVR64DA64S",    "AVR128DA28S",    "AVR128DA32S",
-      "AVR128DA48S",    "AVR128DA64S",      "AVR16DA28",      "AVR16DA32",      "AVR16DA48",      "AVR16DB28",      "AVR16DB32",      "AVR16DB48",
-        "AVR16DU14",      "AVR16DU20",      "AVR16DU28",      "AVR16DU32",      "AVR32DU14",      "AVR32DU20",      "AVR32DU28",      "AVR32DU32",
-        "AVR64DU28",      "AVR64DU32",      "AVR16EA28",      "AVR16EA32",      "AVR16EA48",      "AVR32EA28",      "AVR32EA32",      "AVR32EA48",
-         "AVR8EA28",       "AVR8EA32",      "AVR16EB14",      "AVR16EB20",      "AVR16EB28",      "AVR16EB32",      "AVR32EB28",      "AVR32EB32",
-        "AVR32EB14",      "AVR32EB20",      "AVR32SD20",      "AVR32SD28",      "AVR32SD32",      "AVR64SD28",      "AVR64SD32",      "AVR64SD48",
-        "AVR64EC28",      "AVR64EC32",      "AVR64EC48",
+      "AVR128DA48S",    "AVR128DA64S",      "AVR16DA28",      "AVR16DA32",      "AVR16DA48",     "AVR32DA28S",     "AVR32DA32S",     "AVR32DA48S",
+        "AVR16DB28",      "AVR16DB32",      "AVR16DB48",      "AVR16DU14",      "AVR16DU20",      "AVR16DU28",      "AVR16DU32",      "AVR32DU14",
+        "AVR32DU20",      "AVR32DU28",      "AVR32DU32",      "AVR64DU28",      "AVR64DU32",      "AVR16EA28",      "AVR16EA32",      "AVR16EA48",
+        "AVR32EA28",      "AVR32EA32",      "AVR32EA48",       "AVR8EA28",       "AVR8EA32",      "AVR16EB14",      "AVR16EB20",      "AVR16EB28",
+        "AVR16EB32",      "AVR32EB28",      "AVR32EB32",      "AVR32EB14",      "AVR32EB20",      "AVR32SD20",      "AVR32SD28",      "AVR32SD32",
+        "AVR64SD28",      "AVR64SD32",      "AVR64SD48",      "AVR64EC28",      "AVR64EC32",      "AVR64EC48",
 };
 
 const unsigned char * get_devid_script_by_nvm_ver(unsigned char version) {
@@ -1099,7 +1099,7 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     return -1;
   }
   int namepos = -1;
-  for (int i = 0; i < 131; i++) {
+  for (int i = 0; i < 134; i++) {
     if (strcmp(pickit5_updi_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
@@ -1271,9 +1271,12 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 90:  /* AVR16DA28 */
     case 91:  /* AVR16DA32 */
     case 92:  /* AVR16DA48 */
-    case 93:  /* AVR16DB28 */
-    case 94:  /* AVR16DB32 */
-    case 95:  /* AVR16DB48 */
+    case 93:  /* AVR32DA28S */
+    case 94:  /* AVR32DA32S */
+    case 95:  /* AVR32DA48S */
+    case 96:  /* AVR16DB28 */
+    case 97:  /* AVR16DB32 */
+    case 98:  /* AVR16DB48 */
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_1;
@@ -1323,16 +1326,16 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem = ReadIDmem_updi_1;
       scr->ReadIDmem_len = sizeof(ReadIDmem_updi_1);
       break;
-    case 96:  /* AVR16DU14 */
-    case 97:  /* AVR16DU20 */
-    case 98:  /* AVR16DU28 */
-    case 99:  /* AVR16DU32 */
-    case 100:  /* AVR32DU14 */
-    case 101:  /* AVR32DU20 */
-    case 102:  /* AVR32DU28 */
-    case 103:  /* AVR32DU32 */
-    case 104:  /* AVR64DU28 */
-    case 105:  /* AVR64DU32 */
+    case 99:  /* AVR16DU14 */
+    case 100:  /* AVR16DU20 */
+    case 101:  /* AVR16DU28 */
+    case 102:  /* AVR16DU32 */
+    case 103:  /* AVR32DU14 */
+    case 104:  /* AVR32DU20 */
+    case 105:  /* AVR32DU28 */
+    case 106:  /* AVR32DU32 */
+    case 107:  /* AVR64DU28 */
+    case 108:  /* AVR64DU32 */
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_3;
@@ -1356,14 +1359,14 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem = ReadIDmem_updi_2;
       scr->ReadIDmem_len = sizeof(ReadIDmem_updi_2);
       break;
-    case 106:  /* AVR16EA28 */
-    case 107:  /* AVR16EA32 */
-    case 108:  /* AVR16EA48 */
-    case 109:  /* AVR32EA28 */
-    case 110:  /* AVR32EA32 */
-    case 111:  /* AVR32EA48 */
-    case 112:  /* AVR8EA28 */
-    case 113:  /* AVR8EA32 */
+    case 109:  /* AVR16EA28 */
+    case 110:  /* AVR16EA32 */
+    case 111:  /* AVR16EA48 */
+    case 112:  /* AVR32EA28 */
+    case 113:  /* AVR32EA32 */
+    case 114:  /* AVR32EA48 */
+    case 115:  /* AVR8EA28 */
+    case 116:  /* AVR8EA32 */
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_2;
@@ -1387,14 +1390,14 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem = ReadIDmem_updi_1;
       scr->ReadIDmem_len = sizeof(ReadIDmem_updi_1);
       break;
-    case 114:  /* AVR16EB14 */
-    case 115:  /* AVR16EB20 */
-    case 116:  /* AVR16EB28 */
-    case 117:  /* AVR16EB32 */
-    case 118:  /* AVR32EB28 */
-    case 119:  /* AVR32EB32 */
-    case 120:  /* AVR32EB14 */
-    case 121:  /* AVR32EB20 */
+    case 117:  /* AVR16EB14 */
+    case 118:  /* AVR16EB20 */
+    case 119:  /* AVR16EB28 */
+    case 120:  /* AVR16EB32 */
+    case 121:  /* AVR32EB28 */
+    case 122:  /* AVR32EB32 */
+    case 123:  /* AVR32EB14 */
+    case 124:  /* AVR32EB20 */
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_2;
@@ -1418,12 +1421,12 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem = ReadIDmem_updi_1;
       scr->ReadIDmem_len = sizeof(ReadIDmem_updi_1);
       break;
-    case 122:  /* AVR32SD20 */
-    case 123:  /* AVR32SD28 */
-    case 124:  /* AVR32SD32 */
-    case 125:  /* AVR64SD28 */
-    case 126:  /* AVR64SD32 */
-    case 127:  /* AVR64SD48 */
+    case 125:  /* AVR32SD20 */
+    case 126:  /* AVR32SD28 */
+    case 127:  /* AVR32SD32 */
+    case 128:  /* AVR64SD28 */
+    case 129:  /* AVR64SD32 */
+    case 130:  /* AVR64SD48 */
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_4;
@@ -1447,9 +1450,9 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem = ReadIDmem_updi_2;
       scr->ReadIDmem_len = sizeof(ReadIDmem_updi_2);
       break;
-    case 128:  /* AVR64EC28 */
-    case 129:  /* AVR64EC32 */
-    case 130:  /* AVR64EC48 */
+    case 131:  /* AVR64EC28 */
+    case 132:  /* AVR64EC32 */
+    case 133:  /* AVR64EC48 */
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_2;
