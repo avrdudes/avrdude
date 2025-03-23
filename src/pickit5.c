@@ -83,7 +83,7 @@
 
 // Private data for this programmer
 struct pdata {
-  unsigned char pgm_features;     // Bitmap of features 
+  unsigned char pgm_features;     // Bitmap of features
   unsigned char pk_op_mode;       // See PK_OP_ defines
   unsigned char power_source;     // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled;   // 0: no HV / 1: HV generation enabled
@@ -103,7 +103,7 @@ struct pdata {
   unsigned char sernum_string[20]; // Buffer for display() sent by get_fw()
   char sib_string[32];
   unsigned char prodsig[256];     // Buffer for Prodsig that contains more then one memory
-  unsigned int prod_sig_len;      // length of read prodsig (to know if it got  filled) 
+  unsigned int prod_sig_len;      // length of read prodsig (to know if it got  filled)
   unsigned char txBuf[2048];      // Buffer for transfers
   unsigned char rxBuf[2048];      // 2048 because of WriteEEmem_dw with 1728 bytes length
   SCRIPT scripts;
@@ -630,7 +630,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       case USB_DEVICE_PICKIT4_PIC_MODE:
         my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
         break;
-      
+
       case USB_DEVICE_SNAP_PIC_MODE:
       case USB_DEVICE_PICKIT_BASIC:
       case USB_DEVICE_PICKIT_BASIC_CDC:
@@ -642,7 +642,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   if(rv >= 0)  // if a programmer in PIC mode found, we're done
     return rv;
-  
+
   // No known PID found, try to figure out if the device is connected in the wrong mode
 
   // The following piece of code is for PK4 and SNAP only, don't try to look for them
@@ -848,13 +848,13 @@ static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_target) {
   if(pickit5_program_enable(pgm, p) < 0)
     return -1;
-  
+
   // Get SIB so we can get the NVM Version
   if(pickit5_updi_read_sib(pgm, p, my.sib_string) < 0) {
       pmsg_error("failed to obtain System Info Block\n");
       return -1;
   }
-  
+
   if(pickit5_read_dev_id(pgm, p) < 0) {
     pmsg_error("failed to obtain device ID\n");
     return -1;
@@ -1208,7 +1208,7 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   int rc = pickit5_send_script_cmd(pgm, write8_fast, sizeof(write8_fast), NULL, 0);
   if(rc < 0) {
     return -1;
-  } 
+  }
   return 1;
 }
 
@@ -1237,7 +1237,7 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
       *value = my.rxBuf[24];
       return 1;
     }
-  } 
+  }
   return 0;
   /*else {                      // Fall back to standard function
     int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
@@ -1306,7 +1306,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   addr += mem->offset;
   if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
-    addr /= 2;  
+    addr /= 2;
   }
 
   unsigned char param[8];
@@ -1317,7 +1317,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc < 0) {
     return LIBAVRDUDE_EXIT; // Any error here means that a write fail occured, so restart
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1405,7 +1405,7 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   addr += mem->offset;
   if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
-    addr /= 2;  
+    addr /= 2;
   }
   unsigned char param[8];
 
@@ -1413,11 +1413,11 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&param[4], len);
 
   int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, param, 8, value, len);
-  
+
   if(rc < 0) {
     return LIBAVRDUDE_EXIT; // Any error here means that a read fail occured, better restart
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1445,7 +1445,7 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
       }
       return -1;
     }
-    const unsigned char get_sig [] = {  // *screams* why was this function not in the scripts?? 
+    const unsigned char get_sig [] = {  // *screams* why was this function not in the scripts??
       0x90, 0x0C, 0x03, 0x00, 0x00, 0x00, // Set reg to 0x03
       0x1e, 0x45, 0x0C,                   // Send 0xF0 + reg and receive 2 bytes (found by trial and error)
       0x9D,                               // place word into status response
@@ -1471,7 +1471,7 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
     if(len == 0x03 || len == 0x04) {  // just DevId or UPDI with revision
       memcpy(my.devID, &my.rxBuf[24], len);
     } else {
-      if(my.hvupdi_enabled && 
+      if(my.hvupdi_enabled &&
       (p->hvupdi_variant == UPDI_ENABLE_HV_RESET || p->hvupdi_variant == UPDI_ENABLE_RESET_HS)) {
         pmsg_info("failed to get DeviceID with activated HV Pulse on RST\n");
          msg_info("if the wiring is correct, try connecting a 16 V, 1 uF cap between RST and GND\n");
@@ -1615,7 +1615,7 @@ static void pickit5_isp_switch_to_dw(const PROGRAMMER *pgm, const AVRPART *p) {
 // especially as we already have all the programming commands in the .conf file
 static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned char value) {
   pmsg_debug("%s(offset: %i, val: %i)\n", __func__, mem->offset, value);
-  
+
   unsigned int cmd;
   avr_set_bits(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd);
   avr_set_addr(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, mem_fuse_offset(mem));
@@ -1672,8 +1672,8 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
     0x9F                                // Send data from temp_reg to host
   };
   unsigned int read_fuse_isp_len = sizeof(read_fuse_isp);
-  
-/*  
+
+/*
   read_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
   read_fuse_isp[13] = (uint8_t) (cmd >> 8);
   read_fuse_isp[12] = (uint8_t) (cmd >> 16);
@@ -1723,7 +1723,7 @@ static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, cons
     fuse_cmd = 0x3B;
     fuse_poll = 0x37;
   }
-  
+
   unsigned char write_fuse_jtag [] = {
     0x9C, 0x00, 0x00,   fuse_cmd,         // Write fuse write command A to r00
     0x9C, 0x06, 0x00,  (fuse_cmd & 0xFD), // Write fuse write command B to r06
@@ -1764,7 +1764,7 @@ static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const
   } else if(mem_is_efuse(mem)) {
     fuse_cmd = 0x3B;
   }
-  
+
   unsigned char read_fuse_jtag [] = {
     0x9C, 0x00, 0x00,  fuse_cmd,          // load fuse read command A in r00
     0x9C, 0x01, 0x00, (fuse_cmd & 0xFE),  // load fuse read command B in r01
@@ -1792,7 +1792,7 @@ static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const
 }
 
 
-// TPI has an unified memory space, meaning that any memory (even SRAM) 
+// TPI has an unified memory space, meaning that any memory (even SRAM)
 // can be accessed by the same command, meaning that we don't need the
 // decision tree found in the "read/write array" functions
 static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
@@ -1812,7 +1812,7 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc < 0) {
     return -1;
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1832,7 +1832,7 @@ static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc < 0) {
     return -1;
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1848,13 +1848,13 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
   if(prodsig == NULL) {
     return 0;  // no prodsig on this device, try again in read_array
   }
-  if(mem->offset < prodsig->offset || 
+  if(mem->offset < prodsig->offset ||
     (mem->offset + mem->size) > (prodsig->offset) + (prodsig->size)) {
     return 0;  // Requested memory not in prodsig, try again in read_array
   }
 
   int max_mem_len = sizeof(my.prodsig);  // Current devices have not more than 128 bytes
-  unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len; 
+  unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len;
 
   if((addr + len) > mem_len) {
     pmsg_warning("requested memory is outside of the progsig on the device\n");
@@ -2117,7 +2117,7 @@ static int usbdev_check_connected(unsigned int vid, unsigned int pid) {
 
   for(bus = usb_get_busses(); bus; bus = bus->next) {
     for(dev = bus->devices; dev; dev = dev->next) {
-      if(dev->descriptor.idVendor == vid && 
+      if(dev->descriptor.idVendor == vid &&
          dev->descriptor.idProduct == pid) {
           return 0;
          }
@@ -2140,7 +2140,7 @@ static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, 
   for(i = 0; nbytes > 0;) {
     if(cx->usb_buflen <= cx->usb_bufptr) {
       int rv = usb_bulk_read(fd->usb.handle, USB_PK5_DATA_READ_EP, cx->usb_buf, fd->usb.max_xfer, 10000);
-      
+
       if(rv < 0) {
         pmsg_notice2("%s(): usb_bulk_read() error: %s\n", __func__, usb_strerror());
         return -1;
