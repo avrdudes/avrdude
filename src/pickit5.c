@@ -208,6 +208,8 @@ static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr
 // Extra-USB related functions, because we need more then 2 endpoints
 static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
 static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
+// Check if the device exists
+static int usbdev_check_connected(unsigned int vid, unsigned int pid);
 
 inline static void pickit5_uint32_to_array(unsigned char *buf, uint32_t num) {
   *(buf++) = (uint8_t) num;
@@ -623,80 +625,118 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pgm->usbsn = serdev->usbsn;
     my.pk_op_mode = PK_OP_FOUND;
 
-    if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT5)
-      my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
-    else if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT4_PIC_MODE)
-      my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
-    else if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE)
-      my.pgm_features = 0;
-    else if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT_BASIC_PIC_MODE ||
-            pinfo.usbinfo.pid == USB_DEVICE_PICKIT_BASIC_PIC_MODE_CDC)
-      my.pgm_features = 0;
+    switch(pinfo.usbinfo.pid) {
+      case USB_DEVICE_PICKIT5:
+      case USB_DEVICE_PICKIT4_PIC_MODE:
+        my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
+        break;
+      
+      case USB_DEVICE_SNAP_PIC_MODE:
+      case USB_DEVICE_PICKIT_BASIC:
+      case USB_DEVICE_PICKIT_BASIC_CDC:
+      default:
+        my.pgm_features = 0;
+        break;
+    }
   }
 
-  // No PICkit4 / SNAP (PIC mode) nor PICkit5 found, look for programmer in AVR mode
   if(rv >= 0)  // if a programmer in PIC mode found, we're done
     return rv;
+  
+  // No known PID found, try to figure out if the device is connected in the wrong mode
 
-  // otherwise, try to see if there is a SNAP or PK4 in AVR mode
-  pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-  pinfo.usbinfo.pid = USB_DEVICE_SNAP_AVR_MODE;
+  // The following piece of code is for PK4 and SNAP only, don't try to look for them
+  // when we don't expect them, like with the Basic, that uses the id pickit_basic...
+  const char *id = lget(pgm->id);
+  if(str_starts(id, "pickit5")) {
+    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+    pinfo.usbinfo.pid = USB_DEVICE_SNAP_AVR_MODE;
 
-  pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
-  pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
-  pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-  pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
+    pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
 
-  const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
-  char part_option[128] = {0};
+    const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+    char part_option[128] = {0};
 
-  if(partdesc)
-    snprintf(part_option, sizeof(part_option), "-p %s ", partdesc);
+    if(partdesc)
+      snprintf(part_option, sizeof(part_option), "-p %s ", partdesc);
 
-// Use LIBHIDAPI to connect to SNAP/PICkit4 if present.
-// For some reason, chances are smaller to get
-// permission denied errors when using LIBHIDAPI
-#if defined(HAVE_LIBHIDAPI)
-  serdev = &usbhid_serdev;
-  pgm->fd.usb.eep = 0;
-#endif
+  // Use LIBHIDAPI to connect to SNAP/PICkit4 if present.
+  // For some reason, chances are smaller to get
+  // permission denied errors when using LIBHIDAPI
+  #if defined(HAVE_LIBHIDAPI)
+    serdev = &usbhid_serdev;
+    pgm->fd.usb.eep = 0;
+  #endif
 
-  rv = serial_open(port, pinfo, &pgm->fd);  // Try SNAP PID
+    rv = serial_open(port, pinfo, &pgm->fd);  // Try SNAP PID
 
-  if(rv >= 0) {
-    msg_error("\n");
-    cx->usb_access_error = 0;
+    if(rv >= 0) {
+      msg_error("\n");
+      cx->usb_access_error = 0;
 
-    pmsg_error("MPLAB SNAP in AVR mode detected\n");
-    imsg_error("to switch into PIC mode try\n");
-    imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
-    imsg_error("or use the programmer in AVR mode with the following command:\n");
-    imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
+      pmsg_error("MPLAB SNAP in AVR mode detected.\n");
+      imsg_error("To switch into PIC mode try\n");
+      imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+      imsg_error("or use the programmer in AVR mode with the following command:\n");
+      imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
-    serial_close(&pgm->fd);
-    return LIBAVRDUDE_EXIT;
-  }
-  pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
-  rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
+      serial_close(&pgm->fd);
+      return LIBAVRDUDE_EXIT;
+    }
+    pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
+    rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
 
-  if(rv >= 0) {
-    msg_error("\n");
-    cx->usb_access_error = 0;
+    if(rv >= 0) {
+      msg_error("\n");
+      cx->usb_access_error = 0;
 
-    pmsg_error("PICkit 4 in AVR mode detected\n");
-    imsg_error("to switch into PIC mode try\n");
-    imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
-    imsg_error("or use the programmer in AVR mode with the following command:\n");
-    imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
+      pmsg_error("PICkit 4 in AVR mode detected.\n");
+      imsg_error("To switch into PIC mode try\n");
+      imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+      imsg_error("or use the programmer in AVR mode with the following command:\n");
+      imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
-    serial_close(&pgm->fd);
-    return LIBAVRDUDE_EXIT;
-  }
-
-  pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
+      serial_close(&pgm->fd);
+      return LIBAVRDUDE_EXIT;
+    }
+    pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
               USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
-  imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
+    imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
+    return LIBAVRDUDE_EXIT;
+  }
 
+  if(str_starts(id, "pickit_basic")) {
+    // Check if the Basic is in Bootloader Mode or CMSIS-DAP, should help trouble-shooting.
+    rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_CIMSIS_CDC);
+    if(rv >= 0) {
+      pmsg_error("PICkit Basic in CMSIS-DAP mode detected.\n");
+      imsg_error("Please use a Microchip tool to switch the firmware to \"mplab\"\n");
+      imsg_error("in order to use the programmer with avrdude\n");
+      return LIBAVRDUDE_EXIT;
+    }
+
+    rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_BL);
+    if(rv >= 0) {
+      pmsg_error("PICkit Basic in Bootloader mode detected.\n");
+      imsg_error("Please use a Microchip tool to load the \"mplab\" firmware\n");
+      imsg_error("in order to use the programmer with avrdude\n");
+      return LIBAVRDUDE_EXIT;
+    }
+  }
+
+  // Fall-back in case the user adds a custom programmer
+  pmsg_error("no device found matching VID 0x%04x and PID list: ", (unsigned) pinfo.usbinfo.vid);
+  int notfirst = 0;
+
+  for(usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
+    if(notfirst)
+      msg_error(", ");
+    msg_error("0x%04x", (unsigned int) (*(int *) (ldata(usbpid))));
+    notfirst = 1;
+  }
   return LIBAVRDUDE_EXIT;
 }
 
@@ -2059,13 +2099,37 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
 }
 
 
+
+#if defined(HAVE_USB_H)
+/*
+ * In order to make it easier for users, we try to figure out if a specific VID/PID is connected
+ * to the computer. For that, going through the list of usb devices is more straightforward
+ * compared to what serial_open / usbdev_open does.
+ */
+static int usbdev_check_connected(unsigned int vid, unsigned int pid) {
+  struct usb_bus *bus;
+  struct usb_device *dev;
+
+  usb_init();
+
+  usb_find_busses();
+  usb_find_devices();
+
+  for(bus = usb_get_busses(); bus; bus = bus->next) {
+    for(dev = bus->devices; dev; dev = dev->next) {
+      if(dev->descriptor.idVendor == vid && 
+         dev->descriptor.idProduct == pid) {
+          return 0;
+         }
+    }
+  }
+  return -1;
+}
+
 /*
   The following functions are required to handle the data read and write Endpoints of the Pickit.
   This functions are hardcoded on the Pickit endpoint numbers
 */
-#if defined(HAVE_USB_H)
-
-
 static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   int i, amnt;
   unsigned char *p = buf;
@@ -2138,6 +2202,10 @@ static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char 
  * We need libusb so we can access specific Endpoints
  * This does not seem to be possible with usbhid
  */
+
+static int usbdev_check_connected(unsigned int vid, unsigned int pid) {
+  return -1;
+}
 
 static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   return -1;

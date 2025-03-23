@@ -42,8 +42,15 @@
 #define USB_DEVICE_SNAP_AVR_MODE             0x2180
 #define USB_DEVICE_SNAP_PIC_MODE             0x9018
 #define USB_DEVICE_SNAP_PIC_MODE_BL          0x9019 // SNAP in bootloader mode
-#define USB_DEVICE_PICKIT_BASIC_PIC_MODE     0x9054 // PICkit Basic (app, vendor)
-#define USB_DEVICE_PICKIT_BASIC_PIC_MODE_CDC 0x9055 // PICkit Basic (app,  vendor + CDC)
+#define USB_DEVICE_PICKIT_BASIC              0x9054 // PICkit Basic (app, vendor)
+#define USB_DEVICE_PICKIT_BASIC_CDC          0x9055 // PICkit Basic (app, vendor + CDC) (usually this)
+#define USB_DEVICE_PICKIT_BASIC_CDC_VENDOR   0x9056 // PICkit Basic (app, vendor + CDC + vendor)
+#define USB_DEVICE_PICKIT_BASIC_BL           0x9057 // PICkit Basic (bootloader)
+#define USB_DEVICE_PICKIT_BASIC_CIMSIS       0x90AB // PICkit Basic (vendor)
+#define USB_DEVICE_PICKIT_BASIC_CIMSIS_CDC   0x90AC // PICkit Basic (vendor + CDC) (usually this)
+#define USB_DEVICE_PICKIT_BASIC_CIMSIS_DGI   0x90AD // PICkit Basic (vendor + CDC + DGI)
+#define USB_DEVICE_PICKIT_BASIC_CIMSIS_MSD   0x90AE // PICkit Basic (vendor + CDC + DGI + MSD)
+
 
 #define USB_VENDOR_FTDI                      0x0403
 #define USB_DEVICE_FT2232                    0x6010
