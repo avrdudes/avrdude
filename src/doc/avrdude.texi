@@ -396,11 +396,13 @@ See below for some hints about FLIP version 1 protocol behaviour.
 
 @cindex MPLAB(R) PICkit 4
 @cindex MPLAB(R) PICkit 5
+@cindex MPLAB(R) PICkit Basic
 @cindex MPLAB(R) SNAP
 @cindex PICkit 4
 @cindex PICkit 5
+@cindex PICkit Basic
 @cindex SNAP
-The MPLAB(R) PICkit 4/5 and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
+The MPLAB(R) PICkit 4/5/Basic and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
 @cindex Curiosity nano
 The Curiosity Nano board is supported in UPDI mode. It is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
@@ -1319,6 +1321,8 @@ different avrdude runs.
 @cindex PICkit 4
 @cindex MPLAB(R) PICkit 5
 @cindex PICkit 5
+@cindex MPLAB(R) PICkit Basic
+@cindex PICkit Basic
 @cindex MPLAB(R) SNAP
 @cindex SNAP
 @cindex Atmel PowerDebugger
@@ -2331,6 +2335,7 @@ Valid programmers for part AVR32EA32 are:
   jtag3updi          = Atmel AVR JTAGICE3 via UPDI
   pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
   pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode) via UPDI
+  pickit_basic_updi  = MPLAB(R) PICkit Basic via UPDI
   pkobn_updi         = Curiosity nano (nEDBG) via UPDI
   powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
   serialupdi         = SerialUPDI via UPDI
