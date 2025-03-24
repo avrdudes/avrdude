@@ -287,8 +287,8 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -x vtarg=<dbl>  Enable power output; <dbl> must be in [1.8, 5.5] V\n");
-      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization (if supported)\n");
+      msg_error("  -x vtarg=<dbl>  Enable power output (PK4/PK5 only); <dbl> must be in [1.8, 5.5] V\n");
+      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization (PK4/PK5 only)\n");
       msg_error("  -x help         Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }

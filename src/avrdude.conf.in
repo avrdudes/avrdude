@@ -3085,8 +3085,7 @@ programmer # pickit4_tpi
 #        to restore the UPDI Pin functionality, if it was changed through fuses.
 #        AVRDUDE automatically selects the correct pin, if the HV pulse is
 #        enabled through the '-x hvupdi' flag.
-# (°): The PICkit 5 and PICkit Basic can also be used as a USB to UART
-#        interface for simple serial debugging.
+# (°): The PICkit 5 can also be used as a USB to UART interface for simple serial debugging.
 
 #------------------------------------------------------------
 # pickit5 / pickit5_jtag
@@ -3153,6 +3152,36 @@ programmer parent "pickit5" # pickit5_pdi
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in PDI Mode";
     prog_modes             = PM_PDI;
 ;
+
+
+# Microchip PICkit Basic. For details, see
+# https://www.microchip.com/en-us/development-tool/PG164110
+#
+# The PICkit Basic supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# JTAG         pickit_basic, pickit_basic_jtag
+# PDI          pickit_basic_pdi
+# UPDI         pickit_basic_updi
+# debugWIRE    pickit_basic_dw   (can auto-switch to ISP to write fuses)
+# ISP          pickit_basic_isp
+# TPI          pickit_basic_tpi
+#
+# PIN  JTAG PDI   UPDI    ISP/dW  TPI   UART(°)
+# > 1             RST
+#   2  VCC  VCC   VCC     VCC     VCC   VCC
+#   3  GND  GND   GND     GND     GND   GND
+#   4  TDO  DATA  UPDI    SDI     DATA
+#   5  TCK                SCK     SCK
+#   6  RST  SCK           RST/dW  RST
+#   7  TDI                SDO           TX (target)
+#   8  TMS                              RX (target)
+#
+# Note: pickit_basic_dw does not support flash erase and must switch
+#         to ISP, thus requires all 6 Pins when modifing the flash
+# (°): The PICkit Basic can also be used as a USB to UART
+#        interface for simple serial debugging.
 
 #------------------------------------------------------------
 # pickit_basic / pickit_basic_jtag
