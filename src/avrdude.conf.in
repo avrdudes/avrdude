@@ -3054,7 +3054,6 @@ programmer # pickit4_tpi
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
-
 # Microchip PICkit 5. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164150
 #
@@ -3082,11 +3081,11 @@ programmer # pickit4_tpi
 # Note: pickit5_dw does not support flash erase and must switch
 #         to ISP, thus requires all 6 Pins when modifing the flash
 #
-# (*): The PICkit5 can generate a High-Voltage (12V) Pulse on this pins
+# (*): The PICkit 5 can generate a High-Voltage (12V) Pulse on this pins
 #        to restore the UPDI Pin functionality, if it was changed through fuses.
 #        AVRDUDE automatically selects the correct pin, if the HV pulse is
 #        enabled through the '-x hvupdi' flag.
-# (°): The PICkit5 can also be used as a USB to UART
+# (°): The PICkit 5 and PICkit Basic can also be used as a USB to UART
 #        interface for simple serial debugging.
 
 #------------------------------------------------------------
@@ -3104,81 +3103,121 @@ programmer # pickit5
     usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
 
-
 #------------------------------------------------------------
 # pickit5_updi
 #------------------------------------------------------------
 
-programmer # pickit5_updi
+programmer parent "pickit5" # pickit5_updi
     id                     = "pickit5_updi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in UPDI Mode";
-    type                   = "pickit5";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
-    hvupdi_support         = 0, 1, 2;
+    hvupdi_support         = 0, 1, 2, 3;
 ;
 
 #------------------------------------------------------------
 # pickit5_isp
 #------------------------------------------------------------
 
-programmer # pickit5_isp
+programmer parent "pickit5" # pickit5_isp
     id                     = "pickit5_isp";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in ISP Mode";
-    type                   = "pickit5";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
 
 #------------------------------------------------------------
 # pickit5_dw
 #------------------------------------------------------------
 
-programmer # pickit5_dw
+programmer parent "pickit5" # pickit5_dw
     id                     = "pickit5_dw";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in dW Mode";
-    type                   = "pickit5";
     prog_modes             = PM_debugWIRE;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
 
 #------------------------------------------------------------
 # pickit5_tpi
 #------------------------------------------------------------
 
-programmer # pickit5_tpi
+programmer parent "pickit5" # pickit5_tpi
     id                     = "pickit5_tpi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in TPI Mode";
-    type                   = "pickit5";
     prog_modes             = PM_TPI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
 ;
 
 #------------------------------------------------------------
 # pickit5_pdi
 #------------------------------------------------------------
 
-programmer # pickit5_pdi
+programmer parent "pickit5" # pickit5_pdi
     id                     = "pickit5_pdi";
     desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in PDI Mode";
-    type                   = "pickit5";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
+;
+
+#------------------------------------------------------------
+# pickit_basic / pickit_basic_jtag
+#------------------------------------------------------------
+
+programmer # pickit_basic
+    id                     = "pickit_basic", "pickit_basic_jtag";
+    desc                   = "MPLAB(R) PICkit Basic in JTAG Mode";
+    type                   = "pickit5";
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG;
+#   extra_features         = HAS_VTARG_READ;    # At the time of testing, this was not working
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9055;    # PK Basic
+;
+
+#------------------------------------------------------------
+# pickit_basic_updi
+#------------------------------------------------------------
+
+programmer parent "pickit_basic" # pickit_basic_updi
+    id                     = "pickit_basic_updi";
+    desc                   = "MPLAB(R) PICkit Basic in UPDI Mode";
+    prog_modes             = PM_UPDI;
+    hvupdi_support         = 1;     # Dedicated reset and updi pin only
+;
+
+#------------------------------------------------------------
+# pickit_basic_isp
+#------------------------------------------------------------
+
+programmer parent "pickit_basic" # pickit_basic_isp
+    id                     = "pickit_basic_isp";
+    desc                   = "MPLAB(R) PICkit Basic in ISP Mode";
+    prog_modes             = PM_ISP;
+;
+
+#------------------------------------------------------------
+# pickit_basic_dw
+#------------------------------------------------------------
+
+programmer parent "pickit_basic" # pickit_basic_dw
+    id                     = "pickit_basic_dw";
+    desc                   = "MPLAB(R) PICkit Basic in dW Mode";
+    prog_modes             = PM_debugWIRE;
+;
+
+#------------------------------------------------------------
+# pickit_basic_tpi
+#------------------------------------------------------------
+
+programmer parent "pickit_basic" # pickit_basic_tpi
+    id                     = "pickit_basic_tpi";
+    desc                   = "MPLAB(R) PICkit Basic in TPI Mode";
+    prog_modes             = PM_TPI;
+;
+
+#------------------------------------------------------------
+# pickit_basic_pdi
+#------------------------------------------------------------
+
+programmer parent "pickit_basic" # pickit_basic_pdi
+    id                     = "pickit_basic_pdi";
+    desc                   = "MPLAB(R) PICkit Basic in PDI Mode";
+    prog_modes             = PM_PDI;
 ;
 
 #------------------------------------------------------------

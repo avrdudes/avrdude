@@ -286,6 +286,7 @@ typedef struct opcode {
 #define UPDI_ENABLE_HV_UPDI   0 // Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)
 #define UPDI_ENABLE_ALWAYS    1 // Dedicated UPDI pin, no HV needed (megaAVR0/AVR-DA/DB)
 #define UPDI_ENABLE_HV_RESET  2 // Shared UPDI/GPIO pin, HV on RESET (AVR-DD/DU/EA/EB)
+#define UPDI_ENABLE_RESET_HS  3 // separate /RESET pin with PDI handshake feature (AVR-SD)
 
 #ifndef TO_BE_DEPRECATED_IN_2027
 #define HV_UPDI_VARIANT_0     UPDI_ENABLE_HV_UPDI

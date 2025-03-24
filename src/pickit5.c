@@ -58,10 +58,6 @@
 #define BIST_TEST          0x02
 #define BIST_RESULT        0x03
 
-#define PGM_TYPE_PK5       0x00   // Default
-#define PGM_TYPE_PK4       0x01   // PICkit4
-#define PGM_TYPE_SNAP      0x02   // SNAP
-
 #define PK_OP_NONE         0x00   // Init
 #define PK_OP_FOUND        0x01   // PK is connected to USB
 #define PK_OP_RESPONDS     0x02   // Responds to get_fw() requests
@@ -77,9 +73,17 @@
 #define ERROR_BAD_RESPONSE        -13
 #define ERROR_SCRIPT_EXECUTION    -14
 
+#define PGM_FEAT_TARGET_POWER 0x01
+#define PGM_FEAT_HV_PULSE     0x02
+#define PGM_FEAT_PTG          0x04
+
+#define can_power_target(data) (!!(data.pgm_features & PGM_FEAT_TARGET_POWER))
+#define can_gen_hv_pulse(data) (!!(data.pgm_features & PGM_FEAT_HV_PULSE))
+#define can_do_ptg(data)       (!!(data.pgm_features & PGM_FEAT_PTG))
+
 // Private data for this programmer
 struct pdata {
-  unsigned char pgm_type;         // Used to skip unsupported functions
+  unsigned char pgm_features;     // Bitmap of features
   unsigned char pk_op_mode;       // See PK_OP_ defines
   unsigned char power_source;     // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled;   // 0: no HV / 1: HV generation enabled
@@ -99,7 +103,7 @@ struct pdata {
   unsigned char sernum_string[20]; // Buffer for display() sent by get_fw()
   char sib_string[32];
   unsigned char prodsig[256];     // Buffer for Prodsig that contains more then one memory
-  unsigned int prod_sig_len;      // length of read prodsig (to know if it got  filled) 
+  unsigned int prod_sig_len;      // length of read prodsig (to know if it got  filled)
   unsigned char txBuf[2048];      // Buffer for transfers
   unsigned char rxBuf[2048];      // 2048 because of WriteEEmem_dw with 1728 bytes length
   SCRIPT scripts;
@@ -204,6 +208,8 @@ static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr
 // Extra-USB related functions, because we need more then 2 endpoints
 static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
 static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
+// Check if the device exists
+static int usbdev_check_connected(unsigned int vid, unsigned int pid);
 
 inline static void pickit5_uint32_to_array(unsigned char *buf, uint32_t num) {
   *(buf++) = (uint8_t) num;
@@ -282,7 +288,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -x vtarg=<dbl>  Enable power output; <dbl> must be in [1.8, 5.5] V\n");
-      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization\n");
+      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization (if supported)\n");
       msg_error("  -x help         Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }
@@ -619,77 +625,118 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pgm->usbsn = serdev->usbsn;
     my.pk_op_mode = PK_OP_FOUND;
 
-    if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT5)
-      my.pgm_type = PGM_TYPE_PK5;
-    else if(pinfo.usbinfo.pid == USB_DEVICE_PICKIT4_PIC_MODE)
-      my.pgm_type = PGM_TYPE_PK4;
-    else if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE)
-      my.pgm_type = PGM_TYPE_SNAP;
+    switch(pinfo.usbinfo.pid) {
+      case USB_DEVICE_PICKIT5:
+      case USB_DEVICE_PICKIT4_PIC_MODE:
+        my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
+        break;
+
+      case USB_DEVICE_SNAP_PIC_MODE:
+      case USB_DEVICE_PICKIT_BASIC:
+      case USB_DEVICE_PICKIT_BASIC_CDC:
+      default:
+        my.pgm_features = 0;
+        break;
+    }
   }
 
-  // No PICkit4 / SNAP (PIC mode) nor PICkit5 found, look for programmer in AVR mode
   if(rv >= 0)  // if a programmer in PIC mode found, we're done
     return rv;
 
-  // otherwise, try to see if there is a SNAP or PK4 in AVR mode
-  pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-  pinfo.usbinfo.pid = USB_DEVICE_SNAP_AVR_MODE;
+  // No known PID found, try to figure out if the device is connected in the wrong mode
 
-  pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
-  pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
-  pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-  pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
+  // The following piece of code is for PK4 and SNAP only, don't try to look for them
+  // when we don't expect them, like with the Basic, that uses the id pickit_basic...
+  const char *id = lget(pgm->id);
+  if(str_starts(id, "pickit5")) {
+    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+    pinfo.usbinfo.pid = USB_DEVICE_SNAP_AVR_MODE;
 
-  const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
-  char part_option[128] = {0};
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
+    pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
 
-  if(partdesc)
-    snprintf(part_option, sizeof(part_option), "-p %s ", partdesc);
+    const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+    char part_option[128] = {0};
 
-// Use LIBHIDAPI to connect to SNAP/PICkit4 if present.
-// For some reason, chances are smaller to get
-// permission denied errors when using LIBHIDAPI
-#if defined(HAVE_LIBHIDAPI)
-  serdev = &usbhid_serdev;
-  pgm->fd.usb.eep = 0;
-#endif
+    if(partdesc)
+      snprintf(part_option, sizeof(part_option), "-p %s ", partdesc);
 
-  rv = serial_open(port, pinfo, &pgm->fd);  // Try SNAP PID
+  // Use LIBHIDAPI to connect to SNAP/PICkit4 if present.
+  // For some reason, chances are smaller to get
+  // permission denied errors when using LIBHIDAPI
+  #if defined(HAVE_LIBHIDAPI)
+    serdev = &usbhid_serdev;
+    pgm->fd.usb.eep = 0;
+  #endif
 
-  if(rv >= 0) {
-    msg_error("\n");
-    cx->usb_access_error = 0;
+    rv = serial_open(port, pinfo, &pgm->fd);  // Try SNAP PID
 
-    pmsg_error("MPLAB SNAP in AVR mode detected\n");
-    imsg_error("to switch into PIC mode try\n");
-    imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
-    imsg_error("or use the programmer in AVR mode with the following command:\n");
-    imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
+    if(rv >= 0) {
+      msg_error("\n");
+      cx->usb_access_error = 0;
 
-    serial_close(&pgm->fd);
-    return LIBAVRDUDE_EXIT;
-  }
-  pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
-  rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
+      pmsg_error("MPLAB SNAP in AVR mode detected.\n");
+      imsg_error("To switch into PIC mode try\n");
+      imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+      imsg_error("or use the programmer in AVR mode with the following command:\n");
+      imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
-  if(rv >= 0) {
-    msg_error("\n");
-    cx->usb_access_error = 0;
+      serial_close(&pgm->fd);
+      return LIBAVRDUDE_EXIT;
+    }
+    pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
+    rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
 
-    pmsg_error("PICkit 4 in AVR mode detected\n");
-    imsg_error("to switch into PIC mode try\n");
-    imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
-    imsg_error("or use the programmer in AVR mode with the following command:\n");
-    imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
+    if(rv >= 0) {
+      msg_error("\n");
+      cx->usb_access_error = 0;
 
-    serial_close(&pgm->fd);
-    return LIBAVRDUDE_EXIT;
-  }
+      pmsg_error("PICkit 4 in AVR mode detected.\n");
+      imsg_error("To switch into PIC mode try\n");
+      imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+      imsg_error("or use the programmer in AVR mode with the following command:\n");
+      imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
-  pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
+      serial_close(&pgm->fd);
+      return LIBAVRDUDE_EXIT;
+    }
+    pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
               USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
-  imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
+    imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
+    return LIBAVRDUDE_EXIT;
+  }
 
+  if(str_starts(id, "pickit_basic")) {
+    // Check if the Basic is in Bootloader Mode or CMSIS-DAP, should help trouble-shooting.
+    rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_CIMSIS_CDC);
+    if(rv >= 0) {
+      pmsg_error("PICkit Basic in CMSIS-DAP mode detected.\n");
+      imsg_error("Please use a Microchip tool to switch the firmware to \"mplab\"\n");
+      imsg_error("in order to use the programmer with avrdude\n");
+      return LIBAVRDUDE_EXIT;
+    }
+
+    rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_BL);
+    if(rv >= 0) {
+      pmsg_error("PICkit Basic in Bootloader mode detected.\n");
+      imsg_error("Please use a Microchip tool to load the \"mplab\" firmware\n");
+      imsg_error("in order to use the programmer with avrdude\n");
+      return LIBAVRDUDE_EXIT;
+    }
+  }
+
+  // Fall-back in case the user adds a custom programmer
+  pmsg_error("no device found matching VID 0x%04x and PID list: ", (unsigned) pinfo.usbinfo.vid);
+  int notfirst = 0;
+
+  for(usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
+    if(notfirst)
+      msg_error(", ");
+    msg_error("0x%04x", (unsigned int) (*(int *) (ldata(usbpid))));
+    notfirst = 1;
+  }
   return LIBAVRDUDE_EXIT;
 }
 
@@ -801,13 +848,13 @@ static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_target) {
   if(pickit5_program_enable(pgm, p) < 0)
     return -1;
-  
+
   // Get SIB so we can get the NVM Version
   if(pickit5_updi_read_sib(pgm, p, my.sib_string) < 0) {
       pmsg_error("failed to obtain System Info Block\n");
       return -1;
   }
-  
+
   if(pickit5_read_dev_id(pgm, p) < 0) {
     pmsg_error("failed to obtain device ID\n");
     return -1;
@@ -910,45 +957,47 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pickit5_set_vtarget(pgm, 0.0);        // Avoid the edge case when avrdude was CTRL+C'd but still provides power
 
   // Now we try to figure out if we have to supply power from PICkit
-  double v_target;
+  double v_target = 3.30; // Placeholder in case no VTARG Read
+  if(pgm->extra_features & HAS_VTARG_READ){  // If not supported (PK Basic), use a place
 
-  pickit5_get_vtarget(pgm, &v_target);
-  if(v_target < 1.8) {
-    if(my.power_source == POWER_SOURCE_NONE) {
-      pmsg_warning("no external voltage detected but continuing anyway\n");
-    } else if(my.power_source == POWER_SOURCE_INT) {
-      pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
-        if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
-          if(my.target_voltage > 3.49) {
-            pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
-            return -1;
+    pickit5_get_vtarget(pgm, &v_target);
+    if(v_target < 1.8) {
+      if(my.power_source == POWER_SOURCE_NONE) {
+        pmsg_warning("no external voltage detected but continuing anyway\n");
+      } else if(my.power_source == POWER_SOURCE_INT) {
+        pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
+          if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
+            if(my.target_voltage > 3.49) {
+              pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
+              return -1;
+            }
           }
+
+        if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
+          return -1;              // Set requested voltage
+
+        if(pickit5_get_vtarget(pgm, &v_target) < 0)
+          return -1;              // Verify voltage
+
+        // Make sure the voltage is in our requested range. Due to voltage drop on
+        // the LDO and on USB itself, the lower limit is capped at 4.4V
+        double upper_limit = my.target_voltage + 0.2;
+        double lower_limit = my.target_voltage - 0.3;
+        if(lower_limit > 4.4) {
+          lower_limit = 4.4;
         }
-
-      if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
-        return -1;              // Set requested voltage
-
-      if(pickit5_get_vtarget(pgm, &v_target) < 0)
-        return -1;              // Verify voltage
-
-      // Make sure the voltage is in our requested range. Due to voltage drop on
-      // the LDO and on USB itself, the lower limit is capped at 4.4V
-      double upper_limit = my.target_voltage + 0.2;
-      double lower_limit = my.target_voltage - 0.3;
-      if(lower_limit > 4.4) {
-        lower_limit = 4.4;
-      }
-      if((v_target < lower_limit) || (v_target > upper_limit)) {
-        pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
+        if((v_target < lower_limit) || (v_target > upper_limit)) {
+          pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
+          return -1;
+        }
+      } else {
+        pmsg_error("no external voltage detected, aborting; overwrite this check with -x vtarg=0\n");
         return -1;
       }
     } else {
-      pmsg_error("no external voltage detected, aborting; overwrite this check with -x vtarg=0\n");
-      return -1;
+      my.power_source = POWER_SOURCE_EXT;        // Overwrite user input
+      pmsg_notice("external voltage detected: will not supply power\n");
     }
-  } else {
-    my.power_source = POWER_SOURCE_EXT;        // Overwrite user input
-    pmsg_notice("external voltage detected: will not supply power\n");
   }
 
   my.pk_op_mode = PK_OP_READY;
@@ -1000,11 +1049,12 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
 
-  if(my.hvupdi_enabled && (my.pgm_type != PGM_TYPE_SNAP)) { // SNAP has no HV generation
+  if(my.hvupdi_enabled && can_gen_hv_pulse(my)) {   // SNAP and Basic have no HV generation
     if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI) {          // High voltage generation on UPDI line
       enter_prog = my.scripts.EnterProgModeHvSp;
       enter_prog_len = my.scripts.EnterProgModeHvSp_len;
-    } else if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET) {  // High voltage generation on RST line
+    } else if(p->hvupdi_variant == UPDI_ENABLE_HV_RESET ||  // High voltage generation on RST line
+              p->hvupdi_variant == UPDI_ENABLE_RESET_HS) {  // Handshake for SD-Family
       enter_prog = my.scripts.EnterProgModeHvSpRst;
       enter_prog_len = my.scripts.EnterProgModeHvSpRst_len;
     }
@@ -1158,7 +1208,7 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   int rc = pickit5_send_script_cmd(pgm, write8_fast, sizeof(write8_fast), NULL, 0);
   if(rc < 0) {
     return -1;
-  } 
+  }
   return 1;
 }
 
@@ -1187,7 +1237,7 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
       *value = my.rxBuf[24];
       return 1;
     }
-  } 
+  }
   return 0;
   /*else {                      // Fall back to standard function
     int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
@@ -1256,7 +1306,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   addr += mem->offset;
   if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
-    addr /= 2;  
+    addr /= 2;
   }
 
   unsigned char param[8];
@@ -1267,7 +1317,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc < 0) {
     return LIBAVRDUDE_EXIT; // Any error here means that a write fail occured, so restart
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1355,7 +1405,7 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   addr += mem->offset;
   if(both_jtag(pgm, p) && mem_is_in_flash(mem)) {
-    addr /= 2;  
+    addr /= 2;
   }
   unsigned char param[8];
 
@@ -1363,11 +1413,11 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&param[4], len);
 
   int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, param, 8, value, len);
-  
+
   if(rc < 0) {
     return LIBAVRDUDE_EXIT; // Any error here means that a read fail occured, better restart
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1395,7 +1445,7 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
       }
       return -1;
     }
-    const unsigned char get_sig [] = {  // *screams* why was this function not in the scripts?? 
+    const unsigned char get_sig [] = {  // *screams* why was this function not in the scripts??
       0x90, 0x0C, 0x03, 0x00, 0x00, 0x00, // Set reg to 0x03
       0x1e, 0x45, 0x0C,                   // Send 0xF0 + reg and receive 2 bytes (found by trial and error)
       0x9D,                               // place word into status response
@@ -1421,7 +1471,8 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
     if(len == 0x03 || len == 0x04) {  // just DevId or UPDI with revision
       memcpy(my.devID, &my.rxBuf[24], len);
     } else {
-      if(my.hvupdi_enabled && p->hvupdi_variant == UPDI_ENABLE_HV_RESET) {
+      if(my.hvupdi_enabled &&
+      (p->hvupdi_variant == UPDI_ENABLE_HV_RESET || p->hvupdi_variant == UPDI_ENABLE_RESET_HS)) {
         pmsg_info("failed to get DeviceID with activated HV Pulse on RST\n");
          msg_info("if the wiring is correct, try connecting a 16 V, 1 uF cap between RST and GND\n");
       } else {
@@ -1564,7 +1615,7 @@ static void pickit5_isp_switch_to_dw(const PROGRAMMER *pgm, const AVRPART *p) {
 // especially as we already have all the programming commands in the .conf file
 static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned char value) {
   pmsg_debug("%s(offset: %i, val: %i)\n", __func__, mem->offset, value);
-  
+
   unsigned int cmd;
   avr_set_bits(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd);
   avr_set_addr(mem->op[AVR_OP_WRITE], (unsigned char*)&cmd, mem_fuse_offset(mem));
@@ -1621,8 +1672,8 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
     0x9F                                // Send data from temp_reg to host
   };
   unsigned int read_fuse_isp_len = sizeof(read_fuse_isp);
-  
-/*  
+
+/*
   read_fuse_isp[14] = (uint8_t) cmd;         // swap bitorder and fill array
   read_fuse_isp[13] = (uint8_t) (cmd >> 8);
   read_fuse_isp[12] = (uint8_t) (cmd >> 16);
@@ -1672,7 +1723,7 @@ static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, cons
     fuse_cmd = 0x3B;
     fuse_poll = 0x37;
   }
-  
+
   unsigned char write_fuse_jtag [] = {
     0x9C, 0x00, 0x00,   fuse_cmd,         // Write fuse write command A to r00
     0x9C, 0x06, 0x00,  (fuse_cmd & 0xFD), // Write fuse write command B to r06
@@ -1713,7 +1764,7 @@ static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const
   } else if(mem_is_efuse(mem)) {
     fuse_cmd = 0x3B;
   }
-  
+
   unsigned char read_fuse_jtag [] = {
     0x9C, 0x00, 0x00,  fuse_cmd,          // load fuse read command A in r00
     0x9C, 0x01, 0x00, (fuse_cmd & 0xFE),  // load fuse read command B in r01
@@ -1741,7 +1792,7 @@ static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const
 }
 
 
-// TPI has an unified memory space, meaning that any memory (even SRAM) 
+// TPI has an unified memory space, meaning that any memory (even SRAM)
 // can be accessed by the same command, meaning that we don't need the
 // decision tree found in the "read/write array" functions
 static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
@@ -1761,7 +1812,7 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc < 0) {
     return -1;
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1781,7 +1832,7 @@ static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc < 0) {
     return -1;
   } else {
-    return len; 
+    return len;
   }
 }
 
@@ -1797,13 +1848,13 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
   if(prodsig == NULL) {
     return 0;  // no prodsig on this device, try again in read_array
   }
-  if(mem->offset < prodsig->offset || 
+  if(mem->offset < prodsig->offset ||
     (mem->offset + mem->size) > (prodsig->offset) + (prodsig->size)) {
     return 0;  // Requested memory not in prodsig, try again in read_array
   }
 
   int max_mem_len = sizeof(my.prodsig);  // Current devices have not more than 128 bytes
-  unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len; 
+  unsigned mem_len = (prodsig->size < max_mem_len)? prodsig->size: max_mem_len;
 
   if((addr + len) > mem_len) {
     pmsg_warning("requested memory is outside of the progsig on the device\n");
@@ -1921,7 +1972,7 @@ static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
     0x44
   };
 
-  if(my.pgm_type >= PGM_TYPE_SNAP) { // SNAP can't supply power, ignore
+  if(!can_power_target(my)) { // SNAP and Basic can't supply power, ignore
     return 0;
   }
 
@@ -1966,7 +2017,8 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
   my.measured_vcc = pickit5_array_to_uint32(&buf[28]) / 1000.0;
   my.measured_current = pickit5_array_to_uint32(&buf[48]);
 
-  pmsg_notice("target Vdd: %1.2f V, target current: %u mA\n", my.measured_vcc, my.measured_current);
+  if(pgm->extra_features & HAS_VTARG_READ) // If not supported (PK Basic), don't print placeholder value
+    pmsg_notice("target Vdd: %1.2f V, target current: %u mA\n", my.measured_vcc, my.measured_current);
 
   if(v != NULL)
     *v = my.measured_vcc;
@@ -1974,8 +2026,8 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
 }
 
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
-  if(my.pgm_type >= PGM_TYPE_SNAP)  // Don't bother if Programmer doesn't support PTG
-    return 0;                       // Note: Bitmask would be probably better in the future
+  if(!can_do_ptg(my))  // Don't bother if Programmer doesn't support PTG
+    return 0;
 
   unsigned char ptg_mode[] = {
     0x5E, 0x00, 0x00, 0x00, 0x00,
@@ -1990,6 +2042,29 @@ static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
   return 0;
 }
 
+
+// Found sw reset command in basic firmware switcher.
+// other commands are
+// Enter Boot Mode: 0xEB
+// jump to app: 0xEC
+// erase flash: 0xE2
+// erase application: 0xFA
+// write page: 0xE3
+// read crc32: 0x5E
+/* currently unused, thus uncommented, but maybe useful in the future
+static int pickit5_software_reset(const PROGRAMMER *pgm) {
+  unsigned char sw_reset[] = {
+    0xED,
+  };
+
+  pmsg_debug("%s()\n", __func__);
+
+  if(pickit5_send_script_cmd(pgm, sw_reset, 1, NULL, 0)) {
+    return -1;
+  }
+  return 0;
+}
+*/
 
 void pickit5_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "pickit5");
@@ -2024,13 +2099,37 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
 }
 
 
+
+#if defined(HAVE_USB_H)
+/*
+ * In order to make it easier for users, we try to figure out if a specific VID/PID is connected
+ * to the computer. For that, going through the list of usb devices is more straightforward
+ * compared to what serial_open / usbdev_open does.
+ */
+static int usbdev_check_connected(unsigned int vid, unsigned int pid) {
+  struct usb_bus *bus;
+  struct usb_device *dev;
+
+  usb_init();
+
+  usb_find_busses();
+  usb_find_devices();
+
+  for(bus = usb_get_busses(); bus; bus = bus->next) {
+    for(dev = bus->devices; dev; dev = dev->next) {
+      if(dev->descriptor.idVendor == vid &&
+         dev->descriptor.idProduct == pid) {
+          return 0;
+         }
+    }
+  }
+  return -1;
+}
+
 /*
   The following functions are required to handle the data read and write Endpoints of the Pickit.
   This functions are hardcoded on the Pickit endpoint numbers
 */
-#if defined(HAVE_USB_H)
-
-
 static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   int i, amnt;
   unsigned char *p = buf;
@@ -2041,7 +2140,7 @@ static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, 
   for(i = 0; nbytes > 0;) {
     if(cx->usb_buflen <= cx->usb_bufptr) {
       int rv = usb_bulk_read(fd->usb.handle, USB_PK5_DATA_READ_EP, cx->usb_buf, fd->usb.max_xfer, 10000);
-      
+
       if(rv < 0) {
         pmsg_notice2("%s(): usb_bulk_read() error: %s\n", __func__, usb_strerror());
         return -1;
@@ -2103,6 +2202,10 @@ static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char 
  * We need libusb so we can access specific Endpoints
  * This does not seem to be possible with usbhid
  */
+
+static int usbdev_check_connected(unsigned int vid, unsigned int pid) {
+  return -1;
+}
 
 static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   return -1;
