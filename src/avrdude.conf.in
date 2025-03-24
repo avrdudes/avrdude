@@ -24417,9 +24417,9 @@ part # .avr-sx
 # AVR32SD20
 #------------------------------------------------------------
 
-part parent ".avr-sx" # 32sd20s
+part parent ".avr-sx" # 32sd20
     desc                   = "AVR32SD20";
-    id                     = "32sd20s";
+    id                     = "32sd20";
     variants               =
         "AVR32SD20-SSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 402;
@@ -24431,9 +24431,9 @@ part parent ".avr-sx" # 32sd20s
 # AVR32SD28
 #------------------------------------------------------------
 
-part parent ".avr-sx" # 32sd28s
+part parent ".avr-sx" # 32sd28
     desc                   = "AVR32SD28";
-    id                     = "32sd28s";
+    id                     = "32sd28";
     variants               =
         "AVR32SD28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32SD28-VQFN:       QFP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
@@ -24446,9 +24446,9 @@ part parent ".avr-sx" # 32sd28s
 # AVR32SD32
 #------------------------------------------------------------
 
-part parent ".avr-sx" # 32sd32s
+part parent ".avr-sx" # 32sd32
     desc                   = "AVR32SD32";
-    id                     = "32sd32s";
+    id                     = "32sd32";
     variants               =
         "AVR32SD32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 404;
