@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.43
- * 11.03.2025
+ * v 1.44
+ * 22.03.2025
  *
  */
 
@@ -84,12 +84,13 @@ typedef struct {                // Value of -1 typically means unknown
   uint16_t nregisters;          // Number of I/O registers
   const Register_file *regf;    // Register file
   uint8_t numuarts;             // Number of UART interfaces
-  uint8_t uarttype;             // UARTTYPE_UNKNOWN, _NONE, _CLASSIC, _LIN, XMEGA, _AVR8X
+  uint8_t uarttype;             // UARTTYPE_UNKNOWN, _NONE, _CLASSIC, _LIN, _XMEGA, _AVR8X
   uint8_t has_u2x;              // 1 = 2x speed possible (8 samples), 0 = 1x speed only
   uint8_t brr_nbits;            // Number of baud rate divisor bits (integer part)
   uint8_t brr_nfraction;        // Number of bits for fractional part of baud rate divisor
   uint8_t nports;               // Number of port registers (one per letter A-H, J-N, P-R)
   const Port_bits *ports;       // Port list
+  uint8_t wdttype;              // WDT_UNKOWN, _NONE, _CLASSIC3, _CLASSIC4, _XMEGA, _AVR8X, _AVR8X_DUAL
 } Avrintel;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
@@ -103,6 +104,14 @@ typedef struct {                // Value of -1 typically means unknown
 #define UARTTYPE_LIN          2
 #define UARTTYPE_XMEGA        3
 #define UARTTYPE_AVR8X        4
+
+#define WDT_UNKNOWN         (-1)
+#define WDT_NONE              0
+#define WDT_CLASSIC3          1 // 3-bit prescaler: 8 timeouts from 16 ms ... 2 s (mask 0x07)
+#define WDT_CLASSIC4          2 // 4-bit prescaler: 10 timeouts from 16 ms ... 8 s (mask 0x27)
+#define WDT_XMEGA             3 // 11 timeouts from 8 ms to 8 s
+#define WDT_AVR8X             4 // 11 timeouts from 8 ms to 8 s
+#define WDT_AVR8X_DUAL        5 // 11 timeouts from 244 us to 250 ms + synchronous wdt
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
