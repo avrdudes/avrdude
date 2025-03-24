@@ -7717,13 +7717,9 @@ part parent "pwm3" # pwm3b
     desc                   = "AT90PWM3B";
     id                     = "pwm3b";
     variants               =
-        "AT90PWM3-16ME:   QFN32,  Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3-16MU:   QFN32,  Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3-16SE:   SOIC32, Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3-16SU:   SOIC32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3B:       N/A,    Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3B-16MU:  QFN32,  Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3B-16MUR: QFN32,  Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
+        "AT90PWM3B:       N/A,   Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16MU:  QFN32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16MUR: QFN32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 170;
     signature              = 0x1e 0x93 0x83;
 ;
@@ -8117,7 +8113,6 @@ part parent ".classic" # usb82
     desc                   = "AT90USB82";
     id                     = "usb82";
     variants               =
-        "90USB82-16MU:    QFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "AT90USB82:       QFN32, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
         "AT90USB82-16MU:  QFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "AT90USB82-16MUR: QFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
@@ -8248,8 +8243,6 @@ part parent "usb82" # usb162
     desc                   = "AT90USB162";
     id                     = "usb162";
     variants               =
-        "90USB162-16AU:    TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "90USB162-16MU:    QFN32,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "AT90USB162:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "AT90USB162-16AU:  TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "AT90USB162-16AUR: TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -12046,22 +12039,14 @@ part parent "m325" # m325a
     desc                   = "ATmega325A";
     id                     = "m325a";
     variants               =
-        "ATmega3250A-AN:  TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-ANR: TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-AU:  TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-AUR: TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-MN:  QFN64,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-MNR: QFN64,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-MU:  QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250A-MUR: QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-AN:   TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-ANR:  TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-AU:   TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-AUR:  TQFP64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-MN:   VQFN64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-MNR:  VQFN64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-MU:   QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-MUR:  VQFN64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]";
+        "ATmega325A-AN:  TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-ANR: TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-AU:  TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-AUR: TQFP64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-MN:  VQFN64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-MNR: VQFN64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-MU:  QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-MUR: VQFN64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 115;
 ;
 
@@ -12073,19 +12058,11 @@ part parent "m325" # m325pa
     desc                   = "ATmega325PA";
     id                     = "m325pa";
     variants               =
-        "ATmega3250PA-AN:  TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-ANR: TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-AU:  TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-AUR: TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-MN:  QFN64,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-MNR: QFN64,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-MU:  QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega3250PA-MUR: QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA:      N/A,    Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-AU:   TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-AUR:  TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-MU:   VQFN64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-MUR:  VQFN64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]";
+        "ATmega325PA:     N/A,    Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-AU:  TQFP64, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-AUR: TQFP64, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-MU:  VQFN64, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-MUR: VQFN64, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 117;
     signature              = 0x1e 0x95 0x0d;
 ;
@@ -24469,9 +24446,9 @@ part # .avr-sx
 # AVR32SD20
 #------------------------------------------------------------
 
-part parent ".avr-sx" # 32sd20s
+part parent ".avr-sx" # 32sd20
     desc                   = "AVR32SD20";
-    id                     = "32sd20s";
+    id                     = "32sd20";
     variants               =
         "AVR32SD20-SSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 402;
@@ -24483,9 +24460,9 @@ part parent ".avr-sx" # 32sd20s
 # AVR32SD28
 #------------------------------------------------------------
 
-part parent ".avr-sx" # 32sd28s
+part parent ".avr-sx" # 32sd28
     desc                   = "AVR32SD28";
-    id                     = "32sd28s";
+    id                     = "32sd28";
     variants               =
         "AVR32SD28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32SD28-VQFN:       QFP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
@@ -24498,9 +24475,9 @@ part parent ".avr-sx" # 32sd28s
 # AVR32SD32
 #------------------------------------------------------------
 
-part parent ".avr-sx" # 32sd32s
+part parent ".avr-sx" # 32sd32
     desc                   = "AVR32SD32";
-    id                     = "32sd32s";
+    id                     = "32sd32";
     variants               =
         "AVR32SD32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 404;

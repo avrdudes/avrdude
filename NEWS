@@ -18,6 +18,8 @@ Changes since version 8.0:
   * New programmers supported:
 
     - pickit5 = pickit5_jtag, pickit5_dw, pickit5_isp, pickit5_pdi, pickit5_tpi
+    - pickit_basic = pickit_basic_jtag, pickit_basic_updi, pickit_basic_isp,
+      pickit_basic_dw, pickit_basic_tpi, pickit_basic_pdi
 
   * New serial adapters supported:
 
@@ -52,6 +54,12 @@ Changes since version 8.0:
     - Shorten ID of LGT parts #1951
     - Suggest compatible command for SNAP/PICKit4 in PIC mode #1947
     - Add AVR64DAnnS, AVR32DAnnS and AVR32SDnn #1955
+    - Fix variant errors introduced in recent .atdf versions #1958
+    - Add PICkit Basic programmer #1959
+    - Add --version option #1962
+    - Add WDT type info to avrintel.c #1963
+    - Remove spurious s from AVR32SDnn part id #1964
+    - Remove #include "usbdevs.h" from libavrdude.h #1965
 
   * Internals:
 

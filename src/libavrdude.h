@@ -1845,7 +1845,7 @@ typedef struct {
   Dis_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c
-#include "usbdevs.h"
+#define USBDEV_MAX_XFER_3         912 // Trust compiler complains if usbdevs.h redefines this
   char usb_buf[USBDEV_MAX_XFER_3];
   int usb_buflen, usb_bufptr;   // @@@ Check whether usb_buflen needs initialising with -1
   int usb_interface;
