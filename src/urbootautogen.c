@@ -263,15 +263,20 @@ static int uartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
   return ret<0? 0: ret > mxb? mxb: ret;
 }
 
-// Actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
-static long uartbaud(const Avrintel *up, long f_cpu, long br, int nsamples) {
-  return f_cpu/(nsamples*(uartbrr(up, f_cpu, br, nsamples) + 1));
+// 10 times actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
+static long uartbaud10(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  return (10*f_cpu)/(nsamples*(uartbrr(up, f_cpu, br, nsamples) + 1));
 }
 
-// Uart quanitisation error in per mille (signed)
-static int uartqerr(const Avrintel *up, long f_cpu, long br, int nsamples) {
-  long bdiff = (uartbaud(up, f_cpu, br, nsamples)-br)*1000L;
-  return bdiff<0? -(-bdiff/br): bdiff/br;
+// Actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
+static long uartbaud(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  return (uartbaud10(up, f_cpu, br, nsamples) + 5)/10;
+}
+
+// Absolute UART quanitisation error in per mille
+static int absuartqerr(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  long bdiff = (uartbaud10(up, f_cpu, br, nsamples) - 10*br)*100;
+  return bdiff<0? -bdiff/br: bdiff/br;
 }
 
 // Return either UART2X=1 or UART2X=0 depending on f_cpu, desired baud rate and preference u2x
@@ -286,14 +291,14 @@ static int uart2x(const Avrintel *up, long f_cpu, long br, int u2x) {
    * less than normal mode considering that normal mode has higher tolerances than 2x speed mode.
    * The reason for a slight preference for UART2X=0 is that is costs less code in urboot.c.
    */
-  int e1 = abs(uartqerr(up, f_cpu, br, 8)), e0 = abs(uartqerr(up, f_cpu, br, 16));
+  int e1 = absuartqerr(up, f_cpu, br, 8), e0 = absuartqerr(up, f_cpu, br, 16);
 
   return 20*e1 < 15*e0 && e0 > 14;
 }
 
 // Return l1 or l2, whichever causes less error; on same quantised error return the larger value
 static int linbetter2_ns(const Avrintel *up, long f_cpu, long br, int l1, int l2) {
-  int e1 = abs(uartqerr(up, f_cpu, br, l1)), e2 = abs(uartqerr(up, f_cpu, br, l2));
+  int e1 = absuartqerr(up, f_cpu, br, l1), e2 = absuartqerr(up, f_cpu, br, l2);
   return e1 < e2? l1: e1 > e2? l2: l1 > l2? l1: l2;
 }
 
