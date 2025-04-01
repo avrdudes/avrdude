@@ -1,0 +1,1098 @@
+/*
+ * AVRDUDE - A Downloader/Uploader for AVR device programmers
+ * Copyright (C) 2025 Stefan Rueger <stefan.rueger@urclocks.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
+
+#include "avrdude.h"
+#include <libavrdude.h>
+#include "urbootlist.h"
+#include "urclock_private.h"
+
+#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("; skipping autogeneration\n"); return -1; } while (0)
+
+typedef struct {
+  int wdt_idx;
+  int autobaud, uart, alt, swio, tx, rx, baudrate, fcpu, fcpu_type;
+  int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
+  int lednop, dual, cs;
+  int led, ledpolarity;
+  int features;
+  int vector;
+  uint16_t *template;
+  char *serialno, *fill, *vectorstr, *filename;
+  size_t n_serialno, n_fill;
+  const char *mcu;
+  char config[32], iotype[32];
+} Urbootparams;
+
+#define WDT_CLASSIC_WDE (1<<3)
+#define WDT_CLASSIC_250MS  (WDT_CLASSIC_WDE | 0x04)
+#define WDT_CLASSIC_500MS  (WDT_CLASSIC_WDE | 0x05)
+#define WDT_CLASSIC_1S     (WDT_CLASSIC_WDE | 0x06)
+#define WDT_CLASSIC_2S     (WDT_CLASSIC_WDE | 0x07)
+#define WDT_CLASSIC_4S     (WDT_CLASSIC_WDE | 0x20)
+#define WDT_CLASSIC_8S     (WDT_CLASSIC_WDE | 0x21)
+
+static const struct {
+  double timeout;
+  int wdt_time;
+  const char *name;
+} wdtopts[] = {
+   { 0.25, WDT_CLASSIC_250MS, "250ms" },
+   { 0.5,  WDT_CLASSIC_500MS, "500ms" },
+   { 1.0,  WDT_CLASSIC_1S, "1s" },
+   { 2.0,  WDT_CLASSIC_2S, "2s" },
+   { 4.0,  WDT_CLASSIC_4S, "4s" },
+   { 8.0,  WDT_CLASSIC_8S, "8s" },
+};
+
+#define FEATURE_PR            1 // Vector bootloader protecting the reset vector
+#define FEATURE_CE            2 // Bootloader provides a chip erase command
+#define FEATURE_EE            4 // Bootloader supports EEPROM read/write
+#define FEATURE_HW            8 // Hardware supported bootloader
+
+// Configuration of supported features
+static const char *urfeat[] = { // hw ee ce pr
+  "_min",                       //  0  0  0  0
+  "_pr",                        //  0  0  0  1
+  "_pr_ce",                     //  0  0  1  0 // Use _pr even if not set
+  "_pr_ce",                     //  0  0  1  1
+  "_pr_ee",                     //  0  1  0  0
+  "_pr_ee",                     //  0  1  0  1
+  "_pr_ee_ce",                  //  0  1  1  0
+  "_pr_ee_ce",                  //  0  1  1  1
+  "_hw",                        //  1  0  0  0
+  "_hw",                        //  1  0  0  1 // Hardware bootloaders don't need vector protection
+  "_ee_ce_hw",                  //  1  0  1  0 // Invoke both EEPROM and Chip erase for most HW b/l
+  "_ee_ce_hw",                  //  1  0  1  1
+  "_ee_ce_hw",                  //  1  1  0  0
+  "_ee_ce_hw",                  //  1  1  0  1
+  "_ee_ce_hw",                  //  1  1  1  0
+  "_ee_ce_hw",                  //  1  1  1  1
+};
+
+# define _ok(c) ((c) && (uint8_t) (c) <= 0x7f)
+
+// Is s a ^[0-9]+k[0-9]+$ pattern for baud rate?
+static int is_baudrate_k(const char *s) {
+  int pre=0, post=0;
+
+  while(_ok(*s) && isdigit(*s))
+    pre++, s++;
+  if(*s != 'k')
+    return 0;
+  s++;
+  while(_ok(*s) && isdigit(*s))
+    post++, s++;
+  return !*s && pre && post;
+}
+   
+// Is ch a F_cpu type letter?
+static int is_fcpu_type(char ch) {
+  return ch == 'x' || (ch >= 'a' && ch <= 'q');
+}
+
+static const char port_letters[] = "abcdefghjklmnpqr";
+
+// Returns port number in [0, 15] from port letter or -1 if not a port
+static int portnum(char letter) {
+  const char *q;
+
+  return _ok(letter) && (q = strchr(port_letters, tolower(letter)))? q-port_letters: -1;
+}
+
+// Returns port letter from port number or '?' if number out of range
+static int portletter(int num) {
+  return (unsigned) num >= sizeof port_letters-1? '?': port_letters[num];
+}
+
+// Return port name (eg, A0 or B3) in closed-circuit memory
+static const char *ccportname(int port) {
+  return str_ccprintf("%c%d", toupper(portletter(port >> 4)), port & 7);
+}
+
+// Is s a ^[a-qx]?[0-9]+m[0-9]+$ pattern for F_cpu?
+static int is_fcpu_m(const char *s) {
+  int pre=0, post=0;
+
+  if(is_fcpu_type(*s))
+    s++;
+  while(_ok(*s) && isdigit(*s))
+    pre++, s++;
+  if(*s != 'm')
+    return 0;
+  s++;
+  while(_ok(*s) && isdigit(*s))
+    post++, s++;
+  return !*s && pre && post;
+}
+
+// Does s follow a number [kM]unit pattern? Return 1, 1000 or 10000000 depending on prefix
+static int is_num_unit(const char *s, const char *unit) {
+  int pre = 0, post = 0, ee = 0;
+
+  if(!str_caseends(s, unit))
+    return 0;
+
+  if(str_caseeq(unit, "hz") && is_fcpu_type(*s))
+    s++;
+
+  while(*s == '+')              // Ignore leading + (used as fillers for sorting)
+    s++;
+  while(_ok(*s) && isdigit(*s))
+    pre++, s++;
+  if(*s == '.')
+    s++;
+  while(_ok(*s) && isdigit(*s))
+    post++, s++;
+  if(!pre && !post)
+    return 0;
+
+  if(*s == 'e' || *s == 'E') {
+    s++;
+    if(*s == '-' || *s == '+')
+      s++;
+    while(_ok(*s) && isdigit(*s))
+      ee++, s++;
+    if(!ee)
+      return 0;
+  }
+  while(_ok(*s) && isspace(*s))
+    s++;
+
+  size_t ulen = strlen(unit);
+  if((*s == 'k' || *s == 'K') && strlen(s) == ulen+1)
+    return 1000;
+  if((*s == 'm' || *s == 'M') && strlen(s) == ulen+1)
+    return 1000*1000;
+  return strlen(s) == ulen;
+}
+
+// Return 0 id bit-addressable port is available; otherwise show error message and return -1
+static int assert_port(int port, int np, const Port_bits *ports, const char *what, const char *mcu, int out) {
+  if(port == -1)
+    Return("no %s line specified, add _%s[a-g][0-7]", what, what);
+
+  if(port < 0 || port > 0xf7 || (port & 0x80))
+    Return("unexpected malformed port code %02x", port);
+
+  if(np <= 0 || !ports)         // Don't know about ports and addresses
+    Return("%s: no port info available for %s at all", what, mcu);
+
+  int pnum = port >> 4, pbit = port & 7;
+  for(int i=0; i<np; i++)
+    if(pnum == portnum(ports[i].letter)) { // Exists?
+      if(out) {                 // Check DDR and PORT register
+        if(ports[i].dirmask & ports[i].outmask & (1<<pbit))
+          if(ports[i].diraddr < 0x20 && ports[i].outaddr < 0x20)
+            return 0;
+      } else {                  // Check PIN register only
+        if(ports[i].inmask & (1<<pbit) && ports[i].inaddr < 0x20)
+          return 0;
+      }
+    }
+
+  Return("%s does not have bit-addressable %sput port P%s for %s", mcu, out? "out": "in",
+    ccportname(port), what);
+}
+
+// Cycles per bit given the number of delay loop iterations for software I/O
+static long swio_cpb(int val, int is_xmega, int pc_22bit) {
+  if(!is_xmega && !pc_22bit)
+    return 6L*val + 14+9;       // Classic MCU with 16-bit PC
+  if(!is_xmega)
+    return 6L*val + 18+9;       // Classic MCU with 22-bit PC
+  if(!!pc_22bit)
+    return 6L*val + 12+9;       // XMEGA with 16-bit PC
+
+  return 6L*val + 16+9;         // XMEGA with 22-bit PC
+}
+
+// Number of delay loop iterations given the cycles per bit
+static int swio_b_value(int cpb, int b_off, int is_xmega, int pc_22bit) {
+  if(!is_xmega && !pc_22bit)
+    return (cpb-14-9+b_off+60)/6-10;  // Classic MCU with 16-bit PC
+  if(!is_xmega)
+    return (cpb-18-9+b_off+60)/6-10;  // Classic MCU with 22-bit PC
+  if(!!pc_22bit)
+    return (cpb-12-9+b_off+60)/6-10;  // XMEGA with 16-bit PC
+
+  return (cpb-16-9+b_off+60)/6-10;    // XMEGA with 22-bit PC
+}
+
+// Max value of Baud Rate Register
+static int maxbrr(const Avrintel *up) {
+  // Only use low byte of LIN baud rate register
+  int nbits = up->uarttype == UARTTYPE_LIN? 8: up->brr_nbits;
+
+  return (1 << nbits) - 1;
+}
+
+static int rawuartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  switch(up->uarttype) {
+  case UARTTYPE_CLASSIC:
+  case UARTTYPE_LIN:
+    return (f_cpu + nsamples*br/2)/(nsamples*br) - 1;
+  }
+
+  return 0;
+}
+
+// Baud rate register value given f_cpu, desired baud rated and number 8..63 of samples
+static int uartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  int ret = rawuartbrr(up, f_cpu, br, nsamples), mxb = maxbrr(up);
+
+  return ret<0? 0: ret > mxb? mxb: ret;
+}
+
+// Actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
+static long uartbaud(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  return f_cpu/(nsamples*(uartbrr(up, f_cpu, br, nsamples) + 1));
+}
+
+// Uart quanitisation error in per mille (signed)
+static int uartqerr(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  long bdiff = (uartbaud(up, f_cpu, br, nsamples)-br)*1000L;
+  return bdiff<0? -(-bdiff/br): bdiff/br;
+}
+
+// Return either UART2X=1 or UART2X=0 depending on f_cpu, desired baud rate and preference u2x
+static int uart2x(const Avrintel *up, long f_cpu, long br, int u2x) {
+  if(!u2x || !up->has_u2x)      // No choice: must use 1x mode
+    return 0;
+  if(u2x == 2)                  // No choice: must use 2x mode
+    return 1;
+  /*
+   * Part can choose between UART2X = 1 (nsamples == 8) and UART2X = 0 (nsamples == 16) and the
+   * user doesn't mind. Switch to 2x mode if error for normal mode is > 1.4% and error with 2x
+   * less than normal mode considering that normal mode has higher tolerances than 2x speed mode.
+   * The reason for a slight preference for UART2X=0 is that is costs less code in urboot.c.
+   */
+  int e1 = abs(uartqerr(up, f_cpu, br, 8)), e0 = abs(uartqerr(up, f_cpu, br, 16));
+
+  return 20*e1 < 15*e0 && e0 > 14;
+}
+
+// Return l1 or l2, whichever causes less error; on same quantised error return the larger value
+static int linbetter2_ns(const Avrintel *up, long f_cpu, long br, int l1, int l2) {
+  int e1 = abs(uartqerr(up, f_cpu, br, l1)), e2 = abs(uartqerr(up, f_cpu, br, l2));
+  return e1 < e2? l1: e1 > e2? l2: l1 > l2? l1: l2;
+}
+
+// Best of 4
+static int linbetter4_ns(const Avrintel *up, long f_cpu, long br, int l1, int l2, int l3, int l4) {
+  return linbetter2_ns(up, f_cpu, br,
+    linbetter2_ns(up, f_cpu, br, l1, l2),
+    linbetter2_ns(up, f_cpu, br, l3, l4));
+}
+
+// Best of 8
+static int linbetter8_ns(const Avrintel *up, long f_cpu, long br,
+  int l1, int l2, int l3, int l4, int l5, int l6, int l7, int l8) {
+  return linbetter2_ns(up, f_cpu, br,
+    linbetter4_ns(up, f_cpu, br, l1, l2, l3, l4),
+    linbetter4_ns(up, f_cpu, br, l5, l6, l7, l8));
+}
+
+// Best of all possible ns = 8..63
+static int linbest_ns(const Avrintel *up, long f_cpu, long br) {
+  return linbetter8_ns(up, f_cpu, br,
+    8,
+    linbetter8_ns(up, f_cpu, br,  8,  9, 10, 11, 12, 13, 14, 15),
+    linbetter8_ns(up, f_cpu, br, 16, 17, 18, 19, 20, 21, 22, 23),
+    linbetter8_ns(up, f_cpu, br, 24, 25, 26, 27, 28, 29, 30, 31),
+    linbetter8_ns(up, f_cpu, br, 32, 33, 34, 35, 36, 37, 38, 39),
+    linbetter8_ns(up, f_cpu, br, 40, 41, 42, 43, 44, 45, 46, 47),
+    linbetter8_ns(up, f_cpu, br, 48, 49, 50, 51, 52, 53, 54, 55),
+    linbetter8_ns(up, f_cpu, br, 56, 57, 58, 59, 60, 61, 62, 63));
+}
+
+// Like str_caseeq(s1, s2) but ignores _ in strings
+static int vec_caseeq(const char *s1, const char *s2) {
+  int ret;
+
+  do {
+    while(*s1 == '_')
+      s1++;
+    while(*s2 == '_')
+      s2++;
+    ret = tolower(*s1 & 0xff) == tolower(*s2 & 0xff);
+    s2++;
+    if(!*s1++)
+      break;
+  } while(ret);
+
+  return ret;
+}
+
+// Set immediate value of cpi/ldi instruction at codep to imm
+static void setimm(uint16_t *codep, int imm) {
+  *codep = (*codep & 0xf0f0) | (((imm & 0xf0) << 4) | (imm & 0x0f));
+}
+
+// Get immediate value from cpi/ldi instruction at codep
+static int getimm(uint16_t *codep) {
+  return ((*codep & 0x0f00) >> 4)  | (*codep & 0x000f);
+}
+
+static void update_insync_ok(const Avrintel *up, uint16_t *insyncp, uint16_t *okp) {
+  int insync = getimm(insyncp);
+  int ok = getimm(okp);
+  if(insync == 255 && ok == 254)
+    insync = Resp_STK_INSYNC, ok = Resp_STK_OK;
+  else if(ok > insync)
+    ok--;  
+
+  int16_t bootinfo = insync*255 + ok;
+  int urfeatures = UB_FEATURES(bootinfo);
+
+  bootinfo = urfeatures*UB_N_MCU + up->mcuid;
+  insync = bootinfo/255;
+  ok = bootinfo % 255;
+  if(ok >= insync)
+    ok++;
+  if(insync == Resp_STK_INSYNC && ok == Resp_STK_OK)
+    insync = 255, ok = 254;
+  setimm(insyncp, insync);
+  setimm(okp, ok);
+}
+
+static const Port_bits *getportbits(const Avrintel *up, int port) {
+  int letter = toupper(portletter(port>>4)); // '?' if port was invalid
+
+  for(size_t i=0; i < up->nports; i++)
+    if(up->ports[i].letter == letter)
+      return up->ports+i;
+
+   return NULL;
+}
+
+static int getdiraddr(const Avrintel *up, int port) {
+  const Port_bits *pb = getportbits(up, port);
+
+  return pb && pb->diraddr < 0x20? pb->diraddr: -1;
+}
+
+static int getoutaddr(const Avrintel *up, int port) {
+  const Port_bits *pb = getportbits(up, port);
+
+  return pb && pb->outaddr < 0x20? pb->outaddr: -1;
+}
+
+static int getinaddr(const Avrintel *up, int port) {
+  const Port_bits *pb = getportbits(up, port);
+
+  return pb && pb->inaddr < 0x20? pb->inaddr: -1;
+}
+
+// Set the I/O register and port bit for sbi, cbi, sbic and sbis opcodes
+static void setregbit(const Avrintel *up, uint16_t *codep, int addr, int port) {
+  *codep = addr < 0 || addr >= 0x20? 0x0000: // Nop (ok if no DDR reg, eg)
+    (*codep & 0xff00) | (addr << 3) | (port & 7);
+}
+
+// Return register number n if this is a mov rn, rn template nop; -1 otherwise
+static int templatenop(int opcode) {
+  // Mov rn, rn looks like 0x2cnn for 0 <= n <= 15
+  if((opcode >> 8) != 0x2c || (opcode & 0x0f) != ((opcode & 0xf0) >> 4))
+    return -1;
+
+  return opcode & 0x0f;
+}
+
+static void portopcode(const Avrintel *up, uint16_t *codep, int regn, int port) {
+  int addr;
+
+  switch(regn) {
+  case 0:                       // sbi <outaddr>, <bit>
+    if((addr = getoutaddr(up, port)) >= 0)
+      *codep = 0x9a00 | (addr << 3) | (port & 7);
+    break;
+  case 1:                       // cbi <outaddr>, <bit>
+    if((addr = getoutaddr(up, port)) >= 0)
+      *codep = 0x9800 | (addr << 3) | (port & 7);
+    break;
+  case 2:                       // sbi <diraddr>, <bit>
+    if((addr = getdiraddr(up, port)) >= 0)
+      *codep = 0x9a00 | (addr << 3) | (port & 7);
+    break;
+  case 3:                       // out <outaddr>, r1 (reset all PORT bits of port)
+    if((addr = getoutaddr(up, port)) >= 0)
+      *codep = 0xb800 | ((addr & 0x10) << 5) | (addr & 0x0f);
+    break;
+  case 4:                       // out <diraddr>, r1 (reset all DDR bits of port)
+    if((addr = getdiraddr(up, port)) >= 0)
+      *codep = 0xb800 | ((addr & 0x10) << 5) | (addr & 0x0f);
+    break;
+  }
+}
+
+static void fcpuname(char *sp, const Urbootparams *ppp) {
+  char *p = sp;
+
+  *p++ = '_';
+  if(ppp->fcpu_type)
+    *p++ = ppp->fcpu_type;
+  sprintf(p, "%.6f", ppp->fcpu/1e6);
+
+  p += strlen(p);
+  while(p > sp+1 && p[-2] != '.' && p[-1] == '0')
+    *--p = 0;
+  while(p >= sp && *p != '.')
+    --p;
+  if(*p == '.')
+    *p = 'm';
+}
+
+static void baudname(char *sp, const Urbootparams *ppp) {
+  char *p = sp;
+
+  *p++ = '_';
+  sprintf(p, "%.3f", ppp->baudrate/1e3);
+
+  p += strlen(p);
+  while(p > sp+1 && p[-2] != '.' && p[-1] == '0')
+    *--p = 0;
+  while(p >= sp && *p != '.')
+    --p;
+  if(*p == '.')
+    *p = 'k';
+}
+
+static const char *wdtname(const Urbootparams *ppp) {
+  return (unsigned) ppp->wdt_idx >= sizeof wdtopts/sizeof*wdtopts? "nowdt":
+    wdtopts[ppp->wdt_idx].name;
+}
+
+static const char *featuresname(const Urbootparams *ppp) {
+  return
+     ppp->features == 0? "": 
+     (unsigned) ppp->features >= sizeof urfeat/sizeof*urfeat? "_nofeatures":
+     urfeat[ppp->features];
+}
+
+static char *urboot_filename(const Urbootparams *ppp) {
+  char *ret = mmt_malloc(1024), *p = ret;
+  
+  sprintf(p, "urboot_%s_%s", ppp->mcu, wdtname(ppp));
+  if(ppp->autobaud)
+    strcpy((p+=strlen(p)), "_autobaud");
+  else {
+    fcpuname((p+=strlen(p)), ppp), baudname((p+=strlen(p)), ppp);
+    if(ppp->swio) {
+      sprintf((p+=strlen(p)), "_swio_rx%c%d_tx%c%d",
+        portletter(ppp->rx >> 4), ppp->rx & 7, portletter(ppp->tx >> 4), ppp->tx & 7);
+    }
+  }
+
+  if(!ppp->swio) {
+    sprintf((p+=strlen(p)), "_uart%d", ppp->uart);
+    if(ppp->alt)
+      sprintf((p+=strlen(p)), "_alt%d", ppp->alt);
+  }
+
+  if(ppp->led != -1)
+    sprintf((p+=strlen(p)), "_led%c%c%d", ppp->ledpolarity == -1? '-': '+', portletter(ppp->led >> 4), ppp->led & 7);
+  if(ppp->cs != -1)
+    sprintf((p+=strlen(p)), "_cs%c%d", portletter(ppp->cs >> 4), ppp->cs & 7);
+
+  if(ppp->dual)
+    strcpy((p+=strlen(p)), "_dual");
+  else if(ppp->led == -1)
+    strcpy((p+=strlen(p)), ppp->lednop? "_lednop": "_no-led");
+
+  strcpy((p+=strlen(p)), featuresname(ppp));
+  if(ppp->vectorstr)
+    sprintf((p+=strlen(p)), "_%s", ppp->vectorstr);
+
+  if(ppp->serialno)
+    strcpy((p+=strlen(p)), "_serialno");
+  if(ppp->fill)
+    strcpy((p+=strlen(p)), "_fill");
+  strcpy((p+=strlen(p)), ".hex");
+
+  if(p-ret >= 1024)             // This may never happen: panic
+    exit(123);
+
+  return ret;
+}
+
+static int urbootautogen_parse(char *urname, Urbootparams *ppp) {
+  char *p, *q, *tok;
+  int idx, factor, ns, pnum, beyond = 0;
+  AVRPART *part = NULL;
+
+  memset(ppp, 0, sizeof *ppp);
+  ppp->wdt_idx = 2;             // Default to 1 s WDT timeout
+  ppp->fcpu_type = 'x';         // Default to external oscillator
+  ppp->rx = ppp->tx = -1;       // Invalidate rx/tx pins
+  ppp->cs = -1;                 // Invalidate cs pin
+  ppp->led = -1;                // Invalidate led pin
+
+  if(str_caseends(urname, ":i"))
+    urname[strlen(urname)-2] = 0;
+  if(str_caseends(urname, ".hex"))
+    urname[strlen(urname)-4] = 0;
+
+  if(!str_starts(urname, "urboot:"))
+    Return("%s does not start with urboot:", urname);
+
+  p = urname + 7;
+  while(*(tok = str_nexttok(p, "_", &p))) {
+    // Part only accepted at start of urboot: string
+    if(!beyond++ && (part = locate_part(part_list, tok))) {
+      ppp->mcu = part->id;
+      continue;
+    }
+
+    if((factor = is_num_unit(tok, "s"))) { // WDT timeout
+      int wdt_idx = -1;
+      double tm;
+
+      if(factor == 1000 || sscanf(tok, "%lf", &tm) != 1) // No kiloseconds
+        Return("cannot parse %s for wdt timeout", tok);
+ 
+      if(factor == 1000*1000)   // ms (not Megaseconds)
+        tm /= 1000;
+      for(size_t i=0; i<sizeof wdtopts/sizeof*wdtopts; i++)
+        if(tm > wdtopts[i].timeout*0.9 && tm < wdtopts[i].timeout*1.1)
+          wdt_idx = i;
+      if(wdt_idx == -1)
+        Return("%s wdt timeout not close to any of 250 ms ... 8 s", tok);
+
+      ppp->wdt_idx = wdt_idx;
+      continue;
+    }
+
+    if(str_eq(tok, "autobaud")) {
+      ppp->autobaud = 1;
+      continue;
+    }
+
+    if(str_eq(tok, "swio")) {
+      ppp->swio = 1;
+      continue;
+    }
+
+    size_t tlen = strlen(tok);
+#define tk(n) (tlen >= (n)? tok[n]: 0)
+    int t2 = tk(2), t3 = tk(3), t4 = tk(4), t5 = tk(5), t6 = tk(6);
+#undef tk
+    if(str_starts(tok, "uart") && t4 >= '0' && t4 <= '9' && !t5) {
+      ppp->uart = t4 - '0';
+      continue;
+    }
+
+    if(str_starts(tok, "alt") && t3 >= '0' && t3 <= '9' && !t4) {
+      ppp->alt = t3 - '0';
+      continue;
+    }
+
+    if(str_starts(tok, "tx") && (pnum = portnum(t2)) >= 0 && t3 >= '0' && t3 <= '7' && !t4) {
+      ppp->tx = pnum*16 + t3 - '0';
+      continue;
+    }
+
+    if(str_starts(tok, "rx") && (pnum = portnum(t2)) >= 0 && t3 >= '0' && t3 <= '7' && !t4) {
+      ppp->rx = pnum*16 + t3 - '0';
+      continue;
+    }
+
+    if(str_starts(tok, "cs") && (pnum = portnum(t2)) >= 0 && t3 >= '0' && t3 <= '7' && !t4) {
+      ppp->cs = pnum*16 + t3 - '0';
+      continue;
+    }
+
+    if(str_starts(tok, "led") && (t3 == '+' || t3 == '-') && 
+      (pnum = portnum(t4)) != -1 && t5 >= '0' && t5 <= '7' && !t6) {
+      ppp->led = pnum*16 + t5 - '0';
+      ppp->ledpolarity = t3 == '+'? 1: -1;
+      continue;
+    }
+
+    if(str_starts(tok, "led") && (pnum = portnum(t3)) != -1 && t4 >= '0' && t4 <= '7' && !t5) {
+      ppp->led = pnum*16 + t4 - '0';
+      ppp->ledpolarity = 1;
+      continue;
+    }
+
+    if(is_baudrate_k(tok)) {
+      if(!(q=strchr(tok, 'k')))
+        Return("unexpected baud rate %s", tok);
+     
+      *q = '.';
+      double bd;
+      ns = sscanf(tok, "%lf", &bd);
+      *q = 'k';
+
+      if(ns != 1)
+        Return("cannot parse baud rate %s", tok);
+      if(bd > 8000.001 || bd < 0.299)
+        Return("baud rate %s out of bounds [0k3, 8000k0]", tok);
+      ppp->baudrate = (10000*bd+5)/10;
+      continue;
+    }
+
+    if((factor = is_num_unit(tok, "baud"))) {
+      while(*tok == '+')
+        tok++;
+
+      double bd;
+      if(sscanf(tok, "%lf", &bd) != 1)
+        Return("cannot parse baud rate %s", tok);
+
+      bd *= factor;
+      if(bd > 8000*1000+1 || bd < 299)
+        Return("baud rate %s out of bounds [0.3 kbaud, 8000 kbaud]", tok);
+      ppp->baudrate = (10*bd+5)/10;
+      continue;
+    }
+
+    if(is_fcpu_m(tok)) {
+      if(is_fcpu_type(*tok))
+        ppp->fcpu_type = *tok++;
+
+      if(!(q=strchr(tok, 'm')))
+        Return("unexpected F_cpu %s", tok);
+     
+      *q = '.';
+      double fq;
+      ns = sscanf(tok, "%lf", &fq);
+      *q = 'm';
+
+      if(ns != 1)
+        Return("cannot parse F_cpu %s", tok);
+
+      if(fq > 64 || fq < 1e-3)
+        Return("F_cpu %s out of bounds [0m001, 64m0]", tok);
+
+      ppp->fcpu = (10*1000*1000*fq+5)/10;
+      continue;
+    }
+
+    if((factor = is_num_unit(tok, "hz"))) {
+      if(is_fcpu_type(*tok))
+        ppp->fcpu_type = *tok++;
+
+      while(*tok == '+')
+        tok++;
+
+      double fq;
+      if(sscanf(tok, "%lf", &fq) != 1)
+        Return("cannot parse F_cpu %s", tok);
+
+      fq *= factor;
+      if(fq > 64e6 || fq < 1000)
+        Return("F_cpu %s out of bounds [1 kHz, 64 MHz]", tok);
+
+      ppp->fcpu = (10*fq+5)/10;
+      continue;
+    }
+
+    if(str_eq(tok, "dual")) {
+      ppp->dual = 1;
+      continue;
+    }
+
+    if(str_eq(tok, "lednop")) {
+      ppp->lednop = 1;
+      continue;
+    }
+
+    // Ignore no-led or noled request: automatically assigned when no LED requested
+    if(str_eq(tok, "no-led") || str_eq(tok, "noled"))
+      continue;    
+
+    if(str_eq(tok, "min"))
+      continue;    
+
+    if(str_eq(tok, "pr")) {
+      ppp->features |= FEATURE_PR;
+      continue;
+    }
+    if(str_eq(tok, "ce")) {
+      ppp->features |= FEATURE_CE;
+      continue;
+    }
+    if(str_eq(tok, "ee")) {
+      ppp->features |= FEATURE_EE;
+      continue;
+    }
+    if(str_eq(tok, "hw")) {
+      ppp->features |= FEATURE_HW;
+      continue;
+    }
+
+    if(str_starts(tok, "fill=")) {
+      ppp->fill = mmt_strdup(strchr(tok, '=')+1);
+      ppp->n_fill = cfg_unescapen((unsigned char *) ppp->fill, (unsigned char *) ppp->fill);
+      continue;
+    }
+
+    if(str_starts(tok, "serialno=")) {
+      ppp->serialno = mmt_strdup(strchr(tok, '=')+1);
+      ppp->n_serialno = cfg_unescapen((unsigned char *) ppp->serialno, (unsigned char *) ppp->serialno);
+      continue;
+    }
+
+    if(str_starts(tok, "v")) {
+      ppp->vectorstr = str_lc(mmt_strdup(tok+1));
+      continue;
+    }
+
+    Return("unable to parse %s segment in urboot:... string", tok);
+  }
+
+  const Avrintel *up = NULL;
+  if(partdesc && (part = locate_part(part_list, partdesc)))
+    if((idx = upidxmcuid(part->mcuid)) >= 0)
+      up = uP_table + idx;
+
+  if(ppp->mcu) {
+    if(!(part = locate_part(part_list, ppp->mcu)) || (idx = upidxmcuid(part->mcuid)) < 0)
+      Return("part %s does not have uP_table entry", ppp->mcu);
+    if(up && up != uP_table + idx)
+      Return("-p %s part is incompatible with urboot:%s name", partdesc, tok);
+    if(!up)
+      up = uP_table + idx;
+  } else if(part) {
+    ppp->mcu = part->id;
+  }
+
+  if(!ppp->mcu)
+    Return("missing MCU info from urboot:... string");
+  if(!part)
+    Return("cannot identify part entry in avrdude.conf (%s)", partdesc? partdesc: ppp->mcu);
+  if(!up)
+    Return("missing uP_table entry for %s", partdesc? partdesc: part->desc);
+
+  if(ppp->vectorstr) {
+    if(ppp->features & FEATURE_HW)
+      Return("cannot specify vector when HW supported bootloader selected");
+    int vecnum = -2;
+    if(looks_like_number(ppp->vectorstr)) {
+      const char *errptr;
+      int num = str_int(ppp->vectorstr, STR_INT32, &errptr);
+      if(errptr)
+        Return("v%s: %s", ppp->vectorstr, errptr);
+      vecnum = num == -1? up->ninterrupts: num;
+    } else if(vec_caseeq(ppp->vectorstr, "VBL_ADDITIONAL_VECTOR")) {
+      vecnum = up->ninterrupts;
+    } else if(up->isrtable) {
+      for(int i=0; i < up->ninterrupts; i++)
+        if(vec_caseeq(up->isrtable[i], ppp->vectorstr)) {
+          vecnum = i;
+          break;
+        }
+    }
+    if(vecnum == 0)
+      Return("Cannot use RESET vector for vector bootloader");
+    if(vecnum < 0 || vecnum > up->ninterrupts)
+      Return("vector %s not known for %s", ppp->vectorstr, part->desc);
+    ppp->vector = vecnum;
+  }
+
+  if(up->wdttype == WDT_CLASSIC3 && ppp->wdt_idx > 4)
+    Return("unable to set WDT of %c s (%s has a max wdt time of 2 s)", *wdtopts[ppp->wdt_idx].name, partdesc);
+
+  // Compute configuration of template bootloader
+  const char *cfg = ppp->lednop? "lednop": "noled";
+
+  if(ppp->dual) {
+    if(assert_port(ppp->cs, up->nports, up->ports, "cs", part->desc, 1) == -1)
+      return -1;
+    cfg = "dual";
+  }
+
+  if(ppp->led != -1 && assert_port(ppp->led, up->nports, up->ports, "led", part->desc, 1) == -1)
+    return -1;
+  if(str_eq(cfg, "noled") && ppp->led != -1) // Override noled if led explicitly requested
+    cfg = "lednop";
+  if((unsigned) ppp->features >= sizeof urfeat/sizeof*urfeat)
+    Return("unexpected feature set 0x%02X", ppp->features);
+
+  snprintf(ppp->config, sizeof ppp->config, "%s%s", cfg, urfeat[ppp->features]);
+
+  // Compute I/O type of template bootloader
+
+  long f_cpu = ppp->fcpu, brate = ppp->baudrate;
+  if(f_cpu && ppp->fcpu_type >= 'a' && ppp->fcpu_type <= 'q') // Adjust F_cpu in 1.25% steps
+    f_cpu = (f_cpu * (10000LL + 125*(ppp->fcpu_type - 'i')))/10000;
+
+  if(up->numuarts <= 0)         // Default to SWIO in absence of UARTS
+    ppp->swio = 1;
+
+  if(ppp->autobaud) {
+    if(up->numuarts <= 0)
+      Return("autobaud requires the part to have UART I/O, but %s doesn't", part->desc);
+    if(ppp->swio)
+      Return("Cannot use SW I/O with autobaud bootloaders");
+    snprintf(ppp->iotype, sizeof ppp->iotype, "autobaud_uart%d%s",
+      ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
+  } else if(ppp->swio) {
+    // Need a valid rx/tx for swio
+    if(assert_port(ppp->rx, up->nports, up->ports, "rx", ppp->mcu, 0) == -1)
+      return -1;
+    if(assert_port(ppp->tx, up->nports, up->ports, "tx", ppp->mcu, 1) == -1)
+      return -1;
+    if(ppp->rx == ppp->tx)
+      Return("cannot create SW I/O bootloader with RX pin same as TX pin");
+    if(!ppp->baudrate)
+      Return("SWIO bootloaders need a baud rate, eg, 115k6 or 19200baud");
+    if(!f_cpu)
+      Return("SWIO bootloaders need a CPU frequency, eg, x16m0 or 8MHz");
+
+    int is_xmega = up->avrarch == F_XMEGA;
+    int pc_22bit = up->flashsize > (1<<17);
+    // Cycles per tx/rx bit
+    long cpb = (f_cpu+brate/2)/brate;
+    // Delay loop has granularity of 6 cycles - want around 1% accuracy
+    int b_off = cpb > 600?
+      3: // 3 centres the error: max error is +/- 3 cycles
+      0; // Underestimate b_value and insert opcodes for extra cycles (0..5)
+    int b_value = swio_b_value(cpb, b_off, is_xmega, pc_22bit);
+    int b_cpb = swio_cpb(b_value, is_xmega, pc_22bit);
+    int b_extra = cpb > 600? 0: cpb - b_cpb;
+
+    if(b_value > 256)           // Sic(!) 256 is still OK
+      Return("baud rate too slow for SWIO");
+    if(b_value < 0)
+      Return("baud rate too fast for SWIO");
+    if(b_extra > 5 || b_extra < 0)
+      Return("baud rate incompatible with F_CPU for SWIO");
+
+    ppp->b_value = b_value;
+    ppp->b_extra = b_extra;
+    ppp->gotbaud = f_cpu/(swio_cpb(b_value, is_xmega, pc_22bit) + b_extra);
+    pmsg_notice("urboot bootloader SWIO%d%d baud error is %.2f%%\n", 
+       !!b_value, b_extra, 100.0*(ppp->gotbaud-ppp->baudrate)/ppp->baudrate);
+    snprintf(ppp->iotype, sizeof ppp->iotype, "swio%d%d", !!b_value, b_extra);
+  } else { // UART 
+    if(!ppp->baudrate)
+      Return("missing: autobaud or a baud rate, eg, 115k6 or 19200baud");
+    if(!f_cpu)
+      Return("missing: autobaud or a CPU frequency, eg, x16m0 or i8MHz");
+    if(up->uarttype == UARTTYPE_LIN) {
+      if(f_cpu > brate*64L*(maxbrr(up)+1)) // Quantisation error 64/63, ie, ca 1.6%
+        Return("baud rate too small for 8-bit LINBRR");
+      if(f_cpu < 79L*brate/10L) // Quantisation error 79/80, ie, ca 1.25%
+        Return("baud rate too big for LIN UART");
+      int ns = linbest_ns(up, f_cpu, brate);
+      ppp->linlbt = 0x80 | ns;
+      ppp->linbrrlo = uartbrr(up, f_cpu, brate, ns);
+      ppp->gotbaud = uartbaud(up, f_cpu, brate, ns);
+      snprintf(ppp->iotype, sizeof ppp->iotype, "lin_uart%d", ppp->uart);
+    } else if(up->uarttype == UARTTYPE_CLASSIC) {
+      int smp = uart2x(up, f_cpu, brate, 1)? 8: 16; // Choose 2x or 1x depending on error
+      int raw = rawuartbrr(up, f_cpu, brate, smp);
+      int mxb = maxbrr(up);
+      if(raw > mxb)
+        Return("unachievable baud rate (too slow)");
+      if(raw < 0)
+        Return("unachievable baud rate (too fast)");
+      ppp->brr = raw;
+      ppp->gotbaud = uartbaud(up, f_cpu, brate, smp);
+      snprintf(ppp->iotype, sizeof ppp->iotype, "u%dx%d_uart%d%s",
+        smp == 8? 2: 1, raw > 255? 12: 8,
+        ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
+    } else
+      Return("cannot cope with %s UART (yet)", part->desc);
+  }
+
+  if(ppp->fcpu && ppp->baudrate && ppp->gotbaud) {
+    double bauderr = fabs(100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate);
+    if(!ppp->swio && ((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2))
+      pmsg_warning("high baud error %.2f%% for %s oscillator: consider using swio\n",
+        bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+  }
+
+  uint16_t *bootloader, size, usage;
+  if(!(ppp->template = urboottemplate(ppp->mcu, ppp->iotype, ppp->config)))
+    return -1;
+
+  size = ppp->template[0];
+  usage = ppp->template[1];
+  if(size < 32 || size > 2048)
+    Return("unexpected bootloader size of %d", size);
+  if(usage < 32 || usage > 32768)
+    Return("unexpected bootloader usage of %d", usage);
+  if(usage < size)
+    Return("bootloader size %d exceeds usage %d unexpectedly", size, usage);
+  if((size_t) (usage - size) < ppp->n_serialno)
+    Return("the requested serialno exceeds the space left (%d)", usage-size);
+  bootloader = ppp->template + 2 + UL_CODELOCS_N;
+  if(up->flashsize < 0)
+    Return("unexpected flash size %d for %s", up->flashsize, part->desc);
+  int start = up->flashsize - usage, loc, locok;
+  
+  // Parametrise the bootloader
+  for(int i=0; i < UL_CODELOCS_N; i++) {
+    if((loc = ppp->template[2+i])) {
+      switch(i) {
+      case UL_LDI_BRRLO:
+        setimm(bootloader+loc, ppp->brr);
+        break;
+      case UL_LDI_BRRHI:
+        setimm(bootloader+loc, ppp->brr >> 8);
+        break;
+      case UL_LDI_BRRSHARED:
+        setimm(bootloader+loc, (ppp->brr >> 8) << 4);
+        break;
+      case UL_LDI_LINBRRLO:
+        setimm(bootloader+loc, ppp->linbrrlo);
+        break;
+      case UL_LDI_LINLBT:
+        setimm(bootloader+loc, ppp->linlbt);
+        break;
+      case UL_SWIO_EXTRA12:
+        switch(ppp->b_extra) {
+          case 1: bootloader[loc] = 0x0000; break; // Nop
+          case 2: bootloader[loc] = 0xC000; break; // Rjmp .+0
+          default: Return("unexpected b_extra value %d", ppp->b_extra);
+        }
+        break;
+      case UL_LDI_BVALUE:
+        setimm(bootloader+loc, ppp->b_value);
+        break;
+      case UL_LDI_WDTO:
+        if((unsigned) ppp->wdt_idx >= sizeof wdtopts/sizeof*wdtopts)
+          Return("unexpected wdt_idx %d", ppp->wdt_idx);
+        setimm(bootloader+loc, wdtopts[ppp->wdt_idx].wdt_time);
+        break;
+      case UL_LDI_STK_INSYNC:   // Also treat UL_LDI_STK_OK here
+        if(!(locok = ppp->template[2+UL_LDI_STK_OK]))
+          Return("unexpectedly missing code point for ldi_stk_ok");
+        update_insync_ok(up, bootloader+loc, bootloader+locok);
+        break;
+      case UL_LDI_STK_OK:       // Already treated above
+        break;
+      case UL_RJMP_APPLICATION: // @@@ todo
+        break;
+      case UL_JMP_APPLICATION:  // @@@ todo
+        break;
+      case UL_SBI_DDRTX:
+        setregbit(up, bootloader+loc, getdiraddr(up, ppp->tx), ppp->tx);
+        break;
+      case UL_CBI_TX:
+      case UL_SBI_TX:
+        setregbit(up, bootloader+loc, getoutaddr(up, ppp->tx), ppp->tx);
+        break;
+      case UL_SBIC_RX_START:
+      case UL_SBIC_RX:
+        setregbit(up, bootloader+loc, getinaddr(up, ppp->rx), ppp->rx);
+        break;
+      case UL_LDI_STARTHHZ:
+        setimm(bootloader+loc, start >> 16);
+        break;
+      case UL_LDI_STARTHI:
+      case UL_CPI_STARTHI:
+        setimm(bootloader+loc, start >> 8);
+        break;
+      case UL_CPI_STARTLO:
+        setimm(bootloader+loc, start);
+        break;
+      default:
+        Return("unexpected code location %d for parameter", i);
+      }
+    }
+  }
+
+  // Replace Template opcodes
+  for(int i = 0; i < size; i++) {
+    int opcode = bootloader[i], regn;
+
+    if(is_opcode32(opcode)) {
+      i++;
+      continue;
+    }
+
+    switch((regn = templatenop(opcode))) {
+    default:
+      continue;
+    case 0:
+    case 1:
+      portopcode(up, bootloader+i, regn ^ (ppp->ledpolarity == -1), ppp->led);
+      break;
+    case 12:
+      portopcode(up, bootloader+i, 2, ppp->led);
+      break;
+
+    case 3:
+    case 4:
+      portopcode(up, bootloader+i, regn, ppp->led);
+      break;
+
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+      portopcode(up, bootloader+i, regn-5, ppp->cs);
+      break;
+    }
+  }
+
+  ppp->filename = urboot_filename(ppp);
+
+  return 0;
+}
+
+uint16_t *urbootautogen(const char *filename, int *usagep) {
+  uint16_t *ret = NULL;
+  Urbootparams pp;
+  char *urname = mmt_strdup(filename);
+
+  *usagep = 0;
+  if(urbootautogen_parse(urname, &pp) >= 0) { // Parsing went OK
+    int size = pp.template[0], usage = pp.template[1];
+    *usagep = usage;
+    size_t remain = usage-size;
+    uint16_t *bootloader = pp.template + 2 + UL_CODELOCS_N;
+    
+    ret = mmt_malloc(usage);
+    char *cret = (char *) ret, *cboot = (char *) bootloader;
+
+    memcpy(ret, bootloader, size-6);    
+    memset(cret+size-6, 0xff, usage-size);
+    if(pp.serialno && remain >= pp.n_serialno) {
+      memcpy(cret+usage-6-pp.n_serialno, pp.serialno, pp.n_serialno);
+      remain -= pp.n_serialno;
+    }
+    if(pp.n_fill && pp.fill)
+      for(char *p = pp.fill, *q = cret+size-6; remain; remain--) {
+        *q++ = *p++;
+        if(p >= pp.fill+pp.n_fill)
+          p = pp.fill;
+      }
+    memcpy(cret+usage-6, cboot+size-6, 6);
+    pmsg_info("writing autogenerated %s bootloader\n", pp.filename);
+  }
+
+  mmt_free(urname);
+  mmt_free(pp.serialno);
+  mmt_free(pp.fill);
+  mmt_free(pp.vectorstr);
+  mmt_free(pp.filename);
+  mmt_free(pp.template);
+
+
+  return ret;
+}

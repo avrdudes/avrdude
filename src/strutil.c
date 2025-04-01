@@ -1000,6 +1000,8 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
         Return("unknown format%s suffix of file name", fmtstr);
       str[arglen -= 2] = 0;
     }
+    if(format == FMT_AUTO && str_starts(str, "urboot:"))
+      format = FMT_IHEX;
     if(format == FMT_AUTO) {
       f = fileio_fopenr(str);
       if(f == NULL)
