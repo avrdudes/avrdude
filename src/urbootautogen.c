@@ -989,9 +989,17 @@ static int urbootautogen_parse(char *urname, Urbootparams *ppp) {
         break;
       case UL_LDI_STK_OK:       // Already treated above
         break;
-      case UL_RJMP_APPLICATION: // @@@ todo
+      case UL_RJMP_APPLICATION:
+        if(ppp->vector) {       // Jump forward over FLASHEND into the vector table
+          int dist = ppp->vector*(up->flashsize <= 8192? 2: 4) + usage - loc*2;
+          bootloader[loc] = rjmp_opcode(dist, up->flashsize);
+        }
         break;
-      case UL_JMP_APPLICATION:  // @@@ todo
+      case UL_JMP_APPLICATION:
+        if(ppp->vector) {
+          bootloader[loc] = 0x940c;
+          bootloader[loc+1] = ppp->vector*(up->flashsize <= 8192? 2: 4);
+        }
         break;
       case UL_SBI_DDRTX:
         setregbit(up, bootloader+loc, getdiraddr(up, ppp->tx), ppp->tx);

@@ -372,7 +372,7 @@ static int rjmpdistwrap(int addis, int flashsize) {
 
 
 // Compute from rjmp opcode the relative distance in bytes (rjmp address minus destination address)
-static int dist_rjmp(uint16_t rjmp, int flashsize) {
+int dist_rjmp(uint16_t rjmp, int flashsize) {
   int16_t dist;
 
   dist = rjmp & 0xfff;          // Signed 12-bit word distance
@@ -383,7 +383,7 @@ static int dist_rjmp(uint16_t rjmp, int flashsize) {
 
 
 // rjmp opcode from byte distance; 0xcfff is an endless loop, 0xc000 is a nop
-static uint16_t rjmp_opcode(int dist, int flashsize) {
+uint16_t rjmp_opcode(int dist, int flashsize) {
   dist = rjmpdistwrap(dist, flashsize);
   return 0xc000 | (((dist >> 1) - 1) & 0x0fff);
 }

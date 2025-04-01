@@ -1745,6 +1745,9 @@ extern "C" {
   int disasm_init_tagfile(const AVRPART *p, const char *file);
   void disasm_zap_jumpcalls();
 
+  int dist_rjmp(uint16_t rjmp, int flashsize);
+  uint16_t rjmp_opcode(int dist, int flashsize);
+
   uint16_t *urbootautogen(const char *filename, int *usagep);
 
 #ifdef __cplusplus
