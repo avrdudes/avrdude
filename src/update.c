@@ -77,7 +77,7 @@ UPDATE *parse_op(const char *s) {
   // Filename: last char is format if the penultimate char is a colon
   size_t len = strlen(fn);
 
-  if(len > 2 && fn[len - 2] == ':') {   // Assume format specified
+  if(!str_starts(fn, "urboot:") && len > 2 && fn[len - 2] == ':') { // Format specifier
     upd->format = fileio_format_with_errmsg(fn[len - 1], "");
     if(upd->format == FMT_ERROR) {
       mmt_free(upd->memstr);

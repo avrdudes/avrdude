@@ -1747,8 +1747,15 @@ extern "C" {
 
   int dist_rjmp(uint16_t rjmp, int flashsize);
   uint16_t rjmp_opcode(int dist, int flashsize);
+  uint16_t rjmp_bwd_blstart(int blstart, int flashsize);
+  uint32_t jmp_opcode(int32_t addr);
+  int addr_jmp(uint32_t jmp);
+  uint32_t buf2uint32(const unsigned char *buf);
+  uint16_t buf2uint16(const unsigned char *buf);
+  void uint32tobuf(unsigned char *buf, uint32_t opcode32);
+  void uint16tobuf(unsigned char *buf, uint16_t opcode16);
 
-  uint16_t *urbootautogen(const char *filename, int *usagep);
+  int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename);
 
 #ifdef __cplusplus
 }
