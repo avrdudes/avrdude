@@ -26,7 +26,51 @@
 #include "urbootlist.h"
 #include "urclock_private.h"
 
-#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("; skipping autogeneration\n"); return -1; } while (0)
+#define Return(...) do { \
+  if(verbose > 0) \
+    autogen_help(); \
+  pmsg_error(__VA_ARGS__); \
+  msg_error("; skipping autogeneration\n"); \
+  return -1; \
+} while (0)
+
+static void autogen_help(void) {
+  pmsg_info("%s",
+    "Bootloader features are specified in an underscore-separated list of the\n"
+    "filename in arbitrary order, eg, \"urboot:autobaud_2s\". Features are, eg,\n"
+    "               2s  WDT timeout: 250ms, 500ms, 1s (default), 2s, 4s or 8s\n"
+    "         autobaud  Bootloader adapts to host baud rate within MCU capability\n"
+    "         9.6kbaud  Or other baud rates; also 9600baud or short 9k6 (always k)\n"
+    "            16MHz  Or other f_cpu; also 16000kHz or short 16m0 (always m)\n"
+    "      x,i,a-h,j-q  Optional one-character prefix for F_cpu, eg, k16m0\n"
+    "                   x: external oscillator (default)\n"
+    "                   i: internal oscillator\n"
+    "                   j-q: int oscillator that is 1.25% (j) to 10% (q) fast\n"
+    "                   h-a: int oscillator that is 1.25% (h) to 10% (a) slow\n"
+    "          uart<n>  Hardware UART number, eg, uart0 (default), uart1, ...\n"
+    "           alt<n>  Alternative UART I/O lines (only ATtiny841/441)\n"
+    "             swio  Software I/O, must specify rx and tx pins, see below\n"
+    "     rx[a-h][0-7]  MCU receive pin for swio, eg, rxb0\n"
+    "     tx[a-h][0-7]  MCU transfer pin for swio, eg, txb1\n"
+    "           lednop  If no LED specified, generate template bootloader\n"
+    "     no-led/noled  Drop blinking code unless LED specified\n"
+    "led[+-][a-h][0-7]  Generate blinking code with +/- polarity, eg, led+b5\n"
+    "             dual  Dual boot, must specify CS pin for external SPI flash\n"
+    "     cs[a-h][0-7]  MCU chip select for dual boot, eg, csd5\n"
+    "               hw  Generate bootloader with hardware boot section\n"
+    "             v<n>  Optional vector for vector b/loader, eg, v25 or vspmready\n"
+    "               ee  Generate bootloader with EEPROM r/w support\n"
+    "               ce  Generate bootloader with chip erase capability\n"
+    "               pr  Generate bootloader with reset vector protection\n"
+    "  serialno=abc123  Put serial number, eg, here abc123 in top of unused flash\n"
+    "  fill=urboot\\x20  Fill otherwise unused flash repeatedly with argument\n"
+    "  save=myfile.hex  Save bootloader to file with chosen name\n"
+    "             save  Save bootloader file with canonical file name\n"
+    "             help  Show this help message and return\n"
+    "\n"
+    "See also https://github.com/stefanrueger/urboot/blob/main/docs/makeoptions.md\n"
+  );
+}
 
 typedef struct {
   int wdt_idx;
@@ -34,7 +78,7 @@ typedef struct {
   int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
   int lednop, dual, cs;
   int led, ledpolarity;
-  int features, vector, save;
+  int features, vector, save, show;
   FILEFMT savefmt;
   uint16_t *template;
   char *serialno, *fill, *vectorstr, *savefname;
@@ -582,8 +626,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       urname[strlen(urname)-4] = 0;
 
   p = urname + 7;
+  if(!*p) {
+    autogen_help();
+    return -1;
+  }
   while(*(tok = str_nexttok(p, "_", &p))) {
-    if(!beyond++) { // Accept part only as first element b/c, eg, m32m1 is also a valid f_cpu string
+    if(!beyond++) {             // Accept part only as first element
       AVRPART *urpart = locate_part(part_list, tok);
       if(urpart) {
         if(!str_eq(ppp->mcu, urpart->id))
@@ -770,15 +818,19 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
     }
 
-    if(str_starts(tok, "fill=")) {
-      ppp->fill = mmt_strdup(strchr(tok, '=')+1);
-      ppp->n_fill = cfg_unescapen((unsigned char *) ppp->fill, (unsigned char *) ppp->fill);
+    if(str_starts(tok, "fill")) {
+      if((q = strchr(tok, '='))) {
+        ppp->fill = mmt_strdup(q + 1);
+        ppp->n_fill = cfg_unescapen((unsigned char *) ppp->fill, (unsigned char *) ppp->fill);
+      }
       continue;
     }
 
-    if(str_starts(tok, "serialno=")) {
-      ppp->serialno = mmt_strdup(strchr(tok, '=')+1);
-      ppp->n_serialno = cfg_unescapen((unsigned char *) ppp->serialno, (unsigned char *) ppp->serialno);
+    if(str_starts(tok, "serialno")) {
+      if((q = strchr(tok, '='))) {
+        ppp->serialno = mmt_strdup(q + 1);
+        ppp->n_serialno = cfg_unescapen((unsigned char *) ppp->serialno, (unsigned char *) ppp->serialno);
+      }
       continue;
     }
 
@@ -801,10 +853,22 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
           if(sfmt != FMT_AUTO)
             ppp->savefmt = sfmt;
         }
-        if(!*ppp->savefname)
+        if(!*ppp->savefname) {
+          mmt_free(ppp->savefname);
           ppp->savefname = NULL;
+        }
       }
       continue;
+    }
+
+    if(str_eq(tok, "show")) {
+      ppp->show = 1;
+      continue;
+    }
+
+    if(str_eq(tok, "help")) {
+      autogen_help();
+      return -1;
     }
 
     Return("unable to parse %s segment in urboot:... string", tok);
@@ -892,7 +956,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     if(ppp->rx == ppp->tx)
       Return("cannot create SW I/O bootloader with RX pin same as TX pin");
     if(!ppp->baudrate)
-      Return("SWIO bootloaders need a baud rate, eg, 115k6 or 19200baud");
+      Return("SWIO bootloaders need a baud rate, eg, 115k2 or 19200baud");
     if(!f_cpu)
       Return("SWIO bootloaders need a CPU frequency, eg, x16m0 or 8MHz");
 
@@ -923,9 +987,9 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     snprintf(ppp->iotype, sizeof ppp->iotype, "swio%d%d", !!b_value, b_extra);
   } else { // UART
     if(!ppp->baudrate)
-      Return("missing: autobaud or a baud rate, eg, 115k6 or 19200baud");
+      Return("missing autobaud or a baud rate, eg, 115k2 or 19200baud");
     if(!f_cpu)
-      Return("missing: autobaud or a CPU frequency, eg, x16m0 or i8MHz");
+      Return("missing autobaud or a CPU frequency, eg, x16m0 or i8MHz");
     if(up->uarttype == UARTTYPE_LIN) {
       if(f_cpu > brate*64L*(maxbrr(up)+1)) // Quantisation error 64/63, ie, ca 1.6%
         Return("baud rate too small for 8-bit LINBRR");
@@ -1092,6 +1156,29 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   return 0;
 }
 
+// Put version string into a buffer of max 16 characters incl nul; must be u8.0
+static void urbootPutVersion(char *buf, uint16_t *vertable) {
+  uint16_t ver = vertable[2], rjmpwp = vertable[1];
+
+  uint8_t hi = ver>>8, type = ver & 0xff, flags;
+
+  sprintf(buf, "u%d.%d ", hi>>3, hi&7);
+  buf += strlen(buf);
+  *buf++ = (rjmpwp & 0xf000) == 0xc000? 'w': '-'; // An rjmp opcode? It's to writepage()
+  *buf++ = type & UR_EEPROM? 'e': '-';
+  *buf++ = type & UR_EXPEDITE? 'U': 'u';
+  *buf++ = type & UR_DUAL? 'd': '-';
+  flags = (type/(UR_VBLMASK & -UR_VBLMASK)) & 1; // Only use 1 bit for v8.0+
+  *buf++ = flags? 'j': 'h';
+  *buf++ = type & UR_PROTECTME? 'P': 'p';
+  *buf++ = 'r';
+  *buf++ = type & UR_AUTOBAUD? 'a': '-';
+  *buf++ = type & UR_HAS_CE? 'c': '-';
+  *buf = 0;
+
+  return;
+}
+
 // Set memory to autogenerated urboot bootloader as if read from file
 int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) {
   int ret = -1, msize = mem->size;
@@ -1197,14 +1284,30 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   memset(mem->tags + msize - 6, TAG_ALLOCATED, 6);
 
   if(pp.save) {
-    pp.savefname = pp.savefname? pp.savefname: urboot_filename(&pp);
+    if(!pp.savefname)
+      pp.savefname = urboot_filename(&pp);
     pmsg_notice("writing autogenerated bootloader to %s\n", pp.savefname);
     AVRMEM *memwrite = avr_dup_mem(mem);
     fileio_segments(FIO_WRITE, pp.savefname, pp.savefmt, part, memwrite, pp.n_ursegs, pp.ursegs);
     avr_free_mem(memwrite);
   }
 
-  ret = msize;
+  if(pp.show) {
+    char *p = urboot_filename(&pp), *q, urversion[32] = { 0 };
+
+    if((q = strrchr(p, '.')))
+      *q = 0;
+    urbootPutVersion(urversion, pp.template + 2 + UL_CODELOCS_N + (bsize - 6)/2);
+    if(verbose > 0)
+      term_out("Siz  Use Vers%s Features  Generating file name\n", strlen(urversion) < 15? "": "i");
+    term_out("%3d %4d %s urboot:%s\n", bsize, usage, urversion, p+7);
+    mmt_free(p);
+
+    memset(mem->buf, 0xff, msize);
+    memset(mem->tags, 0, msize);
+  }
+
+  ret = pp.show? 0: msize;
 
 done:
   mmt_free(urname);

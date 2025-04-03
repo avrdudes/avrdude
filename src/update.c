@@ -614,6 +614,10 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
   int op = upd->op == DEVICE_WRITE? FIO_READ: FIO_READ_FOR_VERIFY;
   int allsize = fileio_mem(op, upd->filename, upd->format, p, all, -1);
 
+  if(str_starts(upd->filename, "urboot:")) // Autogeneration prints its own errors
+    if(allsize <= 0)
+      return allsize;
+
   if(allsize < 0) {
     pmsg_error("reading from file %s failed\n", str_infilename(upd->filename));
     return -1;
@@ -774,6 +778,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     // Write the selected device memory/ies using data from a file
     if((allsize = update_all_from_file(upd, pgm, p, mem, mem_desc, &fs)) < 0)
       goto error;
+    if(allsize == 0)
+       break;
     if(umemlist) {
       for(int i = 0; i < ns; i++) {
         m = umemlist[i];
@@ -817,6 +823,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     // Verify that the in memory file is the same as what is on the chip
     if((allsize = update_all_from_file(upd, pgm, p, mem, mem_desc, &fs)) < 0)
       goto error;
+    if(allsize == 0)
+       break;
     if(umemlist) {
       for(int i = 0; i < ns; i++) {
         m = umemlist[i];
