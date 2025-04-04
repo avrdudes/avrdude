@@ -35,7 +35,7 @@
 } while (0)
 
 static void autogen_help(void) {
-  term_out("%s",
+  pmsg_info("%s",
     "Bootloader features are specified in an underscore-separated list of the\n"
     "filename in arbitrary order, eg, \"urboot:autobaud_2s\". Features are, eg,\n"
     "               2s  WDT timeout: 250ms, 500ms, 1s (default), 2s, 4s or 8s\n"
@@ -68,7 +68,7 @@ static void autogen_help(void) {
     "             save  Save bootloader file with canonical file name\n"
     "             help  Show this help message and return\n"
     "\n"
-    "See also https://github.com/stefanrueger/urboot/blob/main/docs/makeoptions.md\n"
+    "For details on urboot bootloaders see https://github.com/stefanrueger/urboot\n"
   );
 }
 
@@ -185,7 +185,7 @@ static int is_fcpu_m(const char *s) {
     s++;
   while(_ok(*s) && isdigit(*s))
     pre++, s++;
-  if(*s != 'm')
+  if(*s != 'm' && *s != 'M')
     return 0;
   s++;
   while(_ok(*s) && isdigit(*s))
@@ -764,7 +764,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       if(is_fcpu_type(*tok))
         ppp->fcpu_type = *tok++;
 
-      if(!(q=strchr(tok, 'm')))
+      if(!(q=strchr(tok, 'm')) && !(q=strchr(tok, 'M')))
         Return("unexpected F_cpu %s", tok);
 
       *q = '.';
