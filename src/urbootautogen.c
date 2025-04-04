@@ -35,7 +35,7 @@
 } while (0)
 
 static void autogen_help(void) {
-  pmsg_info("%s",
+  term_out("%s",
     "Bootloader features are specified in an underscore-separated list of the\n"
     "filename in arbitrary order, eg, \"urboot:autobaud_2s\". Features are, eg,\n"
     "               2s  WDT timeout: 250ms, 500ms, 1s (default), 2s, 4s or 8s\n"
@@ -78,7 +78,7 @@ typedef struct {
   int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
   int lednop, dual, cs;
   int led, ledpolarity;
-  int features, vector, save, show;
+  int features, vecnum, save, show;
   FILEFMT savefmt;
   uint16_t *template;
   char *serialno, *fill, *vectorstr, *savefname;
@@ -463,7 +463,7 @@ static void setregbit(const Avrintel *up, uint16_t *codep, int addr, int port) {
 }
 
 // Return register number n if this is a mov rn, rn template nop; -1 otherwise
-static int templatenop(int opcode) {
+static int templateregn(int opcode) {
   // Mov rn, rn looks like 0x2cnn for 0 <= n <= 15
   if((opcode >> 8) != 0x2c || (opcode & 0x0f) != ((opcode & 0xf0) >> 4))
     return -1;
@@ -584,6 +584,23 @@ static char *urboot_filename(const Urbootparams *ppp) {
 
   if(p-ret >= 1024)             // This may never happen: panic
     exit(123);
+
+  return ret;
+}
+
+static char *vectorname(const Avrintel *up, int vecnum) {
+  if(!up->isrtable)
+    return mmt_strdup("unknown");
+
+  char *ret = mmt_strdup(vecnum >= up->ninterrupts? "ADDITIONAL_VECTOR": up->isrtable[vecnum]);
+
+  // Remove all _ in vectorstr
+  char *p = str_lc(ret), *q = p;
+  do {
+    while(*p == '_')
+      p++;
+    *q++ = *p;
+  } while(*p++);
 
   return ret;
 }
@@ -897,16 +914,10 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       Return("Cannot use RESET vector for vector bootloader");
     if(vecnum < 0 || vecnum > up->ninterrupts)
       Return("vector %s not known for %s", ppp->vectorstr, part->desc);
-    ppp->vector = vecnum;
+    ppp->vecnum = vecnum;
     if(up->isrtable) {          // Replace vector string with ISR name from isrtable[]
       mmt_free(ppp->vectorstr);
-      ppp->vectorstr = str_lc(mmt_strdup(vecnum >= up->ninterrupts? "ADDITIONAL_VECTOR": up->isrtable[vecnum]));
-      char *p = ppp->vectorstr, *q = p; // Remove all _ in vectorstr
-      do {
-        while(*p == '_')
-          p++;
-        *q++ = *p;
-      } while(*p++);
+      ppp->vectorstr = vectorname(up, vecnum);
     }
   }
 
@@ -1024,21 +1035,25 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         bauderr, ppp->fcpu_type == 'x'? "external": "internal");
   }
 
-  uint16_t *bootloader, size, usage;
+  uint16_t *bootloader, *versiontable, size, usage;
   if(!(ppp->template = urboottemplate(ppp->mcu, ppp->iotype, ppp->config)))
     return -1;
 
-  size = ppp->template[0];
-  usage = ppp->template[1];
+  size = ppp->template[0];      // Bootloader size including 6-byte-table in top flash
+  usage = ppp->template[1];     // Flash usage, ie, boot section size or multiple of flash pages
+
   if(size < 32 || size > 2048)
     Return("unexpected bootloader size of %d", size);
   if(usage < 32 || usage > 32768)
     Return("unexpected bootloader usage of %d", usage);
   if(usage < size)
     Return("bootloader size %d exceeds usage %d unexpectedly", size, usage);
-  bootloader = ppp->template + 2 + UL_CODELOCS_N;
-  if(up->flashsize < 0)
+  if(up->flashsize <= 0)
     Return("unexpected flash size %d for %s", up->flashsize, part->desc);
+
+  bootloader = ppp->template + 2 + UL_CODELOCS_N;
+  versiontable = bootloader + (size - 6)/2;
+
   ppp->start = up->flashsize - usage;
 
   int loc, locok;
@@ -1084,12 +1099,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       case UL_LDI_STK_OK:       // Already treated above
         break;
       case UL_RJMP_APPLICATION:
-        if(ppp->vector)         // Jump forward over FLASHEND into the vector table
-          bootloader[loc] = rjmp_opcode(ppp->vector*(up->flashsize <= 8192? 2: 4) + usage - loc*2, up->flashsize);
+        if(ppp->vecnum)         // Jump forward over FLASHEND into the vector table
+          bootloader[loc] = rjmp_opcode(ppp->vecnum*(up->flashsize <= 8192? 2: 4) + usage - loc*2, up->flashsize);
         break;
       case UL_JMP_APPLICATION:
-        if(ppp->vector)
-          uint32tobuf((unsigned char *) bootloader+loc, jmp_opcode(ppp->vector*4));
+        if(ppp->vecnum)
+          uint32tobuf((unsigned char *) bootloader+loc, jmp_opcode(ppp->vecnum*4));
         break;
       case UL_SBI_DDRTX:
         setregbit(up, bootloader+loc, getdiraddr(up, ppp->tx), ppp->tx);
@@ -1118,8 +1133,15 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     }
   }
 
+  // Ensure version table contains new vector number
+  if(ppp->vecnum > 0) {
+    if(ppp->vecnum > 127)
+      Return("unexpected vector number %d > 127", ppp->vecnum);
+    versiontable[0] = (versiontable[0] & 0x80ff) | (ppp->vecnum << 8);
+  }
+
   // Replace Template opcodes
-  for(int i = 0; i < size; i++) {
+  for(int i = 0; i < (size-6)/2; i++) {
     int opcode = bootloader[i], regn;
 
     if(is_opcode32(opcode)) {
@@ -1127,7 +1149,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
     }
 
-    switch((regn = templatenop(opcode))) {
+    switch((regn = templateregn(opcode))) {
     default:
       continue;
     case 0:
@@ -1293,14 +1315,28 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   }
 
   if(pp.show) {
-    char *p = urboot_filename(&pp), *q, urversion[32] = { 0 };
+    char *p = urboot_filename(&pp), *q, urversion[32], type[64];
+    int typelen;
+    uint16_t *versiontable = pp.template + 2 + UL_CODELOCS_N + (bsize - 6)/2;
 
-    if((q = strrchr(p, '.')))
+    if((q = strrchr(p, '.'))) // Remove trailing .hex in filename
       *q = 0;
-    urbootPutVersion(urversion, pp.template + 2 + UL_CODELOCS_N + (bsize - 6)/2);
+    urbootPutVersion(urversion, versiontable);
+    if(pp.features & FEATURE_HW) {
+      strcpy(type, "hardware-supported");
+    } else {
+      q = vectorname(pp.up, 0x7f & (versiontable[0] >> 8));
+      snprintf(type, sizeof type, "vector/%s", q);
+      mmt_free(q);
+    }
+    typelen = strlen(type);
+    if(typelen < 18)
+      typelen = 18;
+
     if(verbose > 0)
-      term_out("Siz  Use Vers%s Features  Generating file name\n", strlen(urversion) < 15? "": "i");
-    term_out("%3d %4d %s urboot:%s\n", bsize, usage, urversion, p+7);
+      term_out("Siz  Use Vers%s Features  Type%*s Generating file name\n",
+        strlen(urversion) < 15? "": "i", typelen-4, "");
+    term_out("%3d %4d %s %-18s urboot:%s\n", bsize, usage, urversion, type, p+7);
     mmt_free(p);
 
     memset(mem->buf, 0xff, msize);
