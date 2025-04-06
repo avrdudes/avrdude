@@ -912,7 +912,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     *buf++ = type & UR_EEPROM? 'e': '-';
     if(hi >= 076) {
       if(hi > 077)              // From version 8.0 it's always urprotocol
-        *buf++ = type & UR_EXPEDITE? 'U': 'u';
+        *buf++ = type & UR_UPDATE_FL? 'U': '-';
       else
         *buf++ = type & UR_URPROTOCOL? 'u': 's';
       *buf++ = type & UR_DUAL? 'd': '-';

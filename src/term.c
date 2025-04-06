@@ -872,7 +872,8 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\n");
 
-  report_progress(0, 1, avr_has_paged_access(pgm, p, mem)? "Caching": "Writing");
+  if(0 < len + bytes_grown)
+    report_progress(0, 1, avr_has_paged_access(pgm, p, mem)? "Caching": "Writing");
   for(i = 0; i < len + bytes_grown; i++) {
     report_progress(i, len + bytes_grown, NULL);
     if(!tags[i])

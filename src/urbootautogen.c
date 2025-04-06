@@ -27,7 +27,7 @@
 #include "urclock_private.h"
 
 #define Return(...) do { \
-  if(verbose > 0) \
+  if(verbose > 0 || rethelp) \
     autogen_help(); \
   pmsg_error(__VA_ARGS__); \
   msg_error("; skipping autogeneration\n"); \
@@ -40,9 +40,9 @@ static void autogen_help(void) {
     "filename in arbitrary order, eg, \"urboot:autobaud_2s\". Features are, eg,\n"
     "               2s  WDT timeout: 250ms, 500ms, 1s (default), 2s, 4s or 8s\n"
     "         autobaud  Bootloader adapts to host baud rate within MCU capability\n"
-    "         9.6kbaud  Or other baud rates; also 9600baud or short 9k6 (always k)\n"
-    "            16MHz  Or other f_cpu; also 16000kHz or short 16m0 (always m)\n"
-    "      x,i,a-h,j-q  Optional one-character prefix for F_cpu, eg, k16m0\n"
+    "         9.6kbaud  Or other reasonable baud rates; also accepting baud unit\n"
+    "            16MHz  Or other f_cpu; also accepting kHz and Hz units\n"
+    "      x,i,a-h,j-q  Optional one-character prefix for F_cpu, eg, k16MHz\n"
     "                   x: external oscillator (default)\n"
     "                   i: internal oscillator\n"
     "                   j-q: int oscillator that is 1.25% (j) to 10% (q) fast\n"
@@ -65,9 +65,10 @@ static void autogen_help(void) {
     "  serialno=abc123  Put serial number, eg, here abc123 in top of unused flash\n"
     "  fill=urboot\\x20  Fill otherwise unused flash repeatedly with argument\n"
     "  save=myfile.hex  Save bootloader to file with chosen name\n"
-    "             save  Save bootloader file with canonical file name\n"
+    "             save  Save bootloader to file with canonical file name\n"
+    "             show  Show bootloader features but do not generate it\n"
     "             help  Show this help message and return\n"
-    "\n"
+    "Features can also be specified like in elements of a canonical file name.\n"
     "For details on urboot bootloaders see https://github.com/stefanrueger/urboot\n"
   );
 }
@@ -185,7 +186,7 @@ static int is_fcpu_m(const char *s) {
     s++;
   while(_ok(*s) && isdigit(*s))
     pre++, s++;
-  if(*s != 'm' && *s != 'M')
+  if(*s != 'm')
     return 0;
   s++;
   while(_ok(*s) && isdigit(*s))
@@ -235,7 +236,7 @@ static int is_num_unit(const char *s, const char *unit) {
 }
 
 // Return 0 id bit-addressable port is available; otherwise show error message and return -1
-static int assert_port(int port, int np, const Port_bits *ports, const char *what, const char *mcu, int out) {
+static int assert_port(int port, int np, const Port_bits *ports, const char *what, const char *mcu, int out, int rethelp) {
   if(port == -1)
     Return("no %s line specified, add _%s[a-g][0-7]", what, what);
 
@@ -311,20 +312,15 @@ static int uartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
   return ret<0? 0: ret > mxb? mxb: ret;
 }
 
-// 10 times actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
-static long uartbaud10(const Avrintel *up, long f_cpu, long br, int nsamples) {
-  return (10*f_cpu)/(nsamples*(uartbrr(up, f_cpu, br, nsamples) + 1));
-}
-
 // Actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
-static long uartbaud(const Avrintel *up, long f_cpu, long br, int nsamples) {
-  return (uartbaud10(up, f_cpu, br, nsamples) + 5)/10;
+double uartbaud(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  return (1.0*f_cpu)/(nsamples*(uartbrr(up, f_cpu, br, nsamples) + 1));
 }
 
-// Absolute UART quanitisation error in per mille
-static int absuartqerr(const Avrintel *up, long f_cpu, long br, int nsamples) {
-  long bdiff = (uartbaud10(up, f_cpu, br, nsamples) - 10*br)*100;
-  return bdiff<0? -bdiff/br: bdiff/br;
+// Absolute UART quanitisation error in ppm
+long absuartqerr(const Avrintel *up, long f_cpu, long br, int nsamples) {
+  double bdiff = (uartbaud(up, f_cpu, br, nsamples) - br)*1e6;
+  return fabs(bdiff/br) + 0.5;
 }
 
 // Return either UART2X=1 or UART2X=0 depending on f_cpu, desired baud rate and preference u2x
@@ -339,14 +335,14 @@ static int uart2x(const Avrintel *up, long f_cpu, long br, int u2x) {
    * less than normal mode considering that normal mode has higher tolerances than 2x speed mode.
    * The reason for a slight preference for UART2X=0 is that is costs less code in urboot.c.
    */
-  int e1 = absuartqerr(up, f_cpu, br, 8), e0 = absuartqerr(up, f_cpu, br, 16);
+  long e1 = absuartqerr(up, f_cpu, br, 8), e0 = absuartqerr(up, f_cpu, br, 16);
 
-  return 20*e1 < 15*e0 && e0 > 14;
+  return 20*e1 < 15*e0 && e0 > 14000; // e0 > 1.4%
 }
 
 // Return l1 or l2, whichever causes less error; on same quantised error return the larger value
 static int linbetter2_ns(const Avrintel *up, long f_cpu, long br, int l1, int l2) {
-  int e1 = absuartqerr(up, f_cpu, br, l1), e2 = absuartqerr(up, f_cpu, br, l2);
+  long e1 = absuartqerr(up, f_cpu, br, l1), e2 = absuartqerr(up, f_cpu, br, l2);
   return e1 < e2? l1: e1 > e2? l2: l1 > l2? l1: l2;
 }
 
@@ -489,11 +485,11 @@ static void portopcode(const Avrintel *up, uint16_t *codep, int regn, int port) 
     break;
   case 3:                       // out <outaddr>, r1 (reset all PORT bits of port)
     if((addr = getoutaddr(up, port)) >= 0)
-      *codep = 0xb800 | ((addr & 0x10) << 5) | (addr & 0x0f);
+      *codep = 0xb810 | ((addr & 0x30) << 5) | (addr & 0x0f);
     break;
   case 4:                       // out <diraddr>, r1 (reset all DDR bits of port)
     if((addr = getdiraddr(up, port)) >= 0)
-      *codep = 0xb800 | ((addr & 0x10) << 5) | (addr & 0x0f);
+      *codep = 0xb810 | ((addr & 0x30) << 5) | (addr & 0x0f);
     break;
   }
 }
@@ -607,7 +603,7 @@ static char *vectorname(const Avrintel *up, int vecnum) {
 
 static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *ppp) {
   char *p, *q, *tok;
-  int idx, factor, ns, pnum, beyond = 0;
+  int idx, factor, ns, pnum, beyond = 0, rethelp = 0;
 
   memset(ppp, 0, sizeof *ppp);
   ppp->wdt_idx = 2;             // Default to 1 s WDT timeout
@@ -623,6 +619,9 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   ppp->up = up;
   ppp->mcu = part->id;
+
+  // Quick and dirty attempt at gleaning a help further down the line
+  rethelp = (q = strstr(urname, "_help")) && q[-1] != '\\' && strchr("._", q[5]);
 
   if(!str_starts(urname, "urboot:"))
     Return("%s does not start with urboot:", urname);
@@ -764,7 +763,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       if(is_fcpu_type(*tok))
         ppp->fcpu_type = *tok++;
 
-      if(!(q=strchr(tok, 'm')) && !(q=strchr(tok, 'M')))
+      if(!(q=strchr(tok, 'm')))
         Return("unexpected F_cpu %s", tok);
 
       *q = '.';
@@ -928,12 +927,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   const char *cfg = ppp->lednop? "lednop": "noled";
 
   if(ppp->dual) {
-    if(assert_port(ppp->cs, up->nports, up->ports, "cs", part->desc, 1) == -1)
+    if(assert_port(ppp->cs, up->nports, up->ports, "cs", part->desc, 1, rethelp) == -1)
       return -1;
     cfg = "dual";
   }
 
-  if(ppp->led != -1 && assert_port(ppp->led, up->nports, up->ports, "led", part->desc, 1) == -1)
+  if(ppp->led != -1 && assert_port(ppp->led, up->nports, up->ports, "led", part->desc, 1, rethelp) == -1)
     return -1;
   if(str_eq(cfg, "noled") && ppp->led != -1) // Override noled if led explicitly requested
     cfg = "lednop";
@@ -960,9 +959,9 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
   } else if(ppp->swio) {
     // Need a valid rx/tx for swio
-    if(assert_port(ppp->rx, up->nports, up->ports, "rx", ppp->mcu, 0) == -1)
+    if(assert_port(ppp->rx, up->nports, up->ports, "rx", ppp->mcu, 0, rethelp) == -1)
       return -1;
-    if(assert_port(ppp->tx, up->nports, up->ports, "tx", ppp->mcu, 1) == -1)
+    if(assert_port(ppp->tx, up->nports, up->ports, "tx", ppp->mcu, 1, rethelp) == -1)
       return -1;
     if(ppp->rx == ppp->tx)
       Return("cannot create SW I/O bootloader with RX pin same as TX pin");
@@ -1188,7 +1187,7 @@ static void urbootPutVersion(char *buf, uint16_t *vertable) {
   buf += strlen(buf);
   *buf++ = (rjmpwp & 0xf000) == 0xc000? 'w': '-'; // An rjmp opcode? It's to writepage()
   *buf++ = type & UR_EEPROM? 'e': '-';
-  *buf++ = type & UR_EXPEDITE? 'U': 'u';
+  *buf++ = type & UR_UPDATE_FL? 'U': '-';
   *buf++ = type & UR_DUAL? 'd': '-';
   flags = (type/(UR_VBLMASK & -UR_VBLMASK)) & 1; // Only use 1 bit for v8.0+
   *buf++ = flags? 'j': 'h';
@@ -1315,12 +1314,10 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   }
 
   if(pp.show) {
-    char *p = urboot_filename(&pp), *q, urversion[32], type[64];
+    char *p, *q, urversion[32], type[64];
     int typelen;
     uint16_t *versiontable = pp.template + 2 + UL_CODELOCS_N + (bsize - 6)/2;
 
-    if((q = strrchr(p, '.'))) // Remove trailing .hex in filename
-      *q = 0;
     urbootPutVersion(urversion, versiontable);
     if(pp.features & FEATURE_HW) {
       strcpy(type, "hardware-supported");
@@ -1334,9 +1331,9 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
       typelen = 18;
 
     if(verbose > 0)
-      term_out("Siz  Use Vers%s Features  Type%*s Generating file name\n",
+      term_out("Siz  Use Vers%s Features  Type%*s Canonical file name\n",
         strlen(urversion) < 15? "": "i", typelen-4, "");
-    term_out("%3d %4d %s %-18s urboot:%s\n", bsize, usage, urversion, type, p+7);
+    term_out("%3d %4d %s %-18s %s\n", bsize, usage, urversion, type, (p = urboot_filename(&pp)));
     mmt_free(p);
 
     memset(mem->buf, 0xff, msize);

@@ -1264,6 +1264,7 @@ extern "C" {
   AVRMEM *fileio_any_memory(const char *name);
   unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
   FILE *fileio_fopenr(const char *fname);
+  int is_generated_fname(const char *filename);
   int fileio_fmt_autodetect_fp(FILE *f);
   int fileio_fmt_autodetect(const char *fname);
   int fileio_mem(int oprwv, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int size);
