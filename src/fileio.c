@@ -1463,7 +1463,7 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment
         int set = str_membuf(tok, STR_ANY, mem->buf + n, end - n, &errstr);
 
         if(errstr || set < 0) {
-          pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
+          pmsg_error("invalid data %s in number :[hdob] format: %s\n", tok, errstr);
           mmt_free(line);
           return -1;
         }
