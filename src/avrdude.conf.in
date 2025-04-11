@@ -2994,15 +2994,11 @@ programmer # pickit4
 # pickit4_updi
 #------------------------------------------------------------
 
-programmer # pickit4_updi
+programmer parent "pickit4" # pickit4_updi
     id                     = "pickit4_updi";
     desc                   = "MPLAB(R) PICkit 4 in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2177, 0x2178, 0x2179;
     hvupdi_support         = 0, 1, 2;
 ;
 
@@ -3010,15 +3006,11 @@ programmer # pickit4_updi
 # pickit4_pdi
 #------------------------------------------------------------
 
-programmer # pickit4_pdi
+programmer parent "pickit4" # pickit4_pdi
     id                     = "pickit4_pdi";
     desc                   = "MPLAB(R) PICkit 4 in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
 #------------------------------------------------------------
@@ -3028,31 +3020,95 @@ programmer # pickit4_pdi
 # Due to hardware limitations, the PICkit 4 can only
 # reach an ISP clock speed of about 330 kHz
 
-programmer # pickit4_isp
+programmer parent "pickit4" # pickit4_isp
     id                     = "pickit4_isp";
     desc                   = "MPLAB(R) PICkit 4 in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
 #------------------------------------------------------------
 # pickit4_tpi
 #------------------------------------------------------------
 
-programmer # pickit4_tpi
+programmer parent "pickit4" # pickit4_tpi
     id                     = "pickit4_tpi";
     desc                   = "MPLAB(R) PICkit 4 in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
+
+# End of "Atmel" Mode
+#
+# Begin of "MPLAB" Mode
+
+#------------------------------------------------------------
+# pickit4_mplab / pickit4_mplab_jtag
+#------------------------------------------------------------
+
+programmer # pickit4_mplab
+    id                     = "pickit4_mplab", "pickit4_mplab_jtag";
+    desc                   = "MPLAB(R) PICkit 4 in JTAG Mode";
+    type                   = "pickit5";
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG;
+    extra_features         = HAS_VTARG_READ | HAS_VTARG_SWITCH | HAS_VTARG_ADJ;
+    connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9012; # PK4 (MPLAB mode)
+;
+
+#------------------------------------------------------------
+# pickit4_mplab_updi
+#------------------------------------------------------------
+
+programmer parent "pickit4_mplab" # pickit4_mplab_updi
+    id                     = "pickit4_mplab_updi";
+    desc                   = "MPLAB(R) PICkit 4 in UPDI Mode";
+    prog_modes             = PM_UPDI;
+    hvupdi_support         = 0, 1, 2, 3;
+;
+
+#------------------------------------------------------------
+# pickit4_mplab_isp
+#------------------------------------------------------------
+
+programmer parent "pickit4_mplab" # pickit4_mplab_isp
+    id                     = "pickit4_mplab_isp";
+    desc                   = "MPLAB(R) PICkit 4 in ISP Mode";
+    prog_modes             = PM_ISP;
+;
+
+#------------------------------------------------------------
+# pickit4_mplab_dw
+#------------------------------------------------------------
+
+programmer parent "pickit4_mplab" # pickit5_dw
+    id                     = "pickit4_mplab_dw";
+    desc                   = "MPLAB(R) PICkit 4 in dW Mode";
+    prog_modes             = PM_debugWIRE;
+;
+
+#------------------------------------------------------------
+# pickit4_mplab_tpi
+#------------------------------------------------------------
+
+programmer parent "pickit4_mplab" # pickit4_mplab_tpi
+    id                     = "pickit4_mplab_tpi";
+    desc                   = "MPLAB(R) PICkit 4 in TPI Mode";
+    prog_modes             = PM_TPI;
+;
+
+#------------------------------------------------------------
+# pickit4_mplab_pdi
+#------------------------------------------------------------
+
+programmer parent "pickit4_mplab" # pickit4_mplab_pdi
+    id                     = "pickit4_mplab_pdi";
+    desc                   = "MPLAB(R) PICkit 4 in PDI Mode";
+    prog_modes             = PM_PDI;
+;
+
+
 
 # Microchip PICkit 5. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164150
@@ -3093,13 +3149,13 @@ programmer # pickit4_tpi
 
 programmer # pickit5
     id                     = "pickit5", "pickit5_jtag";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in JTAG Mode";
+    desc                   = "MPLAB(R) PICkit 5 in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_VTARG_SWITCH | HAS_VTARG_ADJ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
-    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    usbpid                 = 0x9036; # PK5
 ;
 
 #------------------------------------------------------------
@@ -3108,7 +3164,7 @@ programmer # pickit5
 
 programmer parent "pickit5" # pickit5_updi
     id                     = "pickit5_updi";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in UPDI Mode";
+    desc                   = "MPLAB(R) PICkit 5 in UPDI Mode";
     prog_modes             = PM_UPDI;
     hvupdi_support         = 0, 1, 2, 3;
 ;
@@ -3119,7 +3175,7 @@ programmer parent "pickit5" # pickit5_updi
 
 programmer parent "pickit5" # pickit5_isp
     id                     = "pickit5_isp";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in ISP Mode";
+    desc                   = "MPLAB(R) PICkit 5 in ISP Mode";
     prog_modes             = PM_ISP;
 ;
 
@@ -3129,7 +3185,7 @@ programmer parent "pickit5" # pickit5_isp
 
 programmer parent "pickit5" # pickit5_dw
     id                     = "pickit5_dw";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in dW Mode";
+    desc                   = "MPLAB(R) PICkit 5 in dW Mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3139,7 +3195,7 @@ programmer parent "pickit5" # pickit5_dw
 
 programmer parent "pickit5" # pickit5_tpi
     id                     = "pickit5_tpi";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in TPI Mode";
+    desc                   = "MPLAB(R) PICkit 5 in TPI Mode";
     prog_modes             = PM_TPI;
 ;
 
@@ -3149,7 +3205,7 @@ programmer parent "pickit5" # pickit5_tpi
 
 programmer parent "pickit5" # pickit5_pdi
     id                     = "pickit5_pdi";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC) in PDI Mode";
+    desc                   = "MPLAB(R) PICkit 5 in PDI Mode";
     prog_modes             = PM_PDI;
 ;
 
@@ -3184,11 +3240,11 @@ programmer parent "pickit5" # pickit5_pdi
 #        interface for simple serial debugging.
 
 #------------------------------------------------------------
-# pickit_basic / pickit_basic_jtag
+# pickit_basic_mplab / pickit_basic_mplab_jtag
 #------------------------------------------------------------
 
-programmer # pickit_basic
-    id                     = "pickit_basic", "pickit_basic_jtag";
+programmer # pickit_basic_mplab
+    id                     = "pickit_basic_mplab", "pickit_basic_mplab_jtag";
     desc                   = "MPLAB(R) PICkit Basic in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
@@ -3202,8 +3258,8 @@ programmer # pickit_basic
 # pickit_basic_updi
 #------------------------------------------------------------
 
-programmer parent "pickit_basic" # pickit_basic_updi
-    id                     = "pickit_basic_updi";
+programmer parent "pickit_basic_mplab" # pickit_basic_mplab_updi
+    id                     = "pickit_basic_mplab_updi";
     desc                   = "MPLAB(R) PICkit Basic in UPDI Mode";
     prog_modes             = PM_UPDI;
     hvupdi_support         = 1;     # Dedicated reset and updi pin only
@@ -3213,8 +3269,8 @@ programmer parent "pickit_basic" # pickit_basic_updi
 # pickit_basic_isp
 #------------------------------------------------------------
 
-programmer parent "pickit_basic" # pickit_basic_isp
-    id                     = "pickit_basic_isp";
+programmer parent "pickit_basic_mplab" # pickit_basic_mplab_isp
+    id                     = "pickit_basic_mplab_isp";
     desc                   = "MPLAB(R) PICkit Basic in ISP Mode";
     prog_modes             = PM_ISP;
 ;
@@ -3223,8 +3279,8 @@ programmer parent "pickit_basic" # pickit_basic_isp
 # pickit_basic_dw
 #------------------------------------------------------------
 
-programmer parent "pickit_basic" # pickit_basic_dw
-    id                     = "pickit_basic_dw";
+programmer parent "pickit_basic_mplab" # pickit_basic_mplab_dw
+    id                     = "pickit_basic_mplab_dw";
     desc                   = "MPLAB(R) PICkit Basic in dW Mode";
     prog_modes             = PM_debugWIRE;
 ;
@@ -3233,8 +3289,8 @@ programmer parent "pickit_basic" # pickit_basic_dw
 # pickit_basic_tpi
 #------------------------------------------------------------
 
-programmer parent "pickit_basic" # pickit_basic_tpi
-    id                     = "pickit_basic_tpi";
+programmer parent "pickit_basic_mplab" # pickit_basic_mplab_tpi
+    id                     = "pickit_basic_mplab_tpi";
     desc                   = "MPLAB(R) PICkit Basic in TPI Mode";
     prog_modes             = PM_TPI;
 ;
@@ -3243,7 +3299,7 @@ programmer parent "pickit_basic" # pickit_basic_tpi
 # pickit_basic_pdi
 #------------------------------------------------------------
 
-programmer parent "pickit_basic" # pickit_basic_pdi
+programmer parent "pickit_basic_mplab" # pickit_basic_mplab_pdi
     id                     = "pickit_basic_pdi";
     desc                   = "MPLAB(R) PICkit Basic in PDI Mode";
     prog_modes             = PM_PDI;
@@ -3304,15 +3360,11 @@ programmer # snap
 # modification to be used as a UPDI programmer.
 # See the Microchip ETN #36 for details.
 
-programmer # snap_updi
+programmer parent "snap" # snap_updi
     id                     = "snap_updi";
     desc                   = "MPLAB(R) SNAP in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2180, 0x217f, 0x2181;
     hvupdi_support         = 1;
 ;
 
@@ -3320,15 +3372,11 @@ programmer # snap_updi
 # snap_pdi
 #------------------------------------------------------------
 
-programmer # snap_pdi
+programmer parent "snap" # snap_pdi
     id                     = "snap_pdi";
     desc                   = "MPLAB(R) SNAP in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
 #------------------------------------------------------------
@@ -3338,30 +3386,91 @@ programmer # snap_pdi
 # Due to hardware limitations, the MPLAB SNAP can only
 # reach an ISP clock speed of about 330 kHz
 
-programmer # snap_isp
+programmer parent "snap" # snap_isp
     id                     = "snap_isp";
     desc                   = "MPLAB(R) SNAP in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
 #------------------------------------------------------------
 # snap_tpi
 #------------------------------------------------------------
 
-programmer # snap_tpi
+programmer parent "snap" # snap_tpi
     id                     = "snap_tpi";
     desc                   = "MPLAB(R) SNAP in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+;
+
+
+# End of "Atmel" mode
+#
+# Begin of "mplab" mode
+
+
+#------------------------------------------------------------
+# snap_mplab
+#------------------------------------------------------------
+
+programmer # snap_mplab
+    id                     = "snap_mplab", "snap_mplab_jtag";
+    desc                   = "MPLAB(R) SNAP in JTAG mode";
+    type                   = "pickit5";
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
-    usbpid                 = 0x2180, 0x217f, 0x2181;
+    usbpid                 = 0x9018;    # snap (mplab mode)
+;
+
+#------------------------------------------------------------
+# snap_mplab_updi
+#------------------------------------------------------------
+
+# Note that certain MPLAB SNAP programmer needs a hardware
+# modification to be used as a UPDI programmer.
+# See the Microchip ETN #36 for details.
+
+programmer parent "snap_mplab" # snap_mplab_updi
+    id                     = "snap_mplab_updi";
+    desc                   = "MPLAB(R) SNAP in UPDI mode";
+    prog_modes             = PM_UPDI;
+    hvupdi_support         = 1;
+;
+
+#------------------------------------------------------------
+# snap_mplab_pdi
+#------------------------------------------------------------
+
+programmer parent "snap_mplab" # snap_mplab_pdi
+    id                     = "snap_mplab_pdi";
+    desc                   = "MPLAB(R) SNAP in PDI mode";
+    prog_modes             = PM_PDI;
+;
+
+#------------------------------------------------------------
+# snap_mplab_isp
+#------------------------------------------------------------
+
+# Due to hardware limitations, the MPLAB SNAP can only
+# reach an ISP clock speed of about 330 kHz
+
+programmer parent "snap_mplab" # snap_mplab_isp
+    id                     = "snap_mplab_isp";
+    desc                   = "MPLAB(R) SNAP in ISP mode";
+    prog_modes             = PM_ISP;
+;
+
+#------------------------------------------------------------
+# snap_mplab_tpi
+#------------------------------------------------------------
+
+programmer parent "snap_mplab" # snap_mplab_tpi
+    id                     = "snap_mplab_tpi";
+    desc                   = "MPLAB(R) SNAP in TPI mode";
+    prog_modes             = PM_TPI;
 ;
 
 #------------------------------------------------------------
