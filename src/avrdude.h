@@ -31,7 +31,6 @@
 #define XDG_USER_CONF_FILE "avrdude/avrdude.rc"
 #endif
 
-#define progbuf ""              // Used to be for indenting continuation below "avrdude: msg"
 extern char *progname;          // Name of program, for messages
 extern int ovsigck;             // Override signature check (-F)
 extern int verbose;             // Verbosity level (-v, -vv, ...)

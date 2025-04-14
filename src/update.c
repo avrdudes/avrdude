@@ -519,7 +519,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     rc = fileio_mem(FIO_WRITE, "-", FMT_IHEX, p, mem, size);
   } else {
     if(pbar)
-      report_progress(0, 1, str_ccprintf("%*sWriting", (int) strlen(progbuf), ""));
+      report_progress(0, 1, "Writing");
     rc = avr_write_mem(pgm, p, mem, size, (flags & UF_AUTO_ERASE) != 0);
     report_progress(1, 1, NULL);
   }
@@ -673,7 +673,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     return LIBAVRDUDE_SOFTFAIL;
   }
 
-  const char *rcap = str_ccprintf("%*sReading", (int) strlen(progbuf), "");
+  const char *rcap = "Reading";
   const char *mem_desc = !umemlist? avr_mem_name(p, mem): ns == 1? avr_mem_name(p, umemlist[0]): "multiple memories";
   int rc = 0;
 
@@ -711,9 +711,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       for(int ii = 0; ii < ns; ii++) {
         m = umemlist[ii];
         const char *m_name = avr_mem_name(p, m);
-        const char *cap = str_ccprintf("%*s - %-*s", (int) strlen(progbuf), "", maxrlen, m_name);
 
-        report_progress(0, 1, cap);
+        report_progress(0, 1, str_ccprintf(" - %-*s", maxrlen, m_name));
         int ret = avr_read_mem(pgm, p, m, NULL);
 
         report_progress(1, 1, NULL);

@@ -812,7 +812,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
   rv = pins_check(pgm, pin_checklist, sizeof(pin_checklist)/sizeof(pin_checklist[0]), true);
 
   if(rv) {
-    pgm->display(pgm, progbuf);
+    pgm->display(pgm, "");
     return rv;
   }
 
