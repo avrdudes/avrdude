@@ -28,45 +28,79 @@
 
 #define Return(...) do { \
   if(verbose > 0 || rethelp) \
-    autogen_help(); \
+    autogen_help(up); \
   pmsg_error(__VA_ARGS__); \
   msg_error("; skipping autogeneration\n"); \
   return -1; \
 } while (0)
 
-static void autogen_help(void) {
-  pmsg_info("%s",
+static void autogen_help(const Avrintel *up) {
+  AVRPART *part = up? locate_part(part_list, up->name): NULL;
+
+  msg_error("%s",
     "Bootloader features are specified in an underscore-separated list of the\n"
     "filename in arbitrary order, eg, \"urboot:autobaud_2s\". Features are, eg,\n"
+  );
+  msg_error("%s", up && up->wdttype == WDT_CLASSIC3?
+    "               2s  WDT timeout: 250ms, 500ms, 1s (default) or 2s\n":
     "               2s  WDT timeout: 250ms, 500ms, 1s (default), 2s, 4s or 8s\n"
+  );
+  if(up && up->numuarts > 0)
+    msg_error("%s",
     "         autobaud  Bootloader adapts to host baud rate within MCU capability\n"
+    "          uart<n>  Hardware UART number, eg, uart0 (default), uart1, ...\n"
+    "           alt<n>  Alternative UART I/O lines (only ATtiny841/441)\n"
+    );
+  msg_error("%s",
     "         9.6kbaud  Or other reasonable baud rates; also accepting baud unit\n"
     "            16MHz  Or other f_cpu; also accepting kHz and Hz units\n"
-    "      x,i,a-h,j-q  Optional one-character prefix for F_cpu, eg, k16MHz\n"
+    "      x,i,a-h,j-q  Optional F_cpu prefix designator, eg, i16MHz\n"
+  );
+  if(verbose > 0)
+    msg_error("%s",
     "                   x: external oscillator (default)\n"
     "                   i: internal oscillator\n"
     "                   j-q: int oscillator that is 1.25% (j) to 10% (q) fast\n"
     "                   h-a: int oscillator that is 1.25% (h) to 10% (a) slow\n"
-    "          uart<n>  Hardware UART number, eg, uart0 (default), uart1, ...\n"
-    "           alt<n>  Alternative UART I/O lines (only ATtiny841/441)\n"
+    );
+  msg_error("%s",
     "             swio  Software I/O, must specify rx and tx pins, see below\n"
     "     rx[a-h][0-7]  MCU receive pin for swio, eg, rxb0\n"
     "     tx[a-h][0-7]  MCU transfer pin for swio, eg, txb1\n"
     "           lednop  If no LED specified, generate template bootloader\n"
     "     no-led/noled  Drop blinking code unless LED specified\n"
     "led[+-][a-h][0-7]  Generate blinking code with +/- polarity, eg, led+b5\n"
-    "             dual  Dual boot, must specify CS pin for external SPI flash\n"
+    "             dual  Dual boot, must specify CS pin for external SPI flash\n" // @@@ which ones have dual?
     "     cs[a-h][0-7]  MCU chip select for dual boot, eg, csd5\n"
+    );
+  if(up && up->nboots > 0)
+    msg_error("%s",
     "               hw  Generate bootloader with hardware boot section\n"
+    );
+  msg_error("%s",
     "             v<n>  Optional vector for vector b/loader, eg, v25 or vspmready\n"
     "               ee  Generate bootloader with EEPROM r/w support\n"
-    "               ce  Generate bootloader with chip erase capability\n"
+    "               ce  Generate bootloader that can emulate a chip erase\n"
+  );
+  if(up && (up->flashsize & (up->flashsize-1)) == 0) // Not ATmega406
+    msg_error("%s",
     "               pr  Generate bootloader with reset vector protection\n"
+    );
+  if(part && part->n_page_erase <= 1) // Not ATtiny441/841/1634/1634R
+    msg_error("%s",
+    "               u1  Bootloader skips redundant flash-page writes\n"
+    "               u2  And skips redundant flash-page erases during emulated CE\n"
+    "               u3  And skips not needed flash-page erases during page write\n"
+    "               u4  And skips empty-flash-page writes after page erase\n"
+    "                   Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
+    );
+  msg_error("%s",
     "  serialno=abc123  Put serial number, eg, here abc123 in top of unused flash\n"
     "  fill=urboot\\x20  Fill otherwise unused flash repeatedly with argument\n"
     "  save=myfile.hex  Save bootloader to file with chosen name\n"
     "             save  Save bootloader to file with canonical file name\n"
-    "             show  Show bootloader features but do not generate it\n"
+    "             show  Show bootloader features but do not write to flash\n"
+    "             list  List possible bootloader configurations but do not write\n"
     "             help  Show this help message and return\n"
     "Features can also be specified like in elements of a canonical file name.\n"
     "For details on urboot bootloaders see https://github.com/stefanrueger/urboot\n"
@@ -79,13 +113,13 @@ typedef struct {
   int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
   int lednop, dual, cs;
   int led, ledpolarity;
-  int features, vecnum, save, show;
+  int req_feats, req_ulevel, vecnum, save, show, list;
   FILEFMT savefmt;
-  uint16_t *template;
+  Urboot_template *ut;
   char *serialno, *fill, *vectorstr, *savefname;
   size_t n_serialno, n_fill;
   const char *mcu;
-  char config[32], iotype[32];
+  char iotype[32];
   const Avrintel *up;           // Context about MCU
   int start;                    // Start address of bootloader in flash
   int n_ursegs;                 // Number of file segments used in .hex/.srec file
@@ -113,30 +147,6 @@ static const struct {
    { 8.0,  WDT_CLASSIC_8S, "8s" },
 };
 
-#define FEATURE_PR            1 // Vector bootloader protecting the reset vector
-#define FEATURE_CE            2 // Bootloader provides a chip erase command
-#define FEATURE_EE            4 // Bootloader supports EEPROM read/write
-#define FEATURE_HW            8 // Hardware supported bootloader
-
-// Configuration of supported features
-static const char *urfeat[] = { // hw ee ce pr
-  "_min",                       //  0  0  0  0
-  "_pr",                        //  0  0  0  1
-  "_pr_ce",                     //  0  0  1  0 // Use _pr even if not set
-  "_pr_ce",                     //  0  0  1  1
-  "_pr_ee",                     //  0  1  0  0
-  "_pr_ee",                     //  0  1  0  1
-  "_pr_ee_ce",                  //  0  1  1  0
-  "_pr_ee_ce",                  //  0  1  1  1
-  "_hw",                        //  1  0  0  0
-  "_hw",                        //  1  0  0  1 // Hardware bootloaders don't need vector protection
-  "_ee_ce_hw",                  //  1  0  1  0 // Invoke both EEPROM and Chip erase for most HW b/l
-  "_ee_ce_hw",                  //  1  0  1  1
-  "_ee_ce_hw",                  //  1  1  0  0
-  "_ee_ce_hw",                  //  1  1  0  1
-  "_ee_ce_hw",                  //  1  1  1  0
-  "_ee_ce_hw",                  //  1  1  1  1
-};
 
 # define _ok(c) ((c) && (uint8_t) (c) <= 0x7f)
 
@@ -236,7 +246,9 @@ static int is_num_unit(const char *s, const char *unit) {
 }
 
 // Return 0 id bit-addressable port is available; otherwise show error message and return -1
-static int assert_port(int port, int np, const Port_bits *ports, const char *what, const char *mcu, int out, int rethelp) {
+static int assert_port(int port, int np, const Port_bits *ports, const char *what, const char *mcu,
+  int out, const Avrintel *up, int rethelp) {
+
   if(port == -1)
     Return("no %s line specified, add _%s[a-g][0-7]", what, what);
 
@@ -531,18 +543,11 @@ static const char *wdtname(const Urbootparams *ppp) {
     wdtopts[ppp->wdt_idx].name;
 }
 
-static const char *featuresname(const Urbootparams *ppp) {
-  return
-     ppp->features == 0? "":
-     (unsigned) ppp->features >= sizeof urfeat/sizeof*urfeat? "_nofeatures":
-     urfeat[ppp->features];
-}
-
 static char *urboot_filename(const Urbootparams *ppp) {
   char *ret = mmt_malloc(1024), *p = ret;
 
   sprintf(p, "urboot_%s_%s", ppp->mcu, wdtname(ppp));
-  if(ppp->autobaud)
+  if(ppp->autobaud)             // if(ppp->ut->table[2] & UR_AUTOBAUD)
     strcpy((p+=strlen(p)), "_autobaud");
   else {
     fcpuname((p+=strlen(p)), ppp), baudname((p+=strlen(p)), ppp);
@@ -568,9 +573,22 @@ static char *urboot_filename(const Urbootparams *ppp) {
   else if(ppp->led == -1)
     strcpy((p+=strlen(p)), ppp->lednop? "_lednop": "_no-led");
 
-  strcpy((p+=strlen(p)), featuresname(ppp));
-  if(ppp->vectorstr)
-    sprintf((p+=strlen(p)), "_v%s", ppp->vectorstr);
+  if(!ppp->ut->features && !ppp->ut->update_level)
+    strcpy((p+=strlen(p)), "_min");
+  if(ppp->ut->features & URFEATURE_EE)
+    strcpy((p+=strlen(p)), "_ee");
+  if(ppp->ut->features & URFEATURE_CE)
+    strcpy((p+=strlen(p)), "_ce");
+  if(ppp->ut->update_level)
+    sprintf((p+=strlen(p)), "_u%d", ppp->ut->update_level);
+  if(ppp->ut->features & URFEATURE_HW)
+    strcpy((p+=strlen(p)), "_hw");
+  else {
+    if(ppp->ut->features & URFEATURE_PR)
+       strcpy((p+=strlen(p)), "_pr");
+    if(ppp->vectorstr)
+      sprintf((p+=strlen(p)), "_v%s", ppp->vectorstr);
+  }
 
   if(ppp->n_serialno && ppp->serialno)
     strcpy((p+=strlen(p)), "_serialno");
@@ -584,26 +602,44 @@ static char *urboot_filename(const Urbootparams *ppp) {
   return ret;
 }
 
-static char *vectorname(const Avrintel *up, int vecnum) {
-  if(!up->isrtable)
-    return mmt_strdup("unknown");
+// Return temporary buffer with features that the user needs to add for this selection
+static const char *ccselection(int dfeat, int ulevel) {
+  char buf[64] = { 0 }, *p = buf;
 
-  char *ret = mmt_strdup(vecnum >= up->ninterrupts? "ADDITIONAL_VECTOR": up->isrtable[vecnum]);
+  if(dfeat & URFEATURE_EE)
+    strcpy((p+=strlen(p)), "_ee");
+  if(dfeat & URFEATURE_CE)
+    strcpy((p+=strlen(p)), "_ce");
+  if(dfeat & URFEATURE_U4)
+    strcpy((p+=strlen(p)), "_u4");
+  else if(ulevel)
+    sprintf((p+=strlen(p)), "_u%d", ulevel);
+  if(dfeat & URFEATURE_HW)
+    strcpy((p+=strlen(p)), "_hw");
+  else if(dfeat & URFEATURE_PR)
+    strcpy((p+=strlen(p)), "_pr");
+  if(!*buf)
+    strcpy(buf, "-->");
 
-  // Remove all _ in vectorstr
-  char *p = str_lc(ret), *q = p;
-  do {
-    while(*p == '_')
-      p++;
-    *q++ = *p;
-  } while(*p++);
+  return str_ccprintf("%s", buf);
+}
 
-  return ret;
+// Returns whether the template closely matches the requested properties
+static int urmatch(Urboot_template *ut, int req_feats, int req_ulevel) {
+  int uf = ut->features, rf = req_feats, ru = req_ulevel;
+  if(uf & URFEATURE_HW)
+    uf &= ~URFEATURE_PR;
+  if(rf & URFEATURE_HW)
+    rf &= ~URFEATURE_PR;
+  if(rf != uf)
+    return 0;
+  return ru == 0 || ru == 4? 1: ut->update_level == ru;
 }
 
 static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *ppp) {
   char *p, *q, *tok;
   int idx, factor, ns, pnum, beyond = 0, rethelp = 0;
+  const Avrintel *up = NULL;
 
   memset(ppp, 0, sizeof *ppp);
   ppp->wdt_idx = 2;             // Default to 1 s WDT timeout
@@ -615,7 +651,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   if((idx = upidxmcuid(part->mcuid)) < 0)
     Return("part %s does not have uP_table entry", ppp->mcu);
-  const Avrintel *up = uP_table + idx;
+  up = uP_table + idx;
 
   ppp->up = up;
   ppp->mcu = part->id;
@@ -643,7 +679,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   p = urname + 7;
   if(!*p) {
-    autogen_help();
+    autogen_help(up);
     return -1;
   }
   while(*(tok = str_nexttok(p, "_", &p))) {
@@ -818,19 +854,19 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
 
     if(str_eq(tok, "pr")) {
-      ppp->features |= FEATURE_PR;
+      ppp->req_feats |= URFEATURE_PR;
       continue;
     }
     if(str_eq(tok, "ce")) {
-      ppp->features |= FEATURE_CE;
+      ppp->req_feats |= URFEATURE_CE;
       continue;
     }
     if(str_eq(tok, "ee")) {
-      ppp->features |= FEATURE_EE;
+      ppp->req_feats |= URFEATURE_EE;
       continue;
     }
     if(str_eq(tok, "hw")) {
-      ppp->features |= FEATURE_HW;
+      ppp->req_feats |= URFEATURE_HW;
       continue;
     }
 
@@ -850,7 +886,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
     }
 
-    if(str_starts(tok, "v")) {
+    if(*tok == 'u' && tlen == 2 && strchr("01234", tok[1])) {
+      ppp->req_ulevel = tok[1] - '0';
+      continue;
+    }
+
+    if(*tok == 'v') {
       ppp->vectorstr = str_lc(mmt_strdup(tok+1));
       continue;
     }
@@ -882,16 +923,27 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
     }
 
+    if(str_eq(tok, "list")) {
+      ppp->list = 1;
+      continue;
+    }
+
     if(str_eq(tok, "help")) {
-      autogen_help();
+      autogen_help(up);
       return -1;
     }
 
     Return("unable to parse %s segment in urboot:... string", tok);
   }
 
+  if(ppp->req_ulevel == 4)
+    ppp->req_feats |= URFEATURE_U4;
+
+  if(ppp->req_feats & URFEATURE_HW)
+    ppp->req_feats &= ~URFEATURE_PR;
+
   if(ppp->vectorstr) {
-    if(ppp->features & FEATURE_HW)
+    if(ppp->req_feats & URFEATURE_HW)
       Return("cannot specify vector when HW supported bootloader selected");
     int vecnum = -2;
     if(looks_like_number(ppp->vectorstr)) {
@@ -916,7 +968,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     ppp->vecnum = vecnum;
     if(up->isrtable) {          // Replace vector string with ISR name from isrtable[]
       mmt_free(ppp->vectorstr);
-      ppp->vectorstr = vectorname(up, vecnum);
+      ppp->vectorstr = str_vectorname(up, vecnum);
     }
   }
 
@@ -927,19 +979,15 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   const char *cfg = ppp->lednop? "lednop": "noled";
 
   if(ppp->dual) {
-    if(assert_port(ppp->cs, up->nports, up->ports, "cs", part->desc, 1, rethelp) == -1)
+    if(assert_port(ppp->cs, up->nports, up->ports, "cs", part->desc, 1, up, rethelp) == -1)
       return -1;
     cfg = "dual";
   }
 
-  if(ppp->led != -1 && assert_port(ppp->led, up->nports, up->ports, "led", part->desc, 1, rethelp) == -1)
+  if(ppp->led != -1 && assert_port(ppp->led, up->nports, up->ports, "led", part->desc, 1, up, rethelp) == -1)
     return -1;
   if(str_eq(cfg, "noled") && ppp->led != -1) // Override noled if led explicitly requested
     cfg = "lednop";
-  if((unsigned) ppp->features >= sizeof urfeat/sizeof*urfeat)
-    Return("unexpected feature set 0x%02X", ppp->features);
-
-  snprintf(ppp->config, sizeof ppp->config, "%s%s", cfg, urfeat[ppp->features]);
 
   // Compute I/O type of template bootloader
 
@@ -959,9 +1007,9 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
   } else if(ppp->swio) {
     // Need a valid rx/tx for swio
-    if(assert_port(ppp->rx, up->nports, up->ports, "rx", ppp->mcu, 0, rethelp) == -1)
+    if(assert_port(ppp->rx, up->nports, up->ports, "rx", ppp->mcu, 0, up, rethelp) == -1)
       return -1;
-    if(assert_port(ppp->tx, up->nports, up->ports, "tx", ppp->mcu, 1, rethelp) == -1)
+    if(assert_port(ppp->tx, up->nports, up->ports, "tx", ppp->mcu, 1, up, rethelp) == -1)
       return -1;
     if(ppp->rx == ppp->tx)
       Return("cannot create SW I/O bootloader with RX pin same as TX pin");
@@ -986,6 +1034,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       Return("baud rate too slow for SWIO");
     if(b_value < 0)
       Return("baud rate too fast for SWIO");
+    if(b_value == 0)            // @@@ Only because there are no swio0x bootloader templates
+       Return("no bootloader template with that SWIO baud rate (compile from source)");
     if(b_extra > 5 || b_extra < 0)
       Return("baud rate incompatible with F_CPU for SWIO");
 
@@ -1034,31 +1084,142 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         bauderr, ppp->fcpu_type == 'x'? "external": "internal");
   }
 
-  uint16_t *bootloader, *versiontable, size, usage;
-  if(!(ppp->template = urboottemplate(ppp->mcu, ppp->iotype, ppp->config)))
+  uint16_t *locations, *bootloader, *versiontable, size, usage;
+  Urboot_template **urlist;
+  int nut = 0;
+
+  urlist = urboottemplate(up, ppp->mcu, ppp->iotype, cfg, ppp->req_feats, ppp->req_ulevel,
+    ppp->list, &nut);
+
+  if(!urlist || nut == 0) {
+    msg_error("; skipping autogeneration\n");
+    return -1;
+  }
+
+  if(ppp->list) {
+    size_t maxtype = 0, maxver = 14, maxuse = 3;
+    int add[32] = { 0 }, maxd = 0, addone = 0;
+    int sw=0, se=0, sU=0, sd=0, sj=0, sh=0, sP=0, sr=0, sa=0, sc=0, sp=0, sm=0;
+
+    for(int n=0; n<nut; n++) {
+      char *t = ppp->vectorstr && !(urlist[n]->features & URFEATURE_HW)? "vector": urlist[n]->type;
+      if(strlen(t) > maxtype)
+        maxtype = strlen(t);
+      if(strlen(urlist[n]->urversion) > maxver)
+        maxver = strlen(urlist[n]->urversion);
+      if(urlist[n]->usage > 999)
+        maxuse = 4 + (urlist[n]->usage > 9999);
+      int bdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
+      if((int) bitcount(bdiff) > maxd)
+        maxd = bitcount(bdiff);
+      if(add[bdiff]++)
+        addone = 1;
+      for(char *p = strchr(urlist[n]->urversion, ' '); p && *p; p++)
+        switch(*p) {
+        case 'w': sw=1; break;
+        case 'e': se=1; break;
+        case 'U': sU=1; break;
+        case 'd': sd=1; break;
+        case 'j': sj=1; break;
+        case 'h': sh=1; break;
+        case 'P': sP=1; break;
+        case 'r': sr=1; break;
+        case 'a': sa=1; break;
+        case 'c': sc=1; break;
+        case 'p': sp=1; break;
+        case '-': sm=1; break;
+        }
+    }
+
+    if(!(maxd += addone))
+      maxd++;
+    maxd *= 3;
+
+    term_out("%*.*s Size %*sUse Vers%s Features  Type%*s Canonical file name\n",
+      maxd, maxd, "Selection", (int) maxuse-3, "", maxver < 15? "": "i", (int) maxtype-4, "");
+    for(int use=0, n=0; n<nut; n++) {
+      ppp->ut = urlist[n];
+      char *p = urboot_filename(ppp);
+      char *t = ppp->vectorstr && !(urlist[n]->features & URFEATURE_HW)? "vector": urlist[n]->type;
+      int bdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
+      term_out("%*.*s %c%3d %*d %*s %-*s %s\n",
+        maxd, maxd, ccselection(bdiff, add[bdiff] > 1? urlist[n]->update_level: 0),
+        use != urlist[n]->usage? '*': ' ', urlist[n]->size,
+        (int) maxuse, urlist[n]->usage, (int) maxver, urlist[n]->urversion, (int) maxtype, t, p);
+      mmt_free(p);
+      use = urlist[n]->usage;
+    }
+    if(verbose > 0) {
+      term_out("\n"
+        "Selection --> or possible strings for narrowing down choices\n"
+        "Size      Bootloader code size; * indicates most feature-rich for flash use\n"
+        "Use       Flash usage of bootloader (boot section or multiple of page size)\n"
+        "Vers      Urboot bootloader version\n"
+        "Type      Hardware or vector bootloader\n"
+        "Canonical file name is the one chosen when saved using  _save\n"
+        "Features  Bootloader capabilites and features\n"
+      );
+      if(sw)
+       term_out("  w provides pgm_write_page(sram, flash) for the application at FLASHEND-4+1\n");
+      if(se)
+       term_out("  e supports EEPROM r/w\n");
+      if(sU)
+       term_out("  U skips redundant flash page writes/erases\n");
+      if(sd)
+       term_out("  d dual boot (over the air programming from external SPI flash\n");
+      if(sj)
+       term_out("  j vector bootloader\n");
+      if(sP)
+       term_out("  P protects bootloader and reset vector from being overwritten\n");
+      if(sp)
+       term_out("  p protects bootloader from being overwritten\n");
+      if(sh)
+       term_out("  h hardware-supported bootloader\n");
+      if(sr)
+       term_out("  r preserves reset flags for the application in the register R2\n");
+      if(sa)
+       term_out("  a autobaud detection (f_cpu/8n using discrete divisors, n = 1, 2, ..., 256)\n");
+      if(sc)
+       term_out("  c bootloader provides chip erase functionality\n");
+      if(sm)
+       term_out("  - corresponding feature not present\n");
+    }
+  }
+
+  ppp->ut = *urlist;
+  for(int n = nut-1; n >= 0; n--) // Downgrade to requested ulevel if needed
+    if(urmatch(urlist[n], ppp->req_feats, ppp->req_ulevel))
+      ppp->ut = urlist[n];
+
+  // Deallocate urlist
+  for(int n=0; n<nut; n++) {
+    if(urlist[n] && urlist[n] != ppp->ut) {
+      mmt_free(urlist[n]->tofree);
+      mmt_free(urlist[n]);
+    }
+  }
+  mmt_free(urlist);
+  nut = 0;
+
+  if(ppp->list)
     return -1;
 
-  size = ppp->template[0];      // Bootloader size including 6-byte-table in top flash
-  usage = ppp->template[1];     // Flash usage, ie, boot section size or multiple of flash pages
+  size = ppp->ut->size;
+  usage = ppp->ut->usage;
 
-  if(size < 32 || size > 2048)
-    Return("unexpected bootloader size of %d", size);
-  if(usage < 32 || usage > 32768)
-    Return("unexpected bootloader usage of %d", usage);
-  if(usage < size)
-    Return("bootloader size %d exceeds usage %d unexpectedly", size, usage);
   if(up->flashsize <= 0)
     Return("unexpected flash size %d for %s", up->flashsize, part->desc);
 
-  bootloader = ppp->template + 2 + UL_CODELOCS_N;
-  versiontable = bootloader + (size - 6)/2;
+  locations = ppp->ut->locs;
+  bootloader = ppp->ut->code;
+  versiontable = ppp->ut->table;
 
   ppp->start = up->flashsize - usage;
 
   int loc, locok;
   // Parametrise the bootloader
   for(int i=0; i < UL_CODELOCS_N; i++) {
-    if((loc = ppp->template[2+i])) {
+    if((loc = locations[i])) {
       switch(i) {
       case UL_LDI_BRRLO:
         setimm(bootloader+loc, ppp->brr);
@@ -1091,7 +1252,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         setimm(bootloader+loc, wdtopts[ppp->wdt_idx].wdt_time);
         break;
       case UL_LDI_STK_INSYNC:   // Also treat UL_LDI_STK_OK here
-        if(!(locok = ppp->template[2+UL_LDI_STK_OK]))
+        if(!(locok = locations[UL_LDI_STK_OK]))
           Return("unexpectedly missing code point for ldi_stk_ok");
         update_insync_ok(up, bootloader+loc, bootloader+locok);
         break;
@@ -1177,29 +1338,6 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   return 0;
 }
 
-// Put version string into a buffer of max 16 characters incl nul; must be u8.0
-static void urbootPutVersion(char *buf, uint16_t *vertable) {
-  uint16_t ver = vertable[2], rjmpwp = vertable[1];
-
-  uint8_t hi = ver>>8, type = ver & 0xff, flags;
-
-  sprintf(buf, "u%d.%d ", hi>>3, hi&7);
-  buf += strlen(buf);
-  *buf++ = (rjmpwp & 0xf000) == 0xc000? 'w': '-'; // An rjmp opcode? It's to writepage()
-  *buf++ = type & UR_EEPROM? 'e': '-';
-  *buf++ = type & UR_UPDATE_FL? 'U': '-';
-  *buf++ = type & UR_DUAL? 'd': '-';
-  flags = (type/(UR_VBLMASK & -UR_VBLMASK)) & 1; // Only use 1 bit for v8.0+
-  *buf++ = flags? 'j': 'h';
-  *buf++ = type & UR_PROTECTME? 'P': 'p';
-  *buf++ = 'r';
-  *buf++ = type & UR_AUTOBAUD? 'a': '-';
-  *buf++ = type & UR_HAS_CE? 'c': '-';
-  *buf = 0;
-
-  return;
-}
-
 // Set memory to autogenerated urboot bootloader as if read from file
 int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) {
   int ret = -1, msize = mem->size;
@@ -1209,9 +1347,9 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   if(urbootautogen_parse(part, urname, &pp) < 0)
     goto done;
 
-  int bsize = pp.template[0], usage = pp.template[1];
+  int bsize = pp.ut->size, usage = pp.ut->usage;
   size_t remain = usage - bsize;
-  unsigned char *bloader = (unsigned char *) (pp.template + 2 + UL_CODELOCS_N);
+  unsigned char *bloader = (unsigned char *) pp.ut->code;
 
   if(!mem_is_flash(mem)) {
     pmsg_error("can only write urboot:... autogenerated bootloader to flash, not %s\n", mem->desc);
@@ -1236,7 +1374,7 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   pp.n_ursegs = 0;
 
   // Reset vector for vector bootloader
-  if(!(pp.features & FEATURE_HW)) { // Vector bootloader: Add r/jmp to bootloader at Reset
+  if(!(pp.ut->features & URFEATURE_HW)) { // Vector bootloader: Add r/jmp to bootloader at Reset
     int vecsz;
 
     pp.ursegs[pp.n_ursegs].addr = 0;
@@ -1314,26 +1452,12 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   }
 
   if(pp.show) {
-    char *p, *q, urversion[32], type[64];
-    int typelen;
-    uint16_t *versiontable = pp.template + 2 + UL_CODELOCS_N + (bsize - 6)/2;
-
-    urbootPutVersion(urversion, versiontable);
-    if(pp.features & FEATURE_HW) {
-      strcpy(type, "hardware-supported");
-    } else {
-      q = vectorname(pp.up, 0x7f & (versiontable[0] >> 8));
-      snprintf(type, sizeof type, "vector/%s", q);
-      mmt_free(q);
-    }
-    typelen = strlen(type);
-    if(typelen < 18)
-      typelen = 18;
+    char *p = urboot_filename(&pp);
 
     if(verbose > 0)
-      term_out("Siz  Use Vers%s Features  Type%*s Canonical file name\n",
-        strlen(urversion) < 15? "": "i", typelen-4, "");
-    term_out("%3d %4d %s %-18s %s\n", bsize, usage, urversion, type, (p = urboot_filename(&pp)));
+      term_out("Size %*sUse Vers%s Features  Type%*s Canonical file name\n", usage > 9999? 2: usage > 999, "",
+        strlen(pp.ut->urversion) < 15? "": "i", (int) strlen(pp.ut->type)-4, "");
+    term_out("%4d %d %s %s %s\n", bsize, usage, pp.ut->urversion, pp.ut->type, p);
     mmt_free(p);
 
     memset(mem->buf, 0xff, msize);
@@ -1347,7 +1471,10 @@ done:
   mmt_free(pp.serialno);
   mmt_free(pp.fill);
   mmt_free(pp.vectorstr);
-  mmt_free(pp.template);
+  if(pp.ut) {
+    mmt_free(pp.ut->tofree);
+    mmt_free(pp.ut);
+  }
 
   return ret;
 }

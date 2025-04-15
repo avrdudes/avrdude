@@ -1627,6 +1627,7 @@ int fileio_fmt_autodetect_fp(FILE *f) {
   return ret;
 }
 
+// Read-only files that avrdude generates itself
 int is_generated_fname(const char *fname) {
   return str_starts(fname, "urboot:");
 }

@@ -1569,3 +1569,21 @@ const char *str_ccsharg(const char *str) {
 
   return str;
 }
+
+// Return malloc'd ISR vector name without _ (given the vector number)
+char *str_vectorname(const Avrintel *up, int vn) {
+  if(!up->isrtable || vn < -1 || vn > up->ninterrupts)
+    return mmt_strdup("unknown");
+
+  char *ret = mmt_strdup((unsigned) vn >= up->ninterrupts? "ADDITIONAL_VECTOR": up->isrtable[vn]);
+
+  // Remove all _ in vectorstr
+  char *p = str_lc(ret), *q = p;
+  do {
+    while(*p == '_')
+      p++;
+    *q++ = *p;
+  } while(*p++);
+
+  return ret;
+}

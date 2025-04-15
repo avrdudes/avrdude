@@ -1615,6 +1615,24 @@ typedef struct {
 
 extern const AVR_opcode avr_opcodes[164];
 
+// Urboot bootloader features
+#define URFEATURE_PR          1 // Vector bootloader protecting the reset vector
+#define URFEATURE_EE          2 // Bootloader supports EEPROM read/write
+#define URFEATURE_CE          4 // Bootloader provides a chip erase command
+#define URFEATURE_HW          8 // Hardware supported bootloader
+#define URFEATURE_U4         16 // Update flash as opposed to purely writing
+
+typedef struct {
+  int size, usage, update_level;
+  int features;                 // Above 5 bits of features the bootloader has
+  uint16_t *tofree;             // This is the allocated space that needs freeing
+  uint16_t *locs;               // Index list in code where parameters can be set
+  uint16_t *code;               // size/2 - 3 words of 16-bit bootloader opcodes
+  uint16_t *table;              // 3-word-table at end of bootloader
+  char urversion[32], type[64]; // Version string and bootloader type string
+  int match_req;                // Bootloader matches the requested features
+} Urboot_template;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1704,6 +1722,7 @@ extern "C" {
   const char *str_ccaddress(int addr, int size);
   char *str_quote_bash(const char *s);
   const char *str_ccsharg(const char *str);
+  char *str_vectorname(const Avrintel *up, int vn);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
@@ -1745,6 +1764,7 @@ extern "C" {
   int disasm_init(const AVRPART *p);
   int disasm_init_tagfile(const AVRPART *p, const char *file);
   void disasm_zap_jumpcalls();
+  unsigned bitcount(unsigned n);
 
   int dist_rjmp(uint16_t rjmp, int flashsize);
   uint16_t rjmp_opcode(int dist, int flashsize);
@@ -1757,6 +1777,8 @@ extern "C" {
   void uint16tobuf(unsigned char *buf, uint16_t opcode16);
 
   int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename);
+  Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
+    int req_feat, int req_ulevel, int showall, int *np);
 
 #ifdef __cplusplus
 }
