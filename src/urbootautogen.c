@@ -29,8 +29,9 @@
 #define Return(...) do { \
   if(verbose > 0 || rethelp) \
     autogen_help(up); \
-  pmsg_error(__VA_ARGS__); \
-  msg_error("; skipping autogeneration\n"); \
+  pmsg_error("(urboot) "); \
+  msg_error(__VA_ARGS__); \
+  msg_error("\n"); \
   return -1; \
 } while (0)
 
@@ -89,9 +90,9 @@ static void autogen_help(const Avrintel *up) {
   if(part && part->n_page_erase <= 1) // Not ATtiny441/841/1634/1634R
     msg_error("%s",
     "               u1  Bootloader skips redundant flash-page writes\n"
-    "               u2  And skips redundant flash-page erases during emulated CE\n"
-    "               u3  And skips not needed flash-page erases during page write\n"
-    "               u4  And skips empty-flash-page writes after page erase\n"
+    "               u2  ... and skips redundant flash-page erases during emulated CE\n"
+    "               u3  ... and skips not needed flash-page erases during page write\n"
+    "               u4  ... and skips empty-flash-page writes after page erase\n"
     "                   Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
     );
   msg_error("%s",
@@ -933,7 +934,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       return -1;
     }
 
-    Return("unable to parse %s segment in urboot:... string", tok);
+    Return("unable to parse _%s segment", tok);
   }
 
   if(ppp->req_ulevel == 4)
@@ -1092,13 +1093,13 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     ppp->list, &nut);
 
   if(!urlist || nut == 0) {
-    msg_error("; skipping autogeneration\n");
+    msg_error("\n");
     return -1;
   }
 
   if(ppp->list) {
     size_t maxtype = 0, maxver = 14, maxuse = 3;
-    int add[32] = { 0 }, maxd = 0, addone = 0;
+    int add[32] = { 0 }, maxd = 0, addone = 0, alldiff = 0;
     int sw=0, se=0, sU=0, sd=0, sj=0, sh=0, sP=0, sr=0, sa=0, sc=0, sp=0, sm=0;
 
     for(int n=0; n<nut; n++) {
@@ -1109,10 +1110,10 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         maxver = strlen(urlist[n]->urversion);
       if(urlist[n]->usage > 999)
         maxuse = 4 + (urlist[n]->usage > 9999);
-      int bdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
-      if((int) bitcount(bdiff) > maxd)
-        maxd = bitcount(bdiff);
-      if(add[bdiff]++)
+      int fdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
+      if((int) bitcount(fdiff) > maxd)
+        maxd = bitcount(fdiff);
+      if(add[fdiff]++)
         addone = 1;
       for(char *p = strchr(urlist[n]->urversion, ' '); p && *p; p++)
         switch(*p) {
@@ -1129,6 +1130,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         case 'p': sp=1; break;
         case '-': sm=1; break;
         }
+      alldiff |= fdiff;
     }
 
     if(!(maxd += addone))
@@ -1141,23 +1143,35 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       ppp->ut = urlist[n];
       char *p = urboot_filename(ppp);
       char *t = ppp->vectorstr && !(urlist[n]->features & URFEATURE_HW)? "vector": urlist[n]->type;
-      int bdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
+      int fdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
       term_out("%*.*s %c%3d %*d %*s %-*s %s\n",
-        maxd, maxd, ccselection(bdiff, add[bdiff] > 1? urlist[n]->update_level: 0),
+        maxd, maxd, ccselection(fdiff, add[fdiff] > 1? urlist[n]->update_level: 0),
         use != urlist[n]->usage? '*': ' ', urlist[n]->size,
         (int) maxuse, urlist[n]->usage, (int) maxver, urlist[n]->urversion, (int) maxtype, t, p);
       mmt_free(p);
       use = urlist[n]->usage;
     }
-    if(verbose > 0) {
+
+    if(verbose <= 0)
+      term_out("\nA higher verbosity level shows more about features and selection\n");
+    else {
       term_out("\n"
-        "Selection --> or possible strings for narrowing down choices\n"
-        "Size      Bootloader code size; * indicates most feature-rich for flash use\n"
-        "Use       Flash usage of bootloader (boot section or multiple of page size)\n"
-        "Vers      Urboot bootloader version\n"
-        "Type      Hardware or vector bootloader\n"
-        "Canonical file name is the one chosen when saved using  _save\n"
-        "Features  Bootloader capabilites and features\n"
+        "      * Indicates the most feature-rich bootloader given flash usage\n"
+        "Size    Bootloader code size\n"
+        "Use     Flash usage of bootloader (" // )
+      );
+      if(sh)
+        term_out("boot section");
+      if(sh && sj)
+        term_out(" or ");
+      if(sj)
+        term_out("multiple of page size");
+      term_out(                 // (
+        ")\n"
+        "Vers    Urboot bootloader version\n"
+        "Type    Hardware or vector bootloader\n"
+        "Feature Bootloader capabilites\n"
+        "Canonical file name is used when saving via _save\n"
       );
       if(sw)
        term_out("  w provides pgm_write_page(sram, flash) for the application at FLASHEND-4+1\n");
@@ -1183,6 +1197,25 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
        term_out("  c bootloader provides chip erase functionality\n");
       if(sm)
        term_out("  - corresponding feature not present\n");
+      if(alldiff) {
+        term_out("Selection\n");
+        if(alldiff & URFEATURE_EE)
+          term_out("  _ee Bootloader must handle EEPROM r/w\n");
+        if(alldiff & URFEATURE_CE)
+          term_out("  _ce Bootloader must handle Chip Erase commands\n");
+        if(alldiff & URFEATURE_U4)
+          term_out(
+            "  _u1  Bootloader skips redundant flash-page writes\n"
+            "  _u2  ... and skips redundant flash-page erases during emulated CE\n"
+            "  _u3  ... and skips not needed flash-page erases during page write\n"
+            "  _u4  ... and skips empty-flash-page writes after page erase\n"
+            "       Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
+        );
+        if(alldiff & URFEATURE_HW)
+          term_out("  _hw Hardware-supported bootloaders only\n");
+        if(alldiff & URFEATURE_PR)
+          term_out("  _pr Reset vector must be protected\n");
+      }
     }
   }
 
@@ -1352,19 +1385,19 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   unsigned char *bloader = (unsigned char *) pp.ut->code;
 
   if(!mem_is_flash(mem)) {
-    pmsg_error("can only write urboot:... autogenerated bootloader to flash, not %s\n", mem->desc);
+    pmsg_error("(urboot) can only write bootloader to flash, not %s\n", mem->desc);
     goto done;
   }
   if(msize != pp.up->flashsize) {
-    pmsg_error("unexpected %s size 0x%04x vs 0x%04x\n", mem->desc, msize, pp.up->flashsize);
+    pmsg_error("(urboot) unexpected %s size 0x%04x vs 0x%04x\n", mem->desc, msize, pp.up->flashsize);
     goto done;
   }
   if(usage < bsize) {
-    pmsg_error("unexpected bootloader size size %d exceeds usage %d\n", bsize, usage);
+    pmsg_error("(urboot) unexpected bootloader size size %d exceeds usage %d\n", bsize, usage);
     goto done;
   }
   if(usage > pp.up->flashsize-4) {
-    pmsg_error("unexpected urboot:... bootloader size %d does not fit into flash\n", usage);
+    pmsg_error("(urboot) unexpected bootloader size %d does not fit into flash\n", usage);
     goto done;
   }
 
