@@ -10,7 +10,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.2
- * 01.04.2025
+ * 15.04.2025
  *
  */
 
@@ -27,10 +27,9 @@ enum {
 };
 
 #define UL_MCU_N            166
-#define UL_IOTYPE_N          37
-#define UL_CONFIG_N          21
-#define UL_BLN(mcu, io, config) (((mcu)*UL_IOTYPE_N + (io))*UL_CONFIG_N + (config))
-
-uint16_t *urboottemplate(const char *mcu, const char *iotype, const char *config);
+#define UL_IOTYPE_N          31
+#define UL_BLTYPE_N           3
+#define UL_CONFIG_N          14
+#define UL_BLN(mcu, io, blt, cfg) ((((mcu)*UL_IOTYPE_N + (io))*UL_BLTYPE_N + (blt))*UL_CONFIG_N + (cfg))
 
 #endif
