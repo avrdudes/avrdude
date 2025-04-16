@@ -89,10 +89,10 @@ static void autogen_help(const Avrintel *up) {
     );
   if(part && part->n_page_erase <= 1) // Not ATtiny441/841/1634/1634R
     msg_error("%s",
-    "               u1  Bootloader skips redundant flash-page writes\n"
-    "               u2  ... and skips redundant flash-page erases during emulated CE\n"
-    "               u3  ... and skips not needed flash-page erases during page write\n"
-    "               u4  ... and skips empty-flash-page writes after page erase\n"
+    "               u1  Bootloader skips redundant flash page writes\n"
+    "               u2  ... and skips redundant flash page erases during emulated CE\n"
+    "               u3  ... and skips not needed flash page erases during page write\n"
+    "               u4  ... and skips empty-flash page writes after page erase\n"
     "                   Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
     );
   msg_error("%s",
@@ -100,8 +100,9 @@ static void autogen_help(const Avrintel *up) {
     "  fill=urboot\\x20  Fill otherwise unused flash repeatedly with argument\n"
     "  save=myfile.hex  Save bootloader to file with chosen name\n"
     "             save  Save bootloader to file with canonical file name\n"
-    "             show  Show bootloader features but do not write to flash\n"
+    "             best  Select most feature-rich bootloader (first from _list)\n"
     "             list  List possible bootloader configurations but do not write\n"
+    "             show  Show bootloader features but do not write to flash\n"
     "             help  Show this help message and return\n"
     "Features can also be specified like in elements of a canonical file name.\n"
     "For details on urboot bootloaders see https://github.com/stefanrueger/urboot\n"
@@ -114,7 +115,7 @@ typedef struct {
   int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
   int lednop, dual, cs;
   int led, ledpolarity;
-  int req_feats, req_ulevel, vecnum, save, show, list;
+  int req_feats, req_ulevel, vecnum, save, best, show, list;
   FILEFMT savefmt;
   Urboot_template *ut;
   char *serialno, *fill, *vectorstr, *savefname;
@@ -919,6 +920,11 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
     }
 
+    if(str_eq(tok, "best")) {
+      ppp->best = 1;
+      continue;
+    }
+
     if(str_eq(tok, "show")) {
       ppp->show = 1;
       continue;
@@ -1090,7 +1096,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   int nut = 0;
 
   urlist = urboottemplate(up, ppp->mcu, ppp->iotype, cfg, ppp->req_feats, ppp->req_ulevel,
-    ppp->list, &nut);
+    ppp->list || ppp->best, &nut);
 
   if(!urlist || nut == 0) {
     msg_error("\n");
@@ -1205,10 +1211,10 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
           term_out("  _ce Bootloader must handle Chip Erase commands\n");
         if(alldiff & URFEATURE_U4)
           term_out(
-            "  _u1  Bootloader skips redundant flash-page writes\n"
-            "  _u2  ... and skips redundant flash-page erases during emulated CE\n"
-            "  _u3  ... and skips not needed flash-page erases during page write\n"
-            "  _u4  ... and skips empty-flash-page writes after page erase\n"
+            "  _u1  Bootloader skips redundant flash page writes\n"
+            "  _u2  ... and skips redundant flash page erases during emulated CE\n"
+            "  _u3  ... and skips not needed flash page erases during page write\n"
+            "  _u4  ... and skips empty-flash page writes after page erase\n"
             "       Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
         );
         if(alldiff & URFEATURE_HW)
@@ -1220,9 +1226,10 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   }
 
   ppp->ut = *urlist;
-  for(int n = nut-1; n >= 0; n--) // Downgrade to requested ulevel if needed
-    if(urmatch(urlist[n], ppp->req_feats, ppp->req_ulevel))
-      ppp->ut = urlist[n];
+  if(!ppp->best)
+    for(int n = nut-1; n >= 0; n--) // Downgrade to requested ulevel if needed
+      if(urmatch(urlist[n], ppp->req_feats, ppp->req_ulevel))
+        ppp->ut = urlist[n];
 
   // Deallocate urlist
   for(int n=0; n<nut; n++) {
