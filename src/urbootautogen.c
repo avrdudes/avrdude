@@ -37,6 +37,7 @@
 
 static void autogen_help(const Avrintel *up) {
   AVRPART *part = up? locate_part(part_list, up->name): NULL;
+  int has_dual = part? urbootexists(part->id, "swio10", "dual", 0): 0;
 
   msg_error("%s",
     "Bootloader features are specified in an underscore-separated list of the\n"
@@ -71,7 +72,10 @@ static void autogen_help(const Avrintel *up) {
     "           lednop  If no LED specified, generate template bootloader\n"
     "     no-led/noled  Drop blinking code unless LED specified\n"
     "led[+-][a-h][0-7]  Generate blinking code with +/- polarity, eg, led+b5\n"
-    "             dual  Dual boot, must specify CS pin for external SPI flash\n" // @@@ which ones have dual?
+    );
+  if(has_dual)
+    msg_error("%s",
+    "             dual  Dual boot, must specify CS pin for external SPI flash\n"
     "     cs[a-h][0-7]  MCU chip select for dual boot, eg, csd5\n"
     );
   if(up && up->nboots > 0)
@@ -839,6 +843,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     }
 
     if(str_eq(tok, "dual")) {
+      if(!urbootexists(part->id, "swio10", "dual", 0))
+        Return("there are no dual bootloaders for %s", part->desc);
       ppp->dual = 1;
       continue;
     }
@@ -1176,8 +1182,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         ")\n"
         "Vers    Urboot bootloader version\n"
         "Type    Hardware or vector bootloader\n"
-        "Feature Bootloader capabilites\n"
         "Canonical file name is used when saving via _save\n"
+        "Feature Bootloader capabilites\n"
       );
       if(sw)
        term_out("  w provides pgm_write_page(sram, flash) for the application at FLASHEND-4+1\n");
@@ -1205,6 +1211,10 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
        term_out("  - corresponding feature not present\n");
       if(alldiff) {
         term_out("Selection\n");
+        if(alldiff & URFEATURE_HW)
+          term_out("  _hw Hardware-supported bootloaders only\n");
+        if(alldiff & URFEATURE_PR)
+          term_out("  _pr Reset vector must be protected\n");
         if(alldiff & URFEATURE_EE)
           term_out("  _ee Bootloader must handle EEPROM r/w\n");
         if(alldiff & URFEATURE_CE)
@@ -1215,12 +1225,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
             "  _u2  ... and skips redundant flash page erases during emulated CE\n"
             "  _u3  ... and skips not needed flash page erases during page write\n"
             "  _u4  ... and skips empty-flash page writes after page erase\n"
-            "       Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
+            "  Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
         );
-        if(alldiff & URFEATURE_HW)
-          term_out("  _hw Hardware-supported bootloaders only\n");
-        if(alldiff & URFEATURE_PR)
-          term_out("  _pr Reset vector must be protected\n");
       }
     }
   }
