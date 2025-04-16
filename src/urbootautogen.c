@@ -92,7 +92,7 @@ static void autogen_help(const Avrintel *up) {
     "               u1  Bootloader skips redundant flash page writes\n"
     "               u2  ... and skips redundant flash page erases during emulated CE\n"
     "               u3  ... and skips not needed flash page erases during page write\n"
-    "               u4  ... and skips empty-flash page writes after page erase\n"
+    "               u4  ... and skips empty flash page writes after page erase\n"
     "                   Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
     );
   msg_error("%s",
