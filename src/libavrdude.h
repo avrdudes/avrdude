@@ -1390,6 +1390,7 @@ extern "C" {
   void cleanup_config(void);
   int read_config(const char *file);
   const char *cache_string(const char *file);
+  size_t cfg_unescapen(unsigned char *d, const unsigned char *s);
   unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
   char *cfg_unescape(char *d, const char *s);
   char *cfg_escape(const char *s);
