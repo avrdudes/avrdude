@@ -214,6 +214,9 @@ libavrdude_la_SOURCES = \
 	updi_nvm_v4.h \
 	updi_nvm_v5.c \
 	updi_nvm_v5.h \
+	urbootlist.c \
+	urbootlist.h \
+	urbootautogen.c \
 	urclock.c \
 	urclock.h \
 	urclock_hash.h \

@@ -1627,7 +1627,15 @@ int fileio_fmt_autodetect_fp(FILE *f) {
   return ret;
 }
 
+// Read-only files that avrdude generates itself
+int is_generated_fname(const char *fname) {
+  return str_starts(fname, "urboot:");
+}
+
 int fileio_fmt_autodetect(const char *fname) {
+  if(is_generated_fname(fname))
+    return FMT_IHEX;
+
   FILE *f = fileio_fopenr(fname);
 
   if(f == NULL) {
@@ -1642,12 +1650,15 @@ int fileio_fmt_autodetect(const char *fname) {
   return format;
 }
 
-int fileio_mem(int op, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int size) {
+int fileio_mem(int op, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int msize) {
 
-  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
-    size = mem->size;
+  if(msize < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
+    msize = mem->size;
 
-  const Segment seg = { 0, size };
+  if(is_generated_fname(filename) && (op == FIO_READ || op == FIO_READ_FOR_VERIFY))
+    return urbootautogen(p, mem, filename);
+
+  const Segment seg = { 0, msize };
   return fileio_segments(op, filename, format, p, mem, 1, &seg);
 }
 
