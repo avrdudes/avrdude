@@ -792,7 +792,7 @@ static const char *regstyle(int n, int regword) {
 }
 
 // Return the number of bits set in Number
-static unsigned bitcount(unsigned n) {
+unsigned bitcount(unsigned n) {
   unsigned ret;
 
   // A la Kernighan (and Richie): iteratively clear the least significant bit set
