@@ -1745,6 +1745,16 @@ extern "C" {
   int disasm_init_tagfile(const AVRPART *p, const char *file);
   void disasm_zap_jumpcalls();
 
+  int dist_rjmp(uint16_t rjmp, int flashsize);
+  uint16_t rjmp_opcode(int dist, int flashsize);
+  uint16_t rjmp_bwd_blstart(int blstart, int flashsize);
+  uint32_t jmp_opcode(int32_t addr);
+  int addr_jmp(uint32_t jmp);
+  uint32_t buf2uint32(const unsigned char *buf);
+  uint16_t buf2uint16(const unsigned char *buf);
+  void uint32tobuf(unsigned char *buf, uint32_t opcode32);
+  void uint16tobuf(unsigned char *buf, uint16_t opcode16);
+
 #ifdef __cplusplus
 }
 #endif
