@@ -2762,30 +2762,22 @@ programmer # atmelice
 # atmelice_pdi
 #------------------------------------------------------------
 
-programmer # atmelice_pdi
+programmer parent "atmelice" # atmelice_pdi
     id                     = "atmelice_pdi";
     desc                   = "Atmel-ICE in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2141;
 ;
 
 #------------------------------------------------------------
 # atmelice_updi
 #------------------------------------------------------------
 
-programmer # atmelice_updi
+programmer parent "atmelice" # atmelice_updi
     id                     = "atmelice_updi";
     desc                   = "Atmel-ICE in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2141;
     hvupdi_support         = 1;
 ;
 
@@ -2793,30 +2785,22 @@ programmer # atmelice_updi
 # atmelice_dw
 #------------------------------------------------------------
 
-programmer # atmelice_dw
+programmer parent "atmelice" # atmelice_dw
     id                     = "atmelice_dw";
     desc                   = "Atmel-ICE in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2141;
 ;
 
 #------------------------------------------------------------
 # atmelice_isp
 #------------------------------------------------------------
 
-programmer # atmelice_isp
+programmer parent "atmelice" # atmelice_isp
     id                     = "atmelice_isp";
     desc                   = "Atmel-ICE in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2141;
 ;
 
 #------------------------------------------------------------
@@ -2872,30 +2856,23 @@ programmer # powerdebugger
 # powerdebugger_pdi
 #------------------------------------------------------------
 
-programmer # powerdebugger_pdi
+programmer parent "powerdebugger" # powerdebugger_pdi
     id                     = "powerdebugger_pdi";
     desc                   = "Atmel PowerDebugger in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2144;
 ;
 
 #------------------------------------------------------------
 # powerdebugger_updi
 #------------------------------------------------------------
 
-programmer # powerdebugger_updi
+programmer parent "powerdebugger" # powerdebugger_updi
     id                     = "powerdebugger_updi";
     desc                   = "Atmel PowerDebugger in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2144;
     hvupdi_support         = 0, 1;
 ;
 
@@ -2903,45 +2880,33 @@ programmer # powerdebugger_updi
 # powerdebugger_dw
 #------------------------------------------------------------
 
-programmer # powerdebugger_dw
+programmer parent "powerdebugger" # powerdebugger_dw
     id                     = "powerdebugger_dw";
     desc                   = "Atmel PowerDebugger in debugWire mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2144;
 ;
 
 #------------------------------------------------------------
 # powerdebugger_isp
 #------------------------------------------------------------
 
-programmer # powerdebugger_isp
+programmer parent "powerdebugger" # powerdebugger_isp
     id                     = "powerdebugger_isp";
     desc                   = "Atmel PowerDebugger in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2144;
 ;
 
 #------------------------------------------------------------
 # powerdebugger_tpi
 #------------------------------------------------------------
 
-programmer # powerdebugger_tpi
+programmer parent "powerdebugger" # powerdebugger_tpi
     id                     = "powerdebugger_tpi";
     desc                   = "Atmel PowerDebugger in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2144;
 ;
 
 #------------------------------------------------------------
@@ -3082,7 +3047,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_isp
 # pickit4_mplab_dw
 #------------------------------------------------------------
 
-programmer parent "pickit4_mplab" # pickit5_dw
+programmer parent "pickit4_mplab" # pickit4_mplab_dw
     id                     = "pickit4_mplab_dw";
     desc                   = "MPLAB(R) PICkit 4 in dW Mode";
     prog_modes             = PM_debugWIRE;
@@ -3411,7 +3376,7 @@ programmer parent "snap" # snap_tpi
 
 
 #------------------------------------------------------------
-# snap_mplab
+# snap_mplab / snap_mplab_jtag
 #------------------------------------------------------------
 
 programmer # snap_mplab
@@ -3422,7 +3387,7 @@ programmer # snap_mplab
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
-    usbpid                 = 0x9018;    # snap (mplab mode)
+    usbpid                 = 0x9018;    # SNAP (mplab mode)
 ;
 
 #------------------------------------------------------------

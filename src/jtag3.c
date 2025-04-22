@@ -1582,11 +1582,12 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         continue;
       }
       // Flag a switch to PIC mode
-      if(str_caseeq(extended_param, "mode=pic")) {
+      if(str_caseeq(extended_param, "mode=pic") ||
+         str_caseeq(extended_param, "mode=mplab")) {
         my.pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=pic\n", extended_param);
+      pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=mplab\n", extended_param);
       rv = -1;
       break;
     }
@@ -1620,7 +1621,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -x vtarg=<dbl>           Set on-board target supply voltage to <dbl> V\n");
     }
     if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-      msg_error("  -x mode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
+      msg_error("  -x mode=avr|[pic|mplab]  Set programmer to AVR or MPLAB (PIC) mode, then exit\n");
     msg_error("  -x help                  Show this help menu and exit\n");
     return rv;
   }
@@ -1712,7 +1713,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
         if(pic_mode >= 0) {
           msg_error("\n");
           cx->usb_access_error = 0;
-          pmsg_error("%s in %s mode detected\n", pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
+          pmsg_error("%s in %s mode detected\n", pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
           if(mode_switch == PK4_SNAP_MODE_AVR) {
             imsg_error("switching to AVR mode; ");
             if(pinfo.usbinfo.pid == bl_pid)
@@ -1730,8 +1731,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
             imsg_error("to switch into AVR mode try\n");
             imsg_error("$ %s -c %s%s%s -P %s -x mode=avr\n\n", progname, pgmid, partsdesc_flag, partsdesc_str, port);
-            imsg_error("or use PIC mode by using the pickit5%s programmer option:\n", pgm_suffix);
-            imsg_error("$ %s -c pickit5%s%s%s -P %s\n", progname, pgm_suffix, partsdesc_flag, partsdesc_str, port);
+            imsg_error("or use MPLAB mode by using the pickit4_mplab%s programmer option:\n", pgm_suffix);
+            imsg_error("$ %s -c pickit4_mplab%s%s%s -P %s\n", progname, pgm_suffix, partsdesc_flag, partsdesc_str, port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;
@@ -1775,13 +1776,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
   // Switch from AVR to PIC mode
   if(mode_switch == PK4_SNAP_MODE_PIC) {
-    imsg_error("switching to PIC mode: ");
+    imsg_error("switching to MPLAB mode: ");
     unsigned char *resp, buf[] = { SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a };
-    if(jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0) {
-      msg_error("entering PIC mode failed\n");
+    if(jtag3_command(pgm, buf, sizeof(buf), &resp, "enter MPLAB mode") < 0) {
+      msg_error("entering MPLAB mode failed\n");
       return -1;
     }
-    msg_error("PIC mode switch successful\n");
+    msg_error("MPLAB mode switch successful\n");
     serial_close(&pgm->fd);
     return LIBAVRDUDE_EXIT;;
   }

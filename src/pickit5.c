@@ -73,17 +73,13 @@
 #define ERROR_BAD_RESPONSE        -13
 #define ERROR_SCRIPT_EXECUTION    -14
 
-#define PGM_FEAT_TARGET_POWER 0x01
-#define PGM_FEAT_HV_PULSE     0x02
-#define PGM_FEAT_PTG          0x04
 
-#define can_power_target(data) (!!(data.pgm_features & PGM_FEAT_TARGET_POWER))
-#define can_gen_hv_pulse(data) (!!(data.pgm_features & PGM_FEAT_HV_PULSE))
-#define can_do_ptg(data)       (!!(data.pgm_features & PGM_FEAT_PTG))
+#define can_power_target(pgm) (!!(pgm->extra_features & HAS_VTARG_ADJ))
+#define can_gen_hv_pulse(pgm) (!!(pgm->extra_features & HAS_VTARG_ADJ))  // Currently, with the 4
+#define can_do_ptg(pgm)       (can_power_target(pgm)) //  supported ICDs, it is enough to figure this out
 
 // Private data for this programmer
 struct pdata {
-  unsigned char pgm_features;     // Bitmap of features
   unsigned char pk_op_mode;       // See PK_OP_ defines
   unsigned char power_source;     // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled;   // 0: no HV / 1: HV generation enabled
@@ -281,14 +277,21 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       }
     }
     if(str_starts(extended_param, "hvupdi")) {
-      my.hvupdi_enabled = 1;
+      if(can_gen_hv_pulse(pgm))
+        for(LNODEID ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
+          my.hvupdi_enabled |= 1 << *(unsigned char *)ldata(ln);
+        }
+      else
+        msg_warning("HV pulse requested, but programmer doesn't support it, ignoring the option.\n");
       continue;
     }
 
     if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -x vtarg=<dbl>  Enable power output (PK4/PK5 only); <dbl> must be in [1.8, 5.5] V\n");
-      msg_error("  -x hvupdi       Enable high-voltage UPDI initialization (PK4/PK5 only)\n");
+      if(can_power_target(pgm))
+        msg_error("  -x vtarg=<dbl>  Enable power output; <dbl> must be in [1.8, 5.5] V\n");
+      if(can_gen_hv_pulse(pgm))
+        msg_error("  -x hvupdi       Enable high-voltage UPDI initialization\n");
       msg_error("  -x help         Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }
@@ -624,20 +627,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   if(serdev && serdev->usbsn) {
     pgm->usbsn = serdev->usbsn;
     my.pk_op_mode = PK_OP_FOUND;
-
-    switch(pinfo.usbinfo.pid) {
-      case USB_DEVICE_PICKIT5:
-      case USB_DEVICE_PICKIT4_PIC_MODE:
-        my.pgm_features = PGM_FEAT_TARGET_POWER | PGM_FEAT_HV_PULSE | PGM_FEAT_PTG;
-        break;
-
-      case USB_DEVICE_SNAP_PIC_MODE:
-      case USB_DEVICE_PICKIT_BASIC:
-      case USB_DEVICE_PICKIT_BASIC_CDC:
-      default:
-        my.pgm_features = 0;
-        break;
-    }
   }
 
   if(rv >= 0)  // if a programmer in PIC mode found, we're done
@@ -678,7 +667,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       cx->usb_access_error = 0;
 
       pmsg_error("MPLAB SNAP in AVR mode detected.\n");
-      imsg_error("To switch into PIC mode try\n");
+      imsg_error("To switch into MPLAB mode try\n");
       imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
       imsg_error("or use the programmer in AVR mode with the following command:\n");
       imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
@@ -694,7 +683,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       cx->usb_access_error = 0;
 
       pmsg_error("PICkit 4 in AVR mode detected.\n");
-      imsg_error("To switch into PIC mode try\n");
+      imsg_error("To switch into MPLAB mode try\n");
       imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
       imsg_error("or use the programmer in AVR mode with the following command:\n");
       imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
@@ -1049,7 +1038,7 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
 
-  if(my.hvupdi_enabled && can_gen_hv_pulse(my)) {   // SNAP and Basic have no HV generation
+  if(my.hvupdi_enabled && can_gen_hv_pulse(pgm)) {   // SNAP and Basic have no HV generation
     if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI) {          // High voltage generation on UPDI line
       enter_prog = my.scripts.EnterProgModeHvSp;
       enter_prog_len = my.scripts.EnterProgModeHvSp_len;
@@ -1972,7 +1961,7 @@ static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
     0x44
   };
 
-  if(!can_power_target(my)) { // SNAP and Basic can't supply power, ignore
+  if(!can_power_target(pgm)) { // SNAP and Basic can't supply power, ignore
     return 0;
   }
 
@@ -2026,7 +2015,7 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
 }
 
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
-  if(!can_do_ptg(my))  // Don't bother if Programmer doesn't support PTG
+  if(!can_do_ptg(pgm))  // Don't bother if Programmer doesn't support PTG
     return 0;
 
   unsigned char ptg_mode[] = {
