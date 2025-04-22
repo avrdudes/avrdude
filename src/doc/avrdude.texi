@@ -1380,11 +1380,11 @@ The current set-voltage can be read by @code{-x vtarg} alone.
 
 The PICkit 4 and MPLAB(R) SNAP programmers accept the following extended parameters:
 @table @code
-@item mode=avr,pic
-Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB(R) SNAP
+@item mode=avr,mplab/pic
+Switch programmer to AVR or MPLAB mode, then exit: the PICkit 4 and MPLAB(R) SNAP
 programmer can only be utilised by Avrdude when in AVR mode.
-Use @code{-x mode=avr} for switching to AVR mode, or @code{-x mode=pic}
-for switching to PIC mode.
+Use @code{-x mode=avr} for switching to AVR mode, or @code{-x mode=mplab}
+for switching to MPLAB mode.
 @end table
 
 @cindex Option @code{-x} PICkit 5
@@ -1396,7 +1396,7 @@ for switching to PIC mode.
 @item PICkit 5
 @item PICkit 4 (PIC Mode)
 
-The PICkit 5 and PICkit 4 (PIC Mode) programmer can accept following extended parameters
+The PICkit 5 and PICkit 4 (MPLAB Mode) programmer can accept following extended parameters
 @table @code
 @item vtarg=VALUE
 Specify a voltage between 1.8 and 5.5@w{ }V that the programmer should supply
@@ -2332,20 +2332,22 @@ Note that 2>&1 folds stderr into stdout in a bash shell:
 $ avrdude -c"?" -pavr32ea32 2>&1 | grep -v bootloader
 
 Valid programmers for part AVR32EA32 are:
-  atmelice_updi      = Atmel-ICE (ARM/AVR) via UPDI
-  dryrun             = Emulates programming without a programmer via UPDI
-  jtag2updi          = JTAGv2 to UPDI bridge via UPDI
-  nanoevery          = JTAGv2 to UPDI bridge via UPDI
-  jtag3updi          = Atmel AVR JTAGICE3 via UPDI
-  pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
-  pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode) via UPDI
-  pickit_basic_updi  = MPLAB(R) PICkit Basic via UPDI
-  pkobn_updi         = Curiosity nano (nEDBG) via UPDI
-  powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
-  serialupdi         = SerialUPDI via UPDI
-  snap_updi          = MPLAB(R) SNAP via UPDI
-  xplainedmini_updi  = Atmel AVR XplainedMini via UPDI
-  xplainedpro_updi   = Atmel AVR XplainedPro via UPDI
+  atmelice_updi           = Atmel-ICE (ARM/AVR) via UPDI
+  dryrun                  = Emulates programming without a programmer via UPDI
+  jtag2updi               = JTAGv2 to UPDI bridge via UPDI
+  nanoevery               = JTAGv2 to UPDI bridge via UPDI
+  jtag3updi               = Atmel AVR JTAGICE3 via UPDI
+  pickit4_updi            = MPLAB(R) PICkit 4 in AVR mode via UPDI
+  pickit4_mplab_updi      = MPLAB(R) PICkit 4 in MPLAB mode via UPDI
+  pickit5_updi            = MPLAB(R) PICkit 5 via UPDI
+  pickit_basic_mplab_updi = MPLAB(R) PICkit Basic in MPLAB mode via UPDI
+  pkobn_updi              = Curiosity nano (nEDBG) via UPDI
+  powerdebugger_updi      = Atmel PowerDebugger (ARM/AVR) via UPDI
+  serialupdi              = SerialUPDI via UPDI
+  snap_updi               = MPLAB(R) SNAP in AVR mode via UPDI
+  snap_mplab_updi         = MPLAB(R) SNAP in MPLAB mode via UPDI
+  xplainedmini_updi       = Atmel AVR XplainedMini via UPDI
+  xplainedpro_updi        = Atmel AVR XplainedPro via UPDI
 @end cartouche
 @end smallexample
 
