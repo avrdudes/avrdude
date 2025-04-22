@@ -668,7 +668,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       pmsg_error("MPLAB SNAP in AVR mode detected.\n");
       imsg_error("To switch into MPLAB mode try\n");
-      imsg_error("$ %s -c snap%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+      imsg_error("$ %s -c snap%s %s-P %s -x mode=mplab\n", progname, pgm_suffix, part_option, port);
       imsg_error("or use the programmer in AVR mode with the following command:\n");
       imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
@@ -684,7 +684,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       pmsg_error("PICkit 4 in AVR mode detected.\n");
       imsg_error("To switch into MPLAB mode try\n");
-      imsg_error("$ %s -c pickit4%s %s-P %s -x mode=pic\n", progname, pgm_suffix, part_option, port);
+      imsg_error("$ %s -c pickit4%s %s-P %s -x mode=mplab\n", progname, pgm_suffix, part_option, port);
       imsg_error("or use the programmer in AVR mode with the following command:\n");
       imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
