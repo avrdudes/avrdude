@@ -1638,7 +1638,7 @@ int main(int argc, char *argv[]) {
     if(str_eq(pgm->type, "serialupdi"))
       imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
     else if(str_eq(pgm->type, "buspirate_bb") || str_eq(pgm->type, "linuxgpio") ||
-      str_eq(pgm->type, "par") || str_eq(pgm->type, "serbb")) {
+      str_eq(pgm->type, "par") || str_eq(pgm->type, "SERBB")) {
       imsg_error(" - use -i %s to set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
         bitclock? "instead of -B": "");
       pgm->close(pgm);
