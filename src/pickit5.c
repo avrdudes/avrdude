@@ -1150,6 +1150,8 @@ static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, unsigned char *value) {
   int rc = 0;
   if(mem_is_signature(mem)) {
+    if (addr == 0)
+      pickit5_read_dev_id(pgm, p);
     if(addr < 4) {
       *value = my.devID[addr];
       rc = 1;
@@ -1327,6 +1329,8 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   }
 
   if(mem_is_signature(mem)) { // DeviceID is read only once and buffered
+    if (addr == 0)
+      pickit5_read_dev_id(pgm, p);
     if(len == 1) {
       *value = my.devID[addr];
       return 0;
