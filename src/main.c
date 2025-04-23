@@ -1641,7 +1641,7 @@ int main(int argc, char *argv[]) {
       str_eq(pgm->type, "par") || str_eq(pgm->type, "serbb")) {
       imsg_error(" - use -i %s to set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
         bitclock? "instead of -B": "");
-      pgm->close(p);
+      pgm->close(pgm);
     }
     else
       imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
