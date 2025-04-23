@@ -1635,11 +1635,13 @@ int main(int argc, char *argv[]) {
     else
       imsg_error(" - double check the connections and try again\n");
 
-    if(str_eq(pgm->type, "serialupdi") || str_eq(pgm->type, "SERBB"))
+    if(str_eq(pgm->type, "serialupdi"))
       imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
-    else if(str_eq(pgm->type, "linuxgpio") || str_eq(pgm->type, "buspirate_bb") || str_eq(pgm->type, "serbb")) {
-      imsg_error(" - use -i %s to set a longer delay (in microseconds) between each bit state chage, e.g. -i 32\n",
+    else if(str_eq(pgm->type, "buspirate_bb") || str_eq(pgm->type, "linuxgpio") ||
+      str_eq(pgm->type, "par") || str_eq(pgm->type, "serbb")) {
+      imsg_error(" - use -i %s to set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
         bitclock? "instead of -B": "");
+      pgm->close(p);
     }
     else
       imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
