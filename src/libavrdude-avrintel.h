@@ -12,7 +12,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.44
- * 22.03.2025
+ * 23.04.2025
  *
  */
 
@@ -60,6 +60,14 @@ typedef struct {
   uint16_t inmask;              // Used bits of port input register
 } Port_bits;
 
+typedef struct {
+  uint8_t uart;                 // UART interface number
+  uint8_t alt;                  // Alternative pin configuaration
+  uint8_t rxd, txd, xck;        // Port pins of signals
+  uint8_t xdir, usck;
+  uint8_t rts, cts;
+} Uart_conf;
+
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part
   uint16_t mcuid;               // ID of MCU in 0..2039
@@ -83,15 +91,38 @@ typedef struct {                // Value of -1 typically means unknown
   const Configitem *cfgtable;   // Configuration bitfield table
   uint16_t nregisters;          // Number of I/O registers
   const Register_file *regf;    // Register file
-  uint8_t numuarts;             // Number of UART interfaces
+  uint8_t numuarts;             // Number of physical UART interfaces
   uint8_t uarttype;             // UARTTYPE_UNKNOWN, _NONE, _CLASSIC, _LIN, _XMEGA, _AVR8X
   uint8_t has_u2x;              // 1 = 2x speed possible (8 samples), 0 = 1x speed only
   uint8_t brr_nbits;            // Number of baud rate divisor bits (integer part)
   uint8_t brr_nfraction;        // Number of bits for fractional part of baud rate divisor
+  uint8_t nuartconfs;           // Number of logical UART configurations (incl alternate signals)
+  const Uart_conf *uarts;       // List of logical UART configurations
   uint8_t nports;               // Number of port registers (one per letter A-H, J-N, P-R)
   const Port_bits *ports;       // Port list
   uint8_t wdttype;              // WDT_UNKOWN, _NONE, _CLASSIC3, _CLASSIC4, _XMEGA, _AVR8X, _AVR8X_DUAL
 } Avrintel;
+
+// Port pin encoding: 16 ports A-R but not I nor O
+typedef enum {
+  PNA = -1,
+  PA0 = 0x00, PA1, PA2, PA3, PA4, PA5, PA6, PA7,
+  PB0 = 0x10, PB1, PB2, PB3, PB4, PB5, PB6, PB7,
+  PC0 = 0x20, PC1, PC2, PC3, PC4, PC5, PC6, PC7,
+  PD0 = 0x30, PD1, PD2, PD3, PD4, PD5, PD6, PD7,
+  PE0 = 0x40, PE1, PE2, PE3, PE4, PE5, PE6, PE7,
+  PF0 = 0x50, PF1, PF2, PF3, PF4, PF5, PF6, PF7,
+  PG0 = 0x60, PG1, PG2, PG3, PG4, PG5, PG6, PG7,
+  PH0 = 0x70, PH1, PH2, PH3, PH4, PH5, PH6, PH7,
+  PJ0 = 0x80, PJ1, PJ2, PJ3, PJ4, PJ5, PJ6, PJ7,
+  PK0 = 0x90, PK1, PK2, PK3, PK4, PK5, PK6, PK7,
+  PL0 = 0xa0, PL1, PL2, PL3, PL4, PL5, PL6, PL7,
+  PM0 = 0xb0, PM1, PM2, PM3, PM4, PM5, PM6, PM7,
+  PN0 = 0xc0, PN1, PN2, PN3, PN4, PN5, PN6, PN7,
+  PP0 = 0xd0, PP1, PP2, PP3, PP4, PP5, PP6, PP7,
+  PQ0 = 0xe0, PQ1, PQ2, PQ3, PQ4, PQ5, PQ6, PQ7,
+  PR0 = 0xf0, PR1, PR2, PR3, PR4, PR5, PR6, PR7,
+} Port_pin;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
 #define F_AVR8                2 // ISP programming with SPI, "classic" AVRs
@@ -3359,6 +3390,389 @@ extern const Port_bits       ports_avr64da64[7];
 #define ports_avr128da64     ports_avr64da64
 #define ports_avr128da64s    ports_avr64da64
 #define ports_avr128db64     ports_avr64da64
+
+
+// UART configurations
+
+extern const Uart_conf       uarts_atmega8[1];
+#define uarts_atmega8a       uarts_atmega8
+#define uarts_atmega48       uarts_atmega8
+#define uarts_atmega48a      uarts_atmega8
+#define uarts_atmega48p      uarts_atmega8
+#define uarts_atmega48pa     uarts_atmega8
+#define uarts_atmega48pb     uarts_atmega8
+#define uarts_atmega88       uarts_atmega8
+#define uarts_atmega88a      uarts_atmega8
+#define uarts_atmega88p      uarts_atmega8
+#define uarts_atmega88pa     uarts_atmega8
+#define uarts_atmega88pb     uarts_atmega8
+#define uarts_atmega168      uarts_atmega8
+#define uarts_atmega168a     uarts_atmega8
+#define uarts_atmega168p     uarts_atmega8
+#define uarts_atmega168pa    uarts_atmega8
+#define uarts_atmega168pb    uarts_atmega8
+#define uarts_atmega328      uarts_atmega8
+#define uarts_atmega328p     uarts_atmega8
+#define uarts_ata6612c       uarts_atmega8
+#define uarts_ata6613c       uarts_atmega8
+#define uarts_ata6614q       uarts_atmega8
+#define uarts_lgt8f88p       uarts_atmega8
+#define uarts_lgt8f168p      uarts_atmega8
+#define uarts_lgt8f328p      uarts_atmega8
+
+extern const Uart_conf       uarts_atmega16m1[1];
+#define uarts_atmega32c1     uarts_atmega16m1
+#define uarts_atmega32m1     uarts_atmega16m1
+#define uarts_atmega64c1     uarts_atmega16m1
+#define uarts_atmega64m1     uarts_atmega16m1
+
+extern const Uart_conf       uarts_atmega64hve[1];
+#define uarts_atmega64hve2   uarts_atmega64hve
+
+extern const Uart_conf       uarts_atmega328pb[2];
+
+extern const Uart_conf       uarts_attiny2313[1];
+#define uarts_attiny2313a    uarts_attiny2313
+#define uarts_attiny4313     uarts_attiny2313
+#define uarts_atmega163      uarts_attiny2313
+#define uarts_atmega323      uarts_attiny2313
+#define uarts_atmega8515     uarts_attiny2313
+#define uarts_atmega8535     uarts_attiny2313
+#define uarts_at90scr100     uarts_attiny2313
+#define uarts_at90scr100h    uarts_attiny2313
+#define uarts_at90s2313      uarts_attiny2313
+#define uarts_at90s2333      uarts_attiny2313
+#define uarts_at90s4414      uarts_attiny2313
+#define uarts_at90s4433      uarts_attiny2313
+#define uarts_at90s4434      uarts_attiny2313
+#define uarts_at90s8515      uarts_attiny2313
+#define uarts_at90s8535      uarts_attiny2313
+
+extern const Uart_conf       uarts_attiny102[1];
+#define uarts_attiny104      uarts_attiny102
+
+extern const Uart_conf       uarts_attiny441[3];
+#define uarts_attiny841      uarts_attiny441
+
+extern const Uart_conf       uarts_at90pwm2[1];
+#define uarts_at90pwm2b      uarts_at90pwm2
+#define uarts_at90pwm3       uarts_at90pwm2
+#define uarts_at90pwm3b      uarts_at90pwm2
+#define uarts_at90pwm216     uarts_at90pwm2
+#define uarts_at90pwm316     uarts_at90pwm2
+
+extern const Uart_conf       uarts_atmega64[2];
+#define uarts_atmega64a      uarts_atmega64
+#define uarts_atmega128      uarts_atmega64
+#define uarts_atmega128a     uarts_atmega64
+#define uarts_atmega1281     uarts_atmega64
+#define uarts_atmega2561     uarts_atmega64
+#define uarts_at90can32      uarts_atmega64
+#define uarts_at90can64      uarts_atmega64
+#define uarts_at90can128     uarts_atmega64
+
+extern const Uart_conf       uarts_atmega32u6[1];
+#define uarts_at90usb82      uarts_atmega32u6
+#define uarts_at90usb162     uarts_atmega32u6
+#define uarts_at90usb646     uarts_atmega32u6
+#define uarts_at90usb647     uarts_atmega32u6
+#define uarts_at90usb1286    uarts_atmega32u6
+#define uarts_at90usb1287    uarts_atmega32u6
+
+extern const Uart_conf       uarts_atxmega8e5[4];
+#define uarts_atxmega16e5    uarts_atxmega8e5
+#define uarts_atxmega32e5    uarts_atxmega8e5
+
+extern const Uart_conf       uarts_atxmega64a3[7];
+#define uarts_atxmega128a3   uarts_atxmega64a3
+#define uarts_atxmega192a3   uarts_atxmega64a3
+#define uarts_atxmega256a3   uarts_atxmega64a3
+
+extern const Uart_conf       uarts_atxmega64a3u[11];
+#define uarts_atxmega128a3u  uarts_atxmega64a3u
+#define uarts_atxmega192a3u  uarts_atxmega64a3u
+#define uarts_atxmega256a3u  uarts_atxmega64a3u
+
+extern const Uart_conf       uarts_attiny204[2];
+#define uarts_attiny214      uarts_attiny204
+#define uarts_attiny404      uarts_attiny204
+#define uarts_attiny406      uarts_attiny204
+#define uarts_attiny414      uarts_attiny204
+#define uarts_attiny416      uarts_attiny204
+#define uarts_attiny416auto  uarts_attiny204
+#define uarts_attiny417      uarts_attiny204
+#define uarts_attiny804      uarts_attiny204
+#define uarts_attiny806      uarts_attiny204
+#define uarts_attiny807      uarts_attiny204
+#define uarts_attiny814      uarts_attiny204
+#define uarts_attiny816      uarts_attiny204
+#define uarts_attiny817      uarts_attiny204
+#define uarts_attiny1604     uarts_attiny204
+#define uarts_attiny1606     uarts_attiny204
+#define uarts_attiny1607     uarts_attiny204
+#define uarts_attiny1614     uarts_attiny204
+#define uarts_attiny1616     uarts_attiny204
+#define uarts_attiny1617     uarts_attiny204
+#define uarts_attiny3216     uarts_attiny204
+#define uarts_attiny3217     uarts_attiny204
+
+extern const Uart_conf       uarts_attiny424[3];
+#define uarts_attiny824      uarts_attiny424
+#define uarts_attiny1624     uarts_attiny424
+#define uarts_attiny3224     uarts_attiny424
+
+extern const Uart_conf       uarts_avr16dd14[5];
+#define uarts_avr32dd14      uarts_avr16dd14
+#define uarts_avr64dd14      uarts_avr16dd14
+
+extern const Uart_conf       uarts_avr16ea48[10];
+#define uarts_avr32ea48      uarts_avr16ea48
+#define uarts_avr64ea48      uarts_avr16ea48
+
+extern const Uart_conf       uarts_attiny87[1];
+#define uarts_attiny167      uarts_attiny87
+#define uarts_ata5505        uarts_attiny87
+#define uarts_ata6616c       uarts_attiny87
+#define uarts_ata6617c       uarts_attiny87
+#define uarts_ata664251      uarts_attiny87
+
+extern const Uart_conf       uarts_attiny828[1];
+#define uarts_attiny828r     uarts_attiny828
+
+extern const Uart_conf       uarts_attiny1634[2];
+#define uarts_attiny1634r    uarts_attiny1634
+
+extern const Uart_conf       uarts_atmega8u2[1];
+#define uarts_atmega16u2     uarts_atmega8u2
+#define uarts_atmega32u2     uarts_atmega8u2
+
+extern const Uart_conf       uarts_atmega16[1];
+#define uarts_atmega16a      uarts_atmega16
+#define uarts_atmega32       uarts_atmega16
+#define uarts_atmega32a      uarts_atmega16
+#define uarts_atmega644      uarts_atmega16
+
+extern const Uart_conf       uarts_atmega16u4[1];
+#define uarts_atmega32u4     uarts_atmega16u4
+
+extern const Uart_conf       uarts_atmega64rfr2[2];
+#define uarts_atmega128rfa1  uarts_atmega64rfr2
+#define uarts_atmega128rfr2  uarts_atmega64rfr2
+#define uarts_atmega256rfr2  uarts_atmega64rfr2
+#define uarts_atmega644rfr2  uarts_atmega64rfr2
+#define uarts_atmega1284rfr2 uarts_atmega64rfr2
+#define uarts_atmega2564rfr2 uarts_atmega64rfr2
+
+extern const Uart_conf       uarts_atmega103[1];
+#define uarts_atmega165      uarts_atmega103
+#define uarts_atmega165a     uarts_atmega103
+#define uarts_atmega165p     uarts_atmega103
+#define uarts_atmega165pa    uarts_atmega103
+#define uarts_atmega169      uarts_atmega103
+#define uarts_atmega325      uarts_atmega103
+#define uarts_atmega325a     uarts_atmega103
+#define uarts_atmega325p     uarts_atmega103
+#define uarts_atmega325pa    uarts_atmega103
+#define uarts_atmega645      uarts_atmega103
+#define uarts_atmega645a     uarts_atmega103
+#define uarts_atmega645p     uarts_atmega103
+#define uarts_atmega3250     uarts_atmega103
+#define uarts_atmega3250a    uarts_atmega103
+#define uarts_atmega3250p    uarts_atmega103
+#define uarts_atmega3250pa   uarts_atmega103
+#define uarts_atmega3290     uarts_atmega103
+#define uarts_atmega3290a    uarts_atmega103
+#define uarts_atmega3290p    uarts_atmega103
+#define uarts_atmega3290pa   uarts_atmega103
+#define uarts_atmega6450     uarts_atmega103
+#define uarts_atmega6450a    uarts_atmega103
+#define uarts_atmega6450p    uarts_atmega103
+#define uarts_atmega6490     uarts_atmega103
+#define uarts_atmega6490a    uarts_atmega103
+#define uarts_atmega6490p    uarts_atmega103
+
+extern const Uart_conf       uarts_atmega161[2];
+#define uarts_atmega162      uarts_atmega161
+
+extern const Uart_conf       uarts_atmega164a[2];
+#define uarts_atmega164p     uarts_atmega164a
+#define uarts_atmega164pa    uarts_atmega164a
+#define uarts_atmega324a     uarts_atmega164a
+#define uarts_atmega324p     uarts_atmega164a
+#define uarts_atmega324pa    uarts_atmega164a
+#define uarts_atmega644a     uarts_atmega164a
+#define uarts_atmega644p     uarts_atmega164a
+#define uarts_atmega644pa    uarts_atmega164a
+#define uarts_atmega1284     uarts_atmega164a
+#define uarts_atmega1284p    uarts_atmega164a
+
+extern const Uart_conf       uarts_atmega169a[1];
+#define uarts_atmega169p     uarts_atmega169a
+#define uarts_atmega169pa    uarts_atmega169a
+#define uarts_atmega329      uarts_atmega169a
+#define uarts_atmega329a     uarts_atmega169a
+#define uarts_atmega329p     uarts_atmega169a
+#define uarts_atmega329pa    uarts_atmega169a
+#define uarts_atmega649      uarts_atmega169a
+#define uarts_atmega649a     uarts_atmega169a
+#define uarts_atmega649p     uarts_atmega169a
+
+extern const Uart_conf       uarts_atmega324pb[3];
+
+extern const Uart_conf       uarts_atmega640[4];
+#define uarts_atmega1280     uarts_atmega640
+#define uarts_atmega2560     uarts_atmega640
+
+extern const Uart_conf       uarts_atxmega16a4[7];
+#define uarts_atxmega32a4    uarts_atxmega16a4
+
+extern const Uart_conf       uarts_atxmega16a4u[7];
+#define uarts_atxmega32a4u   uarts_atxmega16a4u
+#define uarts_atxmega64a4u   uarts_atxmega16a4u
+#define uarts_atxmega128a4u  uarts_atxmega16a4u
+
+extern const Uart_conf       uarts_atxmega16c4[4];
+#define uarts_atxmega32c4    uarts_atxmega16c4
+
+extern const Uart_conf       uarts_atxmega16d4[3];
+#define uarts_atxmega32d4    uarts_atxmega16d4
+#define uarts_atxmega64d4    uarts_atxmega16d4
+#define uarts_atxmega128d4   uarts_atxmega16d4
+
+extern const Uart_conf       uarts_atxmega32c3[4];
+#define uarts_atxmega32d3    uarts_atxmega32c3
+#define uarts_atxmega64c3    uarts_atxmega32c3
+#define uarts_atxmega64d3    uarts_atxmega32c3
+#define uarts_atxmega128c3   uarts_atxmega32c3
+#define uarts_atxmega128d3   uarts_atxmega32c3
+#define uarts_atxmega192c3   uarts_atxmega32c3
+#define uarts_atxmega192d3   uarts_atxmega32c3
+#define uarts_atxmega256c3   uarts_atxmega32c3
+#define uarts_atxmega256d3   uarts_atxmega32c3
+#define uarts_atxmega384c3   uarts_atxmega32c3
+#define uarts_atxmega384d3   uarts_atxmega32c3
+
+extern const Uart_conf       uarts_atxmega64a1[8];
+#define uarts_atxmega128a1   uarts_atxmega64a1
+#define uarts_atxmega128a1revd uarts_atxmega64a1
+
+extern const Uart_conf       uarts_atxmega64a1u[9];
+#define uarts_atxmega128a1u  uarts_atxmega64a1u
+
+extern const Uart_conf       uarts_atxmega64b1[4];
+#define uarts_atxmega128b1   uarts_atxmega64b1
+
+extern const Uart_conf       uarts_atxmega64b3[2];
+#define uarts_atxmega128b3   uarts_atxmega64b3
+
+extern const Uart_conf       uarts_atxmega256a3b[6];
+
+extern const Uart_conf       uarts_atxmega256a3bu[8];
+
+extern const Uart_conf       uarts_attiny202[2];
+#define uarts_attiny212      uarts_attiny202
+#define uarts_attiny402      uarts_attiny202
+#define uarts_attiny412      uarts_attiny202
+
+extern const Uart_conf       uarts_attiny426[4];
+#define uarts_attiny427      uarts_attiny426
+#define uarts_attiny826      uarts_attiny426
+#define uarts_attiny827      uarts_attiny426
+#define uarts_attiny1626     uarts_attiny426
+#define uarts_attiny1627     uarts_attiny426
+#define uarts_attiny3226     uarts_attiny426
+#define uarts_attiny3227     uarts_attiny426
+
+extern const Uart_conf       uarts_atmega808[5];
+#define uarts_atmega1608     uarts_atmega808
+#define uarts_atmega3208     uarts_atmega808
+#define uarts_atmega4808     uarts_atmega808
+
+extern const Uart_conf       uarts_atmega809[8];
+#define uarts_atmega1609     uarts_atmega809
+#define uarts_atmega3209     uarts_atmega809
+#define uarts_atmega4809     uarts_atmega809
+
+extern const Uart_conf       uarts_avr16du14[3];
+#define uarts_avr32du14      uarts_avr16du14
+
+extern const Uart_conf       uarts_avr16eb14[4];
+#define uarts_avr32eb14      uarts_avr16eb14
+
+extern const Uart_conf       uarts_avr16dd20[7];
+#define uarts_avr32dd20      uarts_avr16dd20
+#define uarts_avr32sd20      uarts_avr16dd20
+#define uarts_avr64dd20      uarts_avr16dd20
+
+extern const Uart_conf       uarts_avr16du20[5];
+#define uarts_avr16du28      uarts_avr16du20
+#define uarts_avr16du32      uarts_avr16du20
+#define uarts_avr32du20      uarts_avr16du20
+#define uarts_avr32du28      uarts_avr16du20
+#define uarts_avr32du32      uarts_avr16du20
+#define uarts_avr64du28      uarts_avr16du20
+#define uarts_avr64du32      uarts_avr16du20
+
+extern const Uart_conf       uarts_avr16eb20[6];
+#define uarts_avr16eb28      uarts_avr16eb20
+#define uarts_avr16eb32      uarts_avr16eb20
+#define uarts_avr32eb20      uarts_avr16eb20
+#define uarts_avr32eb28      uarts_avr16eb20
+#define uarts_avr32eb32      uarts_avr16eb20
+
+extern const Uart_conf       uarts_avr16dd28[7];
+#define uarts_avr16dd32      uarts_avr16dd28
+#define uarts_avr32dd28      uarts_avr16dd28
+#define uarts_avr32dd32      uarts_avr16dd28
+#define uarts_avr64dd28      uarts_avr16dd28
+#define uarts_avr64dd32      uarts_avr16dd28
+
+extern const Uart_conf       uarts_avr16ea28[8];
+#define uarts_avr32ea28      uarts_avr16ea28
+#define uarts_avr32sd28      uarts_avr16ea28
+#define uarts_avr64ea28      uarts_avr16ea28
+
+extern const Uart_conf       uarts_avr16ea32[9];
+#define uarts_avr32ea32      uarts_avr16ea32
+#define uarts_avr32sd32      uarts_avr16ea32
+#define uarts_avr64ea32      uarts_avr16ea32
+
+extern const Uart_conf       uarts_avr32da28[4];
+#define uarts_avr32da28s     uarts_avr32da28
+#define uarts_avr32db28      uarts_avr32da28
+#define uarts_avr64da28      uarts_avr32da28
+#define uarts_avr64da28s     uarts_avr32da28
+#define uarts_avr64db28      uarts_avr32da28
+#define uarts_avr128da28     uarts_avr32da28
+#define uarts_avr128da28s    uarts_avr32da28
+#define uarts_avr128db28     uarts_avr32da28
+
+extern const Uart_conf       uarts_avr32da32[5];
+#define uarts_avr32da32s     uarts_avr32da32
+#define uarts_avr32db32      uarts_avr32da32
+#define uarts_avr64da32      uarts_avr32da32
+#define uarts_avr64da32s     uarts_avr32da32
+#define uarts_avr64db32      uarts_avr32da32
+#define uarts_avr128da32     uarts_avr32da32
+#define uarts_avr128da32s    uarts_avr32da32
+#define uarts_avr128db32     uarts_avr32da32
+
+extern const Uart_conf       uarts_avr32da48[9];
+#define uarts_avr32da48s     uarts_avr32da48
+#define uarts_avr32db48      uarts_avr32da48
+#define uarts_avr64da48      uarts_avr32da48
+#define uarts_avr64da48s     uarts_avr32da48
+#define uarts_avr64db48      uarts_avr32da48
+#define uarts_avr128da48     uarts_avr32da48
+#define uarts_avr128da48s    uarts_avr32da48
+#define uarts_avr128db48     uarts_avr32da48
+
+extern const Uart_conf       uarts_avr64da64[12];
+#define uarts_avr64da64s     uarts_avr64da64
+#define uarts_avr64db64      uarts_avr64da64
+#define uarts_avr128da64     uarts_avr64da64
+#define uarts_avr128da64s    uarts_avr64da64
+#define uarts_avr128db64     uarts_avr64da64
 
 int upidxmcuid(int mcuid);
 int upidxsig(const uint8_t *sigs);
