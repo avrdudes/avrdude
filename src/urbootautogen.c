@@ -549,6 +549,14 @@ static const char *wdtname(const Urbootparams *ppp) {
     wdtopts[ppp->wdt_idx].name;
 }
 
+const Uart_conf *getuartsigs(const Avrintel *up, int uart, int alt) {
+  if(up && up->nuartconfs > 0 && up->uarts)
+    for(int i = 0; i < up->nuartconfs; i++)
+      if(up->uarts[i].uart == uart && up->uarts[i].alt == alt)
+        return up->uarts+i;
+  return NULL;
+}
+
 static char *urboot_filename(const Urbootparams *ppp) {
   char *ret = mmt_malloc(1024), *p = ret;
 
