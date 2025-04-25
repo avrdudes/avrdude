@@ -35,6 +35,13 @@
   return -1; \
 } while (0)
 
+static int has_alt_spec(int nu, const Uart_conf *uap) {
+  for(int i=0; i<nu; i++)
+    if(uap[i].alt)
+      return 1;
+  return 0;
+}
+
 static void autogen_help(const Avrintel *up) {
   AVRPART *part = up? locate_part(part_list, up->name): NULL;
   int has_dual = part? urbootexists(part->id, "swio10", "dual", 0): 0;
@@ -51,7 +58,10 @@ static void autogen_help(const Avrintel *up) {
     msg_error("%s",
     "         autobaud  Bootloader adapts to host baud rate within MCU capability\n"
     "          uart<n>  Hardware UART number, eg, uart0 (default), uart1, ...\n"
-    "           alt<n>  Alternative UART I/O lines (only ATtiny841/441)\n"
+    );
+  if(up && up->uarts && has_alt_spec(up->nuartconfs, up->uarts))
+    msg_error("%s",
+    "           alt<n>  Alternative UART I/O lines\n"
     );
   msg_error("%s",
     "         9.6kbaud  Or other reasonable baud rates; also accepting baud unit\n"
@@ -93,20 +103,21 @@ static void autogen_help(const Avrintel *up) {
     );
   if(part && part->n_page_erase <= 1) // Not ATtiny441/841/1634/1634R
     msg_error("%s",
-    "               u1  Bootloader skips redundant flash page writes\n"
+    "               u1  Generate bootloader that skips redundant flash page writes\n"
     "               u2  ... and skips redundant flash page erases during emulated CE\n"
     "               u3  ... and skips not needed flash page erases during page write\n"
     "               u4  ... and skips empty flash page writes after page erase\n"
     "                   Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
     );
   msg_error("%s",
-    "  serialno=abc123  Put serial number, eg, here abc123 in top of unused flash\n"
+    "  serialno=abc123  Put serial number, eg, abc123, in top of unused flash\n"
     "  fill=urboot\\x20  Fill otherwise unused flash repeatedly with argument\n"
     "  save=myfile.hex  Save bootloader to file with chosen name\n"
     "             save  Save bootloader to file with canonical file name\n"
-    "             best  Select smallest feature-rich bootloader (first from _list)\n"
+    "             show  Show bootloader features but do not write to memories\n"
     "             list  List possible bootloader configurations but do not write\n"
-    "             show  Show bootloader features but do not write to flash\n"
+    "             best  Select smallest feature-rich bootloader (first listed above)\n"
+    "                   and, if baud error too high for UART, switch to swio\n"
     "             help  Show this help message and return\n"
     "Features can also be specified like in elements of a canonical file name.\n"
     "For details on urboot bootloaders see https://github.com/stefanrueger/urboot\n"
@@ -115,7 +126,7 @@ static void autogen_help(const Avrintel *up) {
 
 typedef struct {
   int wdt_idx;
-  int autobaud, uart, alt, swio, tx, rx, baudrate, fcpu, fcpu_type;
+  int autobaud, setuart, uart, alt, swio, tx, rx, baudrate, fcpu, fcpu_type;
   int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
   int lednop, dual, cs;
   int led, ledpolarity;
@@ -189,8 +200,13 @@ static int portletter(int num) {
   return (unsigned) num >= sizeof port_letters-1? '?': port_letters[num];
 }
 
-// Return port name (eg, A0 or B3) in closed-circuit memory
+// Return port name (eg, a0 or b3) in closed-circuit memory
 static const char *ccportname(int port) {
+  return str_ccprintf("%c%d", portletter(port >> 4), port & 7);
+}
+
+// Return upper case port name (eg, A0 or B3) in closed-circuit memory
+static const char *ccuportname(int port) {
   return str_ccprintf("%c%d", toupper(portletter(port >> 4)), port & 7);
 }
 
@@ -251,34 +267,58 @@ static int is_num_unit(const char *s, const char *unit) {
   return strlen(s) == ulen;
 }
 
-// Return 0 id bit-addressable port is available; otherwise show error message and return -1
-static int assert_port(int port, int np, const Port_bits *ports, const char *what, const char *mcu,
-  int out, const Avrintel *up, int rethelp) {
+// Return 0 if bit-addressable port is available; otherwise show error message and return -1
+static int assert_port(int port, const char *what, const char *mcu, int out, const Avrintel *up,
+  int rethelp) {
 
-  if(port == -1)
+  if(!up)
+    Return("unexpected lack of context info");
+
+  if((port & 0xff) == (PNA & 0xff))
     Return("no %s line specified, add _%s[a-g][0-7]", what, what);
 
-  if(port < 0 || port > 0xf7 || (port & 0x80))
+  if(port < 0 || port > 0xf7 || (port & 8))
     Return("unexpected malformed port code %02x", port);
 
-  if(np <= 0 || !ports)         // Don't know about ports and addresses
-    Return("%s: no port info available for %s at all", what, mcu);
+  if(up->nports <= 0 || !up->ports) // Don't know about ports and addresses
+    Return("%s: insufficient port info available for %s", what, mcu);
 
   int pnum = port >> 4, pbit = port & 7;
-  for(int i=0; i<np; i++)
-    if(pnum == portnum(ports[i].letter)) { // Exists?
+  for(int i = 0; i < up->nports; i++)
+    if(pnum == portnum(up->ports[i].letter)) { // Exists?
       if(out) {                 // Check DDR and PORT register
-        if(ports[i].dirmask & ports[i].outmask & (1<<pbit))
-          if(ports[i].diraddr < 0x20 && ports[i].outaddr < 0x20)
+        if(up->ports[i].dirmask & up->ports[i].outmask & (1<<pbit))
+          if(up->ports[i].diraddr < 0x20 && up->ports[i].outaddr < 0x20)
             return 0;
       } else {                  // Check PIN register only
-        if(ports[i].inmask & (1<<pbit) && ports[i].inaddr < 0x20)
+        if(up->ports[i].inmask & (1<<pbit) && up->ports[i].inaddr < 0x20)
           return 0;
       }
     }
 
   Return("%s does not have bit-addressable %sput port P%s for %s", mcu, out? "out": "in",
-    ccportname(port), what);
+    ccuportname(port), what);
+}
+
+// Return 0 if bit-addressable port is available; otherwise return -1
+static int silent_assert_port(int port, int out, const Avrintel *up) {
+  if(!up || port < 0 || port > 0xf7 || (port & 8) || up->nports <= 0 || !up->ports)
+    return -1;
+
+  int pnum = port >> 4, pbit = port & 7;
+  for(int i = 0; i < up->nports; i++)
+    if(pnum == portnum(up->ports[i].letter)) { // Exists?
+      if(out) {                 // Check DDR and PORT register
+        if(up->ports[i].dirmask & up->ports[i].outmask & (1<<pbit))
+          if(up->ports[i].diraddr < 0x20 && up->ports[i].outaddr < 0x20)
+            return 0;
+      } else {                  // Check PIN register only
+        if(up->ports[i].inmask & (1<<pbit) && up->ports[i].inaddr < 0x20)
+          return 0;
+      }
+    }
+
+  return -1;
 }
 
 // Cycles per bit given the number of delay loop iterations for software I/O
@@ -303,6 +343,60 @@ static int swio_b_value(int cpb, int b_off, int is_xmega, int pc_22bit) {
     return (cpb-12-9+b_off+60)/6-10;  // XMEGA with 16-bit PC
 
   return (cpb-16-9+b_off+60)/6-10;    // XMEGA with 22-bit PC
+}
+
+// Is the baud rate br achievable through SWIO given f_cpu?
+static int swio_in_range(const Avrintel *up, long f_cpu, long br) {
+  int is_xmega = up->avrarch == F_XMEGA, pc_22bit = up->flashsize > (1<<17);
+  long min_br = f_cpu/swio_cpb(256, is_xmega, pc_22bit);
+  long max_br = f_cpu/swio_cpb(1, is_xmega, pc_22bit); // @@@ 0 if swio0n templates available
+  return br <= max_br && br >= min_br;
+}
+
+static int set_swio_params(Urbootparams *ppp, long f_cpu, long brate, int rethelp) {
+  const Avrintel *up = ppp->up;
+
+  // Need a valid rx/tx for swio
+  if(assert_port(ppp->rx, "rx", ppp->mcu, 0, up, rethelp) == -1)
+    return -1;
+  if(assert_port(ppp->tx, "tx", ppp->mcu, 1, up, rethelp) == -1)
+    return -1;
+  if(ppp->rx == ppp->tx)
+    Return("cannot create SW I/O bootloader with RX pin same as TX pin");
+  if(!ppp->baudrate)
+    Return("SWIO bootloaders need a baud rate, eg, 115k2 or 19200baud");
+  if(!f_cpu)
+    Return("SWIO bootloaders need a CPU frequency, eg, x16m0 or 8MHz");
+
+  int is_xmega = up->avrarch == F_XMEGA;
+  int pc_22bit = up->flashsize > (1<<17);
+  // Cycles per tx/rx bit
+  long cpb = (f_cpu+brate/2)/brate;
+  // Delay loop has granularity of 6 cycles - want around 1% accuracy
+  int b_off = cpb > 600?
+    3: // 3 centres the error: max error is +/- 3 cycles
+    0; // Underestimate b_value and insert opcodes for extra cycles (0..5)
+  int b_value = swio_b_value(cpb, b_off, is_xmega, pc_22bit);
+  int b_cpb = swio_cpb(b_value, is_xmega, pc_22bit);
+  int b_extra = cpb > 600? 0: cpb - b_cpb;
+
+  if(b_value > 256)             // Yes, 256 is still OK
+    Return("baud rate too slow for SWIO");
+  if(b_value < 0)
+    Return("baud rate too fast for SWIO");
+  if(b_value == 0)              // @@@ Only because there are no swio0x bootloader templates
+     Return("no bootloader template with that SWIO baud rate (compile from source)");
+  if(b_extra > 5 || b_extra < 0)
+    Return("baud rate incompatible with F_CPU for SWIO");
+
+  ppp->b_value = b_value;
+  ppp->b_extra = b_extra;
+  ppp->gotbaud = f_cpu/(swio_cpb(b_value, is_xmega, pc_22bit) + b_extra);
+  // double bauderr = 100.0*(ppp->gotbaud-ppp->baudrate)/ppp->baudrate;
+  // pmsg_debug("urboot SWIO%d%d baud error is %.2f%%\n", !!b_value, b_extra, bauderr);
+  snprintf(ppp->iotype, sizeof ppp->iotype, "swio%d%d", !!b_value, b_extra);
+
+  return 0;
 }
 
 // Max value of Baud Rate Register
@@ -557,6 +651,12 @@ const Uart_conf *getuartsigs(const Avrintel *up, int uart, int alt) {
   return NULL;
 }
 
+static const char *ccuartnum(const Urbootparams *ppp) {
+  if(ppp->up && ppp->up->avrarch == F_XMEGA)
+    return str_ccprintf("%c%d", 'c'+ppp->uart/2, ppp->uart%2);
+  return str_ccprintf("%d", ppp->uart);
+}
+
 static char *urboot_filename(const Urbootparams *ppp) {
   char *ret = mmt_malloc(1024), *p = ret;
 
@@ -572,36 +672,44 @@ static char *urboot_filename(const Urbootparams *ppp) {
   }
 
   if(!ppp->swio) {
-    sprintf((p+=strlen(p)), "_uart%d", ppp->uart);
+    sprintf((p+=strlen(p)), "_uart%s", ccuartnum(ppp));
     if(ppp->alt)
       sprintf((p+=strlen(p)), "_alt%d", ppp->alt);
+
+    const Uart_conf *usigs = getuartsigs(ppp->up, ppp->uart, ppp->alt);
+    if(usigs && usigs->rxd != (uint8_t) PNA)
+      sprintf((p+=strlen(p)), "_rx%c%d", portletter(usigs->rxd >> 4), usigs->rxd & 7);
+    if(usigs && usigs->txd != (uint8_t) PNA)
+      sprintf((p+=strlen(p)), "_tx%c%d", portletter(usigs->txd >> 4), usigs->txd & 7);
   }
 
-  if(ppp->led != -1)
+  if(ppp->led != PNA)
     sprintf((p+=strlen(p)), "_led%c%c%d", ppp->ledpolarity == -1? '-': '+', portletter(ppp->led >> 4), ppp->led & 7);
-  if(ppp->cs != -1)
+  if(ppp->cs != PNA)
     sprintf((p+=strlen(p)), "_cs%c%d", portletter(ppp->cs >> 4), ppp->cs & 7);
 
   if(ppp->dual)
     strcpy((p+=strlen(p)), "_dual");
-  else if(ppp->led == -1)
+  else if(ppp->led == PNA)
     strcpy((p+=strlen(p)), ppp->lednop? "_lednop": "_no-led");
 
-  if(!ppp->ut->features && !ppp->ut->update_level)
-    strcpy((p+=strlen(p)), "_min");
-  if(ppp->ut->features & URFEATURE_EE)
-    strcpy((p+=strlen(p)), "_ee");
-  if(ppp->ut->features & URFEATURE_CE)
-    strcpy((p+=strlen(p)), "_ce");
-  if(ppp->ut->update_level)
-    sprintf((p+=strlen(p)), "_u%d", ppp->ut->update_level);
-  if(ppp->ut->features & URFEATURE_HW)
-    strcpy((p+=strlen(p)), "_hw");
-  else {
-    if(ppp->ut->features & URFEATURE_PR)
-       strcpy((p+=strlen(p)), "_pr");
-    if(ppp->vectorstr)
-      sprintf((p+=strlen(p)), "_v%s", ppp->vectorstr);
+  if(ppp->ut) {
+    if(!ppp->ut->features && !ppp->ut->update_level)
+      strcpy((p+=strlen(p)), "_min");
+    if(ppp->ut->features & URFEATURE_EE)
+      strcpy((p+=strlen(p)), "_ee");
+    if(ppp->ut->features & URFEATURE_CE)
+      strcpy((p+=strlen(p)), "_ce");
+    if(ppp->ut->update_level)
+      sprintf((p+=strlen(p)), "_u%d", ppp->ut->update_level);
+    if(ppp->ut->features & URFEATURE_HW)
+      strcpy((p+=strlen(p)), "_hw");
+    else {
+      if(ppp->ut->features & URFEATURE_PR)
+         strcpy((p+=strlen(p)), "_pr");
+      if(ppp->vectorstr)
+        sprintf((p+=strlen(p)), "_v%s", ppp->vectorstr);
+    }
   }
 
   if(ppp->n_serialno && ppp->serialno)
@@ -658,9 +766,9 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   memset(ppp, 0, sizeof *ppp);
   ppp->wdt_idx = 2;             // Default to 1 s WDT timeout
   ppp->fcpu_type = 'x';         // Default to external oscillator
-  ppp->rx = ppp->tx = -1;       // Invalidate rx/tx pins
-  ppp->cs = -1;                 // Invalidate cs pin
-  ppp->led = -1;                // Invalidate led pin
+  ppp->rx = ppp->tx = PNA;      // Invalidate rx/tx pins
+  ppp->cs = PNA;                // Invalidate cs pin
+  ppp->led = PNA;               // Invalidate led pin
   ppp->savefmt = FMT_IHXC;      // Saved file defaults to Intel Hex with comments
 
   if((idx = upidxmcuid(part->mcuid)) < 0)
@@ -740,11 +848,22 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     int t2 = tk(2), t3 = tk(3), t4 = tk(4), t5 = tk(5), t6 = tk(6);
 #undef tk
     if(str_starts(tok, "uart") && t4 >= '0' && t4 <= '9' && !t5) {
+      ppp->setuart = 1;
       ppp->uart = t4 - '0';
       continue;
     }
 
+    if(is_pdi(part)) {          // XMEGAs number uarts UARTC0, UARTC1, UARTD0, ... UARTF1
+      int l4 = _ok(t4)? tolower(t4): '?';
+      if(str_starts(tok, "uart") && l4 >= 'c' && l4 <= 'f' && t5 >= '0' && t5 <= '1' && !t6) {
+        ppp->setuart = 1;
+        ppp->uart = (l4 - 'c')*2 + t5 - '0';
+        continue;
+      }
+    }
+
     if(str_starts(tok, "alt") && t3 >= '0' && t3 <= '9' && !t4) {
+      ppp->setuart = 1;
       ppp->alt = t3 - '0';
       continue;
     }
@@ -1000,14 +1119,14 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   const char *cfg = ppp->lednop? "lednop": "noled";
 
   if(ppp->dual) {
-    if(assert_port(ppp->cs, up->nports, up->ports, "cs", part->desc, 1, up, rethelp) == -1)
+    if(assert_port(ppp->cs, "cs", part->desc, 1, up, rethelp) == -1)
       return -1;
     cfg = "dual";
   }
 
-  if(ppp->led != -1 && assert_port(ppp->led, up->nports, up->ports, "led", part->desc, 1, up, rethelp) == -1)
+  if(ppp->led != PNA && assert_port(ppp->led, "led", part->desc, 1, up, rethelp) == -1)
     return -1;
-  if(str_eq(cfg, "noled") && ppp->led != -1) // Override noled if led explicitly requested
+  if(str_eq(cfg, "noled") && ppp->led != PNA) // Override noled if led explicitly requested
     cfg = "lednop";
 
   // Compute I/O type of template bootloader
@@ -1019,6 +1138,26 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   if(up->numuarts <= 0)         // Default to SWIO in absence of UARTS
     ppp->swio = 1;
 
+  // Check and/or set rx/tx pins from uart<n>
+  if(!ppp->swio || ppp->setuart) {
+    const Uart_conf *usigs = getuartsigs(up, ppp->uart, ppp->alt);
+    if(up && up->nuartconfs > 0 && up->uarts && !usigs)
+      Return("unknown uart%s%s for %s",
+       ccuartnum(ppp), ppp->alt? str_ccprintf("_alt%d", ppp->alt): "", part->desc);
+    if(usigs && usigs->rxd != (uint8_t) PNA) {
+      if(ppp->rx != PNA && usigs->rxd != ppp->rx)
+        Return("uart%s%s expects rx%s not rx%s",
+          ccuartnum(ppp), ppp->alt? str_ccprintf("_alt%d", ppp->alt): "",
+          ccportname(usigs->rxd), ccportname(ppp->rx));
+      ppp->rx = usigs->rxd;
+    }
+    if(usigs && usigs->txd != (uint8_t) PNA) {
+      if(ppp->tx != PNA && usigs->txd != ppp->tx)
+        Return("UART expects tx%s not tx%s", ccportname(usigs->txd), ccportname(ppp->tx));
+      ppp->tx = usigs->txd;
+    }
+  }
+
   if(ppp->autobaud) {
     if(up->numuarts <= 0)
       Return("autobaud requires the part to have UART I/O, but %s doesn't", part->desc);
@@ -1027,45 +1166,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     snprintf(ppp->iotype, sizeof ppp->iotype, "autobaud_uart%d%s",
       ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
   } else if(ppp->swio) {
-    // Need a valid rx/tx for swio
-    if(assert_port(ppp->rx, up->nports, up->ports, "rx", ppp->mcu, 0, up, rethelp) == -1)
+    if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
       return -1;
-    if(assert_port(ppp->tx, up->nports, up->ports, "tx", ppp->mcu, 1, up, rethelp) == -1)
-      return -1;
-    if(ppp->rx == ppp->tx)
-      Return("cannot create SW I/O bootloader with RX pin same as TX pin");
-    if(!ppp->baudrate)
-      Return("SWIO bootloaders need a baud rate, eg, 115k2 or 19200baud");
-    if(!f_cpu)
-      Return("SWIO bootloaders need a CPU frequency, eg, x16m0 or 8MHz");
-
-    int is_xmega = up->avrarch == F_XMEGA;
-    int pc_22bit = up->flashsize > (1<<17);
-    // Cycles per tx/rx bit
-    long cpb = (f_cpu+brate/2)/brate;
-    // Delay loop has granularity of 6 cycles - want around 1% accuracy
-    int b_off = cpb > 600?
-      3: // 3 centres the error: max error is +/- 3 cycles
-      0; // Underestimate b_value and insert opcodes for extra cycles (0..5)
-    int b_value = swio_b_value(cpb, b_off, is_xmega, pc_22bit);
-    int b_cpb = swio_cpb(b_value, is_xmega, pc_22bit);
-    int b_extra = cpb > 600? 0: cpb - b_cpb;
-
-    if(b_value > 256)           // Sic(!) 256 is still OK
-      Return("baud rate too slow for SWIO");
-    if(b_value < 0)
-      Return("baud rate too fast for SWIO");
-    if(b_value == 0)            // @@@ Only because there are no swio0x bootloader templates
-       Return("no bootloader template with that SWIO baud rate (compile from source)");
-    if(b_extra > 5 || b_extra < 0)
-      Return("baud rate incompatible with F_CPU for SWIO");
-
-    ppp->b_value = b_value;
-    ppp->b_extra = b_extra;
-    ppp->gotbaud = f_cpu/(swio_cpb(b_value, is_xmega, pc_22bit) + b_extra);
-    pmsg_notice("urboot bootloader SWIO%d%d baud error is %.2f%%\n",
-       !!b_value, b_extra, 100.0*(ppp->gotbaud-ppp->baudrate)/ppp->baudrate);
-    snprintf(ppp->iotype, sizeof ppp->iotype, "swio%d%d", !!b_value, b_extra);
   } else { // UART
     if(!ppp->baudrate)
       Return("missing autobaud or a baud rate, eg, 115k2 or 19200baud");
@@ -1095,13 +1197,44 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         smp == 8? 2: 1, raw > 255? 12: 8,
         ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
     } else
-      Return("cannot cope with %s UART (yet)", part->desc);
+      Return("%s UART not (yet) implemented", part->desc);
   }
 
+  // Analyse baud error and switch to SWIO if possible
   if(ppp->fcpu && ppp->baudrate && ppp->gotbaud) {
     double bauderr = fabs(100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate);
-    if(!ppp->swio && ((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2))
-      pmsg_warning("high baud error %.2f%% for %s oscillator: consider using swio\n",
+    int warned = 0;
+
+    if((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2) {
+      if(!ppp->swio && swio_in_range(up, f_cpu, brate) &&
+        silent_assert_port(ppp->rx, 0, up) == 0 &&
+        silent_assert_port(ppp->tx, 1, up) == 0) {
+
+        if(ppp->best || !ppp->setuart) { // Switch to SWIO
+          pmsg_notice("switching to SWIO as baud error %.2f%% too high for %s oscillator\n",
+            bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+          if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
+            return -1;
+          ppp->swio = 1;
+          bauderr = fabs(100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate);
+          if((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2) {
+            warned = 1;
+            pmsg_warning("baud error %.2f%% for %s oscillator still too high\n",
+              bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+          }
+        } else {
+          warned = 1;
+          pmsg_warning("baud error %.2f%% for %s oscillator too high: consider switching to swio\n",
+            bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+        }
+      } else {
+        warned = 1;
+        pmsg_warning("baud error %.2f%% for %s oscillator too high\n",
+          bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+      }
+    }
+    if(!warned)
+      pmsg_notice("baud error %.2f%% for %s oscillator OK\n",
         bauderr, ppp->fcpu_type == 'x'? "external": "internal");
   }
 
