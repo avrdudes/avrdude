@@ -1559,14 +1559,19 @@ static int is_config_valid(int nc, const Configitem *cfg, const char *str) {
 }
 
 static void handle_cfg(const PROGRAMMER *pgm, const AVRPART *part, const char *cfg) {
+  char line[200];
+  snprintf(line, sizeof line, "config %s%s", verbose > 0? "-c ": "", cfg);
+
   if(pgm)
-    terminal_line(pgm, part, cfg);
+    terminal_line(pgm, part, line);
   else
-    term_out("%s\n", cfg);
+    term_out("%s\n", line);
 }
 
 static void classic_configuration(const Avrintel *up, const PROGRAMMER *pgm, const AVRPART *part, int hwusage) {
   /*
+   * Set configuration properties if they exist
+   *
    * All classic bootloaders:
    *   - config lb=no_lock
    *   - config blb0=no_lock_in_app
@@ -1583,27 +1588,27 @@ static void classic_configuration(const Avrintel *up, const PROGRAMMER *pgm, con
    *   - config bootrst=boot_section
    *   - config bootsz=bs_512w/256w/128w
    */
-  handle_cfg(pgm, part, "config lb=no_lock");
+  handle_cfg(pgm, part, "lb=no_lock");
   if(is_config_valid(up->nconfigs, up->cfgtable, "blb0"))
-    handle_cfg(pgm, part, "config blb0=no_lock_in_app");
+    handle_cfg(pgm, part, "blb0=no_lock_in_app");
   if(up->nboots > 0)
-    handle_cfg(pgm, part, hwusage? "config blb1=spm_disabled_in_boot": "config blb1=no_lock_in_boot");
+    handle_cfg(pgm, part, hwusage? "blb1=spm_disabled_in_boot": "blb1=no_lock_in_boot");
   if(is_config_valid(up->nconfigs, up->cfgtable, "rstdisbl"))
-    handle_cfg(pgm, part, "config rstdisbl=external_reset");
+    handle_cfg(pgm, part, "rstdisbl=external_reset");
   if(is_config_valid(up->nconfigs, up->cfgtable, "selfprgen"))
-    handle_cfg(pgm, part, "config selfprgen=spm_enabled");
+    handle_cfg(pgm, part, "selfprgen=spm_enabled");
   if(up->nboots > 0) {
     if(hwusage) {
-      handle_cfg(pgm, part, "config bootrst=boot_section");
+      handle_cfg(pgm, part, "bootrst=boot_section");
       if(up->nboots > 1) {
         char bootsz[128];
-        snprintf(bootsz, sizeof bootsz, "config bootsz=bs_%dw", hwusage/2); // Words
+        snprintf(bootsz, sizeof bootsz, "bootsz=bs_%dw", hwusage/2); // Words
         handle_cfg(pgm, part, bootsz);
       }
     } else {
-      handle_cfg(pgm, part, "config bootrst=application");
+      handle_cfg(pgm, part, "bootrst=application");
       if(up->nboots > 1)
-        handle_cfg(pgm, part, "config bootsz=3");
+        handle_cfg(pgm, part, "bootsz=3");
     }
   }
 }
