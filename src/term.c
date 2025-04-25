@@ -1387,7 +1387,7 @@ typedef struct {
 } Cnfg;
 
 typedef struct {                // Context parameters to be passed to functions
-  int verb, allscript, flheaders, allv, vmax, printfactory;
+  int verb, confirm, allscript, flheaders, allv, vmax, printfactory;
 } Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
@@ -1694,6 +1694,9 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
         case 'v':
           o.verb++;
           break;
+        case 'c':
+          o.confirm++;
+          break;
         case 'a':
           o.allscript++;        // Fall through
         case 'f':
@@ -1719,6 +1722,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "    -f show value of fuse and lock bit memories as well\n"
       "    -a output an initialisation script with all possible assignments\n"
       "    -v increase verbosity, show explanations alongside output\n"
+      "    -c confirm new value of changed configuration properties\n"
       "    -h show this help message\n"
       "\n"
       "Config alone shows all property names and current settings of the part's\n"
@@ -1973,7 +1977,9 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     goto finished;
   }
 
+  int confirm = 0;
   if(towrite.i != fusel.current) {
+    confirm = o.confirm;
     for(int i = 0; i < mem->size; i++)
       if(led_write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
         pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
@@ -1983,7 +1989,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   const char *av[] = { "confirm", cc[ci].t->name, NULL };
-  if(o.verb > 0 && !str_eq(argv[0], "confirm"))
+  if((confirm || o.verb > 0) && !str_eq(argv[0], "confirm"))
     cmd_config(pgm, p, 2, av);
 
 finished:
