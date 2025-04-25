@@ -987,7 +987,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     }
   }
 
-  if(type & STR_FILE && part && memstr) {       // File name containing data to be loaded
+  if(type & STR_FILE && part && memstr) { // File name containing data to be loaded
     int format = FMT_AUTO;
     FILE *f;
     char fmtstr[4] = { 0 };

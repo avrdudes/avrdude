@@ -1651,11 +1651,10 @@ int fileio_fmt_autodetect(const char *fname) {
 }
 
 int fileio_mem(int op, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int msize) {
-
   if(msize < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
     msize = mem->size;
 
-  if(is_generated_fname(filename) && (op == FIO_READ || op == FIO_READ_FOR_VERIFY))
+  if(str_starts(filename, "urboot:") && (op == FIO_READ || op == FIO_READ_FOR_VERIFY))
     return urbootautogen(p, mem, filename);
 
   const Segment seg = { 0, msize };
@@ -1663,7 +1662,6 @@ int fileio_mem(int op, const char *filename, FILEFMT format, const AVRPART *p, c
 }
 
 int fileio(int op, const char *filename, FILEFMT format, const AVRPART *p, const char *memstr, int size) {
-
   AVRMEM *mem = avr_locate_mem(p, memstr);
 
   if(mem == NULL) {
