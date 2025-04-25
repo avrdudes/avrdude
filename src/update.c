@@ -816,6 +816,10 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       }
       if((flags & UF_VERIFY) && update_avr_verify(pgm, p, mem, upd, fs.lastaddr + 1, rcap) < 0)
         goto error;
+      if(str_starts(upd->filename, "urboot:")) {
+        pmsg_info("setting fuses for bootloader %s\n", upd->filename);
+        urbootfuses(pgm, p, upd->filename);
+      }
     }
     break;
 
