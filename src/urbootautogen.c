@@ -81,12 +81,12 @@ static void autogen_help(const Avrintel *up) {
     "     tx[a-h][0-7]  MCU transfer pin for swio, eg, txb1\n"
     "           lednop  If no LED is specified generate template bootloader\n"
     "     no-led/noled  Drop blinking code unless a LED is specified\n"
-    "led[+-][a-h][0-7]  Generate blinking code with +/- polarity, eg, led+b5\n"
+    "led[+-][a-h][0-7]  Generate code for activity LED with polarity +/-, eg, led+b5\n"
     );
   if(has_dual)
     msg_error("%s",
-    "             dual  Dual boot, must specify CS pin for external SPI flash\n"
-    "     cs[a-h][0-7]  MCU chip select for dual boot, eg, csd5\n"
+    "             dual  Dual boot; must specify CS pin for external SPI flash\n"
+    "     cs[a-h][0-7]  Chip select pin for dual boot, eg, csd5\n"
     );
   if(up && up->nboots > 0)
     msg_error("%s",
@@ -110,15 +110,15 @@ static void autogen_help(const Avrintel *up) {
     "                   Note u1..u3 is advisory, ie, can result in any of u1..u4\n"
     );
   msg_error("%s",
-    "  serialno=abc123  Put serial number, eg, abc123, in top of unused flash\n"
-    "  fill=urboot\\x20  Fill otherwise unused flash repeatedly with argument\n"
+    "  serialno=abc123  Put serial number abc123 in top of unused bootloader flash\n"
+    "  fill=urboot\\x20  Fill unused bootloader flash repeatedly with argument\n"
     "  save=myfile.hex  Save bootloader to file with chosen name\n"
     "             save  Save bootloader to file with canonical file name\n"
     "          configs  Show needed fuse configuration but do not write to memories\n"
     "             show  Show bootloader features but do not write to flash\n"
     "             list  List possible bootloader configurations but do not write\n"
-    "             best  Select smallest feature-rich bootloader (first listed above)\n"
-    "                   and, if baud error too high for UART, switch to swio\n"
+    "             best  Select smallest feature-rich bootloader (first in list)\n"
+    "                   and, if baud rate error too high for UART, switch to swio\n"
     "             help  Show this help message and return\n"
     "Features can also be specified like in elements of a canonical file name.\n"
     "For details on urboot bootloaders see https://github.com/stefanrueger/urboot\n"
@@ -1204,7 +1204,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       Return("%s UART not (yet) implemented", part->desc);
   }
 
-  // Analyse baud error and switch to SWIO if possible
+  // Analyse baud rate error and switch to SWIO if possible
   if(ppp->fcpu && ppp->baudrate && ppp->gotbaud) {
     double signerr = 100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate, bauderr = fabs(signerr);
     int warned = 0;
@@ -1215,7 +1215,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         silent_assert_port(ppp->tx, 1, up) == 0) {
 
         if(ppp->best || !ppp->setuart) { // Switch to SWIO
-          pmsg_notice("switching to SWIO as baud error %.2f%% too high for %s oscillator\n",
+          pmsg_notice("switching to SWIO as baud rate error %.2f%% too high for %s oscillator\n",
             signerr, ppp->fcpu_type == 'x'? "external": "internal");
           if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
             return -1;
@@ -1223,22 +1223,22 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
           signerr = 100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate, bauderr = fabs(signerr);
           if((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2) {
             warned = 1;
-            pmsg_warning("baud error %.2f%% for %s oscillator still too high\n",
+            pmsg_warning("baud rate error %.2f%% for %s oscillator still too high\n",
               signerr, ppp->fcpu_type == 'x'? "external": "internal");
           }
         } else {
           warned = 1;
-          pmsg_warning("baud error %.2f%% for %s oscillator too high: consider switching to swio\n",
-            signerr, ppp->fcpu_type == 'x'? "external": "internal");
+          pmsg_warning("high baud rate error %.2f%% for %s oscillator: consider switching to swio\n",
+            signerr, ppp->fcpu_type == 'x'? "ext": "int");
         }
       } else {
         warned = 1;
-        pmsg_warning("baud error %.2f%% for %s oscillator too high\n",
+        pmsg_warning("baud rate error %.2f%% for %s oscillator too high\n",
           signerr, ppp->fcpu_type == 'x'? "external": "internal");
       }
     }
     if(!warned)
-      pmsg_notice("baud error %.2f%% for %s oscillator OK\n",
+      pmsg_notice("baud rate error %.2f%% for %s oscillator OK\n",
         signerr, ppp->fcpu_type == 'x'? "external": "internal");
   }
 
