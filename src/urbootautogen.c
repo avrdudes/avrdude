@@ -393,8 +393,6 @@ static int set_swio_params(Urbootparams *ppp, long f_cpu, long brate, int rethel
   ppp->b_value = b_value;
   ppp->b_extra = b_extra;
   ppp->gotbaud = f_cpu/(swio_cpb(b_value, is_xmega, pc_22bit) + b_extra);
-  // double bauderr = 100.0*(ppp->gotbaud-ppp->baudrate)/ppp->baudrate;
-  // pmsg_debug("urboot SWIO%d%d baud error is %.2f%%\n", !!b_value, b_extra, bauderr);
   snprintf(ppp->iotype, sizeof ppp->iotype, "swio%d%d", !!b_value, b_extra);
 
   return 0;
@@ -1208,7 +1206,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   // Analyse baud error and switch to SWIO if possible
   if(ppp->fcpu && ppp->baudrate && ppp->gotbaud) {
-    double bauderr = fabs(100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate);
+    double signerr = 100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate, bauderr = fabs(signerr);
     int warned = 0;
 
     if((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2) {
@@ -1218,30 +1216,30 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
         if(ppp->best || !ppp->setuart) { // Switch to SWIO
           pmsg_notice("switching to SWIO as baud error %.2f%% too high for %s oscillator\n",
-            bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+            signerr, ppp->fcpu_type == 'x'? "external": "internal");
           if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
             return -1;
           ppp->swio = 1;
-          bauderr = fabs(100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate);
+          signerr = 100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate, bauderr = fabs(signerr);
           if((ppp->fcpu_type != 'x' && bauderr > 0.7) || bauderr > 2.2) {
             warned = 1;
             pmsg_warning("baud error %.2f%% for %s oscillator still too high\n",
-              bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+              signerr, ppp->fcpu_type == 'x'? "external": "internal");
           }
         } else {
           warned = 1;
           pmsg_warning("baud error %.2f%% for %s oscillator too high: consider switching to swio\n",
-            bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+            signerr, ppp->fcpu_type == 'x'? "external": "internal");
         }
       } else {
         warned = 1;
         pmsg_warning("baud error %.2f%% for %s oscillator too high\n",
-          bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+          signerr, ppp->fcpu_type == 'x'? "external": "internal");
       }
     }
     if(!warned)
       pmsg_notice("baud error %.2f%% for %s oscillator OK\n",
-        bauderr, ppp->fcpu_type == 'x'? "external": "internal");
+        signerr, ppp->fcpu_type == 'x'? "external": "internal");
   }
 
   uint16_t *locations, *bootloader, *versiontable, size, usage;
