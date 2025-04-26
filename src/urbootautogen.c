@@ -66,21 +66,21 @@ static void autogen_help(const Avrintel *up) {
   msg_error("%s",
     "         9.6kbaud  Or other reasonable baud rates; also accepting baud unit\n"
     "            16MHz  Or other f_cpu; also accepting kHz and Hz units\n"
-    "      x,i,a-h,j-q  Optional F_cpu prefix designator, eg, i16MHz\n"
+    "      x,i,a-h,j-q  Optional F_cpu prefix designator, eg, i8MHz\n"
   );
   if(verbose > 0)
     msg_error("%s",
     "                   x: external oscillator (default)\n"
     "                   i: internal oscillator\n"
-    "                   j-q: int oscillator that is 1.25% (j) to 10% (q) fast\n"
-    "                   h-a: int oscillator that is 1.25% (h) to 10% (a) slow\n"
+    "                   a-h: internal oscillator that is 10% (a) to 1.25% (h) slow\n"
+    "                   j-q: internal oscillator that is 1.25% (j) to 10% (q) fast\n"
     );
   msg_error("%s",
     "             swio  Software I/O, must specify rx and tx pins, see below\n"
     "     rx[a-h][0-7]  MCU receive pin for swio, eg, rxb0\n"
     "     tx[a-h][0-7]  MCU transfer pin for swio, eg, txb1\n"
-    "           lednop  If no LED specified, generate template bootloader\n"
-    "     no-led/noled  Drop blinking code unless LED specified\n"
+    "           lednop  If no LED is specified generate template bootloader\n"
+    "     no-led/noled  Drop blinking code unless a LED is specified\n"
     "led[+-][a-h][0-7]  Generate blinking code with +/- polarity, eg, led+b5\n"
     );
   if(has_dual)
