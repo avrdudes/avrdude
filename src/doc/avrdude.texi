@@ -4250,7 +4250,7 @@ must be a multiple of flash pages or minimal boot section. These can be
 selected with the @code{best} feature. The @code{show} feature displays
 the properties of the bootloader that would be written without writing it;
 removing @code{show} will then write the bootloader to flash
-and, using @code{-U}, also set the fuses:
+and, using @code{-U}, also set the necessary fuses:
 
 @smallexample
 @cartouche
@@ -4310,25 +4310,24 @@ The following table lists possible features.
 @noindent
 Notes: Features can also be specified like in elements of a canonical file name.
 For details on urboot bootloaders and their features see @url{https://github.com/stefanrueger/urboot}.
-@multitable {*10} {Only works with UART I/O where the RX port pin is bit-addressable lorem ipsum}
+@multitable {*10} {Only works with UART IO where the RX port pin is bit-addressable lorem ipsum}
 @item *1  @tab Some parts do not provide @w{4 s} or @w{8 s} watchdog timeout
 @item *2  @tab Only works with UART I/O where the RX port pin is bit-addressable
 @item *3  @tab From classic parts, only ATtiny441/841 have alternate UART signals
-@item *4  @tab There is a subtle difference between external oscillators (@code{x}) that are
-               usually reasonably accurate and internal oscillators (@code{a}...@code{h},
-               @code{i}, @code{j}...@code{q}) that, for classic parts, tend to be very
-               inaccurate. The former can afford higher baud errors (up to 2.2%) whilst for the
-               latter AVRDUDE warns of a too high baud error at a much lower threshold of 0.7%.
-               Most classic hardware UARTs only have integer baud rate divisors, which can lead
-               to high baud rate quantisation errors. Used with the @code{best} option AVRDUDE
-               can automagically replace UART I/O code with @code{swio} I/O code that usually
-               leads to smaller baud rate errors. For that, AVRDUDE better knows the type of
-               oscillator (@code{x} or @code{i}) that drives a board. For lowest baud errors on
-               an individual board that runs on internal oscillators it is best to measure F_CPU
-               and use the measured value with the @code{i} prefix. Alternatively, one can use
-               the nominal internal F_CPU (say @w{8 MHz}) and use prefix letters that make the
-               bootloader work: depending on the letter AVRDUDE subtracts from or adds to the
-               nominal F_CPU multiples of 1.25%.
+@item *4  @tab There is a subtle difference between external oscillators (@code{x}), which are
+               reasonably accurate, and internal oscillators (@code{a}...@code{h}, @code{i},
+               @code{j}...@code{q}), which tend to be inaccurate for classic parts. The former can
+               afford higher baud errors up to 2.2% while for the latter AVRDUDE warns of a too
+               high baud error at the lower threshold of 0.7%. Cassic UARTs have integer baud rate
+               divisors, which can lead to high baud rate quantisation errors. Used with the
+               @code{best} option AVRDUDE can automagically replace UART I/O code with @code{swio}
+               I/O code that usually leads to smaller baud rate errors. For that, AVRDUDE better
+               knows the type of oscillator (@code{x} or @code{i}) that drives a board. For lowest
+               baud errors on an individual board that runs on internal oscillators it is best to
+               measure F_CPU and use the measured value with the @code{i} prefix. Alternatively,
+               one can use the nominal internal F_CPU (say @w{8 MHz}) and use prefix letters that
+               make the bootloader work: depending on the letter AVRDUDE subtracts from or adds to
+               the nominal F_CPU multiples of 1.25%. See examples below.
 @item *5  @tab Not supported for parts lacking standard SPI communication
 @item *6  @tab Not all parts provide hardware bootloader support
 @item *7  @tab Only available when flash size is a power of 2 (not ATmega406)
@@ -4336,6 +4335,54 @@ For details on urboot bootloaders and their features see @url{https://github.com
 @item *9  @tab @code{u1}...@code{u4} is not available for parts with the 4-page-erase quirk
 @item *10 @tab The bootloader file is still written to disk in connection with @code{configs}, @code{show} or @code{list} 
 @end multitable
+
+@*@noindent
+Baud rate quantification errors are displayed with @code{-v}. 0.79% baud
+rate error is considered OK for external oscillators but too high for
+internal oscillators. Hence, AVRDUDE selects software I/O when neither
+@code{uart} nor @code{swio} are explicitly requested:
+
+@smallexample
+@cartouche
+$ avrdude -pm328p -U urboot:x8mhz_56kbaud -qv |& grep -i baud.error
+Baud error -0.79% for external oscillator OK
+
+$ avrdude -pm328p -U urboot:i8mhz_56kbaud -qv |& grep -i baud.error
+Switching to SWIO as baud error -0.79% too high for internal oscillator
+Baud error -0.10% for internal oscillator OK
+@end cartouche
+@end smallexample
+
+@noindent
+There is a warning when the user requests hardware UART I/O:
+
+@smallexample
+@cartouche
+$ avrdude -pm328p -U urboot:i8mhz_56kbaud_uart0 -qv |& grep -i baud.error
+Warning: baud error -0.79% for internal oscillator too high: consider switching to swio
+@end cartouche
+@end smallexample
+
+@noindent
+Requesting @code{best} makes AVRDUDE switch to @code{swio} when UART quatisation errors are considered too high:
+
+@smallexample
+@cartouche
+$ avrdude -pm328p -U urboot:i8mhz_56kbaud_uart0_best -qv |& grep -i baud.error
+Switching to SWIO as baud error -0.79% too high for internal oscillator
+Baud error -0.10% for internal oscillator OK
+@end cartouche
+@end smallexample
+
+@noindent
+Alternatively, the user can request @code{swio} on those @code{rx}/@code{tx} lines that the UART uses:
+
+@smallexample
+@cartouche
+$ avrdude -pm328p -U urboot:i8mhz_56kbaud_uart0_swio -qv |& grep -i baud.error
+Baud error -0.10% for internal oscillator OK
+@end cartouche
+@end smallexample
 
 @page
 
