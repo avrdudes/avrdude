@@ -2722,62 +2722,61 @@ through a cache and paged access functions. All other memories are
 directly written to without use of a cache. Some older parts without paged
 access, depending on the programmer, might also have flash and EEPROM
 directly accessed without cache.
-
 Items @var{data} can have the following formats:
 
-@multitable @columnfractions .25 .4 .25
+@multitable @columnfractions .32 .42 .20
 @item @strong{Type}
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
-
+@c
 @item String
 @tab @code{"Hello, world\n"}
 @tab varying
-
+@c
 @item File
 @tab @code{C:/My\ projects/blink.hex}
 @tab varying
-
+@c
 @item File with format
 @tab @code{blink.hex:i}
 @tab varying
-
+@c
 @item Character
 @tab @code{'A'}
 @tab 1
-
+@c
 @item Binary integer
-@tab 0b101010
+@tab @code{0b101010}
 @tab 1, 2, 4, or 8
-
+@c
 @item Octal integer
-@tab 012345
+@tab @code{012345}
 @tab 1, 2, 4, or 8
-
+@c
 @item Decimal integer
-@tab 12345
+@tab @code{12345}
 @tab 1, 2, 4, or 8
-
+@c
 @item Hexadecimal integer
-@tab 0x12345
+@tab @code{0x12345}
 @tab 1, 2, 4, or 8
-
+@c
 @item Decimal float
-@tab 3.1415926
+@tab @code{3.1415926}
 @tab 4
-
+@c
 @item Hexadecimal float
-@tab 0xA.8p2
+@tab @code{0xA.8p2}
 @tab 4
-
+@c
 @item Decimal double
-@tab 3.141592653589793D
+@tab @code{3.141592653589793D}
 @tab 8
-
+@c
 @item Hexadecimal double
-@tab  0xA.8p2D
+@tab @code{0xA.8p2D}
 @tab 8
-
+@c
 @end multitable
 
 @var{data}
@@ -2785,22 +2784,22 @@ can be binary, octal, decimal or hexadecimal integers, floating point
 numbers or C-style strings and characters. If nothing matches, @code{data}
 will be interpreted as a name of a file containing data, which will be
 read and inserted at this point. In order to force the interpretation of a
-data item as file, e.g., when the file name would be understood as a number
-otherwise, the file name can be given a @code{:}@emph{f} format specifier.
-In absence of a format suffix, the terminal will try to auto-detect
-the file format.
+data item as file, e.g., when the file name would be understood as a
+number otherwise, the file name can be given a @code{:}@emph{f} format
+specifier. In absence of a format suffix, the terminal will try to
+auto-detect the file format.
 
-For integers, an optional case-insensitive suffix specifies the data size
-as in the table below:
+For integers, an optional case-insensitive suffix specifies the data size:
+
 @table @code
 @item LL
-8 bytes / 64 bits
+8 bytes (64 bits)
 @item L
-4 bytes / 32 bits
+4 bytes (32 bits)
 @item H or S
-2 bytes / 16 bits
+2 bytes (16 bits)
 @item HH
-1 byte / 8 bits
+1 byte (8 bits)
 @end table
 
 Suffix @code{D} indicates a 64-bit double, @code{F} a 32-bit float, whilst a
@@ -2809,7 +2808,7 @@ floating point notation is supported. An ambiguous trailing suffix, e.g.,
 @code{0x1.8D}, is read as no-suffix float where @code{D} is part of the
 mantissa; use a zero exponent @code{0x1.8p0D} to clarify.
 
-An optional U suffix makes integers unsigned. Ordinary @code{0x}
+An optional @code{U} suffix makes integers unsigned. Ordinary @code{0x}
 hexadecimal and @code{0b} binary integers are always treated as unsigned.
 @code{+0x}, @code{-0x}, @code{+0b} and @code{-0b} numbers with an explicit
 sign are treated as signed unless they have a @code{U} suffix. Unsigned
@@ -2835,10 +2834,14 @@ as it is the same as @code{0xFFFFffffFFFFffffU}.
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
-@item write @var{memory} @var{addr} @var{data}
-@cindex @code{write} @var{memory} @var{addr} @var{data}
-The start address @code{addr} may be omitted if the size of the memory
-being written to is one byte.
+@item write @var{memory} @var{data}
+@cindex @code{write} @var{memory} @var{data}
+The start address may be omitted if the size of the memory being written
+to is one byte. @var{data} can be anything including a file.
+
+@item write @var{memory} @var{file}
+@cindex @code{write} @var{memory} @var{file}
+The start address may be omitted when a file is written to the memory.
 
 @item write @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
 @cindex @code{write} @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{} @w{ }
@@ -4196,7 +4199,7 @@ interactively:
 
 @smallexample
 @cartouche
-$ avrdude -p m328p -c dryrun -t
+$ avrdude -c dryrun -p m328p -t
 avrdude> write flash urboot:autobaud_list
    Selection Size Use Vers Features  Type               Canonical file name
          _pr *256 256 u8.0 w---jPra- vector/spmready    urboot_m328p_1s_autobaud_u...
@@ -4248,16 +4251,16 @@ In all lists the starred bootloaders are those that are the most
 feature-rich given the available used flash space, which out of necessity,
 must be a multiple of flash pages or minimal boot section. These can be
 selected with the @code{best} feature. The @code{show} feature displays
-the properties of the bootloader that would be written without writing it;
-removing @code{show} will then write the bootloader to flash
+the properties of the bootloader that would be written without actually
+writing it; removing @code{show} will then write the bootloader to flash
 and, using @code{-U}, also set the necessary fuses:
 
 @smallexample
 @cartouche
-$ avrdude -qqc dryrun -p m328p -U urboot:autobaud_show_best_ee
+$ avrdude -qq -c dryrun -p m328p -U urboot:autobaud_show_best_ee
 378 384 u8.0 weU-jPrac vector/spmready urboot_m328p_1s_autobaud_uart0_rxd0_txd1_no...
 
-$ avrdude -qqc dryrun -p m328p -U urboot:autobaud_best_ee && echo OK
+$ avrdude -qq -c dryrun -p m328p -U urboot:autobaud_best_ee && echo OK
 OK
 @end cartouche
 @end smallexample
@@ -4267,89 +4270,89 @@ Like the urboot project AVRDUDE currently only provides bootloaders for classic 
 The following table lists possible features.
 
 @multitable {@code{led[+-][a-h][0-7]}} {Bootloader adapts to host baud rate within MCU capability (*2)}
-@item                @code{2s} @tab WDT timeout: @code{250ms}, @code{500ms}, @code{1s} (default), @code{2s}, @code{4s} or @code{8s} (*1)
-@item          @code{autobaud} @tab Bootloader adapts to host baud rate within MCU capability (*2)
+@item                @code{2s} @tab WDT timeout: @code{250ms}, @code{500ms}, @code{1s} (default), @code{2s}, @code{4s} or @code{8s} (*0)
+@item          @code{autobaud} @tab Bootloader adapts to host baud rate within MCU capability (*1)
 @item           @code{uart<n>} @tab Hardware UART number, eg, @code{uart0} (default), @code{uart1}, ...
-@item            @code{alt<n>} @tab Alternative UART I/O lines (*3)
+@item            @code{alt<n>} @tab Alternative UART I/O lines (*2)
 @item          @code{9.6kbaud} @tab Or other reasonable baud rates; also accepting @code{baud} unit
 @item             @code{16MHz} @tab Or other CPU frequencies; also accepting @code{kHz} and @code{Hz} units
-@item            @code{[xa-q]} @tab Optional F_CPU prefix designator, eg, @code{i9.2MHz} (*4)
-                                @*@w{  - @code{x}}: external oscillator (default)
-                                @*@w{  - @code{i}}: internal oscillator
-                                @*@w{  - @code{[a-h]}}: internal oscillator that is 10% (@code{a}) to 1.25% (@code{h}) slow
-                                @*@w{  - @code{[j-q]}}: internal oscillator that is 1.25% (@code{j}) to 10% (@code{q}) fast
+@item            @code{[xa-q]} @tab Optional F_CPU prefix designator, eg, @code{i9.2MHz} (*3)
+                               @*@w{@ @ - @code{x}}: external oscillator (default)
+                               @*@w{@ @ - @code{i}}: internal oscillator
+                               @*@w{@ @ - @code{[a-h]}}: internal oscillator that is 10% (@code{a}) to 1.25% (@code{h}) slow
+                               @*@w{@ @ - @code{[j-q]}}: internal oscillator that is 1.25% (@code{j}) to 10% (@code{q}) fast
 @item              @code{swio} @tab Software I/O, must specify @code{rx} and @code{tx} pins
 @item      @code{rx[a-h][0-7]} @tab MCU receive pin for @code{swio}, eg, @code{rxb0}
 @item      @code{tx[a-h][0-7]} @tab MCU transfer pin for @code{swio}, eg, @code{txb1}
 @item            @code{lednop} @tab If no LED is specified generate template bootloader
 @item      @code{no-led/noled} @tab Drop blinking code unless a LED is specified
-@item @code{led[+-][a-h][0-7]} @tab Generate blinking code with +/- polarity, eg, @code{led+b5}
-@item              @code{dual} @tab Dual boot, must specify CS pin for external SPI flash (*5)
-@item      @code{cs[a-h][0-7]} @tab MCU chip select for dual boot, eg, @code{csd5}
-@item                @code{hw} @tab Generate bootloader with hardware boot section (*6)
-@item              @code{v<n>} @tab Optional vector for vector b/loader, eg, @code{v25} or @code{vspmready}
+@item @code{led[+-][a-h][0-7]} @tab Generate code for activity LED with polarity +/-, eg, @code{led+b5}
+@item              @code{dual} @tab Dual boot; must specify CS pin for external SPI flash (*4)
+@item      @code{cs[a-h][0-7]} @tab Chip select pin for dual boot, eg, @code{csd5}
+@item                @code{hw} @tab Generate bootloader with hardware boot section (*5)
+@item              @code{v<n>} @tab Optional vector for vector bootloader, eg, @code{v25} or @code{vspmready}
 @item                @code{ee} @tab Generate bootloader with EEPROM r/w support
 @item                @code{ce} @tab Generate bootloader that can emulate a chip erase
-@item                @code{pr} @tab Generate bootloader with reset vector protection (*7)
-@item                @code{u1} @tab Generate bootloader that skips redundant flash page writes (*8,9)
-@item                @code{u2} @tab ... and skips redundant flash page erases during emulated CE (*8,9)
-@item                @code{u3} @tab ... and skips not needed flash page erases during page write (*8,9)
-@item                @code{u4} @tab ... and skips empty flash page writes after page erase (*9)
-@item   @code{serialno=abc123} @tab Put serial number, eg, @code{abc123}, in top of unused flash
-@item   @code{fill=urboot\x20} @tab Fill otherwise unused flash repeatedly with argument
-@item   @code{save=myfile.hex} @tab Save bootloader to file with chosen name (*10)
-@item              @code{save} @tab Save bootloader to file with canonical file name (*10)
+@item                @code{pr} @tab Generate vector bootloader with reset vector protection (*6)
+@item                @code{u1} @tab Generate bootloader that skips redundant flash page writes (*7,8)
+@item                @code{u2} @tab ... and skips redundant flash page erases during emulated CE (*7,8)
+@item                @code{u3} @tab ... and skips not needed flash page erases during page write (*7,8)
+@item                @code{u4} @tab ... and skips empty flash page writes after page erase (*8)
+@item   @code{serialno=abc123} @tab Put serial number, eg, @code{abc123}, in top of unused bootloader flash
+@item   @code{fill=urboot\x20} @tab Fill otherwise unused bootloader flash repeatedly with argument
+@item   @code{save=myfile.hex} @tab Save bootloader to file with chosen name (*9)
+@item              @code{save} @tab Save bootloader to file with canonical file name (*9)
 @item           @code{configs} @tab Show needed fuse configuration but do not write to memories
 @item              @code{show} @tab Show bootloader features but do not write to flash
 @item              @code{list} @tab List possible bootloader configurations but do not write to flash
-@item              @code{best} @tab Select smallest feature-rich bootloader (first listed above)
-                                    and, if the baud error is too high for UART, switch to @code{swio}
+@item              @code{best} @tab Select smallest feature-rich bootloader (first in list) and, if
+                                    the baud rate error is too high for UART, switch to @code{swio}
 @item              @code{help} @tab Show this help message and return
 @end multitable
 
 @noindent
-Notes: Features can also be specified like in elements of a canonical file name.
+@strong{Notes.} Features can also be specified like in elements of a canonical file name.
 For details on urboot bootloaders and their features see @url{https://github.com/stefanrueger/urboot}.
-@multitable {*10} {Only works with UART IO where the RX port pin is bit-addressable lorem ipsum}
-@item *1  @tab Some parts do not provide @w{4 s} or @w{8 s} watchdog timeout
-@item *2  @tab Only works with UART I/O where the RX port pin is bit-addressable
-@item *3  @tab From classic parts, only ATtiny441/841 have alternate UART signals
-@item *4  @tab There is a subtle difference between external oscillators (@code{x}), which are
-               reasonably accurate, and internal oscillators (@code{a}...@code{h}, @code{i},
-               @code{j}...@code{q}), which tend to be inaccurate for classic parts. The former can
-               afford higher baud errors up to 2.2% while for the latter AVRDUDE warns of a too
-               high baud error at the lower threshold of 0.7%. Cassic UARTs have integer baud rate
-               divisors, which can lead to high baud rate quantisation errors. Used with the
-               @code{best} option AVRDUDE can automagically replace UART I/O code with @code{swio}
-               I/O code that usually leads to smaller baud rate errors. For that, AVRDUDE better
-               knows the type of oscillator (@code{x} or @code{i}) that drives a board. For lowest
-               baud errors on an individual board that runs on internal oscillators it is best to
-               measure F_CPU and use the measured value with the @code{i} prefix. Alternatively,
-               one can use the nominal internal F_CPU (say @w{8 MHz}) and use prefix letters that
-               make the bootloader work: depending on the letter AVRDUDE subtracts from or adds to
-               the nominal F_CPU multiples of 1.25%. See examples below.
-@item *5  @tab Not supported for parts lacking standard SPI communication
-@item *6  @tab Not all parts provide hardware bootloader support
-@item *7  @tab Only available when flash size is a power of 2 (not ATmega406)
-@item *8  @tab @code{u1}...@code{u3} is advisory, ie, can result in any of @code{u1}...@code{u4}
-@item *9  @tab @code{u1}...@code{u4} is not available for parts with the 4-page-erase quirk
-@item *10 @tab The bootloader file is still written to disk in connection with @code{configs}, @code{show} or @code{list} 
+@multitable {*8} {Only works with UART I/O where the RX port pin is bit-addressable lorem ipsum}
+@item *0 @tab Some parts do not provide @w{4 s} or @w{8 s} watchdog timeout
+@item *1 @tab @code{autobaud} only works with UART I/O where the RX port pin is bit-addressable
+@item *2 @tab From classic parts, only ATtiny441/841 have alternate UART signals
+@item *3 @tab There is a subtle difference between external oscillators (@code{x}), which are
+              reasonably accurate, and internal oscillators (@code{a}...@code{h}, @code{i},
+              @code{j}...@code{q}), which tend to be inaccurate for classic parts. The former can
+              afford higher baud rate errors up to 2.2% while for the latter AVRDUDE warns at the
+              lower threshold of 0.7% baud rate error. Cassic UARTs have integer baud rate
+              divisors, which can lead to high baud rate quantisation errors. Used with the feature
+              @code{best} AVRDUDE can automagically replace UART I/O code with @code{swio}
+              I/O code when the former exhibits too high baud rate errors. For that, AVRDUDE better
+              knows the type of oscillator (@code{x} or @code{i}) that drives a board. For lowest
+              baud rate errors on an individual board that runs on internal oscillators it is best
+              to measure F_CPU and use the measured value with the @code{i} prefix. Alternatively,
+              one can use the nominal internal F_CPU (say @w{8 MHz}) and use prefix letters that
+              make the bootloader work: depending on the letter AVRDUDE subtracts from or adds to
+              the nominal F_CPU multiples of 1.25%.
+@item *4 @tab Dual boot is not supported for parts that lack standard SPI communication
+@item *5 @tab Not all parts provide hardware bootloader support; @code{hw} renders @code{pr} meaningless
+@item *6 @tab Reset vector protection is only available if flash size is a power of 2 (not ATmega406)
+@item *7 @tab @code{u1}...@code{u3} is only advisory, ie, can result in any of @code{u1}...@code{u4}
+@item *8 @tab @code{u1}...@code{u4} is not available for parts with the 4-page-erase quirk
+@item *9 @tab The bootloader file is still written to disk in connection with @code{configs}, @code{show} or @code{list}
 @end multitable
 
 @*@noindent
-Baud rate quantification errors are displayed with @code{-v}. 0.79% baud
+Baud rate quantification errors are displayed with @code{-v}. A 0.79% baud
 rate error is considered OK for external oscillators but too high for
 internal oscillators. Hence, AVRDUDE selects software I/O when neither
 @code{uart} nor @code{swio} are explicitly requested:
 
 @smallexample
 @cartouche
-$ avrdude -pm328p -U urboot:x8mhz_56kbaud -qv |& grep -i baud.error
-Baud error -0.79% for external oscillator OK
+$ avrdude -qv -c dryrun -p m328p -U urboot:x8mhz_56kbaud |& grep -i baud.rate
+Baud rate error -0.79% for external oscillator OK
 
-$ avrdude -pm328p -U urboot:i8mhz_56kbaud -qv |& grep -i baud.error
-Switching to SWIO as baud error -0.79% too high for internal oscillator
-Baud error -0.10% for internal oscillator OK
+$ avrdude -qv -c dryrun -p m328p -U urboot:i8mhz_56kbaud |& grep -i baud.rate
+Switching to SWIO as baud rate error -0.79% too high for internal oscillator
+Baud rate error -0.10% for internal oscillator OK
 @end cartouche
 @end smallexample
 
@@ -4358,8 +4361,8 @@ There is a warning when the user requests hardware UART I/O:
 
 @smallexample
 @cartouche
-$ avrdude -pm328p -U urboot:i8mhz_56kbaud_uart0 -qv |& grep -i baud.error
-Warning: baud error -0.79% for internal oscillator too high: consider switching to swio
+$ avrdude  -qvc dryrun -p m328p -U urboot:i8mhz_56kbaud_uart0 |& grep -i baud.rate
+Warning: high baud rate error -0.79% for int oscillator: consider switching to swio
 @end cartouche
 @end smallexample
 
@@ -4368,9 +4371,9 @@ Requesting @code{best} makes AVRDUDE switch to @code{swio} when UART quatisation
 
 @smallexample
 @cartouche
-$ avrdude -pm328p -U urboot:i8mhz_56kbaud_uart0_best -qv |& grep -i baud.error
-Switching to SWIO as baud error -0.79% too high for internal oscillator
-Baud error -0.10% for internal oscillator OK
+$ avrdude -qvc dryrun -p m328p -U urboot:i8mhz_56kbaud_uart0_best |& grep -i baud.rat
+Switching to SWIO as baud rate error -0.79% too high for internal oscillator
+Baud rate error -0.10% for internal oscillator OK
 @end cartouche
 @end smallexample
 
@@ -4379,8 +4382,8 @@ Alternatively, the user can request @code{swio} on those @code{rx}/@code{tx} lin
 
 @smallexample
 @cartouche
-$ avrdude -pm328p -U urboot:i8mhz_56kbaud_uart0_swio -qv |& grep -i baud.error
-Baud error -0.10% for internal oscillator OK
+$ avrdude -qvc dryrun -p m328p -U urboot:i8mhz_56kbaud_uart0_swio |& grep -i baud.rat
+Baud rate error -0.10% for internal oscillator OK
 @end cartouche
 @end smallexample
 
