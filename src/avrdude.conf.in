@@ -2872,7 +2872,6 @@ programmer parent "powerdebugger" # powerdebugger_updi
     desc                   = "Atmel PowerDebugger in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     hvupdi_support         = 0, 1;
 ;
 
@@ -3016,7 +3015,7 @@ programmer # pickit4_mplab
     desc                   = "MPLAB(R) PICkit 4 in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_READ | HAS_VTARG_SWITCH | HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9012; # PK4 (MPLAB mode)
@@ -3073,8 +3072,6 @@ programmer parent "pickit4_mplab" # pickit4_mplab_pdi
     prog_modes             = PM_PDI;
 ;
 
-
-
 # Microchip PICkit 5. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164150
 #
@@ -3117,7 +3114,7 @@ programmer # pickit5
     desc                   = "MPLAB(R) PICkit 5 in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_READ | HAS_VTARG_SWITCH | HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036; # PK5
@@ -3173,7 +3170,6 @@ programmer parent "pickit5" # pickit5_pdi
     desc                   = "MPLAB(R) PICkit 5 in PDI Mode";
     prog_modes             = PM_PDI;
 ;
-
 
 # Microchip PICkit Basic. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164110
@@ -3264,7 +3260,7 @@ programmer parent "pickit_basic_mplab" # pickit_basic_mplab_tpi
 # pickit_basic_pdi
 #------------------------------------------------------------
 
-programmer parent "pickit_basic_mplab" # pickit_basic_mplab_pdi
+programmer parent "pickit_basic_mplab" # pickit_basic_pdi
     id                     = "pickit_basic_pdi";
     desc                   = "MPLAB(R) PICkit Basic in PDI Mode";
     prog_modes             = PM_PDI;
@@ -3369,11 +3365,9 @@ programmer parent "snap" # snap_tpi
     prog_modes             = PM_TPI;
 ;
 
-
 # End of "Atmel" mode
 #
 # Begin of "mplab" mode
-
 
 #------------------------------------------------------------
 # snap_mplab / snap_mplab_jtag
