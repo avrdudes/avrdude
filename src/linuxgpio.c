@@ -297,7 +297,7 @@ static int linuxgpio_sysfs_open(PROGRAMMER *pgm, const char *port) {
   // pulling the reset line down and starting the programming session
   int reset_pin = pgm->pinno[PIN_AVR_RESET] & PIN_MASK;
   if(reset_pin <= PIN_MAX && my.sysfs_fds[reset_pin] >= 0) {
-    pgm->setpin(pgm, reset_pin, 1);
+    pgm->setpin(pgm, PIN_AVR_RESET, 1);
     usleep(GPIO_SYSFS_OPEN_DELAY);
   }
 
