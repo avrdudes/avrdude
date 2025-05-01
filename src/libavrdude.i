@@ -27,7 +27,6 @@ The following global variables are available in `ad.cvar`:
 
 `ad.cvar.version`  - str, read-only
 `ad.cvar.progname` - str, for messages
-`ad.cvar.progbuf`  - str, spaces same length as `progname`
 `ad.cvar.verbose`  - int, message verbosity (0 ... 5)
 `ad.cvar.quell_progress` - int, message supression (0 ... 2)
 `ad.cvar.ovsigck`  - int, override signature and some other checks (0 ... 1)"
@@ -41,7 +40,6 @@ The following global variables are available in `ad.cvar`:
 // global variables referenced by library
 char * version  = AVRDUDE_FULL_VERSION;
 char * progname = "avrdude";
-char * progbuf = "       ";
 int verbose;
 int quell_progress;
 int ovsigck;
@@ -242,7 +240,6 @@ PyObject *get_config_table(const char *name) {
 char * version;
 %mutable;
 char * progname;
-char * progbuf;
 int verbose;
 int quell_progress;
 int ovsigck;

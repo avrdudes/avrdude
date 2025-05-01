@@ -389,7 +389,7 @@ static void list_programmer_types(FILE *f, const char *prefix) {
   walk_programmer_types(list_programmer_types_callback, &c);
 }
 
-// Return a list of long names for part followed by prog modes in brackets
+// Return a list of long names for a part followed by prog modes in brackets
 static const char *part_ccdesc(const AVRPART *p) {
   char *name[5];               // Max 5 alternative names
   int nn = 0, i;
@@ -1606,9 +1606,9 @@ int main(int argc, char *argv[]) {
   }
 
   if(verbose > 0 && quell_progress < 2) {
-    avr_display(stderr, pgm, p, progbuf, verbose);
+    avr_display(stderr, pgm, p, "", verbose);
     msg_notice2("\n");
-    programmer_display(pgm, progbuf);
+    programmer_display(pgm, "");
   }
 
   lmsg_info("");
