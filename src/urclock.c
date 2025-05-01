@@ -372,7 +372,7 @@ static int rjmpdistwrap(int addis, int flashsize) {
 
 
 // Compute from rjmp opcode the relative distance in bytes (rjmp address minus destination address)
-static int dist_rjmp(uint16_t rjmp, int flashsize) {
+int dist_rjmp(uint16_t rjmp, int flashsize) {
   int16_t dist;
 
   dist = rjmp & 0xfff;          // Signed 12-bit word distance
@@ -382,28 +382,28 @@ static int dist_rjmp(uint16_t rjmp, int flashsize) {
 }
 
 
-// rjmp opcode from byte distance; 0xcfff is an endless loop, 0xc000 is a nop
-static uint16_t rjmp_opcode(int dist, int flashsize) {
+// Rjmp opcode from byte distance; 0xcfff is an endless loop, 0xc000 is a nop
+uint16_t rjmp_opcode(int dist, int flashsize) {
   dist = rjmpdistwrap(dist, flashsize);
   return 0xc000 | (((dist >> 1) - 1) & 0x0fff);
 }
 
 
-// rjmp opcode from reset to bootloader start; same as above if bl start is in top half of flash
-static uint16_t rjmp_bwd_blstart(int blstart, int flashsize) { // Flashsize must be power of 2
+// Rjmp opcode from reset to bootloader start; same as above if bl start is in top half of flash
+uint16_t rjmp_bwd_blstart(int blstart, int flashsize) { // Flashsize must be power of 2
   return 0xc000 | (((uint16_t)((blstart-flashsize-2)/2)) & 0xfff); // Urboot uses this formula
 }
 
 
-// jmp opcode from byte address
-static uint32_t jmp_opcode(int32_t addr) {
-  // jmp uses word address; hence, shift by that one extra bit more
+// Jmp opcode from byte address
+uint32_t jmp_opcode(int32_t addr) {
+  // Jmp uses word address; hence, shift by that one extra bit more
   return (((addr>>1) & 0xffff)<<16) | 0x940c | (((addr>>18) & 31)<<4) | (((addr>>17) & 1)<<0);
 }
 
 
 // Byte address from jmp opcode
-static int addr_jmp(uint32_t jmp) {
+int addr_jmp(uint32_t jmp) {
   int addr;
 
   addr  = jmp >> 16;            // Low 16 bit of word address are in upper word of op code
@@ -422,19 +422,19 @@ static int isJmp(uint16_t opcode) {
 
 
 // Assemble little endian 32-bit word from buffer
-static uint32_t buf2uint32(const unsigned char *buf) {
+uint32_t buf2uint32(const unsigned char *buf) {
   return buf[0] | buf[1]<<8 | buf[2]<<16 | buf[3]<<24;
 }
 
 
 // Assemble little endian 16-bit word from buffer
-static uint16_t buf2uint16(const unsigned char *buf) {
+uint16_t buf2uint16(const unsigned char *buf) {
   return buf[0] | buf[1]<<8;
 }
 
 
 // Write little endian 32-bit word into buffer
-static void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
+void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
   buf[0] = opcode32;
   buf[1] = opcode32>>8;
   buf[2] = opcode32>>16;
@@ -443,7 +443,7 @@ static void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
 
 
 // Write little endian 16-bit word into buffer
-static void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
+void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
   buf[0] = opcode16;
   buf[1] = opcode16>>8;
 }
@@ -912,7 +912,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     *buf++ = type & UR_EEPROM? 'e': '-';
     if(hi >= 076) {
       if(hi > 077)              // From version 8.0 it's always urprotocol
-        *buf++ = type & UR_EXPEDITE? 'U': 'u';
+        *buf++ = type & UR_UPDATE_FL? 'U': '-';
       else
         *buf++ = type & UR_URPROTOCOL? 'u': 's';
       *buf++ = type & UR_DUAL? 'd': '-';

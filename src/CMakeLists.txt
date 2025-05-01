@@ -285,6 +285,9 @@ set(SOURCES
     updi_readwrite.h
     updi_state.c
     updi_state.h
+    urbootlist.c
+    urbootlist.h
+    urbootautogen.c
     urclock.c
     urclock.h
     urclock_hash.h

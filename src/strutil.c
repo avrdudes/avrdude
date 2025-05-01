@@ -987,7 +987,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     }
   }
 
-  if(type & STR_FILE && part && memstr) {       // File name containing data to be loaded
+  if(type & STR_FILE && part && memstr) { // File name containing data to be loaded
     int format = FMT_AUTO;
     FILE *f;
     char fmtstr[4] = { 0 };
@@ -1000,6 +1000,8 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
         Return("unknown format%s suffix of file name", fmtstr);
       str[arglen -= 2] = 0;
     }
+    if(format == FMT_AUTO && is_generated_fname(str))
+      format = FMT_IHEX;
     if(format == FMT_AUTO) {
       f = fileio_fopenr(str);
       if(f == NULL)
@@ -1566,4 +1568,22 @@ const char *str_ccsharg(const char *str) {
   }
 
   return str;
+}
+
+// Return malloc'd ISR vector name without _ (given the vector number)
+char *str_vectorname(const Avrintel *up, int vn) {
+  if(!up->isrtable || vn < -1 || vn > up->ninterrupts)
+    return mmt_strdup("unknown");
+
+  char *ret = mmt_strdup((unsigned) vn >= up->ninterrupts? "ADDITIONAL_VECTOR": up->isrtable[vn]);
+
+  // Remove all _ in vectorstr
+  char *p = str_lc(ret), *q = p;
+  do {
+    while(*p == '_')
+      p++;
+    *q++ = *p;
+  } while(*p++);
+
+  return ret;
 }

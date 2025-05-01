@@ -1264,6 +1264,7 @@ extern "C" {
   AVRMEM *fileio_any_memory(const char *name);
   unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
   FILE *fileio_fopenr(const char *fname);
+  int is_generated_fname(const char *filename);
   int fileio_fmt_autodetect_fp(FILE *f);
   int fileio_fmt_autodetect(const char *fname);
   int fileio_mem(int oprwv, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int size);
@@ -1390,6 +1391,7 @@ extern "C" {
   void cleanup_config(void);
   int read_config(const char *file);
   const char *cache_string(const char *file);
+  size_t cfg_unescapen(unsigned char *d, const unsigned char *s);
   unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
   char *cfg_unescape(char *d, const char *s);
   char *cfg_escape(const char *s);
@@ -1613,6 +1615,24 @@ typedef struct {
 
 extern const AVR_opcode avr_opcodes[164];
 
+// Urboot bootloader features
+#define URFEATURE_PR          1 // Vector bootloader protecting the reset vector
+#define URFEATURE_EE          2 // Bootloader supports EEPROM read/write
+#define URFEATURE_CE          4 // Bootloader provides a chip erase command
+#define URFEATURE_HW          8 // Hardware supported bootloader
+#define URFEATURE_U4         16 // Update flash as opposed to purely writing
+
+typedef struct {
+  int size, usage, update_level;
+  int features;                 // Above 5 bits of features the bootloader has
+  uint16_t *tofree;             // This is the allocated space that needs freeing
+  uint16_t *locs;               // Index list in code where parameters can be set
+  uint16_t *code;               // size/2 - 3 words of 16-bit bootloader opcodes
+  uint16_t *table;              // 3-word-table at end of bootloader
+  char urversion[32], type[64]; // Version string and bootloader type string
+  int match_req;                // Bootloader matches the requested features
+} Urboot_template;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1702,6 +1722,7 @@ extern "C" {
   const char *str_ccaddress(int addr, int size);
   char *str_quote_bash(const char *s);
   const char *str_ccsharg(const char *str);
+  char *str_vectorname(const Avrintel *up, int vn);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
@@ -1743,6 +1764,24 @@ extern "C" {
   int disasm_init(const AVRPART *p);
   int disasm_init_tagfile(const AVRPART *p, const char *file);
   void disasm_zap_jumpcalls();
+  unsigned bitcount(unsigned n);
+
+  int dist_rjmp(uint16_t rjmp, int flashsize);
+  uint16_t rjmp_opcode(int dist, int flashsize);
+  uint16_t rjmp_bwd_blstart(int blstart, int flashsize);
+  uint32_t jmp_opcode(int32_t addr);
+  int addr_jmp(uint32_t jmp);
+  uint32_t buf2uint32(const unsigned char *buf);
+  uint16_t buf2uint16(const unsigned char *buf);
+  void uint32tobuf(unsigned char *buf, uint32_t opcode32);
+  void uint16tobuf(unsigned char *buf, uint16_t opcode16);
+
+  const Uart_conf *getuartsigs(const Avrintel *up, int uart, int alt);
+  int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename);
+  int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename);
+  int urbootexists(const char *mcu, const char *io, const char *blt, int req_feats);
+  Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
+    int req_feat, int req_ulevel, int showall, int *np);
 
 #ifdef __cplusplus
 }

@@ -647,7 +647,8 @@ typedef enum {
 
 static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
-    msg_error("Syntax: write <mem> <addr> <data>[,] {<data>[,]}\n"
+    msg_error(
+      "Syntax: write <mem> <addr> <data>[,] {<data>[,]}\n"
       "        write <mem> <addr> <len> <data>[,] {<data>[,]} ... # Fill, see below\n"
       "        write <mem> <data> # Any <data> incl file if memory has only 1 byte\n"
       "        write <mem> <file> # Must be file if memory has more than 1 byte\n"
@@ -662,8 +663,13 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       "<data> can be binary, octal, decimal or hexadecimal integers, floating point\n"
       "numbers or C-style strings and characters. If nothing matches, <data> will be\n"
       "interpreted as name of a file containing data. In absence of a :<f> format\n"
-      "suffix, the terminal will try to auto-detect the file format.\n"
+      "suffix, the terminal will try to auto-detect the file format.\n\n"
+      "A file name that starts with urboot: autogenerates a bootloader file, try\n"
+      "write flash urboot:help\n"
       "\n"
+    );
+    msg_error(
+      verbose <= 0? "For more detail increase verbosity and rerun write -?\n":
       "For integers, an optional case-insensitive suffix specifies the data size: HH\n"
       "8 bit, H/S 16 bit, L 32 bit, LL 64 bit. Suffix D indicates a 64-bit double, F\n"
       "a 32-bit float, whilst a floating point number without suffix defaults to\n"
@@ -689,7 +695,8 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       "smallest unsigned representation: For example, 255 is stored as one byte as\n"
       "255U would fit in one byte, though as a signed number it would not fit into a\n"
       "one-byte interval [-128, 127]. The number -1 is stored in one byte whilst -1U\n"
-      "needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.\n");
+      "needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.\n"
+    );
     return -1;
   }
 
@@ -793,7 +800,8 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       str_freedata(sd);
       sd = str_todata(argv[i], STR_ANY, p, mem->desc);
       if(!sd->type || sd->errstr) {
-        pmsg_error("(write) data %s: %s\n", argv[i], sd->errstr? sd->errstr: "str_todata");
+        if(!is_generated_fname(argv[i]))
+          pmsg_error("(write) data %s: %s\n", argv[i], sd->errstr? sd->errstr: "str_todata");
         mmt_free(buf);
         mmt_free(tags);
         str_freedata(sd);
@@ -872,7 +880,8 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\n");
 
-  report_progress(0, 1, avr_has_paged_access(pgm, p, mem)? "Caching": "Writing");
+  if(0 < len + bytes_grown)
+    report_progress(0, 1, avr_has_paged_access(pgm, p, mem)? "Caching": "Writing");
   for(i = 0; i < len + bytes_grown; i++) {
     report_progress(i, len + bytes_grown, NULL);
     if(!tags[i])
@@ -1378,7 +1387,7 @@ typedef struct {
 } Cnfg;
 
 typedef struct {                // Context parameters to be passed to functions
-  int verb, allscript, flheaders, allv, vmax, printfactory;
+  int verb, confirm, allscript, flheaders, allv, vmax, printfactory;
 } Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
@@ -1685,6 +1694,9 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
         case 'v':
           o.verb++;
           break;
+        case 'c':
+          o.confirm++;
+          break;
         case 'a':
           o.allscript++;        // Fall through
         case 'f':
@@ -1710,6 +1722,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "    -f show value of fuse and lock bit memories as well\n"
       "    -a output an initialisation script with all possible assignments\n"
       "    -v increase verbosity, show explanations alongside output\n"
+      "    -c confirm new value of changed configuration properties\n"
       "    -h show this help message\n"
       "\n"
       "Config alone shows all property names and current settings of the part's\n"
@@ -1964,7 +1977,9 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     goto finished;
   }
 
+  int confirm = 0;
   if(towrite.i != fusel.current) {
+    confirm = o.confirm;
     for(int i = 0; i < mem->size; i++)
       if(led_write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
         pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
@@ -1974,7 +1989,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   const char *av[] = { "confirm", cc[ci].t->name, NULL };
-  if(o.verb > 0 && !str_eq(argv[0], "confirm"))
+  if((confirm || o.verb > 0) && !str_eq(argv[0], "confirm"))
     cmd_config(pgm, p, 2, av);
 
 finished:

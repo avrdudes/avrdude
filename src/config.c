@@ -639,9 +639,13 @@ static int wc_to_utf8str(unsigned int wc, unsigned char *str) {
   return 0;
 }
 
-// Unescape C-style strings, destination d must hold enough space (and can be source s)
-unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s) {
-  unsigned char *ret = d;
+/*
+ * Unescape C-style strings, destination d must hold enough space (and can be source s).
+ * Returns the number of characters in destination *excluding* the terminating 0 from s.
+ * The destination can hold nul characters owing to, eg, \x00 or \000 escape sequences.
+ */
+size_t cfg_unescapen(unsigned char *d, const unsigned char *s) {
+  unsigned char *dstart = d;
   int n, k;
 
   while(*s) {
@@ -754,7 +758,13 @@ unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s) {
   }
   *d = *s;                      // Terminate
 
-  return ret;
+  return d - dstart;
+}
+
+// Unescape C-style strings, destination d must hold enough space (and can be source s)
+unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s) {
+  (void) cfg_unescapen(d, s);
+  return d;
 }
 
 // Unescape C-style strings, destination d must hold enough space (and can be source s)
