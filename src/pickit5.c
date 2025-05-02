@@ -83,6 +83,7 @@ struct pdata {
   unsigned char pk_op_mode;       // See PK_OP_ defines
   unsigned char power_source;     // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled;   // 0: no HV / 1: HV generation enabled
+  unsigned char keep_power;       // 0: No power on exit / 1: Keeps supplying power on exit
   double target_voltage;          // Voltage to supply to target
 
   double measured_vcc;            // This and below for print_params()
@@ -246,6 +247,43 @@ static void pickit5_teardown(PROGRAMMER *pgm) {
   pgm->cookie = NULL;
 }
 
+static int pickit5_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+  char *cp, *s, *str = mmt_strdup(sp);
+  int rv = 0;
+  bool help = false;
+
+  s = str;
+  while((cp = strtok(s, ","))) {
+    s = NULL;
+    if(str_eq(cp, "vcc")) {
+      if(!can_power_target(pgm)) {
+        pmsg_warning("-E vcc setting detected, but programmer can not provide power, ignoring.\n");
+        continue;
+      }
+      my.keep_power = 0x01;
+      continue;
+    }
+    if(str_eq(cp, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if(!help) {
+      pmsg_error("invalid exitspec parameter -E %s\n", cp);
+      rv = -1;
+    }
+    msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+    if(can_power_target(pgm)) 
+      msg_error("  -E vcc     Programmer will continue to provide power after the session ended\n");
+    msg_error("  -E help    Show this help menu and exit\n");
+    mmt_free(str);
+    return rv;
+  }
+
+  mmt_free(str);
+  return rv;
+}
+
 static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
@@ -256,9 +294,11 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_starts(extended_param, "vtarg=")) {
       double voltage = -1.0;
-
+      if(!can_power_target(pgm)) {
+        pmsg_warning("-x vtarg setting detected, but programmer can not provide power, ignoring.\n");
+        continue;
+      }
       if(sscanf(extended_param, "vtarg=%lf", &voltage) != 1) {
-
         pmsg_error("invalid voltage parameter %s\n", extended_param);
         rv = -1;
         continue;
@@ -731,7 +771,8 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
 static void pickit5_close(PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
-  pickit5_set_vtarget(pgm, 0.0); // Switches off PICkit voltage regulator if enabled
+  if (!my.keep_power)
+    pickit5_set_vtarget(pgm, 0.0); // Switches off PICkit voltage regulator if enabled
 
   serial_close(&pgm->fd);
 }
@@ -922,11 +963,13 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(rc == -1) {
     pmsg_error("no matching prog_mode found, aborting\n");
     return -1;
-  }
-  if(rc == -2) {
+  } else if(rc == -2) {
     pmsg_error("failed to match scripts to %s, aborting\n", p->desc);
     return -1;
+  } else {
+    pmsg_debug("found scripts at namepos %d", rc);
   }
+
 
   if(my.hvupdi_enabled > 0) {
     if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI)
@@ -2065,6 +2108,7 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   // Mandatory functions
   pgm->initialize = pickit5_initialize;
   pgm->parseextparams = pickit5_parseextparms;
+  pgm->parseexitspecs = pickit5_parseexitspecs;
   pgm->display = pickit5_display;
   pgm->enable = pickit5_enable;
   pgm->disable = pickit5_disable;
