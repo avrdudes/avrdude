@@ -355,7 +355,7 @@ static int linuxgpio_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     }
     msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
     msg_error("  -E reset   Programmer will keep the reset line low after programming session\n");
-    msg_error("  -E noreset Programmer will not keep the reset line low after programming session\n");
+    msg_error("  -E noreset Programmer will keep the reset line high after programming session\n");
     msg_error("  -E help    Show this help menu and exit\n");
     mmt_free(str);
     return rv;
