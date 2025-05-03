@@ -306,15 +306,15 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(voltage < 0.1 && voltage > -1.0) {
         my.power_source = POWER_SOURCE_NONE; // Voltage check disabled
         continue;
-      } else if(voltage < 1.8 || voltage > 5.5) {
+      }
+      if(voltage < 1.8 || voltage > 5.5) {
         pmsg_error("voltage %1.1lf V outside valid range [1.8 V, 5.5 V]\n", voltage);
         rv = -1;
         continue;
-      } else {
-        my.power_source = POWER_SOURCE_INT;  // PK supplies power
-        my.target_voltage = voltage;
-        continue;
       }
+      my.power_source = POWER_SOURCE_INT;  // PK supplies power
+      my.target_voltage = voltage;
+      continue;
     }
     if(str_starts(extended_param, "hvupdi")) {
       if(can_gen_hv_pulse(pgm))
