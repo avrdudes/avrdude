@@ -67,11 +67,11 @@
 #define POWER_SOURCE_INT   0x01
 #define POWER_SOURCE_NONE  0x02
 
-#define ERROR_USB_SEND            -10  // Start at 10 to avoid collisions
-#define ERROR_USB_RECV            -11
-#define ERROR_SCRIPT_PARAM_SIZE   -12
-#define ERROR_BAD_RESPONSE        -13
-#define ERROR_SCRIPT_EXECUTION    -14
+#define ERROR_USB_SEND          (-10) // Start at 10 to avoid collisions
+#define ERROR_USB_RECV          (-11)
+#define ERROR_SCRIPT_PARAM_SIZE (-12)
+#define ERROR_BAD_RESPONSE      (-13)
+#define ERROR_SCRIPT_EXECUTION  (-14)
 
 
 #define can_power_target(pgm) (!!(pgm->extra_features & HAS_VTARG_ADJ))
