@@ -363,7 +363,7 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
   unsigned int message_len = preamble_len + script_len;
   pmsg_debug("%s(scr_len: %u, param_len: %u, data_len: %u)\n", __func__, script_len, param_len, payload_len);
 
-  if(message_len >= 2048){      // Required memory will exceed buffer size, abort
+  if(message_len >= 2048) {     // Required memory will exceed buffer size, abort
     pmsg_error("requested message size (%u) too large\n", message_len);
     return ERROR_SCRIPT_PARAM_SIZE;     // 2 kB should be enough for everything
   }
@@ -782,7 +782,7 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // This will reduce overhead and increase speed
   AVRMEM *mem;
 
-  if(is_updi(pgm)){
+  if(is_updi(pgm)) {
     if((mem = avr_locate_sram(p)))
       mem->page_size = mem->size < 256? mem->size : 256;
     if((mem = avr_locate_eeprom(p)))
@@ -798,7 +798,7 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       mem->readsize = mem->size < 1024? mem->size : 1024;  // this reduces overhead and speeds things up
     }
   }
-  if(is_isp(pgm)){
+  if(is_isp(pgm)) {
     if((mem = avr_locate_flash(p))) {
       if(mem->mode != 0x04) {   // Don't change default flash settings on old AVRs
         mem->page_size = mem->size < 1024? mem->size : 1024;
@@ -874,8 +874,8 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
 
   // Get SIB so we can get the NVM Version
   if(pickit5_updi_read_sib(pgm, p, my.sib_string) < 0) {
-      pmsg_error("failed to obtain System Info Block\n");
-      return -1;
+    pmsg_error("failed to obtain System Info Block\n");
+    return -1;
   }
 
   if(pickit5_read_dev_id(pgm, p) < 0) {
@@ -981,20 +981,19 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Now we try to figure out if we have to supply power from PICkit
   double v_target = 3.30; // Placeholder in case no VTARG Read
-  if(pgm->extra_features & HAS_VTARG_READ){ // If not supported (PK Basic), use a place
-
+  if(pgm->extra_features & HAS_VTARG_READ) { // If not supported (PK Basic), use a place
     pickit5_get_vtarget(pgm, &v_target);
     if(v_target < 1.8) {
       if(my.power_source == POWER_SOURCE_NONE) {
         pmsg_warning("no external voltage detected but continuing anyway\n");
       } else if(my.power_source == POWER_SOURCE_INT) {
         pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
-          if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
-            if(my.target_voltage > 3.49) {
-              pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
-              return -1;
-            }
+        if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
+          if(my.target_voltage > 3.49) {
+            pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
+            return -1;
           }
+        }
 
         if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
           return -1;            // Set requested voltage
@@ -1845,7 +1844,7 @@ static int pickit5_read_prodsig(const PROGRAMMER *pgm, const AVRPART *p,
       pickit5_uint32_to_array(&param_buf[4], mem_len);
       rc = pickit5_upload_data(pgm, my.scripts.ReadConfigmem, my.scripts.ReadConfigmem_len, param_buf, 8, my.prodsig, mem_len);
     } else if(mem->op[AVR_OP_READ] != NULL) {
-      if(both_jtag(pgm, p)){
+      if(both_jtag(pgm, p)) {
         const unsigned char read_prodsigmem_jtag [] = {
           0x90, 0x00, 0x00, 0x03, 0x00, 0x00, // Set r00 to 0x0300 (Load Address byte command (0x3bb))
           0x9b, 0x01, 0x0f,                   // Set r01 to 0x0F
