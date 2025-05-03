@@ -1025,18 +1025,13 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   my.pk_op_mode = PK_OP_READY;
   my.dW_switched_isp = 0;
 
-  double bitclock = pgm->bitclock;
-  unsigned int baud = pgm->baudrate;
+  if(pgm->baudrate && pgm->bitclock)
+    pmsg_warning("both -b baudrate and -B bitclock given; using -b setting\n");
 
-  if(baud != 0) {
-    if(bitclock != 0.0)
-      pmsg_warning("both -b baudrate and -B bitclock given; using -b setting.\n");
-  } else if(bitclock != 0.0) {
-    baud = (unsigned int) (1.0 / pgm->bitclock); // Bitclock in us
-  } else {  // Neither set, use default
-    baud = default_baud;
-  }
-  my.actual_pgm_clk = baud;
+  my.actual_pgm_clk =
+    pgm->baudrate? (unsigned int) pgm->baudrate:
+    pgm->bitclock? (unsigned int) (1.0 / pgm->bitclock): // pgm->bitclock in seconds
+    default_baud;
 
   if(is_updi(pgm)) {            // UPDI got it's own init as it is well enough documented to select
     if(pickit5_updi_init(pgm, p, v_target) < 0) // the CLKDIV based on the voltage and requested baud
