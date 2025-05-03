@@ -1496,7 +1496,7 @@ static int pickit5_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsign
   if(is_updi(pgm))              // On UPDI Devices, the chip revision is sent as the 4th byte
     *chip_rev = my.devID[3];
   else                          // For the rest, more research is neccessary
-    chip_rev = 0x00;
+    *chip_rev = 0x00;
   return 0;
 }
 
