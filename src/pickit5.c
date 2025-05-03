@@ -257,7 +257,7 @@ static int pickit5_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     s = NULL;
     if(str_eq(cp, "vcc")) {
       if(!can_power_target(pgm)) {
-        pmsg_warning("-E vcc setting detected, but programmer can not provide power, ignoring.\n");
+        pmsg_warning("-E vcc setting detected but programmer can not provide power, continuing\n");
         continue;
       }
       my.keep_power = 0x01;
@@ -295,7 +295,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     if(str_starts(extended_param, "vtarg=")) {
       double voltage = -1.0;
       if(!can_power_target(pgm)) {
-        pmsg_warning("-x vtarg setting detected, but programmer can not provide power, ignoring.\n");
+        pmsg_warning("-x vtarg setting detected but programmer can not provide power, continuing\n");
         continue;
       }
       if(sscanf(extended_param, "vtarg=%lf", &voltage) != 1) {
@@ -322,7 +322,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           my.hvupdi_enabled |= 1 << *(unsigned char *)ldata(ln);
         }
       else
-        msg_warning("HV pulse requested, but programmer doesn't support it, ignoring the option.\n");
+        msg_warning("HV pulse requested but programmer doesn't support it, continuing\n");
       continue;
     }
 
@@ -399,7 +399,7 @@ static int pickit5_read_response(const PROGRAMMER *pgm) {
   }
 
   if(error_code != 0x00) {
-    pmsg_error("Script Error returned: 0x%2X\n", error_code);
+    pmsg_error("script error returned: 0x%2X\n", error_code);
     return ERROR_SCRIPT_EXECUTION;
   }
 
@@ -702,8 +702,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       msg_error("\n");
       cx->usb_access_error = 0;
 
-      pmsg_error("MPLAB SNAP in AVR mode detected.\n");
-      imsg_error("To switch into MPLAB mode try\n");
+      pmsg_error("MPLAB SNAP in AVR mode detected; to switch into MPLAB mode try\n");
       imsg_error("$ %s -c snap%s %s-P %s -x mode=mplab\n", progname, pgm_suffix, part_option, port);
       imsg_error("or use the programmer in AVR mode with the following command:\n");
       imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
@@ -718,8 +717,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       msg_error("\n");
       cx->usb_access_error = 0;
 
-      pmsg_error("PICkit 4 in AVR mode detected.\n");
-      imsg_error("To switch into MPLAB mode try\n");
+      pmsg_error("PICkit 4 in AVR mode detected; to switch into MPLAB mode try\n");
       imsg_error("$ %s -c pickit4%s %s-P %s -x mode=mplab\n", progname, pgm_suffix, part_option, port);
       imsg_error("or use the programmer in AVR mode with the following command:\n");
       imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
@@ -737,16 +735,16 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     // Check if the Basic is in Bootloader Mode or CMSIS-DAP, should help trouble-shooting.
     rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_CIMSIS_CDC);
     if(rv >= 0) {
-      pmsg_error("PICkit Basic in CMSIS-DAP mode detected.\n");
-      imsg_error("Please use a Microchip tool to switch the firmware to \"mplab\"\n");
+      pmsg_error("PICkit Basic in CMSIS-DAP mode detected;\n");
+      imsg_error("please use a Microchip tool to switch the firmware to \"mplab\"\n");
       imsg_error("in order to use the programmer with avrdude\n");
       return LIBAVRDUDE_EXIT;
     }
 
     rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_BL);
     if(rv >= 0) {
-      pmsg_error("PICkit Basic in Bootloader mode detected.\n");
-      imsg_error("Please use a Microchip tool to load the \"mplab\" firmware\n");
+      pmsg_error("PICkit Basic in Bootloader mode detected;\n");
+      imsg_error("please use a Microchip tool to load the \"mplab\" firmware\n");
       imsg_error("in order to use the programmer with avrdude\n");
       return LIBAVRDUDE_EXIT;
     }
@@ -990,7 +988,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         pmsg_notice("no extenal voltage detected; trying to supply from programmer\n");
         if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
           if(my.target_voltage > 3.49) {
-            pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting.");
+            pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting");
             return -1;
           }
         }
@@ -1141,7 +1139,7 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   if(pickit5_send_script_cmd(pgm, set_speed, set_speed_len, buf, 4) >= 0)
     return 0;
 
-  pmsg_error("failed to set speed.\n");
+  pmsg_error("failed to set speed\n");
   return -1;
 }
 
@@ -1425,7 +1423,7 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
     pickit5_program_enable(pgm, p);
     if(my.rxBuf[17] == 0x0E) {  // Errors figured out during 6 hours of failing to get it to work
       if(my.rxBuf[16] == 0x10 || my.rxBuf[16] == 58) { // with the serial/bootloader auto-reset circuit on Arduino board
-        pmsg_error("debugWIRE transmission error, Aborting.");
+        pmsg_error("debugWIRE transmission error, aborting");
          msg_error("(make sure there are no caps and a pullup >= 10kOhm on the Reset line)\n");
       } else {
         pmsg_error("%d\n", my.rxBuf[16]);
@@ -1560,7 +1558,7 @@ static void pickit5_dw_switch_to_isp(const PROGRAMMER *pgm, const AVRPART *p) {
       my.dW_switched_isp = 1;
       pickit5_program_disable(pgm, p);
       if(get_pickit_isp_script(&(my.scripts), p->desc) < 0) {
-        pmsg_error("failed switching scripts, aborting.\n");
+        pmsg_error("failed switching scripts, aborting\n");
         return;
       }
       pmsg_notice("switched to ISP mode\n");
@@ -1580,15 +1578,15 @@ static void pickit5_isp_switch_to_dw(const PROGRAMMER *pgm, const AVRPART *p) {
       pickit5_program_disable(pgm, p);
       pickit5_set_vtarget(pgm, 0.0); // Has a little delay already built in
       if(get_pickit_dw_script(&(my.scripts), p->desc) < 0) {
-        pmsg_error("failed switching scripts, aborting.\n");
+        pmsg_error("failed switching scripts, aborting\n");
         return;
       }
       pickit5_set_vtarget(pgm, my.target_voltage);
       pickit5_program_enable(pgm, p);
       my.dW_switched_isp = 0;
     } else {
-      pmsg_error("programmer switched the part to ISP mode when writing fuses.");
-       msg_error("to continue, the part has to be power cycled and the operation restarted.\n");
+      pmsg_error("programmer switched the part to ISP mode when writing fuses;\n");
+       msg_error("to continue, the part has to be power cycled and the operation restarted\n");
     }
   }
 }
@@ -1668,7 +1666,7 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
     return -1;
   }
   if(0x02 != my.rxBuf[20]) {    // Length
-    pmsg_error("unexpected amount (%d) of bytes returned.\n", my.rxBuf[20]);
+    pmsg_error("unexpected amount (%d) of bytes returned\n", my.rxBuf[20]);
     return -1;
   }
   if(0x00 != my.rxBuf[24]) {
