@@ -328,6 +328,43 @@ void linuxgpio_teardown(PROGRAMMER *pgm) {
   pgm->cookie = NULL;
 }
 
+static int linuxgpio_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+  char *cp, *s, *str = mmt_strdup(sp);
+  int rv = 0;
+  bool help = false;
+
+  s = str;
+  while((cp = strtok(s, ","))) {
+    s = NULL;
+    if(str_eq(cp, "reset")) {
+      pgm->exit_reset = EXIT_RESET_ENABLED;
+      continue;
+    }
+    if(str_eq(cp, "noreset")) {
+      pgm->exit_reset = EXIT_RESET_DISABLED;
+      continue;
+    }
+    if(str_eq(cp, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if(!help) {
+      pmsg_error("invalid exitspec parameter -E %s\n", cp);
+      rv = -1;
+    }
+    msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+    msg_error("  -E reset   Programmer will keep the reset line low after programming session\n");
+    msg_error("  -E noreset Programmer will not keep the reset line low after programming session\n");
+    msg_error("  -E help    Show this help menu and exit\n");
+    mmt_free(str);
+    return rv;
+  }
+
+  mmt_free(str);
+  return rv;
+}
+
 // libgpiod backend for the linuxgpio programmer
 
 #ifdef HAVE_LIBGPIOD
@@ -585,21 +622,26 @@ static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
     }
   }
 
-  // Configure RESET as input.
-  if(linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
+  if(pgm->exit_reset == EXIT_RESET_ENABLED) // Exit with RESET pin high
+    pgm->setpin(pgm, PIN_AVR_RESET, 1);
+  else if(pgm->exit_reset == EXIT_RESET_ENABLED) // Exit with RESET pin low
+    pgm->setpin(pgm, PIN_AVR_RESET, 0);
+  else { // Exit with RESET pin as input (default behaviour)
+    if(linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
 
-#if HAVE_LIBGPIOD_V1_6 || HAVE_LIBGPIOD_V2
-    int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
-#else
-    int r = gpiod_line_set_direction_input(&linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
-#endif
+  #if HAVE_LIBGPIOD_V1_6 || HAVE_LIBGPIOD_V2
+      int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+  #else
+      int r = gpiod_line_set_direction_input(&linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+  #endif
 
-    if(r != 0) {
-      msg_error("failed to set pin %u to input: %s\n",
-        linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[PIN_AVR_RESET]), strerror(errno));
+      if(r != 0) {
+        msg_error("failed to set pin %u to input: %s\n",
+          linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[PIN_AVR_RESET]), strerror(errno));
+      }
+      gpiod_line_release(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+      linuxgpio_libgpiod_lines[PIN_AVR_RESET] = NULL;
     }
-    gpiod_line_release(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
-    linuxgpio_libgpiod_lines[PIN_AVR_RESET] = NULL;
   }
 }
 
@@ -713,6 +755,7 @@ void linuxgpio_initpgm(PROGRAMMER *pgm) {
   pgm->write_byte = avr_write_byte_default;
   pgm->setup = linuxgpio_setup;
   pgm->teardown = linuxgpio_teardown;
+  pgm->parseexitspecs = linuxgpio_parseexitspecs;
 
 #ifdef HAVE_LIBGPIOD
   if(libgpiod_is_working()) {
