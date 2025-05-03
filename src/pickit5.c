@@ -517,10 +517,8 @@ static int pickit5_download_data(const PROGRAMMER *pgm, const unsigned char *scr
   if(pickit5_get_status(pgm, CHECK_ERROR) < 0) {
     pmsg_error("status check not 'NONE' on download\n");
 
-    if(pickit5_send_script_done(pgm) < 0) {
+    if(pickit5_send_script_done(pgm) < 0)
       pmsg_error("failed to abort download mode, please power-cycle the programmer and part\n");
-      return -4;
-    }
     return -4;
   }
   if(pickit5_send_script_done(pgm) < 0) {
@@ -963,13 +961,12 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(rc == -1) {
     pmsg_error("no matching prog_mode found, aborting\n");
     return -1;
-  } else if(rc == -2) {
+  }
+  if(rc == -2) {
     pmsg_error("failed to match scripts to %s, aborting\n", p->desc);
     return -1;
-  } else {
-    pmsg_debug("found scripts at namepos %d", rc);
   }
-
+  pmsg_debug("found scripts at namepos %d", rc);
 
   if(my.hvupdi_enabled > 0) {
     if(p->hvupdi_variant == UPDI_ENABLE_HV_UPDI)
@@ -1216,9 +1213,7 @@ static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
     rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
   }
 
-  if(rc < 0)
-    return rc;
-  return 0;
+  return rc < 0? rc: 0;
 }
 
 // UPDI Specific function providing a reduced overhead when writing a single byte
@@ -1240,10 +1235,8 @@ static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
   };
 
   int rc = pickit5_send_script_cmd(pgm, write8_fast, sizeof(write8_fast), NULL, 0);
-  if(rc < 0) {
-    return -1;
-  }
-  return 1;
+
+  return rc < 0? -1: 1;
 }
 
 // UPDI-specific function providing a reduced overhead when reading a single byte
@@ -1265,20 +1258,16 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
     };
 
     int rc = pickit5_send_script_cmd(pgm, read8_fast, sizeof(read8_fast), NULL, 0);
-    if(rc < 0) {
+    if(rc < 0)
       return -1;
-    } else {
-      *value = my.rxBuf[24];
-      return 1;
-    }
+    *value = my.rxBuf[24];
+    return 1;
   }
   return 0;
   /*else {                      // Fall back to standard function
     int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
 
-    if(rc < 0)
-      return rc;
-    return 1;
+    return rc < 0? rc: 1;
   }
   */
 }
@@ -1350,9 +1339,8 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   int rc = pickit5_download_data(pgm, write_bytes, write_bytes_len, param, 8, value, len);
   if(rc < 0) {
     return LIBAVRDUDE_EXIT; // Any error here means that a write fail occured, so restart
-  } else {
-    return len;
   }
+  return len;
 }
 
 // Return numbers of byte read
@@ -1416,7 +1404,8 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
     if(len == 1) {
       *value = my.sib_string[addr];
       return 0;
-    } else if(len == 32) {
+    }
+    if(len == 32) {
       memcpy(value, my.sib_string, 32);
       return 32;
     }
@@ -1426,11 +1415,9 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
     read_bytes_len  = my.scripts.ReadConfigmem_len;
   } else if(!mem_is_readonly(mem)) { // SRAM, IO, LOCK, USERROW
     if((len == 1) && is_updi(pgm)) {
-      if(pickit5_updi_read_byte(pgm, p, mem, addr, value) < 0) {
+      if(pickit5_updi_read_byte(pgm, p, mem, addr, value) < 0)
         return -1;
-      } else {
-        return 0;
-      }
+      return 0;
     }
     read_bytes      = my.scripts.ReadMem8;
     read_bytes_len  = my.scripts.ReadMem8_len;
@@ -1450,13 +1437,10 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, param, 8, value, len);
 
-  if(rc < 0) {
-    return LIBAVRDUDE_EXIT; // Any error here means that a read fail occured, better restart
-  } else {
-    return len;
-  }
+  if(rc < 0)                    // Any error here means that a read fail occured, better restart
+    return LIBAVRDUDE_EXIT;
+  return len;
 }
-
 
 static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
@@ -1588,16 +1572,17 @@ static int pickit5_updi_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, un
   buf[0] = addr;
   int ret_val = pickit5_upload_data(pgm, read_cs, read_cs_len, buf, 1, value, 1);
 
-  if(ret_val == -1) {
+  switch(ret_val) {
+  case -1:
     pmsg_error("sending script failed\n");
     return -1;
-  } else if(ret_val == -2) {
+  case -2:
     pmsg_error("unexpected read response\n");
     return -1;
-  } else if(ret_val == -3) {
+  case -3:
     pmsg_error("reading CS reg failed\n");
     return -1;
-  } else if(ret_val == -4) {
+  case -4:
     pmsg_error("sending script done message failed\n");
     return -1;
   }
@@ -1845,11 +1830,8 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&buf[4], len);
 
   int rc = pickit5_download_data(pgm, write_bytes, write_bytes_len, buf, 8, value, len);
-  if(rc < 0) {
-    return -1;
-  } else {
-    return len;
-  }
+
+  return rc < 0? -1: len;
 }
 
 static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
@@ -1865,11 +1847,7 @@ static int pickit5_tpi_read(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&buf[4], len);
   int rc = pickit5_upload_data(pgm, read_bytes, read_bytes_len, buf, 8, value, len);
 
-  if(rc < 0) {
-    return -1;
-  } else {
-    return len;
-  }
+  return rc < 0? -1: len;
 }
 
 
