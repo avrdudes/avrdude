@@ -624,7 +624,7 @@ static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
 
   if(pgm->exit_reset == EXIT_RESET_ENABLED) // Exit with RESET pin high
     pgm->setpin(pgm, PIN_AVR_RESET, 1);
-  else if(pgm->exit_reset == EXIT_RESET_ENABLED) // Exit with RESET pin low
+  else if(pgm->exit_reset == EXIT_RESET_DISABLED) // Exit with RESET pin low
     pgm->setpin(pgm, PIN_AVR_RESET, 0);
   else { // Exit with RESET pin as input (default behaviour)
     if(linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
