@@ -1169,19 +1169,25 @@ see the extended options of the chosen programmer.
 @cindex @code{-x} flip2
 @cindex Option @code{-x} linuxspi
 @cindex @code{-x} linuxspi
+@cindex Option @code{-x} linuxgpio
+@cindex @code{-x} linuxgpio
+@cindex Option @code{-x} raspberry_pi_gpio
+@cindex @code{-x} raspberry_pi_gpio
 @cindex Option @code{-x} parallel port programmers
 @cindex @code{-x} parallel port programmers
 
-Currently, only the @code{flip2}, @code{linuxspi} and old school parallel
-port programmers such as @code{stk200} and @code{dapa} support @code{-E}
-exitspec parameter options. These let the user decide in which state the
-programmer pins after ended programming session. AVRDUDE only allows one
-@code{-E} option. However, multiple exitspec parameters can be specified
-as one comma-separated list.
+Currently, only the @code{flip2}, @code{linuxspi}, @code{linuxgpio},
+@code{raspberry_pi_gpio} and old school parallel port programmers such
+as @code{stk200} and @code{dapa} support @code{-E} exitspec parameter options.
+These let the user decide in which state the programmer pins after ended
+programming session. AVRDUDE only allows one @code{-E} option. However,
+multiple exitspec parameters can be specified as one comma-separated list.
 
 @table @code
 @item flip2
 @itemx linuxspi
+@itemx linuxgpio
+@itemx raspberry_pi_gpio
 @itemx Parallel port programmers
 
 @table @code
