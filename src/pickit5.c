@@ -1036,21 +1036,20 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(is_updi(pgm)) {            // UPDI got it's own init as it is well enough documented to select
     if(pickit5_updi_init(pgm, p, v_target) < 0) // the CLKDIV based on the voltage and requested baud
       return -1;
-  } else {
-
-    // JTAG __requires__ setting the speed before program enable
-    pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
-
-    if(pickit5_program_enable(pgm, p) < 0) {
-      pmsg_error("failed to enable programming mode\n");
-      return -1;
-    }
-    if(pickit5_read_dev_id(pgm, p) < 0) {
-      pmsg_error("failed to obtain device ID\n");
-      return -1;
-    }
-
+    return 0;
   }
+
+  // JTAG __requires__ setting the speed before program enable
+  pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
+  if(pickit5_program_enable(pgm, p) < 0) {
+    pmsg_error("failed to enable programming mode\n");
+    return -1;
+  }
+  if(pickit5_read_dev_id(pgm, p) < 0) {
+    pmsg_error("failed to obtain device ID\n");
+    return -1;
+  }
+
   return 0;
 }
 
