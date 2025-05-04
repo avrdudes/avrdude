@@ -500,36 +500,43 @@ case $target in
 	i[[3456]]86-*-linux*|x86_64-*-linux*)
 		DEFAULT_PAR_PORT="/dev/parport0"
 		DEFAULT_SER_PORT="/dev/ttyS0"
+		DEFAULT_SPI_PORT="/dev/spidev0.0:/dev/gpiochip0"
 		DEFAULT_LINUXGPIO_PORT="gpiochip0"
 		;;
 	*-*-linux*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/ttyS0"
+		DEFAULT_SPI_PORT="/dev/spidev0.0:/dev/gpiochip0"
 		DEFAULT_LINUXGPIO_PORT="gpiochip0"
 		;;
 	i[[3456]]86-*-*freebsd*|amd64-*-*freebsd*)
 		DEFAULT_PAR_PORT="/dev/ppi0"
 		DEFAULT_SER_PORT="/dev/cuad0"
+		DEFAULT_SPI_PORT="unknown"
 		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*-*-*freebsd*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/cuad0"
+		DEFAULT_SPI_PORT="unknown"
 		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*-*-solaris*)
 		DEFAULT_PAR_PORT="/dev/printers/0"
 		DEFAULT_SER_PORT="/dev/term/a"
+		DEFAULT_SPI_PORT="unknown"
 		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*-*-msdos* | *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		DEFAULT_PAR_PORT="lpt1"
 		DEFAULT_SER_PORT="com1"
+		DEFAULT_SPI_PORT="unknown"
 		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="unknown"
+		DEFAULT_SPI_PORT="unknown"
 		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 esac
