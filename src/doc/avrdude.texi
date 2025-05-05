@@ -1187,8 +1187,8 @@ see the extended options of the chosen programmer.
 @cindex Option @code{-x} parallel port programmers
 @cindex @code{-x} parallel port programmers
 
-Currently, only the @code{flip2}, @code{linuxspi}, @code{linuxgpio},
-@code{raspberry_pi_gpio} and old school parallel port programmers such
+Currently, the @code{flip2}, @code{linuxspi}, @code{linuxgpio}, @code{raspberry_pi_gpio}, 
+@code{pickit4_mplab}, @code{pickit5} and old school parallel port programmers such
 as @code{stk200} and @code{dapa} support @code{-E} exitspec parameter options.
 These let the user decide in which state the programmer pins after ended
 programming session. AVRDUDE only allows one @code{-E} option. However,
@@ -1255,6 +1255,19 @@ This option will leave the 8 data pins on the parallel port active
 @item d_low
 This option will leave the 8 data pins on the parallel port inactive
 (i.e. low).
+
+@cindex Option @code{-x} pickit4_mplab, pickit5
+@cindex @code{-x} pickit4_mplab, pickit5
+@item Pickit 4 (MPLAB)
+@itemx Pickit 5
+
+@table @code
+@cindex Option @code{-E} vcc
+@cindex @code{-E} vcc
+@item vcc
+This option will leave the power supply from the programmer enabled after
+avrdude finished the operation. Disabled by default.
+
 @end table
 
 @end table
