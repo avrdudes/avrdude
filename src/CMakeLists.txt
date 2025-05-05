@@ -90,22 +90,27 @@ endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(DEFAULT_PAR_PORT "/dev/parport0")
     set(DEFAULT_SER_PORT "/dev/ttyS0")
+    set(DEFAULT_SPI_PORT "/dev/spidev0.0:/dev/gpiochip0")
     set(DEFAULT_LINUXGPIO_PORT "gpiochip0")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     set(DEFAULT_PAR_PORT "/dev/ppi0")
     set(DEFAULT_SER_PORT "/dev/cuad0")
+    set(DEFAULT_SPI_PORT "unknown")
     set(DEFAULT_LINUXGPIO_PORT "unknown")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Solaris")
     set(DEFAULT_PAR_PORT "/dev/printers/0")
     set(DEFAULT_SER_PORT "/dev/term/a")
+    set(DEFAULT_SPI_PORT "unknown")
     set(DEFAULT_LINUXGPIO_PORT "unknown")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(DEFAULT_PAR_PORT "lpt1")
     set(DEFAULT_SER_PORT "com1")
+    set(DEFAULT_SPI_PORT "unknown")
     set(DEFAULT_LINUXGPIO_PORT "unknown")
 else()
     set(DEFAULT_PAR_PORT "unknown")
     set(DEFAULT_SER_PORT "unknown")
+    set(DEFAULT_SPI_PORT "unknown")
     set(DEFAULT_LINUXGPIO_PORT "unknown")
 endif()
 
@@ -147,6 +152,7 @@ add_custom_command(
         -D HAVE_LINUXGPIO=$<BOOL:${HAVE_LINUXGPIO}>
         -D DEFAULT_PAR_PORT=${DEFAULT_PAR_PORT}
         -D DEFAULT_SER_PORT=${DEFAULT_SER_PORT}
+        -D DEFAULT_SPI_PORT=${DEFAULT_SPI_PORT}
         -D DEFAULT_LINUXGPIO_PORT=${DEFAULT_LINUXGPIO_PORT}
         -P "${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake"
     DEPENDS avrdude.conf.in
