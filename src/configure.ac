@@ -563,6 +563,9 @@ else
 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
 fi
 
+AC_MSG_CHECKING([for SPI device])
+AC_MSG_RESULT([$DEFAULT_SPI_PORT])
+AC_SUBST([DEFAULT_SPI_PORT])
 
 if test "x$enabled_linuxgpio" = xyes; then
 	AC_MSG_CHECKING([for default linuxgpio port])
