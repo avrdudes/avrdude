@@ -106,7 +106,7 @@ static int linuxgpio_sysfs_openfd(unsigned int gpio) {
   char filepath[60];
 
   snprintf(filepath, sizeof(filepath), "/sys/class/gpio/gpio%u/value", gpio);
-  return (open(filepath, O_RDWR));
+  return open(filepath, O_RDWR);
 }
 
 static int linuxgpio_sysfs_dir(unsigned int gpio, unsigned int dir) {
@@ -250,9 +250,9 @@ static int linuxgpio_sysfs_open(PROGRAMMER *pgm, const char *port) {
       for(retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
         int ret = stat(gpio_path, &stat_buf);
 
-        if(ret == 0) {
+        if(ret == 0)
           break;
-        } else if(ret < 0 && errno != ENOENT) {
+        if(ret < 0 && errno != ENOENT) {
           linuxgpio_sysfs_unexport(pin);
           return ret;
         }
@@ -264,12 +264,12 @@ static int linuxgpio_sysfs_open(PROGRAMMER *pgm, const char *port) {
        * udev permission rule application after export */
       for(retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
         usleep(GPIO_SYSFS_OPEN_DELAY);
-        if(i == PIN_AVR_SDI)
-          r = linuxgpio_sysfs_dir_in(pin);
-        else
-          r = linuxgpio_sysfs_dir_out(pin);
 
-        if(r >= 0)
+        r = i == PIN_AVR_SDI?
+          linuxgpio_sysfs_dir_in(pin):
+          linuxgpio_sysfs_dir_out(pin);
+
+         if(r >= 0)
           break;
 
         if(errno != EACCES) {
@@ -292,7 +292,7 @@ static int linuxgpio_sysfs_open(PROGRAMMER *pgm, const char *port) {
     }
   }
 
-  return (0);
+  return 0;
 }
 
 static void linuxgpio_sysfs_close(PROGRAMMER *pgm) {
@@ -326,6 +326,43 @@ void linuxgpio_setup(PROGRAMMER *pgm) {
 void linuxgpio_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
   pgm->cookie = NULL;
+}
+
+static int linuxgpio_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+  char *cp, *s, *str = mmt_strdup(sp);
+  int rv = 0;
+  bool help = false;
+
+  s = str;
+  while((cp = strtok(s, ","))) {
+    s = NULL;
+    if(str_eq(cp, "reset")) {
+      pgm->exit_reset = EXIT_RESET_ENABLED;
+      continue;
+    }
+    if(str_eq(cp, "noreset")) {
+      pgm->exit_reset = EXIT_RESET_DISABLED;
+      continue;
+    }
+    if(str_eq(cp, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if(!help) {
+      pmsg_error("invalid exitspec parameter -E %s\n", cp);
+      rv = -1;
+    }
+    msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+    msg_error("  -E reset   Programmer will keep the reset line low after programming session\n");
+    msg_error("  -E noreset Programmer will keep the reset line high after programming session\n");
+    msg_error("  -E help    Show this help menu and exit\n");
+    mmt_free(str);
+    return rv;
+  }
+
+  mmt_free(str);
+  return rv;
 }
 
 // libgpiod backend for the linuxgpio programmer
@@ -526,13 +563,11 @@ static void linuxgpio_libgpiod_display(const PROGRAMMER *pgm, const char *p) {
 static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
   int i;
 
-  if(bitbang_check_prerequisites(pgm) < 0) {
+  if(bitbang_check_prerequisites(pgm) < 0)
     return -1;
-  }
 
-  for(i = 0; i < N_PINS; ++i) {
+  for(i = 0; i < N_PINS; ++i)
     linuxgpio_libgpiod_lines[i] = NULL;
-  }
 
   // Avrdude assumes that if a pin number is invalid it means not used/available
   for(i = 1; i < N_PINS; i++) { // The pin enumeration in libavrdude.h starts with PPI_AVR_VCC = 1
@@ -540,21 +575,20 @@ static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
     int gpio_num;
 
     gpio_num = pgm->pinno[i] & PIN_MASK;
-    if(gpio_num > PIN_MAX) {
+    if(gpio_num > PIN_MAX)
       continue;
-    }
 
     linuxgpio_libgpiod_lines[i] = gpiod_line_get(port, gpio_num);
     if(linuxgpio_libgpiod_lines[i] == NULL) {
       msg_error("failed to open %s line %d: %s\n", port, gpio_num, strerror(errno));
       return -1;
     }
-    // Request the pin, select direction.
-    if(i == PIN_AVR_SDI) {
-      r = gpiod_line_request_input(linuxgpio_libgpiod_lines[i], "avrdude");
-    } else {
-      r = gpiod_line_request_output(linuxgpio_libgpiod_lines[i], "avrdude", 0);
-    }
+
+    // Request the pin, select direction
+    r = i == PIN_AVR_SDI?
+      gpiod_line_request_input(linuxgpio_libgpiod_lines[i], "avrdude"):
+      gpiod_line_request_output(linuxgpio_libgpiod_lines[i], "avrdude", 0);
+
     if(r != 0) {
       msg_error("failed to request %s line %d: %s\n", port, gpio_num, strerror(errno));
       return -1;
@@ -562,7 +596,7 @@ static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
 
   }
 
-  return (0);
+  return 0;
 }
 
 static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
@@ -588,21 +622,26 @@ static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
     }
   }
 
-  // Configure RESET as input.
-  if(linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
+  if(pgm->exit_reset == EXIT_RESET_ENABLED) // Exit with RESET pin high
+    pgm->setpin(pgm, PIN_AVR_RESET, 1);
+  else if(pgm->exit_reset == EXIT_RESET_DISABLED) // Exit with RESET pin low
+    pgm->setpin(pgm, PIN_AVR_RESET, 0);
+  else { // Exit with RESET pin as input (default behaviour)
+    if(linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
 
-#if HAVE_LIBGPIOD_V1_6 || HAVE_LIBGPIOD_V2
-    int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
-#else
-    int r = gpiod_line_set_direction_input(&linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
-#endif
+  #if HAVE_LIBGPIOD_V1_6 || HAVE_LIBGPIOD_V2
+      int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+  #else
+      int r = gpiod_line_set_direction_input(&linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+  #endif
 
-    if(r != 0) {
-      msg_error("failed to set pin %u to input: %s\n",
-        linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[PIN_AVR_RESET]), strerror(errno));
+      if(r != 0) {
+        msg_error("failed to set pin %u to input: %s\n",
+          linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[PIN_AVR_RESET]), strerror(errno));
+      }
+      gpiod_line_release(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+      linuxgpio_libgpiod_lines[PIN_AVR_RESET] = NULL;
     }
-    gpiod_line_release(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
-    linuxgpio_libgpiod_lines[PIN_AVR_RESET] = NULL;
   }
 }
 
@@ -630,9 +669,8 @@ static int linuxgpio_libgpiod_setpin(const PROGRAMMER *pgm, int pinfunc, int val
     return -1;
   }
 
-  if(pgm->ispdelay > 1) {
+  if(pgm->ispdelay > 1)
     bitbang_delay(pgm->ispdelay);
-  }
 
   return 0;
 }
@@ -717,6 +755,7 @@ void linuxgpio_initpgm(PROGRAMMER *pgm) {
   pgm->write_byte = avr_write_byte_default;
   pgm->setup = linuxgpio_setup;
   pgm->teardown = linuxgpio_teardown;
+  pgm->parseexitspecs = linuxgpio_parseexitspecs;
 
 #ifdef HAVE_LIBGPIOD
   if(libgpiod_is_working()) {

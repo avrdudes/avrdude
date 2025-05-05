@@ -256,7 +256,8 @@ static void usage(void) {
     "                            e.g., -c 'ur*'/s for programmer info/definition\n"
     "  -A                        Disable trailing-0xff removal for file/AVR read\n"
     "  -D, --noerase             Disable auto-erase for flash memory; implies -A\n"
-    "  -i <delay>                ISP Clock Delay [in microseconds]\n"
+    "  -i <delay>                Bit state change delay [in microseconds] for\n"
+    "                            bit-banged ISP and TPI programmers\n"
     "  -P, --port <port>         Connection; -P ?s or -P ?sa lists serial ones\n"
     "  -r, --reconnect           Reconnect to -P port after \"touching\" it; wait\n"
     "                            400 ms for each -r; needed for some USB boards\n"
@@ -1634,8 +1635,13 @@ int main(int argc, char *argv[]) {
     else
       imsg_error(" - double check the connections and try again\n");
 
-    if(str_eq(pgm->type, "serialupdi") || str_eq(pgm->type, "SERBB"))
+    if(str_eq(pgm->type, "serialupdi"))
       imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
+    else if(str_eq(pgm->type, "buspirate_bb") || str_eq(pgm->type, "linuxgpio") ||
+      str_eq(pgm->type, "par") || str_eq(pgm->type, "SERBB")) {
+      imsg_error(" - use -i %sto set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
+        bitclock? "instead of -B ": "");
+    }
     else
       imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 

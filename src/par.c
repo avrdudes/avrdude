@@ -354,7 +354,7 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     }
     msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
     msg_error("  -E reset   Programmer will keep the reset line low after programming session\n");
-    msg_error("  -E noreset Programmer will not keep the reset line low after programming session\n");
+    msg_error("  -E noreset Programmer will keep the reset line high after programming session\n");
     msg_error("  -E vcc     Programmer VCC pin(s) remain active after programming session\n");
     msg_error("  -E novcc   Programmer VCC pin(s) turned off after programming session\n");
     msg_error("  -E d_high  Set all 8 programmer data pins high after programming session\n");

@@ -31,6 +31,8 @@ Changes since version 8.0:
     - Linuxspi won't connect #1929
     - Fails to build on Windows with recent clang #1940
     - Support options such as --part #1922
+    - Corrupt buffer in progressbar header #1970
+    - linuxgpio does not release RESET line on failure #1972
 
   * Pull requests:
 
@@ -63,6 +65,9 @@ Changes since version 8.0:
     - Add PICkit Basic Documentation #1966
     - Remove progbuf as it's no longer needed #1971
     - Autogenerate urboot bootloaders #1974
+    - Ensure part is active before starting bit-banged ISP programming
+      add linuxgpio -E support #1973
+    - Alias PICkit Basic programmer names #1975
 
   * Internals:
 

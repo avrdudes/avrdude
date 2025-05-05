@@ -512,6 +512,9 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
     }
   } else {
+    // Ensure part is active first for defined start of ISP programming
+    pgm->setpin(pgm, PIN_AVR_RESET, 1);
+    usleep(128000);
     pgm->highpulsepin(pgm, PIN_AVR_RESET);
   }
 
