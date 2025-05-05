@@ -1255,6 +1255,7 @@ This option will leave the 8 data pins on the parallel port active
 @item d_low
 This option will leave the 8 data pins on the parallel port inactive
 (i.e. low).
+@end table
 
 @cindex Option @code{-x} pickit4_mplab, pickit5
 @cindex @code{-x} pickit4_mplab, pickit5
