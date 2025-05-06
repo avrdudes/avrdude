@@ -2098,8 +2098,9 @@ Show help menu and exit.
 .El
 .El
 .Ss Programmers accepting exitspec parameter
-Currently, only the flip2, linuxspi, linuxgpio, raspberry_pi_gpio and old school parallel
-port programmers such as stk200 and dapa support exitspec parameter.
+Currently, only the flip2, linuxspi, linuxgpio, raspberry_pi_gpio,
+pickit4_mplab, pickit and old-school parallel port programmers such as
+stk200 and dapa support exitspec parameter.
 These let the user decide in which state the programmer pins after ended programming session.
 Multiple exitspec options can be separated with commas.
 .Bl -tag -offset indent -width indent
@@ -2151,6 +2152,13 @@ This option will leave the 8 data pins on the parallel port active.
 .It Ar d_low
 This option will leave the 8 data pins on the parallel port inactive.
 .Pq \&i. \&e. Em low
+.El
+.It Ar Pickit 4 (MPLAB)
+.It Ar Pickit 5
+.Bl -tag -offset indent -width indent
+.It Ar vcc
+This option will leave the power supply from the programmer enabled after
+avrdude finished the operation. Disabled by default.
 .El
 .El
 .Sh FILES
