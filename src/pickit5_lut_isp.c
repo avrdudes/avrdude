@@ -3546,5 +3546,5 @@ int get_pickit_isp_script(SCRIPT *scr, const char* partdesc) {
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
   }
-  return 0;
+  return namepos;
 }

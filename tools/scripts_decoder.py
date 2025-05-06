@@ -445,7 +445,7 @@ def convert_xml(xml_path, c_funcs):
                     c_file.write("      scr->{0}_len = sizeof({1});\n".format(func_name, func))
                 c_file.write("      break;\n")
 
-            c_file.write("  }\n  return 0;\n}")
+            c_file.write("  }\n  return namepos;\n}")
             # End of switch case
             print("finished " + prog_iface)
 

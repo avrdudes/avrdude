@@ -567,5 +567,5 @@ int get_pickit_pdi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem_len = sizeof(ReadIDmem_pdi_2);
       break;
   }
-  return 0;
+  return namepos;
 }

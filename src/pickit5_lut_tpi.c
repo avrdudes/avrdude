@@ -182,5 +182,5 @@ int get_pickit_tpi_script(SCRIPT *scr, const char* partdesc) {
     case 7:  /* ATtiny9 */
       break;
   }
-  return 0;
+  return namepos;
 }
