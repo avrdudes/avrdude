@@ -457,6 +457,13 @@ static int buspirate_open(PROGRAMMER *pgm, const char *port) {
   // Drain any extraneous input
   serial_drain(&pgm->fd, 0);
 
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ)) {
+      pmsg_warning("%s does not support adjustable bitclock speed using -B.\n", pgmid);
+      imsg_warning("Ignoring -B flag. Use -x help to view alternative SPI clock options\n");
+    }
+  }
+
   return 0;
 }
 

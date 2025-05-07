@@ -335,6 +335,11 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  }
+
   if(my.autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present

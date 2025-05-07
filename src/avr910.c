@@ -334,6 +334,11 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
 
   (void) avr910_drain(pgm, 0);
 
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  }
+
   return 0;
 }
 

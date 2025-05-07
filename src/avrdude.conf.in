@@ -82,6 +82,8 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #   #    can clock an AVR directly through its XTAL1 pin
 #   #  - HAS_VAREF_ADJ: Programmer has an adjustable analog reference voltage that
 #   #    can be controlled with Avrdude
+#   #  - HAS_BITCLOCK_ADJ: Programmer has an adjustable bitclock that
+#   #    can be controlled with Avrdude using -B
 #   #
 #   # (3) To invert the polarity of a pin use a tilde: ~<num>
 #   #     To invert the polarity of all pins in a list use ~(<num1> [, <num2> ... ])
@@ -1034,6 +1036,7 @@ programmer # avrftdi
     desc                   = "FT2232H/D based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6010;
@@ -1118,6 +1121,7 @@ programmer # ft2232h_jtag
     desc                   = "FT2232H based generic JTAG programmer";
     type                   = "avrftdi_jtag";
     prog_modes             = PM_JTAG;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6010;
@@ -1161,6 +1165,7 @@ programmer # jtagkey
     desc                   = "Amontec JTAGKey/JTAGKey-Tiny/JTAGKey2";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
 #   Note: This PID is used in all JTAGKey variants
@@ -1187,6 +1192,7 @@ programmer # ft232h
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     is_serialadapter       = yes;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
@@ -1207,6 +1213,7 @@ programmer # ft232h_jtag
     desc                   = "FT232H based generic JTAG programmer";
     type                   = "avrftdi_jtag";
     prog_modes             = PM_JTAG;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
@@ -1283,6 +1290,8 @@ programmer # openmoko
     desc                   = "Openmoko debug board (v3)";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
+    connection_type        = usb;
     usbvid                 = 0x1457;
     usbpid                 = 0x5118;
     usbdev                 = "A";
@@ -1304,6 +1313,7 @@ programmer # lm3s811
     desc                   = "Luminary Micro LM3S811 Eval Board (Rev. A)";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0xbcd9;
@@ -1387,6 +1397,7 @@ programmer # ktlink
     desc                   = "KT-LINK FT2232H: IO switching, voltage buffers";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0xbbe2;
@@ -1411,6 +1422,7 @@ programmer # digilent-hs2
     desc                   = "Digilent JTAG HS2 (MPSSE)";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
@@ -1434,6 +1446,7 @@ programmer # flyswatter2
     desc                   = "TinCan Tools Flyswatter 2";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6010;
@@ -1484,6 +1497,7 @@ programmer # serprog
     desc                   = "Program via the Serprog protocol from Flashrom";
     type                   = "serprog";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1498,6 +1512,7 @@ programmer # avrisp
     desc                   = "Serial Atmel AVR ISP using STK500";
     type                   = "stk500";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1510,6 +1525,7 @@ programmer # avrispv2
     desc                   = "Serial Atmel AVR ISP using STK500v2";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1526,7 +1542,7 @@ programmer # avrispmkII
     desc                   = "USB Atmel AVR ISP mkII";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2104;
@@ -1557,6 +1573,7 @@ programmer # buspirate
     desc                   = "The Bus Pirate in AVR programming mode";
     type                   = "buspirate";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1595,7 +1612,7 @@ programmer # stk500
     desc                   = "Atmel STK500 (probes v2 first then v1)";
     type                   = "stk500generic";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1612,7 +1629,7 @@ programmer # stk500v1
     desc                   = "Atmel STK500 v1";
     type                   = "stk500";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1648,6 +1665,7 @@ programmer # mib510
     desc                   = "Crossbow MIB510 programming board";
     type                   = "stk500";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1662,7 +1680,7 @@ programmer # stk500v2
     desc                   = "Atmel STK500 v2";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1675,7 +1693,7 @@ programmer # stk500pp
     desc                   = "Atmel STK500 v2 in parallel programming mode";
     type                   = "stk500pp";
     prog_modes             = PM_HVPP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1688,7 +1706,7 @@ programmer # stk500hvsp
     desc                   = "Atmel STK500 v2 in HV serial programming mode";
     type                   = "stk500hvsp";
     prog_modes             = PM_HVSP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = serial;
 ;
 
@@ -1705,7 +1723,7 @@ programmer # stk600
     desc                   = "Atmel STK600";
     type                   = "stk600";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2106;
@@ -1720,7 +1738,7 @@ programmer # stk600pp
     desc                   = "Atmel STK600 in parallel programming mode";
     type                   = "stk600pp";
     prog_modes             = PM_HVPP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2106;
@@ -1735,7 +1753,7 @@ programmer # stk600hvsp
     desc                   = "Atmel STK600 in HV serial programming mode";
     type                   = "stk600hvsp";
     prog_modes             = PM_HVSP;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2106;
@@ -1771,6 +1789,7 @@ programmer # ft245r
     desc                   = "FT245R based generic programmer";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6001;
@@ -1790,6 +1809,7 @@ programmer # ft232r
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     is_serialadapter       = yes;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403; # For use as serial adapter
     usbpid                 = 0x6001; # "
@@ -1810,6 +1830,7 @@ programmer # bwmega
     desc                   = "BitWizard ftdi_atmega builtin programmer";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6001;
@@ -1835,6 +1856,7 @@ programmer # arduino-ft232r
     desc                   = "Arduino: FT232R connected to ISP";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6001;
@@ -1856,6 +1878,7 @@ programmer # tc2030
     desc                   = "Tag-Connect TC2030";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6001;
@@ -1882,6 +1905,7 @@ programmer # uncompatino
     desc                   = "uncompatino with all pairs of pins shorted";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6001;
@@ -1916,6 +1940,7 @@ programmer # ttl232r
     desc                   = "FTDI TTL232R-5V with ICSP adapter";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6001;
@@ -1958,6 +1983,7 @@ programmer # usbasp
     desc                   = "USBasp ISP and TPI programmer";
     type                   = "usbasp";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x16c0; # VOTI
     usbpid                 = 0x05dc; # Obdev's free shared PID
@@ -1981,6 +2007,7 @@ programmer # nibobee
     desc                   = "NIBObee";
     type                   = "usbasp";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x16c0; # VOTI
     usbpid                 = 0x092f; # NIBObee PID
@@ -1997,6 +2024,7 @@ programmer # usbasp-clone
     desc                   = "Any usbasp clone with correct VID/PID";
     type                   = "usbasp";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x16c0; # VOTI
     usbpid                 = 0x05dc; # Obdev's free shared PID
@@ -2018,6 +2046,7 @@ programmer # usbtiny
     desc                   = "USBtiny simple USB programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x1781;
     usbpid                 = 0x0c9f;
@@ -2067,6 +2096,7 @@ programmer # arduinoisp
     desc                   = "Arduino-branded USBtiny ISP Programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x2341;
     usbpid                 = 0x0049;
@@ -2084,6 +2114,7 @@ programmer # arduinoisporg
     desc                   = "Arduino-branded USBtiny ISP Programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x2a03;
     usbpid                 = 0x0049;
@@ -2101,6 +2132,7 @@ programmer # ehajo-isp
     desc                   = "AVR ISP programmer from eHaJo.de";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x16d0;
     usbpid                 = 0x0ba5;
@@ -2120,6 +2152,7 @@ programmer # iseavrprog
     desc                   = "AVR ISP programmer from iascaled.com";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x1209;
     usbpid                 = 0x6570;
@@ -2258,7 +2291,7 @@ programmer # jtagmkI
     desc                   = "Atmel JTAG ICE mkI";
     type                   = "jtagmki";
     prog_modes             = PM_JTAGmkI;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = serial;
     baudrate               = 115200;    # default is 115200
 ;
@@ -2288,7 +2321,7 @@ programmer # jtagmkII
     desc                   = "Atmel JTAG ICE mkII";
     type                   = "jtagmkii";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 19200;    # default is 19200
     usbvid                 = 0x03eb;
@@ -2325,7 +2358,7 @@ programmer # jtag2isp
     desc                   = "Atmel JTAG ICE mkII in ISP mode";
     type                   = "jtagmkii_isp";
     prog_modes             = PM_TPI | PM_ISP;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 115200;
     usbvid                 = 0x03eb;
@@ -2399,7 +2432,7 @@ programmer # dragon_jtag
     desc                   = "Atmel AVR Dragon in JTAG mode";
     type                   = "dragon_jtag";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 115200;
     usbvid                 = 0x03eb;
@@ -2417,7 +2450,7 @@ programmer # dragon_isp
     desc                   = "Atmel AVR Dragon in ISP mode";
     type                   = "dragon_isp";
     prog_modes             = PM_TPI | PM_ISP;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 115200;
     usbvid                 = 0x03eb;
@@ -2435,7 +2468,7 @@ programmer # dragon_pp
     desc                   = "Atmel AVR Dragon in PP mode";
     type                   = "dragon_pp";
     prog_modes             = PM_HVPP;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 115200;
     usbvid                 = 0x03eb;
@@ -2453,7 +2486,7 @@ programmer # dragon_hvsp
     desc                   = "Atmel AVR Dragon in HVSP mode";
     type                   = "dragon_hvsp";
     prog_modes             = PM_HVSP;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 115200;
     usbvid                 = 0x03eb;
@@ -2519,7 +2552,7 @@ programmer # jtag3
     desc                   = "Atmel AVR JTAGICE3 in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
@@ -2534,7 +2567,7 @@ programmer # jtag3pdi
     desc                   = "Atmel AVR JTAGICE3 in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
@@ -2549,7 +2582,7 @@ programmer # jtag3updi
     desc                   = "Atmel AVR JTAGICE3 in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
@@ -2580,7 +2613,7 @@ programmer # jtag3isp
     desc                   = "Atmel AVR JTAGICE3 in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
@@ -2606,7 +2639,7 @@ programmer # xplainedpro
     desc                   = "Atmel XplainedPro in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2111;
@@ -2621,7 +2654,7 @@ programmer # xplainedpro_pdi
     desc                   = "Atmel XplainedPro in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2111;
@@ -2637,7 +2670,7 @@ programmer # xplainedpro_updi
     desc                   = "Atmel XplainedPro in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2111;
@@ -2670,7 +2703,7 @@ programmer # xplainedmini
     desc                   = "Atmel XplainedMini in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
+    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2145;
@@ -2708,7 +2741,7 @@ programmer # xplainedmini_updi
     desc                   = "Atmel XplainedMini in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
+    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2145;
@@ -2752,7 +2785,7 @@ programmer # atmelice
     desc                   = "Atmel-ICE in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
@@ -2790,6 +2823,7 @@ programmer parent "atmelice" # atmelice_dw
     desc                   = "Atmel-ICE in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
 ;
 
 #------------------------------------------------------------
@@ -2807,15 +2841,12 @@ programmer parent "atmelice" # atmelice_isp
 # atmelice_tpi
 #------------------------------------------------------------
 
-programmer # atmelice_tpi
+programmer parent "atmelice" # atmelice_tpi
     id                     = "atmelice_tpi";
     desc                   = "Atmel-ICE in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
-    connection_type        = usb;
-    usbvid                 = 0x03eb;
-    usbpid                 = 0x2141;
 ;
 
 #------------------------------------------------------------
@@ -2846,7 +2877,7 @@ programmer # powerdebugger
     desc                   = "Atmel PowerDebugger in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
@@ -2884,6 +2915,7 @@ programmer parent "powerdebugger" # powerdebugger_dw
     desc                   = "Atmel PowerDebugger in debugWire mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
 ;
 
 #------------------------------------------------------------
@@ -2906,6 +2938,7 @@ programmer parent "powerdebugger" # powerdebugger_tpi
     desc                   = "Atmel PowerDebugger in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
 ;
 
 #------------------------------------------------------------
@@ -2948,7 +2981,7 @@ programmer # pickit4
     desc                   = "MPLAB(R) PICkit 4 in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
@@ -3000,6 +3033,7 @@ programmer parent "pickit4" # pickit4_tpi
     desc                   = "MPLAB(R) PICkit 4 in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_READ | HAS_VTARG_READ;
 ;
 
 # End of "Atmel" Mode
@@ -3015,7 +3049,7 @@ programmer # pickit4_mplab
     desc                   = "MPLAB(R) PICkit 4 in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9012; # PK4 (MPLAB mode)
@@ -3114,7 +3148,7 @@ programmer # pickit5
     desc                   = "MPLAB(R) PICkit 5 in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9036; # PK5
@@ -3209,7 +3243,7 @@ programmer # pickit_basic
     desc                   = "MPLAB(R) PICkit Basic in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-#   extra_features         = HAS_VTARG_READ;    # At the time of testing, this was not working
+#   extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ; # At the time of testing, HAS_VTARG_READ was not working
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9055;    # PK Basic
@@ -3307,7 +3341,7 @@ programmer # snap
     desc                   = "MPLAB(R) SNAP in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
@@ -3363,6 +3397,19 @@ programmer parent "snap" # snap_tpi
     desc                   = "MPLAB(R) SNAP in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_READ;
+;
+
+#------------------------------------------------------------
+# snap_dw
+#------------------------------------------------------------
+
+programmer parent "snap" # snap_dw
+    id                     = "snap_dw";
+    desc                   = "MPLAB(R) SNAP in debugWire mode";
+    type                   = "jtagice3_dw";
+    prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
 ;
 
 # End of "Atmel" mode
@@ -3378,7 +3425,7 @@ programmer # snap_mplab
     desc                   = "MPLAB(R) SNAP in JTAG mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x9018;    # SNAP (mplab mode)
@@ -3448,7 +3495,7 @@ programmer # pkobn_updi
     desc                   = "Curiosity nano (nEDBG) in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2175;
@@ -3492,6 +3539,7 @@ programmer # pickit2
     desc                   = "Microchip PICkit 2 programmer in ISP mode";
     type                   = "pickit2";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x0033;
