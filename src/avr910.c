@@ -321,8 +321,12 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 }
 
 static int avr910_open(PROGRAMMER *pgm, const char *port) {
-  union pinfo pinfo;
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  }
 
+  union pinfo pinfo;
   if(pgm->baudrate == 0)
     pgm->baudrate = 19200;
 
@@ -333,11 +337,6 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
     return -1;
 
   (void) avr910_drain(pgm, 0);
-
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
-  }
 
   return 0;
 }

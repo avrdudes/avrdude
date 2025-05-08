@@ -321,24 +321,24 @@ static void butterfly_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int butterfly_open(PROGRAMMER *pgm, const char *port) {
-  union pinfo pinfo;
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  }
 
   pgm->port = port;
 
   // If baudrate was not specified use 19200 Baud
-  if(pgm->baudrate == 0) {
+  if(pgm->baudrate == 0)
     pgm->baudrate = 19200;
-  }
+  union pinfo pinfo;
   pinfo.serialinfo.baud = pgm->baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if(serial_open(port, pinfo, &pgm->fd) == -1) {
     return -1;
   }
 
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
-  }
+
 
   if(my.autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter

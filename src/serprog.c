@@ -166,7 +166,6 @@ static bool is_serprog_cmd_supported(const unsigned char *cmd_bitmap, unsigned c
 
 static int serprog_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
-
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
@@ -287,8 +286,9 @@ static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   unsigned char buf[32];
 
   // Set SPI clock frequency
-  
-  if(is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
+  if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  else if(is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
     memset(buf, 0, sizeof buf);
     uint32_t frequency = pgm->bitclock > 0? 1/pgm->bitclock: part->factory_fcpu > 0? part->factory_fcpu/4: 250000;
 

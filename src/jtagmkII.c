@@ -1197,10 +1197,14 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
     }
   }
-  if((pgm->flag & PGM_FL_IS_JTAG) && pgm->bitclock != 0.0) {
-    pmsg_notice2("%s(): trying to set JTAG clock period to %.1f us\n", __func__, pgm->bitclock);
-    if(jtagmkII_set_sck_period(pgm, pgm->bitclock) != 0)
-      return -1;
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+    else if(pgm->flag & PGM_FL_IS_JTAG) {
+      pmsg_notice2("%s(): trying to set JTAG clock period to %.1f us\n", __func__, pgm->bitclock);
+      if(jtagmkII_set_sck_period(pgm, pgm->bitclock) != 0)
+        return -1;
+    }
   }
 
   if((pgm->flag & PGM_FL_IS_JTAG) && jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, my.jtagchain) < 0) {

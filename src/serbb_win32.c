@@ -229,6 +229,11 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
   LPVOID lpMsgBuf;
   HANDLE hComPort = INVALID_HANDLE_VALUE;
 
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed using -B. Use -i instead\n", pgmid);
+  }
+
   if(bitbang_check_prerequisites(pgm) < 0)
     return -1;
 

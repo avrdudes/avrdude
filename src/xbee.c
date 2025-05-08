@@ -1416,6 +1416,11 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
 }
 
 static int xbee_open(PROGRAMMER *pgm, const char *port) {
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  }
+
   union pinfo pinfo;
 
   pgm->port = port;

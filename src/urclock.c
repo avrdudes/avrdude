@@ -2227,8 +2227,12 @@ static void urclock_disable(const PROGRAMMER *pgm) {
 
 
 static int urclock_open(PROGRAMMER *pgm, const char *port) {
-  union pinfo pinfo;
+  if(pgm->bitclock != 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  }
 
+  union pinfo pinfo;
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;

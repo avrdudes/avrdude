@@ -860,7 +860,9 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
     return -1;
 
   if(pgm->bitclock != 0.0) {
-    if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+    else if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
 

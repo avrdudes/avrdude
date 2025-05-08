@@ -866,6 +866,7 @@ programmer # linuxspi
     desc                   = "Use Linux SPI device in /dev/spidev*";
     type                   = "linuxspi";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = spi;
     reset                  = 25;    # Pi GPIO number - this is J8:22
 ;

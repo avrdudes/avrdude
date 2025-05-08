@@ -1059,23 +1059,29 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0)
     return -1;
 
-  if(conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
-    my.set_sck = jtag3_set_sck_xmega_pdi;
-  else if(conn == PARM3_CONN_JTAG) {
-    if(is_pdi(p))
-      my.set_sck = jtag3_set_sck_xmega_jtag;
-    else
-      my.set_sck = jtag3_set_sck_mega_jtag;
-  }
-  if(pgm->bitclock != 0.0 && my.set_sck != NULL) {
-    unsigned int clock = 1E-3/pgm->bitclock;  // kHz
 
-    pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
-    parm[0] = clock & 0xff;
-    parm[1] = (clock >> 8) & 0xff;
-    if(my.set_sck(pgm, parm) < 0)
-      return -1;
+  if(pgm->bitclock != 0.0 && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
+  else {
+    if(conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
+      my.set_sck = jtag3_set_sck_xmega_pdi;
+    else if(conn == PARM3_CONN_JTAG) {
+      if(is_pdi(p))
+        my.set_sck = jtag3_set_sck_xmega_jtag;
+      else
+        my.set_sck = jtag3_set_sck_mega_jtag;
+    }
+    if(pgm->bitclock != 0.0 && my.set_sck != NULL) {
+      unsigned int clock = 1E-3/pgm->bitclock;  // kHz
+
+      pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
+      parm[0] = clock & 0xff;
+      parm[1] = (clock >> 8) & 0xff;
+      if(my.set_sck(pgm, parm) < 0)
+        return -1;
+    }
   }
+
 
   if(conn == PARM3_CONN_JTAG) {
     pmsg_notice2("%s(): trying to set JTAG daisy-chain info to %d,%d,%d,%d\n", __func__,
