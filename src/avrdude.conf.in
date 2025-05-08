@@ -3244,7 +3244,7 @@ programmer # pickit_basic
     desc                   = "MPLAB(R) PICkit Basic in JTAG Mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-#   extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ; # At the time of testing, HAS_VTARG_READ was not working
+    extra_features         = HAS_BITCLOCK_ADJ; # HAS_VTARG_READ was not working yet
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9055;    # PK Basic

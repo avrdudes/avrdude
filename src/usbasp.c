@@ -622,6 +622,9 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle ** device, int ve
 static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("usbasp_open(\"%s\")\n", port);
 
+  if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("setting bitclock despite missing HAS_BITCLOCK_ADJ setting in extra_features\n");
+
   // usb_init will be done in usbOpenDevice
   LNODEID usbpid = lfirst(pgm->usbpid);
   int pid, vid;
