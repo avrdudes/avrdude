@@ -947,7 +947,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Now we try to figure out if we have to supply power from PICkit
   double v_target = 3.30; // Placeholder in case no VTARG Read
-  if(pgm->extra_features & HAS_VTARG_READ){  // If not supported (PK Basic), use a place
+  if(pgm->extra_features & HAS_VTARG_READ) {  // If not supported (PK Basic), use a place
 
     pickit5_get_vtarget(pgm, &v_target);
     if(v_target < 1.8) {

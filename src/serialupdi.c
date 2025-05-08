@@ -58,13 +58,10 @@ static void serialupdi_teardown(PROGRAMMER *pgm) {
 }
 
 static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
+  if(pgm->bitclock)
+    pmsg_warning("programmer type %s sets its UPDI speed using -b [baudrate]. Ignoring -B\n", pgm->type);
+
   pgm->port = port;
-
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s sets its UPDI speed using -b [baudrate]. Ignoring -B flag\n", pgmid);
-  }
-
   return updi_link_open(pgm);
 }
 

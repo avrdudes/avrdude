@@ -441,10 +441,12 @@ static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 
 // ====== Programmer methods =======
 static int buspirate_open(PROGRAMMER *pgm, const char *port) {
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ)) {
-      pmsg_warning("%s does not support adjustable bitclock speed using -B.\n", pgmid);
-      imsg_warning("Ignoring -B flag. Use -x help to view alternative SPI clock options\n");
+  if(pgm->bitclock) {
+    if(str_eq(pgm->type, "buspirate_bb"))
+      pmsg_warning("programmer type %s does not support adjustable bitclock speed using -B. Use -i instead\n", pgm->type);
+    else {
+      pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+      imsg_warning("Use -x help to view alternative SPI clock options\n");
     }
   }
 

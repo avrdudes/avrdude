@@ -728,6 +728,9 @@ static void dryrun_disable(const PROGRAMMER *pgm) {
 }
 
 static int dryrun_open(PROGRAMMER *pgm, const char *port) {
+  if(pgm->bitclock)
+    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+
   pmsg_debug("%s(%s)\n", __func__, port? port: "NULL");
 
   return 0;

@@ -112,9 +112,11 @@ static int arduino_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const
 }
 
 static int arduino_open(PROGRAMMER *pgm, const char *port) {
-  union pinfo pinfo;
+  if(pgm->bitclock)
+    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
 
   pgm->port = port;
+  union pinfo pinfo;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if(serial_open(port, pinfo, &pgm->fd) == -1) {

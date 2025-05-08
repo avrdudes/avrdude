@@ -226,12 +226,9 @@ static void par_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int par_open(PROGRAMMER *pgm, const char *port) {
-  int rc;
 
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s does not support adjustable bitclock speed using -B. Use -i instead\n", pgmid);
-  }
+  if(pgm->bitclock)
+    pmsg_warning("programmer type %s does not support adjustable bitclock speed using -B. Use -i instead\n", pgm->type);
 
   if(bitbang_check_prerequisites(pgm) < 0)
     return -1;
@@ -243,7 +240,7 @@ static int par_open(PROGRAMMER *pgm, const char *port) {
   }
 
   // Save pin values, so they can be restored when device is closed
-  rc = ppi_getall(&pgm->fd, PPIDATA);
+  int rc = ppi_getall(&pgm->fd, PPIDATA);
   if(rc < 0) {
     pmsg_error("unable to read status of ppi data port\n");
     return -1;

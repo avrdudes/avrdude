@@ -2153,10 +2153,10 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)
     return -1;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
     if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
-    else if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      pmsg_warning("setting bitclock despite missing HAS_BITCLOCK_ADJ setting in extra_features\n");
+    if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
 

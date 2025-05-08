@@ -579,10 +579,8 @@ static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("micronucleus_open(\"%s\")\n", port);
 
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
-  }
+  if(pgm->bitclock)
+    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
 
   struct pdata *pdata = &my;
   const char *bus_name = NULL;

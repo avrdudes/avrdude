@@ -251,10 +251,8 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if(pgm->bitclock != 0.0) {
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("%s does not support adjustable bitclock speed. Ignoring -B flag\n", pgmid);
-  }
+  if(pgm->bitclock)
+    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
 
   return 0;
 }
