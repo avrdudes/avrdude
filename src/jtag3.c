@@ -1059,7 +1059,6 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0)
     return -1;
 
-
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 

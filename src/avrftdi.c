@@ -702,18 +702,18 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 
   write_flush(pdata);
 
-  if(pgm->extra_features & HAS_BITCLOCK_ADJ) {
-    if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
-      pmsg_warning("both -b baud and -B bitrate set; ignoring -B\n");
-    set_frequency(pdata,
-      pgm->baudrate? pgm->baudrate:
-      pgm->bitclock? (int) (1.0/pgm->bitclock):
-      150000
-    );
-  } else if(pgm->baudrate || pgm->bitclock) {
-    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring %s\n",
-      pgmid, pgm->baudrate && pgm->bitclock? "-b and -B": pgm->baudrate? "-b": "-B");
-  }
+  if(pgm->baudrate || pgm->bitclock)
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
+
+  if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
+    pmsg_warning("both -b baudrate and -B bitrate set; ignoring -B\n");
+
+  set_frequency(pdata,
+    pgm->baudrate? pgm->baudrate:
+    pgm->bitclock? (int) (1.0/pgm->bitclock):
+    150000
+  );
 
   // Set pin limit depending on chip type
   switch(pdata->ftdic->type) {
