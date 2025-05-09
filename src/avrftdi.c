@@ -705,12 +705,11 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->extra_features & HAS_BITCLOCK_ADJ) {
     if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
       pmsg_warning("both -b baud and -B bitrate set; ignoring -B\n");
-    if(pgm->baudrate)
-      set_frequency(pdata, pgm->baudrate);
-    else if(pgm->bitclock)
-      set_frequency(pdata, (uint32_t) (1.0f/pgm->bitclock));
-    else
-      set_frequency(pdata, pgm->baudrate? pgm->baudrate: 150000);
+    set_frequency(pdata,
+      pgm->baudrate? pgm->baudrate:
+      pgm->bitclock? (int) (1.0/pgm->bitclock):
+      150000
+    );
   } else if(pgm->baudrate || pgm->bitclock) {
     pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring %s\n",
       pgmid, pgm->baudrate && pgm->bitclock? "-b and -B": pgm->baudrate? "-b": "-B");
