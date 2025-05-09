@@ -710,9 +710,9 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
     else
       set_frequency(pdata, pgm->baudrate? pgm->baudrate: 150000);
   } else if(pgm->baudrate || pgm->bitclock) {
-    pmsg_warning("%s does not support adjustable bitclock speed. Ignoring %s \n",
-      pgmid ,pgm->baudrate && pgm->bitclock? "-b and -B flags": pgm->baudrate? "-b flag": "-B flag");
-    }
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring %s\n",
+      pgmid, pgm->baudrate && pgm->bitclock? "-b and -B": pgm->baudrate? "-b": "-B");
+  }
 
   // Set pin limit depending on chip type
   switch(pdata->ftdic->type) {
