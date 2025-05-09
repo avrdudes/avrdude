@@ -580,7 +580,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("micronucleus_open(\"%s\")\n", port);
 
   if(pgm->bitclock)
-    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   struct pdata *pdata = &my;
   const char *bus_name = NULL;

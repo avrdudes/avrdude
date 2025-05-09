@@ -230,7 +230,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
   HANDLE hComPort = INVALID_HANDLE_VALUE;
 
   if(pgm->bitclock)
-    pmsg_warning("programmer type %s does not support adjustable bitclock speed using -B. Use -i instead\n", pgm->type);
+    pmsg_warning("-c %s does not support adjustable bitclock speed using -B; use -i instead\n", pgmid);
 
   if(bitbang_check_prerequisites(pgm) < 0)
     return -1;

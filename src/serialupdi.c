@@ -59,7 +59,7 @@ static void serialupdi_teardown(PROGRAMMER *pgm) {
 
 static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock)
-    pmsg_warning("programmer type %s sets its UPDI speed using -b [baudrate]. Ignoring -B\n", pgm->type);
+    pmsg_warning("-c %s sets its UPDI speed using -b baudrate; ignoring -B\n", pgmid);
 
   pgm->port = port;
   return updi_link_open(pgm);

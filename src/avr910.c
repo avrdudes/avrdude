@@ -322,7 +322,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
 static int avr910_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock)
-    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   union pinfo pinfo;
   if(pgm->baudrate == 0)

@@ -322,7 +322,7 @@ static void butterfly_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 static int butterfly_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock)
-    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   pgm->port = port;
 

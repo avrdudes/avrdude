@@ -1205,7 +1205,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(jtagmkII_set_sck_period(pgm, pgm->bitclock) != 0)
         return -1;
     } else {
-      pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+      pmsg_warning("-c %s is not known to support adjustable bitclock speed; ignoring -B\n", pgmid);
     }
   }
 

@@ -443,9 +443,9 @@ static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 static int buspirate_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock) {
     if(str_caseeq(pgm->type, "BusPirate_BB"))
-      pmsg_warning("programmer type %s does not support adjustable bitclock speed using -B; use -i instead\n", pgm->type);
+      pmsg_warning("-c %s does not support adjustable bitclock speed using -B; use -i instead\n", pgmid);
     else {
-      pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+      pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
       imsg_warning("use -x help to view alternative SPI clock options\n");
     }
   }

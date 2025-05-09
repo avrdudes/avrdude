@@ -179,7 +179,7 @@ void flip2_initpgm(PROGRAMMER *pgm) {
 
 static int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
   if(pgm->bitclock)
-    pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   FLIP2(pgm)->dfu = dfu_open(port_spec);
   return (FLIP2(pgm)->dfu != NULL)? 0: -1;

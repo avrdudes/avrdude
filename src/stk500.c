@@ -861,7 +861,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
 
   if(pgm->bitclock) {
     if(str_eq(pgm->type, "arduino_as_isp")) // The Arduino as ISP will crash if we change the bitclock
-      pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
+      pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
     else {
       if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
         pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
