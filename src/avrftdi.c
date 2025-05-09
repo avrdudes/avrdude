@@ -798,7 +798,7 @@ static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Use speed optimization with CAUTION
     usleep(20*1000);
 
-    // Giving rst-pulse of at least 2 avr-clock-cycles, for security (2us @ 1MHz)
+    // Giving rst-pulse of at least 2 avr-clock-cycles, for security (2 us @ 1 MHz)
     set_pin(pgm, PIN_AVR_RESET, ON);
     usleep(20*1000);
 

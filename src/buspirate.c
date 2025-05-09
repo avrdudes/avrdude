@@ -568,7 +568,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
     unsigned short pwm_duty;
     unsigned short pwm_period;
 
-    pwm_period = 16000/(my.cpufreq) - 1; // Oscillator runs at 32MHz, we don't use a prescaler
+    pwm_period = 16000/(my.cpufreq) - 1; // Oscillator runs at 32 MHz, we don't use a prescaler
     pwm_duty = pwm_period/2;  // 50% duty cycle
 
     msg_notice2("setting up PWM for cpufreq\n");

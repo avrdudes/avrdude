@@ -1045,13 +1045,13 @@ static int xbeedev_open(const char *port, union pinfo pinfo, union filedescripto
      * In this mode, we are NOT talking to an XBee, we are talking directly to
      * an AVR device that thinks it is talking to an XBee itself.
      *
-     * Because, an XBee is a 3.3V device defaulting to 9600baud, and the
-     * Atmel328P is only rated at a maximum clock rate of 8MHz with a 3.3V
+     * Because, an XBee is a 3.3V device defaulting to 9600 baud, and the
+     * Atmel328P is only rated at a maximum clock rate of 8 MHz with a 3.3 V
      * supply, so there's a high likelihood a remote Atmel328P will be clocked
-     * at 8MHz.
+     * at 8 MHz.
      *
      * With a direct connection, there's a good chance we're talking to an
-     * Arduino clocked at 16MHz with an XBee-enabled chip plugged in.  The
+     * Arduino clocked at 16 MHz with an XBee-enabled chip plugged in.  The
      * doubled clock rate means a doubled serial rate.  Double 9600 baud ==
      * 19200 baud.
      */

@@ -1236,7 +1236,7 @@ programmer # ft232h_jtag
 # Pin J2-10 (AD3) is RESET
 # Pin J2-6 is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
-# a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
+# a 16 MHz Atmega1280 to program reliably.  The 232H is conveniently 5 V tolerant.
 
 programmer parent "ft232h" # um232h
     id                     = "um232h";
@@ -1254,7 +1254,7 @@ programmer parent "ft232h" # um232h
 # Brown (Pin 5) is RESET
 # Black (Pin 10) is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
-# a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
+# a 16 MHz Atmega1280 to program reliably.  The 232H is conveniently 5 V tolerant.
 
 programmer parent "um232h" # c232hm
     id                     = "c232hm";

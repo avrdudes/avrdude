@@ -113,12 +113,12 @@ void ft245r_initpgm(PROGRAMMER *pgm) {
 
 /*
  * Some revisions of the FTDI chips mess up the timing in bitbang mode unless
- * the bitclock is set to the max (3MHz).  For example, see:
+ * the bitclock is set to the max (3 MHz).  For example, see:
  *
  * http://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_120_FT232R%20Errata%20Technical%20Note.pdf
  *
  * To work around this problem, set the macro below to 1 to always set the
- * bitclock to 3MHz and then issue the same byte repeatedly to get the desired
+ * bitclock to 3 MHz and then issue the same byte repeatedly to get the desired
  * timing.
  *
 */
@@ -364,7 +364,7 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
   } else if(pgm->baudrate) {
     rate = pgm->baudrate;
   } else {
-    rate = 150000;              // Should work for all ftdi chips and the avr default internal clock of 1MHz
+    rate = 150000;              // Should work for all ftdi chips and the internal clock of 1 MHz
   }
 
 #if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
