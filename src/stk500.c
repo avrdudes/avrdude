@@ -860,7 +860,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
     return -1;
 
   if(pgm->bitclock) {
-    if(str_eq(pgm->type, "arduino_as_isp")) // The Arduino as ISP will crash if we change the bitclock
+    if(str_caseeq(pgmid, "arduino_as_isp")) // The Arduino as ISP will crash if we change the bitclock
       pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
     else {
       if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
