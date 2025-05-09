@@ -203,6 +203,9 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
   }
 #endif
 
+  if(pgm->ispdelay > 0 && pgm->bitclock > 0.0)
+    pmsg_warning("both -i delay and -B bitrate set; ignoring -B\n");
+
   if(pgm->ispdelay > 0) {
     my.clock_period = MIN(pgm->ispdelay, 255);
   } else if(pgm->bitclock > 0.0) {
