@@ -849,6 +849,8 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
     return -1;
   }
 
+  if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
   unsigned int baud = my.actual_pgm_clk;
   if(baud < 300) {              // Better be safe than sorry
     pmsg_warning("UPDI needs a higher clock for operation, increasing UPDI to 300 Hz\n");
@@ -1011,6 +1013,9 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
     }
   } else {
+
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
     // JTAG __requires__ setting the speed before program enable
     pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
