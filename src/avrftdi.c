@@ -703,6 +703,8 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
   write_flush(pdata);
 
   if(pgm->extra_features & HAS_BITCLOCK_ADJ) {
+    if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
+      pmsg_warning("both -b baud and -B bitrate set; ignoring -B\n");
     if(pgm->baudrate)
       set_frequency(pdata, pgm->baudrate);
     else if(pgm->bitclock)
