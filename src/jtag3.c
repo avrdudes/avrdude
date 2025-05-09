@@ -1071,7 +1071,8 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     else
       my.set_sck = jtag3_set_sck_mega_jtag;
   }
-  if(pgm->bitclock && my.set_sck != NULL) {
+
+  if(pgm->bitclock && my.set_sck) {
     unsigned int clock = 1E-3/pgm->bitclock;  // kHz
 
     pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
@@ -1080,7 +1081,6 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.set_sck(pgm, parm) < 0)
       return -1;
   }
-
 
   if(conn == PARM3_CONN_JTAG) {
     pmsg_notice2("%s(): trying to set JTAG daisy-chain info to %d,%d,%d,%d\n", __func__,
