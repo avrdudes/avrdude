@@ -170,7 +170,7 @@ static void pickit2_teardown(PROGRAMMER *pgm) {
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
-    pmsg_warning("setting bitclock despite missing HAS_BITCLOCK_ADJ setting in extra_features\n");
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
 #ifdef WIN32
   my.usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);

@@ -287,7 +287,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   int vid, pid;
 
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
-    pmsg_warning("setting bitclock despite missing HAS_BITCLOCK_ADJ setting in extra_features\n");
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   // If no -P was given or '-P usb' was given
   if(str_eq(name, "usb"))

@@ -1061,7 +1061,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
-    pmsg_warning("setting bitclock despite missing HAS_BITCLOCK_ADJ setting in extra_features\n");
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   if(conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
     my.set_sck = jtag3_set_sck_xmega_pdi;

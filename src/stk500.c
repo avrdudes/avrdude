@@ -864,7 +864,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
       pmsg_warning("programmer type %s does not support adjustable bitclock speed; ignoring -B\n", pgm->type);
     else {
       if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-        pmsg_warning("setting bitclock despite missing HAS_BITCLOCK_ADJ setting in extra_features\n");
+        pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
       if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
         return -1;
     }
