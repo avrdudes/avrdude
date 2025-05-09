@@ -326,17 +326,11 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
 
   pgm->port = port;
 
-  // If baudrate was not specified use 19200 Baud
-  if(pgm->baudrate == 0)
-    pgm->baudrate = 19200;
   union pinfo pinfo;
-  pinfo.serialinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 19200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
+  if(serial_open(port, pinfo, &pgm->fd) == -1)
     return -1;
-  }
-
-
 
   if(my.autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter
