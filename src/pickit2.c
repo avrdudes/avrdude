@@ -169,7 +169,7 @@ static void pickit2_teardown(PROGRAMMER *pgm) {
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
-  if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
+  if((pgm->ispdelay > 0 || pgm->bitclock > 0) && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
 #ifdef WIN32

@@ -1197,6 +1197,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
     }
   }
+
   if(pgm->bitclock) {
     if(pgm->flag & PGM_FL_IS_JTAG) {
       if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
