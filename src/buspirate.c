@@ -450,12 +450,8 @@ static int buspirate_open(PROGRAMMER *pgm, const char *port) {
     }
   }
 
-  // BusPirate runs at 115200 by default
-  if(pgm->baudrate == 0)
-    pgm->baudrate = 115200;
-
   union pinfo pinfo;
-  pinfo.serialinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   pgm->port = port;
   if(serial_open(port, pinfo, &pgm->fd) == -1) {
