@@ -286,9 +286,6 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   char *dev_name = NULL;
   int vid, pid;
 
-  if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
-    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
-
   // If no -P was given or '-P usb' was given
   if(str_eq(name, "usb"))
     name = NULL;
@@ -405,6 +402,8 @@ static int usbtiny_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Check for bit-clock and tell the usbtiny to adjust itself
   if(pgm->bitclock > 0.0) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     // -B option specified: convert to valid range for sck_period
     usbtiny_set_sck_period(pgm, pgm->bitclock);
   } else {

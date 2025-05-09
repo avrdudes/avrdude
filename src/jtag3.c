@@ -1059,9 +1059,6 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0)
     return -1;
 
-  if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
-    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
-
   if(conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
     my.set_sck = jtag3_set_sck_xmega_pdi;
   else if(conn == PARM3_CONN_JTAG) {
@@ -1074,6 +1071,8 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(pgm->bitclock && my.set_sck) {
     unsigned int clock = 1E-3/pgm->bitclock;  // kHz
 
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
     parm[0] = clock & 0xff;
     parm[1] = (clock >> 8) & 0xff;

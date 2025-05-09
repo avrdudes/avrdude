@@ -165,9 +165,6 @@ static bool is_serprog_cmd_supported(const unsigned char *cmd_bitmap, unsigned c
 // Programmer lifecycle handlers
 
 static int serprog_open(PROGRAMMER *pgm, const char *port) {
-  if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
-    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
-
   union pinfo pinfo;
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
