@@ -355,17 +355,18 @@ static int ft245r_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
-  // libftdi1 multiplies bitbang baudrate by 4:
-  int r, rate = 0, ftdi_rate = 3000000/4;
+  // libftdi1 multiplies bitbang baudrate by 4
+  int r, rate = 0, ftdi_rate = 3000000/4; // Max rate for ft232r is 750000
 
-  // Bitclock is second; 1us = 0.000001; max rate for ft232r 750000
-  if(pgm->bitclock) {
-    rate = (uint32_t) (1.0/pgm->bitclock);
-  } else if(pgm->baudrate) {
-    rate = pgm->baudrate;
-  } else {
-    rate = 150000;              // Should work for all ftdi chips and the internal clock of 1 MHz
-  }
+  if(pgm->baudrate || pgm->bitclock)
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
+
+  if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
+    pmsg_warning("both -b baudrate and -B bitrate set; ignoring -b\n");
+
+  // 150000 should work for all ftdi chips and the internal clock of 1 MHz
+  rate = pgm->bitclock? (int) (1.0/pgm->bitclock): pgm->baudrate? pgm->baudrate: 150000;
 
 #if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
   my.baud_mult = rate > 0 && rate < ftdi_rate? round((ftdi_rate + rate - 1)/rate): 1;
