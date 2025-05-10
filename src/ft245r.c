@@ -363,7 +363,7 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
       pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
-    pmsg_warning("both -b baudrate and -B bitrate set; ignoring -b\n");
+    pmsg_warning("both -b baudrate and -B bitrate set; using -B\n");
 
   // 150000 should work for all ftdi chips and the internal clock of 1 MHz
   rate = pgm->bitclock? (int) (1.0/pgm->bitclock): pgm->baudrate? pgm->baudrate: 150000;

@@ -707,7 +707,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
       pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
-    pmsg_warning("both -b baudrate and -B bitrate set; ignoring -B\n");
+    pmsg_warning("both -b baudrate and -B bitrate set; using -b\n");
 
   set_frequency(pdata,
     pgm->baudrate? pgm->baudrate:
