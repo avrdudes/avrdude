@@ -300,6 +300,7 @@ typedef struct opcode {
 #define HAS_VTARG_READ        8
 #define HAS_FOSC_ADJ         16
 #define HAS_VAREF_ADJ        32
+#define HAS_BITCLOCK_ADJ     64
 
 #define AVR_FAMILYIDLEN       7
 #define AVR_SIBLEN           32

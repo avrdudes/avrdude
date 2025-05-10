@@ -169,6 +169,8 @@ static void pickit2_teardown(PROGRAMMER *pgm) {
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
+  if((pgm->ispdelay > 0 || pgm->bitclock > 0) && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
 #ifdef WIN32
   my.usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
@@ -200,6 +202,9 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 #endif
+
+  if(pgm->ispdelay > 0 && pgm->bitclock > 0.0)
+    pmsg_warning("both -i delay and -B bitrate set; using -i\n");
 
   if(pgm->ispdelay > 0) {
     my.clock_period = MIN(pgm->ispdelay, 255);
@@ -1009,7 +1014,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
 
       int clock_period = MIN(1000000/clock_rate, 255);        // Max period is 255
 
-      clock_rate = (int) (1000000/(clock_period + 5e-7));     // Assume highest speed is 2MHz
+      clock_rate = (int) (1000000/(clock_period + 5e-7));     // Assume highest speed is 2 MHz
 
       pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
       my.clock_period = clock_period;

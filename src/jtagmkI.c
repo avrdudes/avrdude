@@ -452,7 +452,9 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     pmsg_notice2("%s(): trying to set JTAG clock period to %.1f us\n", __func__, pgm->bitclock);
     if(jtagmkI_set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;

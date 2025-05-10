@@ -348,6 +348,7 @@ TOKEN *new_constant(const char *con) {
     str_eq(con, "HAS_VTARG_READ")? HAS_VTARG_READ:
     str_eq(con, "HAS_FOSC_ADJ")? HAS_FOSC_ADJ:
     str_eq(con, "HAS_VAREF_ADJ")? HAS_VAREF_ADJ:
+    str_eq(con, "HAS_BITCLOCK_ADJ")? HAS_BITCLOCK_ADJ:
     str_eq(con, "pseudo")? 2:
     str_eq(con, "yes") || str_eq(con, "true")? 1: str_eq(con, "no") || str_eq(con, "false")? 0: (assigned = 0);
 

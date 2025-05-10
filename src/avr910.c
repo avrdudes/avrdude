@@ -321,13 +321,12 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 }
 
 static int avr910_open(PROGRAMMER *pgm, const char *port) {
+  if(pgm->bitclock)
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
+
   union pinfo pinfo;
-
-  if(pgm->baudrate == 0)
-    pgm->baudrate = 19200;
-
   pgm->port = port;
-  pinfo.serialinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 19200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if(serial_open(port, pinfo, &pgm->fd) < 0)
     return -1;

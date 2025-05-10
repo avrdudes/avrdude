@@ -561,16 +561,17 @@ static void linuxgpio_libgpiod_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
-  int i;
+  if(pgm->bitclock)
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   if(bitbang_check_prerequisites(pgm) < 0)
     return -1;
 
-  for(i = 0; i < N_PINS; ++i)
+  for(int i = 0; i < N_PINS; ++i)
     linuxgpio_libgpiod_lines[i] = NULL;
 
   // Avrdude assumes that if a pin number is invalid it means not used/available
-  for(i = 1; i < N_PINS; i++) { // The pin enumeration in libavrdude.h starts with PPI_AVR_VCC = 1
+  for(int i = 1; i < N_PINS; i++) { // The pin enumeration in libavrdude.h starts with PPI_AVR_VCC = 1
     int r;
     int gpio_num;
 

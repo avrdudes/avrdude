@@ -250,6 +250,10 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
     libusb_exit(my.ctx);
     return -1;
   }
+
+  if(pgm->bitclock)
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
+
   return 0;
 }
 

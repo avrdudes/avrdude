@@ -441,13 +441,17 @@ static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 
 // ====== Programmer methods =======
 static int buspirate_open(PROGRAMMER *pgm, const char *port) {
+  if(pgm->bitclock) {
+    if(str_caseeq(pgm->type, "BusPirate_BB"))
+      pmsg_warning("-c %s does not support adjustable bitclock speed using -B; use -i instead\n", pgmid);
+    else {
+      pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
+      imsg_warning("use -x help to view alternative SPI clock options\n");
+    }
+  }
+
   union pinfo pinfo;
-
-  // BusPirate runs at 115200 by default
-  if(pgm->baudrate == 0)
-    pgm->baudrate = 115200;
-
-  pinfo.serialinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   pgm->port = port;
   if(serial_open(port, pinfo, &pgm->fd) == -1) {
@@ -564,7 +568,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
     unsigned short pwm_duty;
     unsigned short pwm_period;
 
-    pwm_period = 16000/(my.cpufreq) - 1; // Oscillator runs at 32MHz, we don't use a prescaler
+    pwm_period = 16000/(my.cpufreq) - 1; // Oscillator runs at 32 MHz, we don't use a prescaler
     pwm_duty = pwm_period/2;  // 50% duty cycle
 
     msg_notice2("setting up PWM for cpufreq\n");

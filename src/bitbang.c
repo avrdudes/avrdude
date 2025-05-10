@@ -156,8 +156,8 @@ static unsigned char bitbang_txrx(const PROGRAMMER *pgm, unsigned char byte) {
      * if and only if T>t_CLCL (t_CLCL=clock period of target system).
      *
      * Due to the delay introduced by "IN" and "OUT"-commands, T is greater
-     * than 1us (more like 2us) on x86-architectures. So programming works
-     * safely down to 1MHz target clock.
+     * than 1us (more like 2 us) on x86-architectures. So programming works
+     * safely down to 1 MHz target clock.
      */
 
     b = (byte >> i) & 0x01;
