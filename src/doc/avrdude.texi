@@ -2361,25 +2361,26 @@ Valid serial adapters are:
 Note that 2>&1 folds stderr into stdout in a bash shell:
 @smallexample
 @cartouche
-$ avrdude -c "?" -pavr32ea32 2>&1 | grep -v bootloader
+$ avrdude -c "?" -p 32ea32 2>&1 | grep -v bootloader
 
 Valid programmers for part AVR32EA32 are:
-  atmelice_updi           = Atmel-ICE (ARM/AVR) via UPDI
-  dryrun                  = Emulates programming without a programmer via UPDI
-  jtag2updi               = JTAGv2 to UPDI bridge via UPDI
-  nanoevery               = JTAGv2 to UPDI bridge via UPDI
-  jtag3updi               = Atmel AVR JTAGICE3 via UPDI
-  pickit4_updi            = MPLAB(R) PICkit 4 in AVR mode via UPDI
-  pickit4_mplab_updi      = MPLAB(R) PICkit 4 in MPLAB mode via UPDI
-  pickit5_updi            = MPLAB(R) PICkit 5 via UPDI
-  pickit_basic_mplab_updi = MPLAB(R) PICkit Basic in MPLAB mode via UPDI
-  pkobn_updi              = Curiosity nano (nEDBG) via UPDI
-  powerdebugger_updi      = Atmel PowerDebugger (ARM/AVR) via UPDI
-  serialupdi              = SerialUPDI via UPDI
-  snap_updi               = MPLAB(R) SNAP in AVR mode via UPDI
-  snap_mplab_updi         = MPLAB(R) SNAP in MPLAB mode via UPDI
-  xplainedmini_updi       = Atmel AVR XplainedMini via UPDI
-  xplainedpro_updi        = Atmel AVR XplainedPro via UPDI
+  atmelice_updi           = Atmel-ICE (UPDI)
+  dryrun                  = Emulates programming without a programmer (TPI, [...])
+  jtag2updi               = JTAGv2 to UPDI bridge (UPDI)
+  nanoevery               = JTAGv2 to UPDI bridge (UPDI)
+  jtag3updi               = Atmel AVR JTAGICE3 (UPDI)
+  pickit4_mplab_updi      = MPLAB(R) PICkit 4 (UPDI)
+  pickit4_updi            = MPLAB(R) PICkit 4 (UPDI)
+  pickit5_updi            = MPLAB(R) PICkit 5 (UPDI)
+  pickit_basic_updi       = MPLAB(R) PICkit Basic (UPDI)
+  pickit_basic_mplab_updi = MPLAB(R) PICkit Basic (UPDI)
+  pkobn_updi              = Curiosity nano (nEDBG) (UPDI)
+  powerdebugger_updi      = Atmel PowerDebugger (UPDI)
+  serialupdi              = SerialUPDI (UPDI)
+  snap_mplab_updi         = MPLAB(R) SNAP (UPDI)
+  snap_updi               = MPLAB(R) SNAP (UPDI)
+  xplainedmini_updi       = Atmel XplainedMini (UPDI)
+  xplainedpro_updi        = Atmel XplainedPro (UPDI)
 @end cartouche
 @end smallexample
 
@@ -2389,6 +2390,7 @@ Valid programmers for part AVR32EA32 are:
 @smallexample
 @cartouche
 $avrdude -c linuxspi/s
+
 #------------------------------------------------------------
 # linuxspi
 #------------------------------------------------------------
