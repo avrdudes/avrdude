@@ -2127,6 +2127,19 @@ $ echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' 
 
 @page
 @noindent
+@strong{The same using -T:}
+
+@smallexample
+@cartouche
+$ avrdude -qqcdryrun -patmega328p \
+  -T 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20'
+
+0000  42 6f 6e 6a 6f 75 72 00  ff ff ff ff ff ff ff ff  |Bonjour.........|
+0010  ff ff ff ff ff ff ff ff  78 56 34 12 ff ff ff ff  |........xV4.....|
+@end cartouche
+@end smallexample
+
+@noindent
 @strong{Read EEPROM and write content to stdout (standard output):}
 
 @smallexample
@@ -2366,6 +2379,35 @@ Valid programmers for part AVR32EA32 are:
 @end cartouche
 @end smallexample
 
+@page
+@noindent
+@strong{Print programmer definition} as understood by AVRDUDE:
+@smallexample
+@cartouche
+$avrdude -c linuxspi/s
+#------------------------------------------------------------
+# linuxspi
+#------------------------------------------------------------
+
+# This programmer uses the built in linux SPI bus devices to program an
+# attached AVR. The reset pin must be attached to a GPIO pin that
+# is otherwise unused (see gpioinfo(1)); the SPI bus CE pins are not
+# suitable since they would release /RESET too early.
+#
+
+programmer # linuxspi
+    id                     = "linuxspi";
+    desc                   = "Use Linux SPI device in /dev/spidev*";
+    type                   = "linuxspi";
+    prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
+    connection_type        = spi;
+    reset                  = 25;    # Pi GPIO number - this is J8:22
+;
+@end cartouche
+@end smallexample
+
+
 @noindent
 @strong{Print filename of last stored sketch with its date stamp} (only with urclock programmer):
 @smallexample
@@ -2376,7 +2418,6 @@ $avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -x showdate -x showfilename
 @end cartouche
 @end smallexample
 
-@page
 @noindent
 @strong{AVRDUDE in a bash script creating terminal scripts that reset a part to factory settings:}
 @smallexample
