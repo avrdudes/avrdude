@@ -521,20 +521,21 @@ The @var{partname} parameter is the part's id listed in the configuration
 file. To see a list of currently supported MCUs use @code{?} as partname,
 which will, for each part, print its id; its official part name;
 alternative names, if any; and the list of available programming
-interfaces. In connection with @code{-v}, this will also print a table of
-variant part names with the package code and some absolute maximum
-ratings. The part id, their official part name, the listed alternative
-names or any of the full variant part names can be used to specify a part
-with the @code{-p} option. If a part is unknown to AVRDUDE, it means that
-there is no config file entry for that part, but it can be added to the
-configuration file if you have the Atmel datasheet so that you can enter
-the programming specifications. If @code{-p ?} is specified with a
-specific programmer, see @code{-c} below, then only those parts are output
-that the programmer expects to be able to handle, together with the
-programming interface(s) that can be used in that combination. In reality
-there can be deviations from this list, particularly if programming is
-directly via a bootloader. See @ref{List of Parts} for a full and detailed
-listing of supported parts.
+interfaces. Depending on the used shell, @code{?} may need to be quoted
+as in @code{"?"} or @code{\?}. In connection with @code{-v}, this will
+also print a table of variant part names with the package code and some
+absolute maximum ratings. The part id, their official part name, the
+listed alternative names or any of the full variant part names can be used
+to specify a part with the @code{-p} option. If a part is unknown to
+AVRDUDE, it means that there is no config file entry for that part, but it
+can be added to the configuration file if you have the Atmel datasheet so
+that you can enter the programming specifications. If @code{-p ?} is
+specified with a specific programmer, see @code{-c} below, then only those
+parts are output that the programmer expects to be able to handle,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. See @ref{List of
+Parts} for a full and detailed listing of supported parts.
 
 @item -p @var{wildcard/flags}
 @item --part @var{wildcard/flags}
@@ -598,17 +599,18 @@ the computer.
 Specify the programmer to be used.  AVRDUDE knows about quite a few
 programmers. The @var{programmer-id} parameter is the programmer's id
 listed in the configuration file.  Specify @code{-c ?} to list all
-programmers in the configuration file. If you have a programmer that is
-unknown to AVRDUDE but related to a known programmer there is some chance
-that it can be added to the configuration file without any code changes to
-AVRDUDE: copy a similar entry and change those features that differ to
-match that of the unknown programmer. If @code{-c ?} is specified with a
-specific part, see @code{-p} above, then only those programmers are output
-that expect to be able to handle this part, together with the programming
-interface(s) that can be used in that combination. In reality there can be
-deviations from this list, particularly if programming is directly via a
-bootloader. See @ref{List of Programmers} for a full and detailed listing
-of known programmers.
+programmers in the configuration file. Depending on the used shell,
+@code{?} may need to be quoted as in @code{"?"} or @code{\?}. If you have
+a programmer that is unknown to AVRDUDE but related to a known programmer
+there is some chance that it can be added to the configuration file
+without any code changes to AVRDUDE: copy a similar entry and change those
+features that differ to match that of the unknown programmer. If @code{-c
+?} is specified with a specific part, see @code{-p} above, then only those
+programmers are output that expect to be able to handle this part,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. See @ref{List of
+Programmers} for a full and detailed listing of known programmers.
 
 @item -c @var{wildcard/flags}
 @item --programmer @var{wildcard/flags}
@@ -823,21 +825,23 @@ specification, system-dependent default values @code{default_parallel},
 the configuration file are used. If you need to use a different port, use this
 option to specify the alternate port name.
 
-If avrdude has been configured with libserialport support, a serial port can
-be specified using a predefined serial adapter type in @var{avrdude.conf} or
-@var{.avrduderc}, e.g., @code{ch340} or @code{ft232r}. If more than one serial
-adapter of the same type is connected, they can be distinguished by appending
-a serial number, e.g., @code{ft232r:12345678}. Note that the USB to serial
-chip has to have a serial number for this to work. Avrdude can check for
-leading and trailing serial number matches as well. In the above example,
-@code{ft232r:1234} would also result in a match, and so would
-@code{ft232r:...5678}. If the USB to serial chip is not known to avrdude, it
-can be specified using the hexadecimal USB vendor ID, hexadecimal product ID
-and an optional serial number, following the serial number matching rules
-described above, e.g., @code{usb:0x2341:0x0043} or
-@code{usb:2341:0043:12345678}. To see a list of currently plugged-in serial
-ports use @code{-P ?s}. In order to see a list of all possible serial adapters
-known to avrdude use @code{-P ?sa}.
+If avrdude has been configured with libserialport support, a serial port
+can be specified using a predefined serial adapter type in
+@var{avrdude.conf} or @var{.avrduderc}, e.g., @code{ch340} or
+@code{ft232r}. If more than one serial adapter of the same type is
+connected, they can be distinguished by appending a serial number, e.g.,
+@code{ft232r:12345678}. Note that the USB to serial chip has to have a
+serial number for this to work. Avrdude can check for leading and trailing
+serial number matches as well. In the above example, @code{ft232r:1234}
+would also result in a match, and so would @code{ft232r:...5678}. If the
+USB to serial chip is not known to avrdude, it can be specified using the
+hexadecimal USB vendor ID, hexadecimal product ID and an optional serial
+number, following the serial number matching rules described above, e.g.,
+@code{usb:0x2341:0x0043} or @code{usb:2341:0043:12345678}. To see a list
+of currently plugged-in serial ports use @code{-P ?s}. In order to see a
+list of all possible serial adapters known to avrdude use @code{-P ?sa}.
+Depending on the used shell, @code{?} may need to be quoted as in
+@code{"?"} or @code{\?}.
 
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
 @var{port} may alternatively be specified as
@@ -2275,7 +2279,7 @@ $ avrdude -patmega328p/St | grep initval
 
 @smallexample
 @cartouche
-$ avrdude -p*/d | cut -f2 -d"'"
+$ avrdude -p \*/d | cut -f2 -d"'"
 
 ATtiny11
 ATtiny12
@@ -2296,7 +2300,7 @@ LGT8F328P
 
 @smallexample
 @cartouche
-$ avrdude -p*/Ud | cut -f2 -d"'"
+$ avrdude -p \*/Ud | cut -f2 -d"'"
 
 ATtiny202
 ATtiny204
@@ -2313,7 +2317,7 @@ AVR64EA48
 
 @smallexample
 @cartouche
-$ avrdude -P ?s
+$ avrdude -P \?s
 Possible candidate serial ports are:
   -P /dev/ttyUSB0 or -P ft232r:A600K203
   -P /dev/ttyUSB1 or -P ft232r:MCU8
@@ -2329,7 +2333,7 @@ Also note there may be other direct serial ports not listed above.
 
 @smallexample
 @cartouche
-$ avrdude -P ?sa
+$ avrdude -P \?sa
 
 Valid serial adapters are:
   ch340   = [usbvid 0x1a86, usbpid 0x7523]
@@ -2357,7 +2361,7 @@ Valid serial adapters are:
 Note that 2>&1 folds stderr into stdout in a bash shell:
 @smallexample
 @cartouche
-$ avrdude -c"?" -pavr32ea32 2>&1 | grep -v bootloader
+$ avrdude -c "?" -pavr32ea32 2>&1 | grep -v bootloader
 
 Valid programmers for part AVR32EA32 are:
   atmelice_updi           = Atmel-ICE (ARM/AVR) via UPDI
@@ -2426,7 +2430,7 @@ $ cat make-init-scripts
 
 #!/bin/bash
 mkdir /tmp/factory
-for part in $(avrdude -p*/d | grep = | cut -f2 -d"'"); do
+for part in $(avrdude -p\*/d | grep = | cut -f2 -d"'"); do
   echo $part
   avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 \
   | sed "s/.*/write &/" >/tmp/factory/$part.ini
