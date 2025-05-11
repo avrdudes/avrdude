@@ -2551,67 +2551,54 @@ respect to an example memory of size @code{sz=0x800} (2048 bytes).
 @tab @code{len}
 @tab Memory interval
 @tab Comment
-
 @item 0/positive
 @tab  positive
 @tab  @code{[addr, addr+len-1]}
 @tab  Note: @code{len = end-start + 1}
-
 @item 0/positive
 @tab  negative
 @tab  @code{[addr, sz+len]}
 @tab  End is @code{|len|} bytes below memory size @code{sz}
-
 @item negative
 @tab  positive
 @tab  @code{[sz+addr, @dots{}]}
 @tab  Start is @code{|addr|} bytes below memory size
-
 @item negative
 @tab  negative
 @tab  @code{[sz+addr, sz+len]}
 @tab  Combining above two cases
-
 @item any
 @tab  zero
 @tab  empty set
 @tab  No action
-
 @item @verb{|0x700|}
 @tab  @verb{|   12|}
 @tab @code{[0x700, 0x70b]}
 @tab Conventional use
-
 @item @verb{| 1024|}
 @tab  @verb{| -257|}
 @tab @code{[0x400, 0x6ff]}
 @tab Size of memory is @code{2048} or @code{0x800}
-
 @item @verb{| -512|}
 @tab  @verb{|  512|}
 @tab @code{[0x600, 0x7ff]}
 @tab Last 512 bytes
-
 @item @verb{| -256|}
 @tab  @verb{|   -1|}
 @tab @code{[0x700, 0x7ff]}
 @tab Last 256 bytes
-
 @item @verb{|    0|}
 @tab  @verb{|   49|}
 @tab @code{[0, 48]}
 @tab First 49 bytes
-
 @item @verb{|    0|}
 @tab  @verb{|  -49|}
 @tab @code{[0, 1999]}
 @tab All but the last @code{48 = |len+1|} bytes
-
 @item @verb{|    0|}
 @tab  @verb{|   -1|}
 @tab @code{[0, 0x7ff]}
 @tab All memory without knowing its size
-
 @end multitable
 
 @noindent
@@ -2867,16 +2854,16 @@ work (in contrast to @code{-U} operations).
 
 For integers, an optional case-insensitive suffix specifies the data size:
 
-@table @code
-@item LL
-8 bytes (64 bits)
-@item L
-4 bytes (32 bits)
-@item H or S
-2 bytes (16 bits)
-@item HH
-1 byte (8 bits)
-@end table
+@multitable {@code{H} or @code{S}}{8 bytes (64 bits) }
+@item @code{LL}
+@tab 8 bytes (64 bits)
+@item @code{L}
+@tab 4 bytes (32 bits)
+@item @code{H} or @code{S}
+@tab 2 bytes (16 bits)
+@item @code{HH}
+@tab 1 byte (8 bits)
+@end multitable
 
 Suffix @code{D} indicates a 64-bit double, @code{F} a 32-bit float, whilst a
 floating point number without suffix defaults to 32-bit float. Hexadecimal
