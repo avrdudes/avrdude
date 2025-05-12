@@ -33,6 +33,9 @@ Changes since version 8.0:
     - Support options such as --part #1922
     - Corrupt buffer in progressbar header #1970
     - linuxgpio does not release RESET line on failure #1972
+    - ser_posix.c: ser_recv times out at low baudrates #1982
+    - Regression: arduino_as_isp FW crashed with -B32 #1978
+    - DEFAULT_SPI_PORT appears to be undefined #1923
 
   * Pull requests:
 
@@ -68,6 +71,10 @@ Changes since version 8.0:
     - Ensure part is active before starting bit-banged ISP programming
       add linuxgpio -E support #1973
     - Alias PICkit Basic programmer names #1975
+    - Option to keep Vcc on for PICkit4/5 after exit #1976
+    - Set DEFAULT_SPI_PORT #1977
+    - Model programmer ability to set bitclock #1981
+    - Retrigger ser_posix.c ser_recv() timeout #1983
 
   * Internals:
 
