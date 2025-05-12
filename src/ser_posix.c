@@ -451,9 +451,9 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 
   timeout.tv_sec = serial_recv_timeout/1000L;
   timeout.tv_usec = (serial_recv_timeout%1000L)*1000;
-  to2 = timeout;
 
   while(len < buflen) {
+    to2 = timeout;
   reselect:
     FD_ZERO(&rfds);
     FD_SET(fd->ifd, &rfds);
