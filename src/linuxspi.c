@@ -152,9 +152,8 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
   struct gpiohandle_request req;
   int ret;
 
-  if(str_eq(port, "unknown")) {
+  if(str_eq(port, "unknown"))
     port = port_default;
-  }
 
   spidev = strtok(port, ":");
   if(!spidev) {
@@ -179,6 +178,8 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
       return -1;
     }
   }
+
+  pmsg_notice("opening %s:%s:%d\n", spidev, gpiochip, pgm->pinno[PIN_AVR_RESET] & PIN_MASK);
 
   pgm->port = port;
   my.fd_spidev = open(pgm->port, O_RDWR);
