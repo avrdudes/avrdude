@@ -81,6 +81,15 @@ static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) { // ms
   return SetCommTimeouts(hComPort, &ctmo);
 }
 
+static BOOL serial_w32SetRWTimeOut(HANDLE hComPort, DWORD timeout) { // ms
+  COMMTIMEOUTS ctmo = {0};
+
+  ctmo.ReadTotalTimeoutConstant = timeout;
+  ctmo.WriteTotalTimeoutConstant = timeout;
+
+  return SetCommTimeouts(hComPort, &ctmo);
+}
+
 static int ser_setparams(const union filedescriptor *fd, long baud, unsigned long cflags) {
   if(cx->ser_serial_over_ethernet)
     return -ENOTTY;
@@ -343,7 +352,10 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
   if(verbose >= MSG_TRACE)
     trace_buffer(__func__, buf, len);
 
-  serial_w32SetTimeOut(hComPort, 500);
+  if(!serial_w32SetRWTimeOut(hComPort, (len > 5? len: 5)*100)) {
+    pmsg_error("cannot set r/w timeout for serial port\n");
+    return -1;
+  }
 
   if(!WriteFile(hComPort, buf, len, &written, NULL)) {
     pmsg_error("unable to write: %s\n", "sorry no info avail"); // TODO
