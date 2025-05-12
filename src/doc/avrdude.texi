@@ -521,20 +521,21 @@ The @var{partname} parameter is the part's id listed in the configuration
 file. To see a list of currently supported MCUs use @code{?} as partname,
 which will, for each part, print its id; its official part name;
 alternative names, if any; and the list of available programming
-interfaces. In connection with @code{-v}, this will also print a table of
-variant part names with the package code and some absolute maximum
-ratings. The part id, their official part name, the listed alternative
-names or any of the full variant part names can be used to specify a part
-with the @code{-p} option. If a part is unknown to AVRDUDE, it means that
-there is no config file entry for that part, but it can be added to the
-configuration file if you have the Atmel datasheet so that you can enter
-the programming specifications. If @code{-p ?} is specified with a
-specific programmer, see @code{-c} below, then only those parts are output
-that the programmer expects to be able to handle, together with the
-programming interface(s) that can be used in that combination. In reality
-there can be deviations from this list, particularly if programming is
-directly via a bootloader. See @ref{List of Parts} for a full and detailed
-listing of supported parts.
+interfaces. Depending on the used shell, @code{?} may need to be quoted
+as in @code{"?"} or @code{\?}. In connection with @code{-v}, this will
+also print a table of variant part names with the package code and some
+absolute maximum ratings. The part id, their official part name, the
+listed alternative names or any of the full variant part names can be used
+to specify a part with the @code{-p} option. If a part is unknown to
+AVRDUDE, it means that there is no config file entry for that part, but it
+can be added to the configuration file if you have the Atmel datasheet so
+that you can enter the programming specifications. If @code{-p ?} is
+specified with a specific programmer, see @code{-c} below, then only those
+parts are output that the programmer expects to be able to handle,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. See @ref{List of
+Parts} for a full and detailed listing of supported parts.
 
 @item -p @var{wildcard/flags}
 @item --part @var{wildcard/flags}
@@ -598,17 +599,18 @@ the computer.
 Specify the programmer to be used.  AVRDUDE knows about quite a few
 programmers. The @var{programmer-id} parameter is the programmer's id
 listed in the configuration file.  Specify @code{-c ?} to list all
-programmers in the configuration file. If you have a programmer that is
-unknown to AVRDUDE but related to a known programmer there is some chance
-that it can be added to the configuration file without any code changes to
-AVRDUDE: copy a similar entry and change those features that differ to
-match that of the unknown programmer. If @code{-c ?} is specified with a
-specific part, see @code{-p} above, then only those programmers are output
-that expect to be able to handle this part, together with the programming
-interface(s) that can be used in that combination. In reality there can be
-deviations from this list, particularly if programming is directly via a
-bootloader. See @ref{List of Programmers} for a full and detailed listing
-of known programmers.
+programmers in the configuration file. Depending on the used shell,
+@code{?} may need to be quoted as in @code{"?"} or @code{\?}. If you have
+a programmer that is unknown to AVRDUDE but related to a known programmer
+there is some chance that it can be added to the configuration file
+without any code changes to AVRDUDE: copy a similar entry and change those
+features that differ to match that of the unknown programmer. If @code{-c
+?} is specified with a specific part, see @code{-p} above, then only those
+programmers are output that expect to be able to handle this part,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. See @ref{List of
+Programmers} for a full and detailed listing of known programmers.
 
 @item -c @var{wildcard/flags}
 @item --programmer @var{wildcard/flags}
@@ -823,21 +825,23 @@ specification, system-dependent default values @code{default_parallel},
 the configuration file are used. If you need to use a different port, use this
 option to specify the alternate port name.
 
-If avrdude has been configured with libserialport support, a serial port can
-be specified using a predefined serial adapter type in @var{avrdude.conf} or
-@var{.avrduderc}, e.g., @code{ch340} or @code{ft232r}. If more than one serial
-adapter of the same type is connected, they can be distinguished by appending
-a serial number, e.g., @code{ft232r:12345678}. Note that the USB to serial
-chip has to have a serial number for this to work. Avrdude can check for
-leading and trailing serial number matches as well. In the above example,
-@code{ft232r:1234} would also result in a match, and so would
-@code{ft232r:...5678}. If the USB to serial chip is not known to avrdude, it
-can be specified using the hexadecimal USB vendor ID, hexadecimal product ID
-and an optional serial number, following the serial number matching rules
-described above, e.g., @code{usb:0x2341:0x0043} or
-@code{usb:2341:0043:12345678}. To see a list of currently plugged-in serial
-ports use @code{-P ?s}. In order to see a list of all possible serial adapters
-known to avrdude use @code{-P ?sa}.
+If avrdude has been configured with libserialport support, a serial port
+can be specified using a predefined serial adapter type in
+@var{avrdude.conf} or @var{.avrduderc}, e.g., @code{ch340} or
+@code{ft232r}. If more than one serial adapter of the same type is
+connected, they can be distinguished by appending a serial number, e.g.,
+@code{ft232r:12345678}. Note that the USB to serial chip has to have a
+serial number for this to work. Avrdude can check for leading and trailing
+serial number matches as well. In the above example, @code{ft232r:1234}
+would also result in a match, and so would @code{ft232r:...5678}. If the
+USB to serial chip is not known to avrdude, it can be specified using the
+hexadecimal USB vendor ID, hexadecimal product ID and an optional serial
+number, following the serial number matching rules described above, e.g.,
+@code{usb:0x2341:0x0043} or @code{usb:2341:0043:12345678}. To see a list
+of currently plugged-in serial ports use @code{-P ?s}. In order to see a
+list of all possible serial adapters known to avrdude use @code{-P ?sa}.
+Depending on the used shell, @code{?} may need to be quoted as in
+@code{"?"} or @code{\?}.
 
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
 @var{port} may alternatively be specified as
@@ -2143,6 +2147,19 @@ $ echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' 
 
 @page
 @noindent
+@strong{The same using -T:}
+
+@smallexample
+@cartouche
+$ avrdude -qqcdryrun -patmega328p \
+  -T 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20'
+
+0000  42 6f 6e 6a 6f 75 72 00  ff ff ff ff ff ff ff ff  |Bonjour.........|
+0010  ff ff ff ff ff ff ff ff  78 56 34 12 ff ff ff ff  |........xV4.....|
+@end cartouche
+@end smallexample
+
+@noindent
 @strong{Read EEPROM and write content to stdout (standard output):}
 
 @smallexample
@@ -2278,7 +2295,7 @@ $ avrdude -patmega328p/St | grep initval
 
 @smallexample
 @cartouche
-$ avrdude -p*/d | cut -f2 -d"'"
+$ avrdude -p \*/d | cut -f2 -d"'"
 
 ATtiny11
 ATtiny12
@@ -2299,7 +2316,7 @@ LGT8F328P
 
 @smallexample
 @cartouche
-$ avrdude -p*/Ud | cut -f2 -d"'"
+$ avrdude -p \*/Ud | cut -f2 -d"'"
 
 ATtiny202
 ATtiny204
@@ -2316,7 +2333,7 @@ AVR64EA48
 
 @smallexample
 @cartouche
-$ avrdude -P ?s
+$ avrdude -P \?s
 Possible candidate serial ports are:
   -P /dev/ttyUSB0 or -P ft232r:A600K203
   -P /dev/ttyUSB1 or -P ft232r:MCU8
@@ -2332,7 +2349,7 @@ Also note there may be other direct serial ports not listed above.
 
 @smallexample
 @cartouche
-$ avrdude -P ?sa
+$ avrdude -P \?sa
 
 Valid serial adapters are:
   ch340   = [usbvid 0x1a86, usbpid 0x7523]
@@ -2360,27 +2377,58 @@ Valid serial adapters are:
 Note that 2>&1 folds stderr into stdout in a bash shell:
 @smallexample
 @cartouche
-$ avrdude -c"?" -pavr32ea32 2>&1 | grep -v bootloader
+$ avrdude -c "?" -p 32ea32 2>&1 | grep -v bootloader
 
 Valid programmers for part AVR32EA32 are:
-  atmelice_updi           = Atmel-ICE (ARM/AVR) via UPDI
-  dryrun                  = Emulates programming without a programmer via UPDI
-  jtag2updi               = JTAGv2 to UPDI bridge via UPDI
-  nanoevery               = JTAGv2 to UPDI bridge via UPDI
-  jtag3updi               = Atmel AVR JTAGICE3 via UPDI
-  pickit4_updi            = MPLAB(R) PICkit 4 in AVR mode via UPDI
-  pickit4_mplab_updi      = MPLAB(R) PICkit 4 in MPLAB mode via UPDI
-  pickit5_updi            = MPLAB(R) PICkit 5 via UPDI
-  pickit_basic_mplab_updi = MPLAB(R) PICkit Basic in MPLAB mode via UPDI
-  pkobn_updi              = Curiosity nano (nEDBG) via UPDI
-  powerdebugger_updi      = Atmel PowerDebugger (ARM/AVR) via UPDI
-  serialupdi              = SerialUPDI via UPDI
-  snap_updi               = MPLAB(R) SNAP in AVR mode via UPDI
-  snap_mplab_updi         = MPLAB(R) SNAP in MPLAB mode via UPDI
-  xplainedmini_updi       = Atmel AVR XplainedMini via UPDI
-  xplainedpro_updi        = Atmel AVR XplainedPro via UPDI
+  atmelice_updi           = Atmel-ICE (UPDI)
+  dryrun                  = Emulates programming without a programmer (TPI, [...])
+  jtag2updi               = JTAGv2 to UPDI bridge (UPDI)
+  nanoevery               = JTAGv2 to UPDI bridge (UPDI)
+  jtag3updi               = Atmel AVR JTAGICE3 (UPDI)
+  pickit4_mplab_updi      = MPLAB(R) PICkit 4 (UPDI)
+  pickit4_updi            = MPLAB(R) PICkit 4 (UPDI)
+  pickit5_updi            = MPLAB(R) PICkit 5 (UPDI)
+  pickit_basic_updi       = MPLAB(R) PICkit Basic (UPDI)
+  pickit_basic_mplab_updi = MPLAB(R) PICkit Basic (UPDI)
+  pkobn_updi              = Curiosity nano (nEDBG) (UPDI)
+  powerdebugger_updi      = Atmel PowerDebugger (UPDI)
+  serialupdi              = SerialUPDI (UPDI)
+  snap_mplab_updi         = MPLAB(R) SNAP (UPDI)
+  snap_updi               = MPLAB(R) SNAP (UPDI)
+  xplainedmini_updi       = Atmel XplainedMini (UPDI)
+  xplainedpro_updi        = Atmel XplainedPro (UPDI)
 @end cartouche
 @end smallexample
+
+@page
+@noindent
+@strong{Print programmer definition} as understood by AVRDUDE:
+@smallexample
+@cartouche
+$avrdude -c linuxspi/s
+
+#------------------------------------------------------------
+# linuxspi
+#------------------------------------------------------------
+
+# This programmer uses the built in linux SPI bus devices to program an
+# attached AVR. The reset pin must be attached to a GPIO pin that
+# is otherwise unused (see gpioinfo(1)); the SPI bus CE pins are not
+# suitable since they would release /RESET too early.
+#
+
+programmer # linuxspi
+    id                     = "linuxspi";
+    desc                   = "Use Linux SPI device in /dev/spidev*";
+    type                   = "linuxspi";
+    prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_BITCLOCK_ADJ;
+    connection_type        = spi;
+    reset                  = 25;    # Pi GPIO number - this is J8:22
+;
+@end cartouche
+@end smallexample
+
 
 @noindent
 @strong{Print filename of last stored sketch with its date stamp} (only with urclock programmer):
@@ -2392,7 +2440,6 @@ $avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -x showdate -x showfilename
 @end cartouche
 @end smallexample
 
-@page
 @noindent
 @strong{AVRDUDE in a bash script creating terminal scripts that reset a part to factory settings:}
 @smallexample
@@ -2401,7 +2448,7 @@ $ cat make-init-scripts
 
 #!/bin/bash
 mkdir /tmp/factory
-for part in $(avrdude -p*/d | grep = | cut -f2 -d"'"); do
+for part in $(avrdude -p\*/d | grep = | cut -f2 -d"'"); do
   echo $part
   avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 \
   | sed "s/.*/write &/" >/tmp/factory/$part.ini
@@ -2520,67 +2567,54 @@ respect to an example memory of size @code{sz=0x800} (2048 bytes).
 @tab @code{len}
 @tab Memory interval
 @tab Comment
-
 @item 0/positive
 @tab  positive
 @tab  @code{[addr, addr+len-1]}
 @tab  Note: @code{len = end-start + 1}
-
 @item 0/positive
 @tab  negative
 @tab  @code{[addr, sz+len]}
 @tab  End is @code{|len|} bytes below memory size @code{sz}
-
 @item negative
 @tab  positive
 @tab  @code{[sz+addr, @dots{}]}
 @tab  Start is @code{|addr|} bytes below memory size
-
 @item negative
 @tab  negative
 @tab  @code{[sz+addr, sz+len]}
 @tab  Combining above two cases
-
 @item any
 @tab  zero
 @tab  empty set
 @tab  No action
-
 @item @verb{|0x700|}
 @tab  @verb{|   12|}
 @tab @code{[0x700, 0x70b]}
 @tab Conventional use
-
 @item @verb{| 1024|}
 @tab  @verb{| -257|}
 @tab @code{[0x400, 0x6ff]}
 @tab Size of memory is @code{2048} or @code{0x800}
-
 @item @verb{| -512|}
 @tab  @verb{|  512|}
 @tab @code{[0x600, 0x7ff]}
 @tab Last 512 bytes
-
 @item @verb{| -256|}
 @tab  @verb{|   -1|}
 @tab @code{[0x700, 0x7ff]}
 @tab Last 256 bytes
-
 @item @verb{|    0|}
 @tab  @verb{|   49|}
 @tab @code{[0, 48]}
 @tab First 49 bytes
-
 @item @verb{|    0|}
 @tab  @verb{|  -49|}
 @tab @code{[0, 1999]}
 @tab All but the last @code{48 = |len+1|} bytes
-
 @item @verb{|    0|}
 @tab  @verb{|   -1|}
 @tab @code{[0, 0x7ff]}
 @tab All memory without knowing its size
-
 @end multitable
 
 @noindent
@@ -2836,16 +2870,16 @@ work (in contrast to @code{-U} operations).
 
 For integers, an optional case-insensitive suffix specifies the data size:
 
-@table @code
-@item LL
-8 bytes (64 bits)
-@item L
-4 bytes (32 bits)
-@item H or S
-2 bytes (16 bits)
-@item HH
-1 byte (8 bits)
-@end table
+@multitable {@code{H} or @code{S}}{8 bytes (64 bits) }
+@item @code{LL}
+@tab 8 bytes (64 bits)
+@item @code{L}
+@tab 4 bytes (32 bits)
+@item @code{H} or @code{S}
+@tab 2 bytes (16 bits)
+@item @code{HH}
+@tab 1 byte (8 bits)
+@end multitable
 
 Suffix @code{D} indicates a 64-bit double, @code{F} a 32-bit float, whilst a
 floating point number without suffix defaults to 32-bit float. Hexadecimal
