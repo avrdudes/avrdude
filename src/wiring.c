@@ -135,6 +135,9 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 }
 
 static int wiring_open(PROGRAMMER *pgm, const char *port) {
+  if(pgm->bitclock)
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
+
   int timetosnooze;
   union pinfo pinfo;
 

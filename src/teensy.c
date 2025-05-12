@@ -307,6 +307,9 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("teensy_open(\"%s\")\n", port);
 
+  if(pgm->bitclock)
+    pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
+
   struct pdata *pdata = &my;
   const char *bus_name = NULL;
   char *dev_name = NULL;

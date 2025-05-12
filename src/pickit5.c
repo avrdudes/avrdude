@@ -881,6 +881,8 @@ static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_t
     return -1;
   }
 
+  if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
   unsigned int baud = my.actual_pgm_clk;
   if(baud < 300) {              // Better be safe than sorry
     pmsg_warning("UPDI needs a higher clock for operation, increasing UPDI to 300 Hz\n");
@@ -979,6 +981,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Now we try to figure out if we have to supply power from PICkit
   double v_target = 3.30; // Placeholder in case no VTARG Read
+  
   if(pgm->extra_features & HAS_VTARG_READ) { // If not supported (PK Basic), use a place
     pickit5_get_vtarget(pgm, &v_target);
     if(v_target < 1.8) {
@@ -1024,6 +1027,9 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(pgm->baudrate && pgm->bitclock)
     pmsg_warning("both -b baudrate and -B bitclock given; using -b setting\n");
+
+  if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   my.actual_pgm_clk =
     pgm->baudrate? (unsigned int) pgm->baudrate:

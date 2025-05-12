@@ -220,6 +220,9 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
   int flags;
   int r;
 
+  if(pgm->bitclock)
+    pmsg_warning("-c %s does not support adjustable bitclock speed using -B; use -i instead\n", pgmid);
+
   if(bitbang_check_prerequisites(pgm) < 0)
     return -1;
 

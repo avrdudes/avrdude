@@ -2153,7 +2153,9 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)
     return -1;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -2211,7 +2213,9 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
   if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)
     return -1;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -3931,7 +3935,9 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
 
   my.pgmtype = PGMTYPE_JTAGICE_MKII;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -4026,7 +4032,9 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
 
   my.pgmtype = PGMTYPE_JTAGICE_MKII;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -4097,7 +4105,9 @@ static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
   pgm_free(pgmcp);
   my.pgmtype = PGMTYPE_JTAGICE_MKII;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -4134,7 +4144,9 @@ static int stk500v2_jtag3_open(PROGRAMMER *pgm, const char *port) {
 
   my.pgmtype = PGMTYPE_JTAGICE3;
 
-  if(pgm->bitclock != 0.0) {
+  if(pgm->bitclock) {
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }

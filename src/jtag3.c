@@ -1067,9 +1067,12 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     else
       my.set_sck = jtag3_set_sck_mega_jtag;
   }
-  if(pgm->bitclock != 0.0 && my.set_sck != NULL) {
+
+  if(pgm->bitclock && my.set_sck) {
     unsigned int clock = 1E-3/pgm->bitclock;  // kHz
 
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
     pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
     parm[0] = clock & 0xff;
     parm[1] = (clock >> 8) & 0xff;

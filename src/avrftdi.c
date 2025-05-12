@@ -702,13 +702,18 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 
   write_flush(pdata);
 
-  if(pgm->baudrate) {
-    set_frequency(pdata, pgm->baudrate);
-  } else if(pgm->bitclock) {
-    set_frequency(pdata, (uint32_t) (1.0f/pgm->bitclock));
-  } else {
-    set_frequency(pdata, pgm->baudrate? pgm->baudrate: 150000);
-  }
+  if(pgm->baudrate || pgm->bitclock)
+    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
+
+  if(pgm->baudrate && pgm->bitclock && (int) (1.0/pgm->bitclock) != pgm->baudrate)
+    pmsg_warning("both -b baudrate and -B bitrate set; using -b\n");
+
+  set_frequency(pdata,
+    pgm->baudrate? pgm->baudrate:
+    pgm->bitclock? (int) (1.0/pgm->bitclock):
+    150000
+  );
 
   // Set pin limit depending on chip type
   switch(pdata->ftdic->type) {
@@ -793,7 +798,7 @@ static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Use speed optimization with CAUTION
     usleep(20*1000);
 
-    // Giving rst-pulse of at least 2 avr-clock-cycles, for security (2us @ 1MHz)
+    // Giving rst-pulse of at least 2 avr-clock-cycles, for security (2 us @ 1 MHz)
     set_pin(pgm, PIN_AVR_RESET, ON);
     usleep(20*1000);
 
