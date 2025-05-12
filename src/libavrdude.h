@@ -676,10 +676,10 @@ enum {
   N_PINS
 };
 
-#define PIN_MASK    (UINT_MAX>>1)
-#define PIN_INVERSE (~(PIN_MASK)) // Flag for inverted pin in serbb
-#define PIN_MIN               0   // Smallest allowed pin number
-#define PIN_MAX              31   // Largest allowed pin number
+#define PIN_MASK  (UINT_MAX>>1)
+#define PIN_INVERSE (~PIN_MASK) // Flag for inverted pin in serbb
+#define PIN_MIN               0 // Smallest allowed pin number
+#define PIN_MAX              31 // Largest allowed pin number
 
 #ifdef HAVE_LINUXGPIO
 

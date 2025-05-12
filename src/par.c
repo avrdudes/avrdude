@@ -114,7 +114,7 @@ static void par_setmany(const PROGRAMMER *pgm, int pinfunc, int value) {
   pinset = pgm->pinno[pinfunc];
 
   // Mask is anything non-pin - needs to be applied to each par_setpin to preserve inversion
-  mask = pinset & (~PIN_MASK);
+  mask = pinset & ~PIN_MASK;
 
   for(pin = 1; pin <= 17; pin++) {
     if(pinset & (1 << pin))

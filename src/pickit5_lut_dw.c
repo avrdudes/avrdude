@@ -4437,5 +4437,5 @@ int get_pickit_dw_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadMem8_len = sizeof(ReadMem8_dw_5);
       break;
   }
-  return 0;
+  return namepos;
 }
