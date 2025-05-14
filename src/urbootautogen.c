@@ -906,8 +906,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
       if(ns != 1)
         Return("cannot parse baud rate %s", tok);
-      if(bd > 8000.001 || bd < 0.299)
-        Return("baud rate %s out of bounds [0k3, 8000k0]", tok);
+      if(bd < 0.0095 || bd >= 8000.0005)
+        Return("baud rate %s out of bounds [0k01, 8000k0]", tok);
       ppp->baudrate = (10000*bd+5)/10;
       continue;
     }
@@ -921,8 +921,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         Return("cannot parse baud rate %s", tok);
 
       bd *= factor;
-      if(bd > 8000*1000+1 || bd < 299)
-        Return("baud rate %s out of bounds [0.3 kbaud, 8000 kbaud]", tok);
+      if(bd < 9.5 || bd >= 8000*1000+0.5)
+        Return("baud rate %s out of bounds [0.01 kbaud, 8000 kbaud]", tok);
       ppp->baudrate = (10*bd+5)/10;
       continue;
     }
@@ -942,7 +942,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       if(ns != 1)
         Return("cannot parse F_cpu %s", tok);
 
-      if(fq > 64 || fq < 1e-3)
+      if(fq < 0.0009995 || fq >= 64.0000005)
         Return("F_cpu %s out of bounds [0m001, 64m0]", tok);
 
       ppp->fcpu = (10*1000*1000*fq+5)/10;
@@ -961,7 +961,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         Return("cannot parse F_cpu %s", tok);
 
       fq *= factor;
-      if(fq > 64e6 || fq < 1000)
+      if(fq < 999.5 || fq >= 64e6+0.5)
         Return("F_cpu %s out of bounds [1 kHz, 64 MHz]", tok);
 
       ppp->fcpu = (10*fq+5)/10;
