@@ -253,7 +253,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
     len -= avail;
     my.rx.pending += avail;
   }
-  my.tx.len = 0;
+
   return 0;
 }
 
@@ -263,8 +263,10 @@ static int ft245r_send2(const PROGRAMMER *pgm, unsigned char *buf, size_t len, b
       if(discard_rx_data)
         ++my.rx.discard;
       my.tx.buf[my.tx.len++] = buf[i];
-      if(my.tx.len >= FT245R_MIN_FIFO_SIZE)
+      if(my.tx.len >= FT245R_MIN_FIFO_SIZE) {
         ft245r_flush(pgm);
+        my.tx.len = 0;
+      }
     }
   }
   return 0;
@@ -280,6 +282,7 @@ static int ft245r_send_and_discard(const PROGRAMMER *pgm, unsigned char *buf, si
 
 static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   ft245r_flush(pgm);
+  my.tx.len = 0;
   ft245r_fill(pgm);
 
 #if FT245R_DEBUG
@@ -333,6 +336,7 @@ static int ft245r_drain(const PROGRAMMER *pgm, int display) {
 // Ensure any pending writes are sent to the FTDI chip before sleeping
 static void ft245r_usleep(const PROGRAMMER *pgm, useconds_t usec) {
   ft245r_flush(pgm);
+  my.tx.len = 0;
   usleep(usec);
 }
 
@@ -388,6 +392,7 @@ static int get_pin(const PROGRAMMER *pgm, int pinname) {
   uint8_t byte;
 
   ft245r_flush(pgm);
+  my.tx.len = 0;
 
   if(ftdi_read_pins(my.handle, &byte) != 0)
     return -1;
