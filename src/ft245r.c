@@ -292,9 +292,8 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   while(my.rx.discard > 0) {
     int result = ft245r_rx_buf_fill_and_get(pgm);
 
-    if(result < 0) {
+    if(result < 0)
       return result;
-    }
 
     --my.rx.discard;
   }
@@ -302,16 +301,14 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   for(size_t i = 0; i < len; ++i) {
     int result = ft245r_rx_buf_fill_and_get(pgm);
 
-    if(result < 0) {
+    if(result < 0)
       return result;
-    }
 
     buf[i] = (uint8_t) result;
     for(int j = 1; j < baud_multiplier; ++j) {
       result = ft245r_rx_buf_fill_and_get(pgm);
-      if(result < 0) {
+      if(result < 0)
         return result;
-      }
     }
   }
   return 0;
@@ -634,9 +631,8 @@ static inline unsigned char extract_data(const PROGRAMMER *pgm, unsigned char *b
 
   buf += offset*(8*FT245R_CYCLES);
   for(j = 0; j < 8; j++) {
-    if(GET_BITS_0(buf[buf_pos], pgm, PIN_AVR_SDI)) {
+    if(GET_BITS_0(buf[buf_pos], pgm, PIN_AVR_SDI))
       r |= bit;
-    }
     buf_pos += FT245R_CYCLES;
     bit >>= 1;
   }
@@ -654,9 +650,8 @@ static inline unsigned char extract_data_out(const PROGRAMMER *pgm, unsigned cha
 
   buf += offset*(8*FT245R_CYCLES);
   for(j = 0; j < 8; j++) {
-    if(GET_BITS_0(buf[buf_pos], pgm, PIN_AVR_SDO)) {
+    if(GET_BITS_0(buf[buf_pos], pgm, PIN_AVR_SDO))
       r |= bit;
-    }
     buf_pos += FT245R_CYCLES;
     bit >>= 1;
   }
@@ -673,9 +668,8 @@ static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned 
   unsigned char buf[128];
 
   buf_pos = 0;
-  for(i = 0; i < 4; i++) {
+  for(i = 0; i < 4; i++)
     buf_pos += set_data(pgm, buf + buf_pos, cmd[i]);
-  }
   buf[buf_pos] = 0;
   buf_pos++;
 
@@ -841,9 +835,8 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
       char *endptr = NULL;
 
       devnum = strtol(startptr, &endptr, 10);
-      if((startptr == endptr) || (*endptr != '\0')) {
+      if((startptr == endptr) || (*endptr != '\0'))
         devnum = -1;
-      }
       pmsg_notice2("%s(): device number parsed as: %d\n", __func__, devnum);
     }
   }
@@ -909,9 +902,8 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
   }
 
   rv = ft245r_set_bitclock(pgm);
-  if(rv) {
+  if(rv)
     goto cleanup;
-  }
 
   // Drain any extraneous input
   ft245r_drain(pgm, 0);
@@ -998,9 +990,8 @@ static int do_request(const PROGRAMMER *pgm, const AVRMEM *m) {
   my.req_pool = p;
 
   ft245r_recv(pgm, buf, bytes);
-  for(j = 0; j < n; j++) {
+  for(j = 0; j < n; j++)
     m->buf[addr++] = extract_data(pgm, buf, (j*4 + 3));
-  }
   return 1;
 }
 
