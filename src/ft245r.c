@@ -305,11 +305,13 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
       return result;
 
     buf[i] = (uint8_t) result;
+#if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
     for(int j = 1; j < baud_multiplier; ++j) {
       result = ft245r_rx_buf_fill_and_get(pgm);
       if(result < 0)
         return result;
     }
+#endif
   }
   return 0;
 }
