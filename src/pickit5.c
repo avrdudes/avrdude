@@ -1428,9 +1428,9 @@ static int pickit5_read_dev_id(const PROGRAMMER *pgm, const AVRPART *p) {
     pickit5_send_script_cmd(pgm, scr, scr_len, NULL, 0);
     pickit5_program_enable(pgm, p);
     if(my.rxBuf[17] == 0x0E) {  // Errors figured out during 6 hours of failing to get it to work
-      if(my.rxBuf[16] == 0x10 || my.rxBuf[16] == 58) { // with the serial/bootloader auto-reset circuit on Arduino board
-        pmsg_error("debugWIRE transmission error, aborting");
-         msg_error("(make sure there are no caps and a pullup >= 10kOhm on the Reset line)\n");
+      if(my.rxBuf[16] == 0x10 || my.rxBuf[16] == 58) { // Serial/bootloader auto-reset circuit on Arduino board
+        pmsg_error("debugWIRE transmission error, aborting"
+                   " (ensure reset has a pullup >= 10 kOhm and no cap)\n");
       } else {
         pmsg_error("%d\n", my.rxBuf[16]);
       }
