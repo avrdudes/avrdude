@@ -1679,7 +1679,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
 
   // STK500v1 only: tell the bootloader which address should be used by next paged command
   if(!ur.urprotocol && urclock_load_baddr(pgm, part, mchr, badd) < 0)
-      return -1;
+    return -1;
 
   if(mchr == 'F' && rwop == Cmnd_STK_PROG_PAGE) {
     if(len != ur.uP.pagesize)
@@ -1935,7 +1935,8 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
   AVRPART *part;
 
   // Reduce timeout for establishing comms
-  serial_recv_timeout = 25;     // ms
+  double kbd = pgm->baudrate <= 0? 115.200: pgm->baudrate/1000.0;
+  serial_recv_timeout = 25 + (kbd < 115? 160/kbd: 0); // ms: longer for low baud rates
   part = partdesc? locate_part(part_list, partdesc): NULL;
   /*
    * The urboot autosync detection uses a loop
@@ -1954,7 +1955,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
   autobaud_sync = part && part->autobaud_sync? part->autobaud_sync: Cmnd_STK_GET_SYNC;
 
   ur.sync_silence = 2;
-  serial_drain_timeout = 20;    // ms
+  serial_drain_timeout = 20 + (kbd < 115? 80/kbd: 0); // ms: longer for low baud rates
 
   for(attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
     /*
@@ -2003,7 +2004,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       urclock_send(pgm, iob, 1); // So, send the concluding byte
     }
   }
-  serial_drain(&pgm->fd, 0);  // And either way drain the reply
+  serial_drain(&pgm->fd, 0);    // And either way drain the reply
 
   ur.sync_silence = 0;
 
@@ -2043,6 +2044,9 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
         Return("cannot identify MCU from partdesc %s", partdesc);
     }
   }
+
+  if(kbd < 115)                 // Increase timeout for low baud rates
+    serial_recv_timeout += (ur.uP.pagesize + 5)*10/kbd;
 
   return 0;
 }
