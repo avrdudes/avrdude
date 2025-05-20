@@ -1733,7 +1733,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "to show that of <property>. Wildcards or initial strings are permitted (but\n"
       "not both), in which case all settings of matching properties are displayed.\n"
       "\n"
-      "avrdude> config <property>= # note the trailing = as in config eesave=\n"
+      "avrdude> config <property>=      # Note the trailing = as in config eesave=\n"
       "\n"
       "shows all possible values that <property> can take on with the currently\n"
       "set one being the only that is not commented out. Assignments\n"
