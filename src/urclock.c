@@ -1790,15 +1790,26 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
   int odd = !ur.urprotocol && classic && (badd&1);
   if(odd) {                     // Need to read one extra byte
     len++;
-    badd &= ~1;
+    badd--;
     if(len > urmax(ur.uP.pagesize, 256))
       Return("len+1 = %d odd address exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
   }
 
-  if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, badd, len, mchr, NULL) < 0)
-    return -1;
+  // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
+  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = urmax(4*bd/5/10 - 2, 2) & ~1;
+  while(len > 0) {
+    int thislen = len < rdchunk? len: rdchunk;
 
-  return urclock_res_check(pgm, __func__, odd, buf, len-odd);
+    if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, badd, thislen, mchr, NULL) < 0)
+      return -1;
+    if(urclock_res_check(pgm, __func__, odd, buf, thislen-odd) < 0)
+      return -1;
+    buf  += thislen-odd;
+    badd += thislen;
+    len  -= thislen;
+    odd = 0;                    // At most ignore first byte
+  }
+  return 0;
 }
 
 
@@ -1935,7 +1946,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
   AVRPART *part;
 
   // Reduce timeout for establishing comms
-  double kbd = pgm->baudrate <= 0? 115.200: pgm->baudrate/1000.0;
+  double kbd = pgm->baudrate <= 0? 115.2: pgm->baudrate/1000.0;
   serial_recv_timeout = 25 + (kbd < 115? 160/kbd: 0); // ms: longer for low baud rates
   part = partdesc? locate_part(part_list, partdesc): NULL;
   /*
@@ -2315,6 +2326,11 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   int mchr, chunk;
   unsigned int n;
 
+  // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
+  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = urmax(4*bd/5/10 - 2, 2) & ~1;
+  if((unsigned) rdchunk < page_size)
+    page_size = rdchunk;
+
   if(n_bytes) {
     // Paged reads only valid for flash and eeprom
     mchr = mem_is_in_flash(m)? 'F': 'E';
@@ -2337,9 +2353,9 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       if(urclock_res_check(pgm, __func__, 0, &m->buf[addr], chunk) < 0)
         return -4;
 
-      if(addr == 0 && mchr == 'F') { // Ensure reset vector points to bl
+      if(addr == 0 && mchr == 'F') { // Point reset vector to bootloader if needed and possible
         int vecsz = ur.uP.flashsize <= 8192? 2: 4;
-        if(chunk >= vecsz && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
+        if(chunk == ur.uP.pagesize && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
           unsigned char jmptoboot[4];
           int resetsize = set_reset(pgm, jmptoboot, vecsz);
           int resetdest;
