@@ -165,10 +165,10 @@ static int usbasp_transmit(const PROGRAMMER *pgm, unsigned char receive,
   unsigned char functionid, const unsigned char *send, unsigned char *buffer, int buffersize);
 
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle ** device, int vendor,
+static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, int vendor,
   const char *vendorName, int product, const char *productName, const char *port);
 #else
-static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle ** device, int vendor,
+static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int vendor,
   const char *vendorName, int product, const char *productName, const char *port);
 #endif
 
@@ -448,7 +448,7 @@ static int check_for_port_argument_match(const char *port, char *bus, char *devi
  */
 
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle ** device, int vendor,
+static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, int vendor,
   const char *vendorName, int product, const char *productName, const char *port) {
 
   libusb_device_handle *handle = NULL;
@@ -538,7 +538,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle ** device, 
   return errorCode;
 }
 #else
-static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle ** device, int vendor,
+static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int vendor,
   const char *vendorName, int product, const char *productName, const char *port) {
 
   struct usb_bus *bus;
@@ -656,12 +656,10 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     }
 
     pmsg_error("cannot find USB device with vid=0x%x pid=0x%x", vid, pid);
-    if(pgm->usbvendor[0] != 0) {
+    if(pgm->usbvendor && *pgm->usbvendor)
       msg_error(" vendor='%s'", pgm->usbvendor);
-    }
-    if(pgm->usbproduct[0] != 0) {
+    if(pgm->usbproduct && *pgm->usbproduct)
       msg_error(" product='%s'", pgm->usbproduct);
-    }
     msg_error("\n");
     return -1;
   }

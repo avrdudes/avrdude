@@ -2035,7 +2035,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     msg_error("%s -c %s extended options:\n", progname, pgmid);
     if(pgm->extra_features & HAS_SUFFER) {
       msg_error("  -x suffer              Read SUFFER register value\n");
-      msg_error("  -x suffer=<n>          Set SUFFER register value to <n>=0x.., 0... or decimal\n");
+      msg_error("  -x suffer=<n>          Set SUFFER register value to <n>\n");
     }
     if(pgm->extra_features & HAS_VTARG_SWITCH) {
       msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
