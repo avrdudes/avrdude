@@ -70,13 +70,24 @@ static DWORD serial_baud_lookup(long baud) {
   return baud;
 }
 
-static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) { // ms
+// Set read timeout in ms
+static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) {
   COMMTIMEOUTS ctmo;
 
   ZeroMemory(&ctmo, sizeof(COMMTIMEOUTS));
   ctmo.ReadIntervalTimeout = 0;
   ctmo.ReadTotalTimeoutMultiplier = 0;
   ctmo.ReadTotalTimeoutConstant = timeout;
+
+  return SetCommTimeouts(hComPort, &ctmo);
+}
+
+// Set read/write timeout in ms
+static BOOL serial_w32SetRWTimeOut(HANDLE hComPort, DWORD timeout) {
+  COMMTIMEOUTS ctmo = {0};
+
+  ctmo.ReadTotalTimeoutConstant = timeout;
+  ctmo.WriteTotalTimeoutConstant = timeout;
 
   return SetCommTimeouts(hComPort, &ctmo);
 }
@@ -343,7 +354,11 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
   if(verbose >= MSG_TRACE)
     trace_buffer(__func__, buf, len);
 
-  serial_w32SetTimeOut(hComPort, 500);
+  // Set minimum r/w timeout to 2000 ms or higher to cater for 110 baud or faster
+  if(!serial_w32SetRWTimeOut(hComPort, (len > 20? len: 20)*100)) {
+    pmsg_error("cannot set r/w timeout for serial port\n");
+    return -1;
+  }
 
   if(!WriteFile(hComPort, buf, len, &written, NULL)) {
     pmsg_error("unable to write: %s\n", "sorry no info avail"); // TODO
@@ -433,7 +448,12 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     return -1;
   }
 
-  serial_w32SetTimeOut(hComPort, serial_recv_timeout);
+  // Ensure can receive buflen bytes at 8N1 at 110 baud or higher: one byte takes 91 ms at 110 baud
+  long timeout = (long) buflen*100 > serial_recv_timeout? (long) buflen*100: serial_recv_timeout;
+  if(!serial_w32SetTimeOut(hComPort, timeout)) {
+    pmsg_error("cannot set read timeout for serial port\n");
+    return -1;
+  }
 
   if(!ReadFile(hComPort, buf, buflen, &read, NULL)) {
     LPVOID lpMsgBuf;
@@ -541,9 +561,8 @@ static int ser_drain(const union filedescriptor *fd, int display) {
 
   serial_w32SetTimeOut(hComPort, serial_drain_timeout);
 
-  if(display) {
+  if(display)
     msg_info("drain>");
-  }
 
   while(1) {
     readres = ReadFile(hComPort, buf, 1, &read, NULL);
