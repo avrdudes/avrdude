@@ -36,6 +36,9 @@ Changes since version 8.0:
     - ser_posix.c: ser_recv times out at low baudrates #1982
     - Regression: arduino_as_isp FW crashed with -B32 #1978
     - DEFAULT_SPI_PORT appears to be undefined #1923
+    - Avrdude hangs if valid serial port specified #1986
+    - Compiler warnings #1988
+    - Display issues under Windows #1991
 
   * Pull requests:
 
@@ -75,6 +78,10 @@ Changes since version 8.0:
     - Set DEFAULT_SPI_PORT #1977
     - Model programmer ability to set bitclock #1981
     - Retrigger ser_posix.c ser_recv() timeout #1983
+    - Fix r/w timeout for Windows ser_send() #1987
+    - Supress compiler warnings #1989
+    - Explain syntax verbally & avoid >= display for Windows #1992
+    - Extend -c urclock to work with lower baud rates #1993
 
   * Internals:
 
