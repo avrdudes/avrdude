@@ -84,8 +84,8 @@ static void butterfly_teardown(PROGRAMMER *pgm) {
   pgm->cookie = NULL;
 }
 
-static int butterfly_send(const PROGRAMMER *pgm, char *buf, size_t len) {
-  return serial_send(&pgm->fd, (unsigned char *) buf, len);
+static int butterfly_send(const PROGRAMMER *pgm, const char *buf, size_t len) {
+  return serial_send(&pgm->fd, (const unsigned char *) buf, len);
 }
 
 static int butterfly_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
@@ -174,11 +174,11 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
    */
   msg_notice("connecting to programmer: ");
   if(pgm->flag & IS_BUTTERFLY_MK) {
-    char mk_reset_cmd[6] = { "#aR@S\r" };
+    const char * const mk_reset_cmd = "#aR@S\r";
     unsigned char mk_timeout = 0;
 
     msg_notice(".");
-    EI(butterfly_send(pgm, mk_reset_cmd, sizeof(mk_reset_cmd)));
+    EI(butterfly_send(pgm, mk_reset_cmd, strlen(mk_reset_cmd)));
     usleep(20000);
 
     do {

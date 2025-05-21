@@ -166,18 +166,18 @@ static const struct {
 };
 
 
-# define _ok(c) ((c) && (uint8_t) (c) <= 0x7f)
+#define _ok(c) ((c) > 0 && (c) < 0x7f)
 
 // Is s a ^[0-9]+k[0-9]+$ pattern for baud rate?
 static int is_baudrate_k(const char *s) {
   int pre=0, post=0;
 
-  while(_ok(*s) && isdigit(*s))
+  while(_ok(*s) && isdigit((int) *s))
     pre++, s++;
   if(*s != 'k')
     return 0;
   s++;
-  while(_ok(*s) && isdigit(*s))
+  while(_ok(*s) && isdigit((int) *s))
     post++, s++;
   return !*s && pre && post;
 }
@@ -217,12 +217,12 @@ static int is_fcpu_m(const char *s) {
 
   if(is_fcpu_type(*s))
     s++;
-  while(_ok(*s) && isdigit(*s))
+  while(_ok(*s) && isdigit((int) *s))
     pre++, s++;
   if(*s != 'm')
     return 0;
   s++;
-  while(_ok(*s) && isdigit(*s))
+  while(_ok(*s) && isdigit((int) *s))
     post++, s++;
   return !*s && pre && post;
 }
@@ -239,11 +239,11 @@ static int is_num_unit(const char *s, const char *unit) {
 
   while(*s == '+')              // Ignore leading + (used as fillers for sorting)
     s++;
-  while(_ok(*s) && isdigit(*s))
+  while(_ok(*s) && isdigit((int) *s))
     pre++, s++;
   if(*s == '.')
     s++;
-  while(_ok(*s) && isdigit(*s))
+  while(_ok(*s) && isdigit((int) *s))
     post++, s++;
   if(!pre && !post)
     return 0;
@@ -252,12 +252,12 @@ static int is_num_unit(const char *s, const char *unit) {
     s++;
     if(*s == '-' || *s == '+')
       s++;
-    while(_ok(*s) && isdigit(*s))
+    while(_ok(*s) && isdigit((int) *s))
       ee++, s++;
     if(!ee)
       return 0;
   }
-  while(_ok(*s) && isspace(*s))
+  while(_ok(*s) && isspace((int) *s))
     s++;
 
   size_t ulen = strlen(unit);
