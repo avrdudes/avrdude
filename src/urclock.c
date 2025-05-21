@@ -2219,7 +2219,7 @@ static int urclock_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 static void urclock_disable(const PROGRAMMER *pgm) {
   unsigned char buf[16];
 
-  if(ur.urprotocol)
+  if(pgm->baudrate && pgm->baudrate < 115000 && ur.urprotocol)
     return;
 
   buf[0] = Cmnd_STK_LEAVE_PROGMODE;
