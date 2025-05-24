@@ -1266,6 +1266,7 @@ extern "C" {
   unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
   FILE *fileio_fopenr(const char *fname);
   int is_generated_fname(const char *filename);
+  int generated_file_has_contents(const AVRPART *part, const char *filename);
   int fileio_fmt_autodetect_fp(FILE *f);
   int fileio_fmt_autodetect(const char *fname);
   int fileio_mem(int oprwv, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int size);
@@ -1781,6 +1782,7 @@ extern "C" {
   int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename);
   int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename);
   int urbootexists(const char *mcu, const char *io, const char *blt, int req_feats);
+  int urboot_has_contents(const AVRPART *part, const char *filename);
   Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
     int req_feat, int req_ulevel, int showall, int *np, int dryrun);
 
