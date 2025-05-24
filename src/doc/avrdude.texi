@@ -2716,6 +2716,9 @@ style
 Do not preprocess labels; @code{-l} (the default) preprocess jump/call
 labels
 
+@item -U
+Do not show unused labels; @code{-u} (the default) show unused tagged labels
+
 @item -d
 Decode all opcodes including those that are undocumented; @code{-D} (the
 default) decode only opcodes that are valid for the part
