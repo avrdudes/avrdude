@@ -629,7 +629,10 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
   if(s->name) {
     cx->dis_para++;
     s->printed = 1;             // Will be printed in pass 2
-    disasm_out("%s:\n", s->name);
+    if(!s->comment || !*s->comment || !cx->dis_opts.comments)
+      disasm_out("%s:\n", s->name);
+    else
+      disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", s->name), s->comment);
   }
 
   for(int i = 0; i < s->count && pos + ret < buflen; i++) {
