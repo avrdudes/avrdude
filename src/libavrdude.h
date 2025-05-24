@@ -1461,7 +1461,7 @@ typedef enum {
 typedef struct {
   // Flags how to display lines
   int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
-  int op_names, op_explanations, avrgcc_style, labels;
+  int op_names, op_explanations, avrgcc_style, labels, unused_labels;
   int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
   char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
 } Dis_options;

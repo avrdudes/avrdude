@@ -229,6 +229,8 @@ static int disasm_ison(char c) {
     return !!cx->dis_opts.avrgcc_style;
   case 'l':
     return !!cx->dis_opts.labels;
+  case 'u':
+    return !!cx->dis_opts.unused_labels;
   case 'd':
     return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
   }
@@ -286,6 +288,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         {{'e', 'E'}, {"put explanation into comment", "do not show explanation"}},
         {{'s', 'S'}, {"use avr-gcc code style", "use AVR instruction set style"}},
         {{'l', 'L'}, {"preprocess jump/call labels", "do not preprocess labels"}},
+        {{'u', 'U'}, {"show unused tagged labels", "do not show unused labels"}},
         {{'d', 'D'}, {"decode all opcodes", "decode only opcodes for the part"}},
       };
 
@@ -517,6 +520,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.op_explanations = 0;
     cx->dis_opts.avrgcc_style = 1;
     cx->dis_opts.labels = 1;
+    cx->dis_opts.unused_labels = 1;
     cx->dis_opts.tagfile = NULL;
     cx->dis_opts.avrlevel = avr_get_archlevel(p);
     disasm_init(p);
@@ -580,6 +584,10 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
         case 'l':
         case 'L':
           cx->dis_opts.labels = !!islower(chr);
+          break;
+        case 'u':
+        case 'U':
+          cx->dis_opts.unused_labels = !!islower(chr);
           break;
         case 'z':
           disasm_zap_jumpcalls();
