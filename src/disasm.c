@@ -486,6 +486,7 @@ static void lineout(const char *code, const char *comment,
   if(cx->dis_opts.labels && showlabel) {
     int match = 0, first = -1;
     const char *comment = NULL, *name;
+    Dis_symbol *s;
 
     for(int i = 0; i < cx->dis_jumpcallN; i++)
       if(jc[i].to == here)
@@ -530,6 +531,11 @@ static void lineout(const char *code, const char *comment,
       mmt_free(reflist);
     } else if(match) {
       (void) get_label_name(here, &comment);
+    } else if(cx->dis_opts.unused_labels && (s = find_symbol('L', here))) {
+      if(!s->comment || !*s->comment || !cx->dis_opts.comments)
+        disasm_out("%s:\n", s->name);
+      else
+        disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", s->name), s->comment);
     }
   }
 
