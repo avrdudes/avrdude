@@ -1784,7 +1784,7 @@ extern "C" {
   int urbootexists(const char *mcu, const char *io, const char *blt, int req_feats);
   int urboot_has_contents(const AVRPART *part, const char *filename);
   Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
-    int req_feat, int req_ulevel, int showall, int *np, int dryrun);
+    int req_feat, int req_ulevel, int showall, int *np, int silent);
 
 #ifdef __cplusplus
 }
