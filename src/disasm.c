@@ -575,7 +575,7 @@ static int process_num(const char *buf, int buflen, int nbytes, int pos, int off
 
 static int process_fill0xff(const char *buf, int buflen, int nbytes, int pos, int offset) {
   cx->dis_para++;
-  lineout(str_ccprintf(".fill   %d, 2, 0xffff", nbytes/2), NULL, -1, 1, buf, pos, offset, 0);
+  lineout(str_ccprintf(".fill   %d, 2, 0xffff", nbytes/2), NULL, -1, 1, buf, pos, offset, 1);
   return nbytes/2*2;
 }
 
