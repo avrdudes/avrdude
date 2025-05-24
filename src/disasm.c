@@ -500,7 +500,8 @@ static void lineout(const char *code, const char *comment,
       for(int i = first; i < cx->dis_jumpcallN && jc[i].to == here; i++) {
         if(mne != jc[i].mnemo) {        // More than one mnemonic reference this line
           one_mne = 0;
-          output_references(avr_opcodes[mne].opcode, reflist);
+          if(cx->dis_opts.comments)
+            output_references(avr_opcodes[mne].opcode, reflist);
           mne = jc[i].mnemo;
           r = reflist;
           *r = 0;
@@ -512,14 +513,18 @@ static void lineout(const char *code, const char *comment,
       if(!comment && strlen(reflist) + commentcol() < 70 && one_mne) {  // Refs line with label
         const char *mnestr = avr_opcodes[mne].opcode;
 
-        disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name),
-          str_ccprintf("%c%s from %s", toupper(*mnestr & 0xff), mnestr + 1, reflist));
-      } else {
-        output_references(avr_opcodes[mne].opcode, reflist);
-        if(comment)
-          disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
+        if(cx->dis_opts.comments)
+          disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name),
+            str_ccprintf("%c%s from %s", toupper(*mnestr & 0xff), mnestr + 1, reflist));
         else
           disasm_out("%s:\n", name);
+      } else {
+        if(cx->dis_opts.comments)
+          output_references(avr_opcodes[mne].opcode, reflist);
+        if(!comment || !*comment || !cx->dis_opts.comments)
+          disasm_out("%s:\n", name);
+        else
+          disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
       }
       cx->dis_para = -1;
       mmt_free(reflist);
@@ -665,10 +670,10 @@ static void emit_used_symbols() {
       const char *equ = str_ccprintf(".equ    %s,%*s 0x%02x", s[i].name,
         (int) (maxlen - strlen(s[i].name)), "", s[i].address);
 
-      if(s[i].comment)
-        disasm_out("%*s%-*s ; %s\n", codecol(), "", cx->dis_codewidth, equ, s[i].comment);
-      else
+      if(!s[i].comment || !*s[i].comment || !cx->dis_opts.comments)
         disasm_out("%*s%s\n", codecol(), "", equ);
+      else
+        disasm_out("%*s%-*s ; %s\n", codecol(), "", cx->dis_codewidth, equ, s[i].comment);
     }
 }
 
