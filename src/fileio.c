@@ -1848,9 +1848,8 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
       rc = hiaddr;
   }
 
-  if(format != FMT_IMM && !using_stdio) {
+  if(format != FMT_IMM && !using_stdio)
     fclose(f);
-  }
 
   return rc;
 }
