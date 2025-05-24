@@ -27,6 +27,8 @@
 #include "urclock_private.h"
 
 #define Return(...) do { \
+  if(dryrun) \
+    return -1; \
   if(verbose > 0 || rethelp) \
     autogen_help(up); \
   pmsg_error("(urboot) "); \
@@ -270,7 +272,7 @@ static int is_num_unit(const char *s, const char *unit) {
 
 // Return 0 if bit-addressable port is available; otherwise show error message and return -1
 static int assert_port(int port, const char *what, const char *mcu, int out, const Avrintel *up,
-  int rethelp) {
+  int rethelp, int dryrun) {
 
   if(!up)
     Return("unexpected lack of context info");
@@ -354,13 +356,13 @@ static int swio_in_range(const Avrintel *up, long f_cpu, long br) {
   return br <= max_br && br >= min_br;
 }
 
-static int set_swio_params(Urbootparams *ppp, long f_cpu, long brate, int rethelp) {
+static int set_swio_params(Urbootparams *ppp, long f_cpu, long brate, int rethelp, int dryrun) {
   const Avrintel *up = ppp->up;
 
   // Need a valid rx/tx for swio
-  if(assert_port(ppp->rx, "rx", ppp->mcu, 0, up, rethelp) == -1)
+  if(assert_port(ppp->rx, "rx", ppp->mcu, 0, up, rethelp, dryrun) == -1)
     return -1;
-  if(assert_port(ppp->tx, "tx", ppp->mcu, 1, up, rethelp) == -1)
+  if(assert_port(ppp->tx, "tx", ppp->mcu, 1, up, rethelp, dryrun) == -1)
     return -1;
   if(ppp->rx == ppp->tx)
     Return("cannot create SW I/O bootloader with RX pin same as TX pin");
@@ -757,7 +759,7 @@ static int urmatch(Urboot_template *ut, int req_feats, int req_ulevel) {
   return ru == 0 || ru == 4? 1: ut->update_level == ru;
 }
 
-static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *ppp) {
+static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *ppp, int dryrun) {
   char *p, *q, *tok;
   int idx, factor, ns, pnum, beyond = 0, rethelp = 0;
   const Avrintel *up = NULL;
@@ -1123,12 +1125,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   const char *cfg = ppp->lednop? "lednop": "noled";
 
   if(ppp->dual) {
-    if(assert_port(ppp->cs, "cs", part->desc, 1, up, rethelp) == -1)
+    if(assert_port(ppp->cs, "cs", part->desc, 1, up, rethelp, dryrun) == -1)
       return -1;
     cfg = "dual";
   }
 
-  if(ppp->led != PNA && assert_port(ppp->led, "led", part->desc, 1, up, rethelp) == -1)
+  if(ppp->led != PNA && assert_port(ppp->led, "led", part->desc, 1, up, rethelp, dryrun) == -1)
     return -1;
   if(str_eq(cfg, "noled") && ppp->led != PNA) // Override noled if led explicitly requested
     cfg = "lednop";
@@ -1170,7 +1172,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     snprintf(ppp->iotype, sizeof ppp->iotype, "autobaud_uart%d%s",
       ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
   } else if(ppp->swio) {
-    if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
+    if(set_swio_params(ppp, f_cpu, brate, rethelp, dryrun) == -1)
       return -1;
   } else { // UART
     if(!ppp->baudrate)
@@ -1217,7 +1219,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         if(ppp->best || !ppp->setuart) { // Switch to SWIO
           pmsg_notice("switching to SWIO as baud rate error %.2f%% too high for %s oscillator\n",
             signerr, ppp->fcpu_type == 'x'? "external": "internal");
-          if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
+          if(set_swio_params(ppp, f_cpu, brate, rethelp, dryrun) == -1)
             return -1;
           ppp->swio = 1;
           signerr = 100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate, bauderr = fabs(signerr);
@@ -1247,14 +1249,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   int nut = 0;
 
   urlist = urboottemplate(up, ppp->mcu, ppp->iotype, cfg, ppp->req_feats, ppp->req_ulevel,
-    ppp->list || ppp->best, &nut);
+    ppp->list || ppp->best, &nut, dryrun);
 
-  if(!urlist || nut == 0) {
-    msg_error("\n");
+  if(!urlist || nut == 0)
     return -1;
-  }
 
-  if(ppp->list) {
+  if(ppp->list && !dryrun) {
     size_t maxtype = 0, maxver = 14, maxuse = 3;
     int add[32] = { 0 }, maxd = 0, addone = 0, alldiff = 0;
     int sw=0, se=0, sU=0, sd=0, sj=0, sh=0, sP=0, sr=0, sa=0, sc=0, sp=0, sm=0;
@@ -1620,7 +1620,7 @@ int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename
   // Silently parse the urboot:... string
   int bakverb = verbose, rc;
   verbose = -123;
-  rc = urbootautogen_parse(part, urname, &pp);
+  rc = urbootautogen_parse(part, urname, &pp, 0);
   verbose = bakverb;
 
   if(rc < 0)
@@ -1648,7 +1648,7 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   Urbootparams pp;
   char *urname = mmt_strdup(filename);
 
-  if(urbootautogen_parse(part, urname, &pp) < 0)
+  if(urbootautogen_parse(part, urname, &pp, 0) < 0)
     goto done;
 
   int bsize = pp.ut->size, usage = pp.ut->usage;

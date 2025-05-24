@@ -1782,7 +1782,7 @@ extern "C" {
   int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename);
   int urbootexists(const char *mcu, const char *io, const char *blt, int req_feats);
   Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
-    int req_feat, int req_ulevel, int showall, int *np);
+    int req_feat, int req_ulevel, int showall, int *np, int dryrun);
 
 #ifdef __cplusplus
 }
