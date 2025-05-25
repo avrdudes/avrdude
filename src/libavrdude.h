@@ -1396,6 +1396,7 @@ extern "C" {
   size_t cfg_unescapen(unsigned char *d, const unsigned char *s);
   unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
   char *cfg_unescape(char *d, const char *s);
+  char *cfg_escapen(const char *s, size_t n);
   char *cfg_escape(const char *s);
 
 #ifdef __cplusplus
