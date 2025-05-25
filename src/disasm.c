@@ -42,12 +42,20 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-#define TYPE_BYTE             1 // 1 byte
-#define TYPE_WORD             2 // 2 bytes
-#define TYPE_ASTRING          3 // Autoaligned string
-#define TYPE_STRING           4 // String
+#define ALLSUBTYPES "BWLQOCAS"
+enum {
+  TYPE_BYTE = 1,                // 'B':  1 byte
+  TYPE_WORD,                    // 'W':  2 bytes
+  TYPE_LONG,                    // 'L':  4 bytes
+  TYPE_QUAD,                    // 'Q':  8 bytes
+  TYPE_OCTA,                    // 'O': 16 bytes
+  TYPE_CHAR,                    // 'C':  1 byte (printed as unterminated .ascii string)
+  TYPE_ASTRING,                 // 'A': Autoaligned nul-terminated .asciz string
+  TYPE_STRING,                  // 'S': Nul-terminated .asciz string
+};
 
-#define buf2op16(i) ((buf[i] & 0xff) | (buf[(i)+1] & 0xff)<<8)
+#define buf2op16(i) buf2uint16((const unsigned char *) (buf + (i)))
+#define buf2op32(i) buf2uint32((const unsigned char *) (buf + (i)))
 
 static void zap_symbols() {
   if(cx->dis_symbols) {
@@ -99,9 +107,37 @@ static char *cleanup(char *str) {
   return str;
 }
 
+// Max list length of the type on one line (approx 110 chars with label and op-codes)
+static int maxmult(Dis_symbol *s, int done) {
+  int max;
+
+  switch(s->subtype) {
+  default:
+  case TYPE_BYTE: max = 12; break; // 12 bytes: 113 chars
+  case TYPE_WORD: max =  8; break; // 16 bytes: 109 chars
+  case TYPE_LONG: max =  5; break; // 20 bytes: 109 chars
+  case TYPE_QUAD: max =  3; break; // 24 bytes: 113 chars
+  case TYPE_OCTA: max =  1; break; // 16 bytes:  81 chars
+  }
+
+  return s->count-done < max? s->count-done: max;
+}
+
+// Width of memory a subtype covers
+static int subtype_width(int subtype) {
+  switch(subtype) {
+  default:
+  case TYPE_BYTE: return  1;
+  case TYPE_WORD: return  2;
+  case TYPE_LONG: return  4;
+  case TYPE_QUAD: return  8;
+  case TYPE_OCTA: return 16;
+  }
+}
+
 // Width of memory a symbol covers
 static int symbol_width(Dis_symbol *s) {
-  return s->count*(s->subtype == TYPE_WORD? 2: 1);
+  return s->count*subtype_width(s->subtype);
 }
 
 static Dis_symbol *find_symbol(int type, int address) {
@@ -233,15 +269,27 @@ static int tagfile_readline(char *line, int lineno, const char *const *isrnames,
     return 0;
   }
 
-  if(argc < 5 || strlen(argv[2]) != 1 || !strchr("BWAS", *argv[2]))
-    Return("needs to be <address> %c [%s] <count> <name>", type, type == 'M'? "BW": "BWAS");
+  if(argc < 5 || strlen(argv[2]) != 1 || !strchr(ALLSUBTYPES, *argv[2]))
+    Return("needs to be <address> %c [%s] <count> <name>", type, type == 'M'? "BW": ALLSUBTYPES);
 
   switch(*argv[2]) {
   default:
     subtype = TYPE_BYTE;
     break;
+  case 'C':
+    subtype = TYPE_CHAR;
+    break;
   case 'W':
     subtype = TYPE_WORD;
+    break;
+  case 'L':
+    subtype = TYPE_LONG;
+    break;
+  case 'Q':
+    subtype = TYPE_QUAD;
+    break;
+  case 'O':
+    subtype = TYPE_OCTA;
     break;
   case 'A':
     subtype = TYPE_ASTRING;
@@ -557,25 +605,43 @@ static void lineout(const char *code, const char *comment,
     cx->dis_para++;
 }
 
-// Process 1, 2 or 4 byte number
-static int process_num(const char *buf, int buflen, int nbytes, int pos, int offset) {
-  if(buflen - pos < nbytes)
-    nbytes = buflen - pos;
-  while(nbytes & (nbytes - 1))  // Round down to next power of 2
-    nbytes &= nbytes - 1;
+// Process 1- to 16-byte numbers
+static int process_num(const char *buf, int buflen, int subtype, int mult, int pos, int offset) {
+  int n = subtype_width(subtype);
+  char code[1024], *cp = code;
+  size_t rem = sizeof code, len;
 
-  const char *str =
-    nbytes == 1? str_ccprintf(".byte   0x%02x", buf[pos] & 0xff):
-    nbytes == 2? str_ccprintf(".word   0x%04x", buf2op16(pos)):
-    nbytes == 4? str_ccprintf(".long   0x%04x%04x", buf2op16(pos + 2), buf2op16(pos)): "nbytes?";
+  while(mult > 1 && buflen - pos < n*mult)
+    mult--;
+  if(buflen - pos < n)
+    n = buflen - pos;
+  while(n & (n - 1))  // Round down to next power of 2
+    n &= n - 1;
 
-  lineout(str, NULL, -1, 1, buf, pos, offset, 0);
-  return nbytes;
+  snprintf(cp, rem, ".%s ", n==1? "byte": n==2? "word": n==4? "long": n==8? "quad": "octa");
+  len = strlen(cp), rem -= len, cp += len;
+
+  for(int dx = pos, i = 0; i < mult; i++, dx += n) {
+    snprintf(cp, rem, "%c 0x%s", i? ',': ' ',
+      n == 1? str_ccprintf("%02x", buf[dx] & 0xff):
+      n == 2? str_ccprintf("%04x", buf2op16(dx)):
+      n == 4? str_ccprintf("%08x", buf2op32(dx)):
+      n == 8? str_ccprintf("%08x%08x", buf2op32(dx+4), buf2op32(dx)):
+        str_ccprintf("%08x%08x%08x%08x", buf2op32(dx+12), buf2op32(dx+8), buf2op32(dx+4), buf2op32(dx))
+    );
+    len = strlen(cp), rem -= len, cp += len;
+  }
+
+  char *comment = mmt_malloc(n*mult+1), c;
+  for(int i = 0; i<n*mult; i++)
+    c = buf[pos+i], comment[i] = (c & 0x80) || c <= 32 || c == 0x7f? '_': c;
+  lineout(code, comment, -1, n*mult, buf, pos, offset, 0);
+  return n*mult;
 }
 
 static int process_fill0xff(const char *buf, int buflen, int nbytes, int pos, int offset) {
   cx->dis_para++;
-  lineout(str_ccprintf(".fill   %d, 2, 0xffff", nbytes/2), NULL, -1, 1, buf, pos, offset, 1);
+  lineout(str_ccprintf(".fill   %d, 2, 0xffff", nbytes/2), NULL, -1, nbytes, buf, pos, offset, 1);
   return nbytes/2*2;
 }
 
@@ -608,6 +674,24 @@ static int process_string(const char *buf, int buflen, int pos, int offset) {
   return i - pos;
 }
 
+// Output quoted character array
+static int process_chars(const char *buf, int buflen, int nbytes, int pos, int offset) {
+  char *code, *out;
+
+  // Shorten character array if out of space
+  if(buflen - pos < nbytes)
+    nbytes = buflen - pos;
+
+  out = cfg_escapen(buf + pos, nbytes);
+  code = mmt_sprintf(".ascii  %s", out);
+
+  lineout(code, NULL, -1, nbytes, buf, pos, offset, 0);
+  mmt_free(out);
+  mmt_free(code);
+
+  return nbytes;
+}
+
 // Returns number of bytes of PGM data at this position, printing them in pass 2
 static int process_data(const char *buf, int buflen, int pos, int offset) {
   int ret = 0;
@@ -628,7 +712,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
       return !k || k - pos < 4? 0: process_fill0xff(buf, buflen, k - pos, pos, offset);
     }
     // Found PGM label at odd address, print byte before label and continue
-    process_num(buf, buflen, 1, pos, offset);
+    process_num(buf, buflen, TYPE_BYTE, 1, pos, offset);
     ret = 1;
   }
 
@@ -641,16 +725,22 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
       disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", s->name), s->comment);
   }
 
-  for(int i = 0; i < s->count && pos + ret < buflen; i++) {
-    switch(s->subtype) {
-    case TYPE_BYTE:
-    case TYPE_WORD:
-      ret += process_num(buf, buflen, s->subtype == TYPE_WORD? 2: 1, pos + ret, offset);
-      break;
-    case TYPE_ASTRING:
-    case TYPE_STRING:
+  switch(s->subtype) {
+  case TYPE_BYTE:
+  case TYPE_WORD:
+  case TYPE_LONG:
+  case TYPE_QUAD:
+  case TYPE_OCTA:
+    for(int i = 0; i < s->count && pos + ret < buflen; i += maxmult(s, i))
+      ret += process_num(buf, buflen, s->subtype, maxmult(s, i), pos + ret, offset);
+    break;
+  case TYPE_CHAR:
+    ret += process_chars(buf, buflen, s->count, pos + ret, offset);
+    break;
+  case TYPE_ASTRING:
+  case TYPE_STRING:
+    for(int i = 0; i < s->count && pos + ret < buflen; i++)
       ret += process_string(buf, buflen, pos + ret, offset);
-    }
   }
 
   if(s->subtype == TYPE_ASTRING) {      // Autoaligned string
@@ -1188,7 +1278,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       }
 
       if(pos & 1) {             // Last of PGM data items left off at odd address
-        oplen = process_num(buf, buflen, 1, pos, addr);
+        oplen = process_num(buf, buflen, TYPE_BYTE, 1, pos, addr);
         continue;
       }
 
