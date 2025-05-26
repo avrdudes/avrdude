@@ -967,6 +967,25 @@ static const char *get_ldi_context(Op_context *oxp, int opcode) {
   return NULL;
 }
 
+static int show_target_symbol(int addr, int target, int is_relative, int offset) {
+  if(!cx->dis_opts.labels)
+    return 0;
+
+  // Prefer jmp .+0 over rjmp label
+  if(is_relative && target == disasm_wrap(addr + 2))
+    return 0;
+
+  if(!is_jumpable(target))
+    return 0;
+
+  // Absolute calls and relative calls in small parts are both OK
+  if(!is_relative || (cx->dis_flashsz > 0 && cx->dis_flashsz <= 8192))
+    return 1;
+
+  // Avr-gcc complains over relative jumps that wrap around memory in large parts
+  return addr + offset + 2 == target; // OK if and only if not wrapping around
+}
+
 static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, Op_context *oxp, Dis_line *line) {
 
   memset(line, 0, sizeof *line);
@@ -1139,7 +1158,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
     case 'k':
       if(is_jumpcall) {
         name = get_label_name(target, NULL);
-        if(name && target != disasm_wrap(addr + 2) && cx->dis_opts.labels && is_jumpable(target)) {
+        if(name && show_target_symbol(addr, target, is_relative, offset)) {
           add_operand(lc, "%s", name);
           if(cx->dis_opts.addresses)
             add_comment(line, str_ccprintf("L%0*x", awd, target));
