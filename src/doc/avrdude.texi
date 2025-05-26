@@ -4332,7 +4332,7 @@ _pr  414 512 u8.0 weU-jPrac vector/spmready    urboot_m328p_1s_autobaud_uart0_rx
 
 @noindent
 In all lists the starred bootloaders are those that are the most
-feature-rich given the available used flash space, which out of necessity,
+feature-rich given the available used flash space, which --- out of necessity ---
 must be a multiple of flash pages or minimal boot section. These can be
 selected with the @code{best} feature. The @code{show} feature displays
 the properties of the bootloader that would be written without actually
@@ -4386,6 +4386,8 @@ The following table lists possible features.
 @item   @code{fill=urboot\x20} @tab Fill otherwise unused bootloader flash repeatedly with argument
 @item   @code{save=myfile.hex} @tab Save bootloader to file with chosen name (*9)
 @item              @code{save} @tab Save bootloader to file with canonical file name (*9)
+@item   @code{tags=myfile.tag} @tab Save symbols to tag file with chosen name (*9)
+@item              @code{tags} @tab Save symbols to tag file with canonical file name (*9)
 @item           @code{configs} @tab Show needed fuse configuration but do not write to memories
 @item              @code{show} @tab Show bootloader features but do not write to flash
 @item              @code{list} @tab List possible bootloader configurations but do not write to flash
@@ -4420,7 +4422,11 @@ For details on urboot bootloaders and their features see @url{https://github.com
 @item *6 @tab Reset vector protection is only available if flash size is a power of 2 (not ATmega406)
 @item *7 @tab @code{u1}...@code{u3} is only advisory, ie, can result in any of @code{u1}...@code{u4}
 @item *8 @tab @code{u1}...@code{u4} is not available for parts with the 4-page-erase quirk
-@item *9 @tab The bootloader file is still written to disk in connection with @code{configs}, @code{show} or @code{list}
+@item *9 @tab The file is still written to disk in connection with @code{configs}, @code{show} or
+              @code{list}. Bootloader files are per default written as Intel Hex format with
+              comments. If a bootloader is a vector bootloader then the bootloader file contains
+              a segment for initialising the reset vector to point to the bootloader. Tag files
+              can be used in connection with the terminal @code{disasm} command.
 @end multitable
 
 @*@noindent
@@ -4470,6 +4476,7 @@ $ avrdude -qvc dryrun -p m328p -U urboot:i8mhz_56kbaud_uart0_swio |& grep -i bau
 Baud rate error -0.10% for internal oscillator OK
 @end cartouche
 @end smallexample
+
 
 @page
 
