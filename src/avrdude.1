@@ -1092,10 +1092,12 @@ They use up to four columns separated by white space: the address, the
 letter L, the symbolic name of the label and an optional comment column
 for the symbol, which is copied by disasm into the disassembly comment
 column, should this label be referenced or used by the code. Variable
-symbols have a P or M in the second column; they can be bytes or words as
-determined by the letter B or W in the third column and either single
-variables or arrays as specified by the multiplicity count in the forth
-column. P symbols, but not M symbols, can also be the base location of
+symbols have a P or M in the second column; they can be bytes or words (16
+bits) as determined by the letter B or W in the third column and either
+single variables or arrays as specified by the multiplicity count in the
+forth column. P symbols, but not M symbols, can also encode chars (8
+bits), longs (32 bits), quads (64 bits) or octas (128 bits) as signified
+by the letters C, L, Q or O, respectively, or be the base location of
 nul-terminated strings as encoded by A or S in the third column. Out of
 necessity, the space occupied by A/S strings varies. The difference
 between A and S symbols is that the array of A strings might have an
@@ -1104,10 +1106,10 @@ even address. The fifth column is the symbolic name for the P or M address
 that can be used by disasm to output relevant addresses symbolically. P
 areas described in the tagfile also tell disasm that the corresponding
 area is not code and should not be disassembled as such; instead the
-.byte, .word, .asciz and sometimes at the end of the memory section .ascii
-directives are used for disassembly of that area. As with L labels, P and
-M variables may have an optional final comment column pertaining to the
-symbol that may be output in the disassembly column as and when the
+directives .byte, .word, .asciz and sometimes at the end of the memory
+section .ascii are used for disassembly of that area. As with L labels, P
+and M variables may have an optional final comment column pertaining to
+the symbol that may be output in the disassembly column as and when the
 corresponding variables are used.
 .Pp
 Tagfiles are useful for disassembly to make the output of disasm more
