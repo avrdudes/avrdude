@@ -108,17 +108,20 @@ static char *cleanup(char *str) {
 }
 
 // Max list length of the type on one line (approx 110 chars with label and op-codes)
-static int maxmult(Dis_symbol *s, int done) {
-  int max;
-
-  switch(s->subtype) {
+static int nmult(int type) {
+  switch(type) {
   default:
-  case TYPE_BYTE: max = 12; break; // 12 bytes: 113 chars
-  case TYPE_WORD: max =  8; break; // 16 bytes: 109 chars
-  case TYPE_LONG: max =  5; break; // 20 bytes: 109 chars
-  case TYPE_QUAD: max =  3; break; // 24 bytes: 113 chars
-  case TYPE_OCTA: max =  1; break; // 16 bytes:  81 chars
+  case TYPE_BYTE: return 12;    // 12 bytes: 113 chars
+  case TYPE_WORD: return  8;    // 16 bytes: 109 chars
+  case TYPE_LONG: return  5;    // 20 bytes: 109 chars
+  case TYPE_QUAD: return  3;    // 24 bytes: 113 chars
+  case TYPE_OCTA: return  1;    // 16 bytes:  81 chars
   }
+}
+
+// How many items can a line print given the array has got already done printed
+static int maxmult(Dis_symbol *s, int done) {
+  int max = nmult(s->subtype);
 
   return s->count-done < max? s->count-done: max;
 }
@@ -606,8 +609,8 @@ static void lineout(const char *code, const char *comment,
 }
 
 // Process 1- to 16-byte numbers
-static int process_num(const char *buf, int buflen, int subtype, int mult, int pos, int offset) {
-  int n = subtype_width(subtype);
+static int process_num(const char *buf, int buflen, int subtype, int mult, int pad, int pos, int offset) {
+  int i, dx, n = subtype_width(subtype);
   char code[1024], *cp = code;
   size_t rem = sizeof code, len;
 
@@ -621,7 +624,7 @@ static int process_num(const char *buf, int buflen, int subtype, int mult, int p
   snprintf(cp, rem, ".%s ", n==1? "byte": n==2? "word": n==4? "long": n==8? "quad": "octa");
   len = strlen(cp), rem -= len, cp += len;
 
-  for(int dx = pos, i = 0; i < mult; i++, dx += n) {
+  for(dx = pos, i = 0; i < mult; i++, dx += n) {
     snprintf(cp, rem, "%c 0x%s", i? ',': ' ',
       n == 1? str_ccprintf("%02x", buf[dx] & 0xff):
       n == 2? str_ccprintf("%04x", buf2op16(dx)):
@@ -631,11 +634,15 @@ static int process_num(const char *buf, int buflen, int subtype, int mult, int p
     );
     len = strlen(cp), rem -= len, cp += len;
   }
+  while(pad && i++ < nmult(subtype))
+    snprintf(cp, rem, "%*s", 4+n*2, ""), len = strlen(cp), rem -= len, cp += len;
 
   char *comment = mmt_malloc(n*mult+1), c;
-  for(int i = 0; i<n*mult; i++)
+  for(i = 0; i < n*mult; i++)
     c = buf[pos+i], comment[i] = (c & 0x80) || c <= 32 || c == 0x7f? '_': c;
+
   lineout(code, comment, -1, n*mult, buf, pos, offset, 0);
+
   return n*mult;
 }
 
@@ -712,7 +719,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
       return !k || k - pos < 4? 0: process_fill0xff(buf, buflen, k - pos, pos, offset);
     }
     // Found PGM label at odd address, print byte before label and continue
-    process_num(buf, buflen, TYPE_BYTE, 1, pos, offset);
+    process_num(buf, buflen, TYPE_BYTE, 1, 0, pos, offset);
     ret = 1;
   }
 
@@ -732,7 +739,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
   case TYPE_QUAD:
   case TYPE_OCTA:
     for(int i = 0; i < s->count && pos + ret < buflen; i += maxmult(s, i))
-      ret += process_num(buf, buflen, s->subtype, maxmult(s, i), pos + ret, offset);
+      ret += process_num(buf, buflen, s->subtype, maxmult(s, i), !!i, pos + ret, offset);
     break;
   case TYPE_CHAR:
     ret += process_chars(buf, buflen, s->count, pos + ret, offset);
@@ -1278,7 +1285,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       }
 
       if(pos & 1) {             // Last of PGM data items left off at odd address
-        oplen = process_num(buf, buflen, TYPE_BYTE, 1, pos, addr);
+        oplen = process_num(buf, buflen, TYPE_BYTE, 1, 0, pos, addr);
         continue;
       }
 
