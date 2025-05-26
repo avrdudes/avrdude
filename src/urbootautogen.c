@@ -1525,7 +1525,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   int loc, locok;
   // Parametrise the bootloader
-  for(int i=0; i < UL_CODELOCS_N; i++) {
+  for(int i=0; i < UL_PARAMETERS_N; i++) {
     if((loc = locations[i])) {
       switch(i) {
       case UL_LDI_BRRLO:
