@@ -4477,6 +4477,62 @@ Baud rate error -0.10% for internal oscillator OK
 @end cartouche
 @end smallexample
 
+@noindent
+Tag files can be used in connection with @code{disasm}:
+
+@smallexample
+@cartouche
+$ avrdude -qqc dryrun -p m328p -U urboot:m328p_autobaud_ee_tags=/tmp/x \
+    -T "disasm -gt=/tmp/x flash 0 -1"
+
+[...]
+        .equ    io.mcusr,   0x34
+        .equ    io.spmcsr,  0x37
+        .equ    mem.wdtcsr, 0x60
+[...]
+        .text
+main:
+__vector_reset:
+L0000:  rjmp    .-386                ; L7e80 (urboot)
+
+urmarker:                            ; Urboot marker bytes
+L0002:  .byte   0x75, 0x72           ; ur
+
+L0004:  .fill   16190, 2, 0xffff
+
+; Rjmp from L0000
+urboot:                              ; Entry point for bootloader
+L7e80:  clr     r1
+L7e82:  in      r2, io.mcusr
+L7e84:  out     io.mcusr, r1
+L7e86:  ldi     r24, 0x00            ; 0
+L7e88:  rcall   set_watchdog         ; L7f5c
+L7e8a:  sbrs    r2, 1                ; Bit 1 = 0x02
+application:
+L7e8c:  rjmp    .+470                ; L0064 (__vector_spm_ready)
+serial_boot:                         ; Serial port bootloading
+L7e8e:  ldi     r24, 0x0e            ; 14
+L7e90:  rcall   set_watchdog         ; L7f5c
+
+[...]
+
+Label27:
+L7fea:  clr     r1
+L7fec:  ret
+
+unused:                              ; 12 bytes for _serialno= and/or _fill=
+L7fee:  .fill   6, 2, 0xffff
+
+npages_vecnum:                       ; Usage of 3 pages; vector/spmready bootloader
+L7ffa:  .byte   0x03, 0x19           ; __
+
+L7ffc:  rjmp    pgm_write_page       ; L7f78
+
+features_version:                    ; Encodes u8.0 weU-jPra-
+L7ffe:  .byte   0xe6, 0x40           ; _@
+@end cartouche
+@end smallexample
+
 
 @page
 
