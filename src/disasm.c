@@ -968,7 +968,15 @@ static const char *get_ldi_context(Op_context *oxp, int opcode) {
   return NULL;
 }
 
-static int show_target_symbol(int addr, int target, int is_relative, int offset) {
+// Avr-gcc complains over relative jumps/branches that wrap around memory in large parts
+static int avr_gcc_ok(int addr, int target, int offset) {
+ if(cx->dis_flashsz > 0 && cx->dis_flashsz <= 8192)
+   return 1;
+
+  return addr + offset + 2 == target; // Not wrapping around memory: OK!
+}
+
+static int show_target_symbol(int is_relative, int addr, int target, int offset) {
   if(!cx->dis_opts.labels)
     return 0;
 
@@ -979,12 +987,10 @@ static int show_target_symbol(int addr, int target, int is_relative, int offset)
   if(!is_jumpable(target))
     return 0;
 
-  // Absolute calls and relative calls in small parts are both OK
-  if(!is_relative || (cx->dis_flashsz > 0 && cx->dis_flashsz <= 8192))
+  if(!is_relative)
     return 1;
 
-  // Avr-gcc complains over relative jumps that wrap around memory in large parts
-  return addr + offset + 2 == target; // OK if and only if not wrapping around
+  return avr_gcc_ok(addr, target, offset);
 }
 
 static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, Op_context *oxp, Dis_line *line) {
@@ -1089,7 +1095,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
   case 7:                      // Branches
     offset = (int8_t) (Rk << 1);        // Sign-extend and multiply by 2
     target = disasm_wrap(addr + offset + 2);
-    if(cx->dis_pass == 1 && offset)
+    if(cx->dis_pass == 1 && offset && avr_gcc_ok(addr, target, offset))
       register_jumpcall(addr, target, mnemo, 0);
     is_jumpcall = 1;
     is_relative = 1;
@@ -1097,7 +1103,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
   case 12:
     offset = (int16_t) (Rk << 4) >> 3;  // Sign extend and multiply by 2
     target = disasm_wrap(addr + offset + 2);
-    if(cx->dis_pass == 1 && offset)
+    if(cx->dis_pass == 1 && offset && avr_gcc_ok(addr, target, offset))
       register_jumpcall(addr, target, mnemo, is_function);
     is_jumpcall = 1;
     is_relative = 1;
@@ -1159,7 +1165,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
     case 'k':
       if(is_jumpcall) {
         name = get_label_name(target, NULL);
-        if(name && show_target_symbol(addr, target, is_relative, offset)) {
+        if(name && show_target_symbol(is_relative, addr, target, offset)) {
           add_operand(lc, "%s", name);
           if(cx->dis_opts.addresses)
             add_comment(line, str_ccprintf("L%0*x", awd, target));
@@ -1286,7 +1292,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   for(int i = 0; i < cx->dis_symbolN; i++)      // Clear used/printed state of symbols
     cx->dis_symbols[i].used = cx->dis_symbols[i].printed = 0;
 
-  // Allocate one bit per word address in integer array
+  // Each bit in int array indicates start of opcode (not P data, not middle of 32-bit opcode)
   cx->dis_jumpable = mmt_malloc(((buflen + 15)/16 + sizeof(int)-1)/sizeof(int)*sizeof(int));
   cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
 
