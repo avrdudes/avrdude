@@ -1155,17 +1155,20 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
           if(cx->dis_opts.addresses)
             add_comment(line, str_ccprintf("L%0*x", awd, target));
         } else {
+          Dis_symbol *s = find_symbol('L', target);
           if(is_relative) {
             add_operand(lc, ".%+d", offset);
-            if(cx->dis_opts.addresses) {
-              Dis_symbol *s = find_symbol('L', target);
-              if(s && s->name && *s->name)
-                add_comment(line, str_ccprintf("L%0*x (%s)", awd, target, s->name));
-              else
-                add_comment(line, str_ccprintf("L%0*x", awd, target));
-            }
-          } else
+            if(cx->dis_opts.comments && cx->dis_opts.addresses && s && s->name && *s->name)
+              add_comment(line, str_ccprintf("L%0*x (%s)", awd, target, s->name));
+            else if(cx->dis_opts.comments && cx->dis_opts.addresses)
+              add_comment(line, str_ccprintf("L%0*x", awd, target));
+            else if(cx->dis_opts.comments && s && s->name && *s->name)
+              add_comment(line, str_ccprintf("%s", s->name));
+          } else {
             add_operand(lc, "0x%0*x", awd, target);
+            if(cx->dis_opts.comments && s && s->name && *s->name)
+              add_comment(line, str_ccprintf("%s", s->name));
+          }
         }
       } else {
         if(ksym)
