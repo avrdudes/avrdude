@@ -1150,8 +1150,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
       break;
     case 'k':
       if(is_jumpcall) {
-        name = get_label_name(target, NULL);
-        if(name && show_target_symbol(is_relative, addr, target, offset)) {
+        if(show_target_symbol(is_relative, addr, target, offset) && (name = get_label_name(target, NULL))) {
           add_operand(lc, "%s", name);
           if(cx->dis_opts.addresses)
             add_comment(line, str_ccprintf("L%0*x", awd, target));
