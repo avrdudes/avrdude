@@ -580,9 +580,10 @@ static void lineout(const char *code, const char *comment,
       }
       cx->dis_para = -1;
       mmt_free(reflist);
-    } else if(match) {
+    } else if(match) {          // Register L label in pass 1 as to be printed
       (void) get_label_name(here, &comment);
-    } else if(cx->dis_opts.unused_labels && (s = find_symbol('L', here))) {
+    } else if(!match && cx->dis_opts.unused_labels && (s = find_symbol('L', here))) {
+      s->printed = 1;
       if(!s->comment || !*s->comment || !cx->dis_opts.comments)
         disasm_out("%s:\n", s->name);
       else
