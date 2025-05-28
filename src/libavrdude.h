@@ -1468,8 +1468,12 @@ typedef struct {
 } Dis_options;
 
 typedef struct {
-  int from, to, mnemo, labelno, is_func;
+  int from, to, mnemo;
 } Dis_jumpcall;
+
+typedef struct {
+  int addr, labelno, is_func;
+} Dis_label;
 
 typedef struct {
   char *name, *comment;
@@ -1883,8 +1887,9 @@ typedef struct {
   int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth;
   int dis_pass, dis_para, dis_cycle_index, dis_io_offset, dis_codewidth;
   Dis_options dis_opts;
-  int dis_jumpcallN, dis_symbolN, *dis_jumpable, dis_start, dis_end;
+  int dis_jumpcallN, dis_labelN, dis_symbolN, *dis_jcaddr, dis_start, dis_end;
   Dis_jumpcall *dis_jumpcalls;
+  Dis_label *dis_labels;
   Dis_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c

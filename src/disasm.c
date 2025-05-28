@@ -444,9 +444,9 @@ static const char *get_label_name(int destination, const char **commentp) {
     return s->name;
   }
 
-  for(int i = 0; i < cx->dis_jumpcallN; i++)
-    if(cx->dis_jumpcalls[i].to == destination)
-      return str_ccprintf("%s%d", cx->dis_jumpcalls[i].is_func? "Subroutine": "Label", cx->dis_jumpcalls[i].labelno);
+  for(int i = 0; i < cx->dis_labelN; i++)
+    if(cx->dis_labels[i].addr == destination)
+      return str_ccprintf("%s%d", cx->dis_labels[i].is_func? "Subroutine": "Label", cx->dis_labels[i].labelno);
 
   return NULL;
 }
@@ -494,20 +494,25 @@ static int commentcol() {
   return codecol() + cx->dis_codewidth;
 }
 
-static void set_jumpable(int address) {
-  if(cx->dis_jumpable && address >= cx->dis_start && address <= cx->dis_end) {
-    int n = sizeof(int)*8, idx = (address - cx->dis_start)/2;
-    cx->dis_jumpable[idx/n] |= (1 << (idx%n));
+enum {
+  jumpable = 1,                 // Any opcode address (not P data, not middle of 32-bit opcode)
+  callable = 2,                 // Address has been used as target of call/rcall etc
+};
+
+// Xable is jumpable or callable
+static void set_address(int address, int xable) {
+  if(cx->dis_jcaddr && address >= cx->dis_start && address <= cx->dis_end) {
+    int n = sizeof(int)*8, idx = (address - cx->dis_start)/2*2;
+    cx->dis_jcaddr[idx/n] |= (xable << (idx%n));
   }
 }
 
-static int is_jumpable(int address) {
-  if(!cx->dis_jumpable || address < cx->dis_start || address > cx->dis_end)
+static int is_address(int address, int xable) {
+  if(!cx->dis_jcaddr || address < cx->dis_start || address > cx->dis_end)
     return 0;
 
-  int n = sizeof(int)*8, idx = (address - cx->dis_start)/2;
-
-  return cx->dis_jumpable[idx/n] & (1 << (idx%n));
+  int n = sizeof(int)*8, idx = (address - cx->dis_start)/2*2;
+  return !!(cx->dis_jcaddr[idx/n] & (xable << (idx%n)));
 }
 
 // Format output for a label list r referenced by mnemonic m
@@ -587,7 +592,7 @@ static void lineout(const char *code, const char *comment,
       }
       cx->dis_para = -1;
       mmt_free(reflist);
-    } else if(match) {          // Register L label in pass 1 as to be printed
+    } else if(match) {          // Register potential L label in pass 1 as to be printed
       (void) get_label_name(here, &comment);
     } else if(!match && cx->dis_opts.unused_labels && (s = find_symbol('L', here))) {
       s->printed = 1;
@@ -792,9 +797,8 @@ static void emit_used_symbols() {
 }
 
 void disasm_zap_jumpcalls() {
-  mmt_free(cx->dis_jumpcalls);
-  cx->dis_jumpcalls = NULL;
-  cx->dis_jumpcallN = 0;
+  mmt_free(cx->dis_jumpcalls); cx->dis_jumpcalls = NULL; cx->dis_jumpcallN = 0;
+  mmt_free(cx->dis_labels);    cx->dis_labels = NULL;    cx->dis_labelN = 0;
 }
 
 static void register_jumpcall(int from, int to, int mnemo, int is_func) {
@@ -812,31 +816,12 @@ static void register_jumpcall(int from, int to, int mnemo, int is_func) {
     jc[N].from = from;
     jc[N].to = to;
     jc[N].mnemo = mnemo;
-    jc[N].labelno = 0;
-    jc[N].is_func = is_func;
+    if(is_func)
+      set_address(to, callable);
 
     cx->dis_jumpcalls = jc;
     cx->dis_jumpcallN++;
   }
-}
-
-static void correct_is_funct(void) {
-  int last_idx = 0;
-  int last_dest = cx->dis_jumpcalls[0].to;
-  int cur_is_func = cx->dis_jumpcalls[0].is_func;
-
-  for(int i = 1; i < cx->dis_jumpcallN; i++) {
-    if(cx->dis_jumpcalls[i].to != last_dest) {
-      for(int j = last_idx; j < i; j++)
-        cx->dis_jumpcalls[j].is_func = cur_is_func;
-      last_idx = i;
-      last_dest = cx->dis_jumpcalls[i].to;
-      cur_is_func = 0;
-    }
-    cur_is_func = cur_is_func || cx->dis_jumpcalls[i].is_func;
-  }
-  for(int j = last_idx; j < cx->dis_jumpcallN; j++)
-    cx->dis_jumpcalls[j].is_func = cur_is_func;
 }
 
 static int jumpcall_sort(const void *v1, const void *v2) {
@@ -850,26 +835,20 @@ static int jumpcall_sort(const void *v1, const void *v2) {
   return p1->from - p2->from;
 }
 
-static void enumerate_labels(void) {
-  if(cx->dis_jumpcallN > 1) {
-    qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Dis_jumpcall), jumpcall_sort);
-    correct_is_funct();
+static void set_labels(void) {
+  int dest = -1, cur_no[2] = { 0, 0 }, j = 0;
 
-    int dest = 987654321, cur_labelno = 0, cur_funcno = 0;
-
-    for(int i = 0; i < cx->dis_jumpcallN; i++) {
-      if(!is_jumpable(cx->dis_jumpcalls[i].to))
-        continue;
-      cx->dis_jumpcalls[i].labelno = cx->dis_jumpcalls[i].is_func? cur_funcno: cur_labelno;
-      if(dest != cx->dis_jumpcalls[i].to) {
-        if(cx->dis_jumpcalls[i].is_func)
-          cur_funcno++;
-        else
-          cur_labelno++;
-        dest = cx->dis_jumpcalls[i].to;
-      }
+  qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Dis_jumpcall), jumpcall_sort);
+  cx->dis_labels = mmt_malloc(cx->dis_jumpcallN*sizeof*cx->dis_labels);
+  for(int i = 0; i < cx->dis_jumpcallN; i++) {
+    if(is_address(cx->dis_jumpcalls[i].to, jumpable) && dest != cx->dis_jumpcalls[i].to) {
+      int is_func = is_address(dest = cx->dis_jumpcalls[i].to, callable);
+      cx->dis_labels[j].addr = dest;
+      cx->dis_labels[j].is_func = is_func;
+      cx->dis_labels[j++].labelno = cur_no[is_func]++;
     }
   }
+  cx->dis_labelN = j;
 }
 
 #define Ra (regs['a'])
@@ -951,14 +930,14 @@ static const char *get_ldi_name(int op1, int op2, Op_context *oxp) {
         register_jumpcall(oxp->from, addr, MNEMO_ldi, 0);
       const char *name = get_label_name(addr, NULL);
 
-      if(name && cx->dis_opts.labels && is_jumpable(addr))
+      if(name && cx->dis_opts.labels && is_address(addr, jumpable))
         return str_ccprintf("%s(%s)", ra & 1? "hi8": "lo8", name);
     } else if(awidth == 2 && 2*addr >= cx->dis_start && 2*addr < cx->dis_end) {
       if(cx->dis_pass == 1)
         register_jumpcall(oxp->from, 2*addr, MNEMO_ldi, oxp->is_func);
       const char *name = get_label_name(2*addr, NULL);
 
-      if(name && cx->dis_opts.labels && is_jumpable(2*addr))
+      if(name && cx->dis_opts.labels && is_address(2*addr, jumpable))
         return str_ccprintf("pm_%s(%s)", ra & 1? "hi8": "lo8", name);
     }
   }
@@ -991,7 +970,7 @@ static int show_target_symbol(int is_relative, int addr, int target, int offset)
   if(is_relative && target == disasm_wrap(addr + 2))
     return 0;
 
-  if(!is_jumpable(target))
+  if(!is_address(target, jumpable))
     return 0;
 
   if(!is_relative)
@@ -1301,15 +1280,15 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
 
   cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
 
-  // Each bit in int array indicates start of opcode (not P data, not middle of 32-bit opcode)
-  cx->dis_jumpable = mmt_malloc(((buflen + 15)/16 + sizeof(int)-1)/sizeof(int)*sizeof(int));
-  set_jumpable(0);              // Mark reset as potential rjmp destination
+  // Two bits in int array per word address indicate whether addr is jumpable/callable
+  cx->dis_jcaddr = mmt_malloc(((buflen + 7)/8 + sizeof(int)-1)/sizeof(int)*sizeof(int));
+  set_address(0, jumpable);   // Mark reset as potential rjmp destination
 
   // Make two passes: the first gathers labels, the second outputs the assembler code
   for(cx->dis_pass = 1; cx->dis_pass < 3; cx->dis_pass++) {
     if(cx->dis_pass == 2) {
       cx->dis_para = 0;
-      enumerate_labels();
+      set_labels();
       if(cx->dis_opts.avrgcc_style)
         emit_used_symbols();
       if(cx->dis_opts.gcc_source) {
@@ -1339,12 +1318,12 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &ox, &line);
       lineout(line.code, line.comment, mnemo, oplen, buf, pos, addr, 1);
       if(cx->dis_pass == 1)     // Mark this position as potential jump/call destination
-        set_jumpable(pos + cx->dis_start);
+        set_address(pos + cx->dis_start, jumpable);
     }
   }
 
-  mmt_free(cx->dis_jumpable);
-  cx->dis_jumpable = NULL;
+  mmt_free(cx->dis_jcaddr);
+  cx->dis_jcaddr = NULL;
   return 0;
 }
 
