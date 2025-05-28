@@ -494,6 +494,13 @@ static int commentcol() {
   return codecol() + cx->dis_codewidth;
 }
 
+static void set_jumpable(int address) {
+  if(cx->dis_jumpable && address >= cx->dis_start && address <= cx->dis_end) {
+    int n = sizeof(int)*8, idx = (address - cx->dis_start)/2;
+    cx->dis_jumpable[idx/n] |= (1 << (idx%n));
+  }
+}
+
 static int is_jumpable(int address) {
   if(!cx->dis_jumpable || address < cx->dis_start || address > cx->dis_end)
     return 0;
@@ -1292,9 +1299,11 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   for(int i = 0; i < cx->dis_symbolN; i++)      // Clear used/printed state of symbols
     cx->dis_symbols[i].used = cx->dis_symbols[i].printed = 0;
 
+  cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
+
   // Each bit in int array indicates start of opcode (not P data, not middle of 32-bit opcode)
   cx->dis_jumpable = mmt_malloc(((buflen + 15)/16 + sizeof(int)-1)/sizeof(int)*sizeof(int));
-  cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
+  set_jumpable(0);              // Mark reset as potential rjmp destination
 
   // Make two passes: the first gathers labels, the second outputs the assembler code
   for(cx->dis_pass = 1; cx->dis_pass < 3; cx->dis_pass++) {
@@ -1329,11 +1338,8 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
         set_context(&ox, buf, pos, buflen, addr, leadin, leadout);
       disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &ox, &line);
       lineout(line.code, line.comment, mnemo, oplen, buf, pos, addr, 1);
-      if(cx->dis_pass == 1) {   // Mark this position as potential jump/call destination
-        int n = sizeof(int)*8, idx = pos/2;
-
-        cx->dis_jumpable[idx/n] |= (1 << (idx%n));
-      }
+      if(cx->dis_pass == 1)     // Mark this position as potential jump/call destination
+        set_jumpable(pos + cx->dis_start);
     }
   }
 
