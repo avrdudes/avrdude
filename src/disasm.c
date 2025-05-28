@@ -1285,7 +1285,8 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   for(int i = 0; i < cx->dis_symbolN; i++)      // Clear used/printed state of symbols
     cx->dis_symbols[i].used = cx->dis_symbols[i].printed = 0;
 
-  cx->dis_jumpable = mmt_malloc((buflen + 1)/2/8);  // Allocate one bit per word address
+  // Allocate one bit per word address in integer array
+  cx->dis_jumpable = mmt_malloc(((buflen + 15)/16 + sizeof(int)-1)/sizeof(int)*sizeof(int));
   cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
 
   // Make two passes: the first gathers labels, the second outputs the assembler code
