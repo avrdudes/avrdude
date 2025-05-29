@@ -2716,6 +2716,9 @@ style
 Do not preprocess labels; @code{-l} (the default) preprocess jump/call
 labels
 
+@item -U
+Do not show unused labels; @code{-u} (the default) show unused tagged labels
+
 @item -d
 Decode all opcodes including those that are undocumented; @code{-D} (the
 default) decode only opcodes that are valid for the part
@@ -2750,23 +2753,25 @@ address, the letter @code{L}, the symbolic name of the label and an
 optional comment column for the symbol, which is copied by disasm into the
 disassembly comment column, should this label be referenced or used by the
 code. Variable symbols have a @code{P} or @code{M} in the second column;
-they can be bytes or words as determined by the letter @code{B} or
-@code{W} in the third column and either single variables or arrays as
+they can be bytes or words (16 bits) as determined by the letter @code{B}
+or @code{W} in the third column and either single variables or arrays as
 specified by the multiplicity count in the forth column. @code{P} symbols,
-but not @code{M} symbols, can also be the base location of nul-terminated
-strings as encoded by @code{A} or @code{S} in the third column. Out of
-necessity, the space occupied by @code{A}/@code{S} strings varies. The
-difference between @code{A} and @code{S} symbols is that the array of
-@code{A} strings might have an additional nul character to auto-align the
-space occupied by them to an even address. The fifth column is the
-symbolic name for the @code{P} or @code{M} address that can be used by
-disasm to output relevant addresses symbolically. @code{P} areas described
-in the tagfile also tell disasm that the corresponding area is not code
-and should not be disassembled as such; instead the directives are used
-for disassembly of that area. As with @code{L} labels, @code{P} and
-@code{M} variables may have an optional final comment column pertaining to
-the symbol that may be output in the disassembly column as and when the
-corresponding variables are used.
+but not @code{M} symbols, can also encode chars (8 bits), longs (32 bits),
+quads (64 bits) or octas (128 bits) as signified by the letters @code{C},
+@code{L}, @code{Q} or @code{O}, respectively, or be the base location of
+nul-terminated strings as encoded by @code{A} or @code{S} in the third
+column. Out of necessity, the space occupied by @code{A}/@code{S} strings
+varies. The difference between @code{A} and @code{S} symbols is that the
+array of @code{A} strings might have an additional nul character to
+auto-align the space occupied by them to an even address. The fifth column
+is the symbolic name for the @code{P} or @code{M} address that can be used
+by disasm to output relevant addresses symbolically. @code{P} areas
+described in the tagfile also tell disasm that the corresponding area is
+not code and should not be disassembled as such; instead the directives
+are used for disassembly of that area. As with @code{L} labels, @code{P}
+and @code{M} variables may have an optional final comment column
+pertaining to the symbol that may be output in the disassembly column as
+and when the corresponding variables are used.
 
 @cindex @code{flash}
 Tagfiles are useful for disassembly to make the output of disasm more
@@ -4327,7 +4332,7 @@ _pr  414 512 u8.0 weU-jPrac vector/spmready    urboot_m328p_1s_autobaud_uart0_rx
 
 @noindent
 In all lists the starred bootloaders are those that are the most
-feature-rich given the available used flash space, which out of necessity,
+feature-rich given the available used flash space, which --- out of necessity ---
 must be a multiple of flash pages or minimal boot section. These can be
 selected with the @code{best} feature. The @code{show} feature displays
 the properties of the bootloader that would be written without actually
@@ -4381,6 +4386,8 @@ The following table lists possible features.
 @item   @code{fill=urboot\x20} @tab Fill otherwise unused bootloader flash repeatedly with argument
 @item   @code{save=myfile.hex} @tab Save bootloader to file with chosen name (*9)
 @item              @code{save} @tab Save bootloader to file with canonical file name (*9)
+@item   @code{tags=myfile.tag} @tab Save symbols to tag file with chosen name (*9)
+@item              @code{tags} @tab Save symbols to tag file with canonical file name (*9)
 @item           @code{configs} @tab Show needed fuse configuration but do not write to memories
 @item              @code{show} @tab Show bootloader features but do not write to flash
 @item              @code{list} @tab List possible bootloader configurations but do not write to flash
@@ -4415,7 +4422,12 @@ For details on urboot bootloaders and their features see @url{https://github.com
 @item *6 @tab Reset vector protection is only available if flash size is a power of 2 (not ATmega406)
 @item *7 @tab @code{u1}...@code{u3} is only advisory, ie, can result in any of @code{u1}...@code{u4}
 @item *8 @tab @code{u1}...@code{u4} is not available for parts with the 4-page-erase quirk
-@item *9 @tab The bootloader file is still written to disk in connection with @code{configs}, @code{show} or @code{list}
+@item *9 @tab The file is still written to disk in connection with @code{configs}, @code{show} or
+              @code{list}. Bootloader files are per default written as Intel Hex format with
+              comments. A filename of @code{-} writes the file to @code{stdout}. If a bootloader
+              is a vector bootloader then the bootloader file contains a segment for
+              initialising the reset vector to point to the bootloader. Tag files can be used in
+              connection with the terminal @code{disasm} command.
 @end multitable
 
 @*@noindent
@@ -4465,6 +4477,63 @@ $ avrdude -qvc dryrun -p m328p -U urboot:i8mhz_56kbaud_uart0_swio |& grep -i bau
 Baud rate error -0.10% for internal oscillator OK
 @end cartouche
 @end smallexample
+
+@noindent
+Tag files can be used in connection with @code{disasm}:
+
+@smallexample
+@cartouche
+$ avrdude -qqc dryrun -p m328p -U urboot:m328p_autobaud_ee_tags=/tmp/x \
+    -T "disasm -gt=/tmp/x flash 0 -1"
+
+[...]
+        .equ    io.mcusr,   0x34
+        .equ    io.spmcsr,  0x37
+        .equ    mem.wdtcsr, 0x60
+[...]
+        .text
+main:
+__vector_reset:
+L0000:  rjmp    .-386                ; L7e80 (urboot)
+
+urmarker:                            ; Urboot marker bytes
+L0002:  .byte   0x75, 0x72           ; ur
+
+L0004:  .fill   16190, 2, 0xffff
+
+; Rjmp from L0000
+urboot:                              ; Entry point for bootloader
+L7e80:  clr     r1
+L7e82:  in      r2, io.mcusr
+L7e84:  out     io.mcusr, r1
+L7e86:  ldi     r24, 0x00            ; 0
+L7e88:  rcall   set_watchdog         ; L7f5c
+L7e8a:  sbrs    r2, 1                ; Bit 1 = 0x02
+application:
+L7e8c:  rjmp    .+470                ; L0064 (__vector_spm_ready)
+serial_boot:                         ; Serial port bootloading
+L7e8e:  ldi     r24, 0x0e            ; 14
+L7e90:  rcall   set_watchdog         ; L7f5c
+
+[...]
+
+Label27:
+L7fea:  clr     r1
+L7fec:  ret
+
+unused:                              ; 12 bytes for _serialno= and/or _fill=
+L7fee:  .fill   6, 2, 0xffff
+
+npages_vecnum:                       ; Usage of 3 pages; vector/spmready bootloader
+L7ffa:  .byte   0x03, 0x19           ; __
+
+L7ffc:  rjmp    pgm_write_page       ; L7f78
+
+features_version:                    ; Encodes u8.0 weU-jPra-
+L7ffe:  .byte   0xe6, 0x40           ; _@
+@end cartouche
+@end smallexample
+
 
 @page
 

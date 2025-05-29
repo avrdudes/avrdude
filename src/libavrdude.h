@@ -1266,6 +1266,7 @@ extern "C" {
   unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
   FILE *fileio_fopenr(const char *fname);
   int is_generated_fname(const char *filename);
+  int generated_file_has_contents(const AVRPART *part, const char *filename);
   int fileio_fmt_autodetect_fp(FILE *f);
   int fileio_fmt_autodetect(const char *fname);
   int fileio_mem(int oprwv, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int size);
@@ -1395,6 +1396,7 @@ extern "C" {
   size_t cfg_unescapen(unsigned char *d, const unsigned char *s);
   unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
   char *cfg_unescape(char *d, const char *s);
+  char *cfg_escapen(const char *s, size_t n);
   char *cfg_escape(const char *s);
 
 #ifdef __cplusplus
@@ -1460,14 +1462,18 @@ typedef enum {
 typedef struct {
   // Flags how to display lines
   int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
-  int op_names, op_explanations, avrgcc_style, labels;
+  int op_names, op_explanations, avrgcc_style, labels, unused_labels;
   int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
   char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
 } Dis_options;
 
 typedef struct {
-  int from, to, mnemo, labelno, is_func;
+  int from, to, mnemo;
 } Dis_jumpcall;
+
+typedef struct {
+  int addr, labelno, is_func;
+} Dis_label;
 
 typedef struct {
   char *name, *comment;
@@ -1781,8 +1787,9 @@ extern "C" {
   int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename);
   int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename);
   int urbootexists(const char *mcu, const char *io, const char *blt, int req_feats);
+  int urboot_has_contents(const AVRPART *part, const char *filename);
   Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
-    int req_feat, int req_ulevel, int showall, int *np);
+    int req_feat, int req_ulevel, int showall, int *np, int silent);
 
 #ifdef __cplusplus
 }
@@ -1880,8 +1887,9 @@ typedef struct {
   int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth;
   int dis_pass, dis_para, dis_cycle_index, dis_io_offset, dis_codewidth;
   Dis_options dis_opts;
-  int dis_jumpcallN, dis_symbolN, *dis_jumpable, dis_start, dis_end;
+  int dis_jumpcallN, dis_labelN, dis_symbolN, *dis_jcaddr, dis_start, dis_end;
   Dis_jumpcall *dis_jumpcalls;
+  Dis_label *dis_labels;
   Dis_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c

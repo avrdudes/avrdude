@@ -514,12 +514,22 @@ static int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int
   return rc;
 }
 
+// Can a rjmp at 0 reach the bootloader in a large part?
+static int rjmp_reaches_blstart(const PROGRAMMER *pgm) {
+  if(ur.uP.flashsize & (ur.uP.flashsize-1)) // Only if flash is a power of 2
+    return 0;
+  return ur.blstart <= 4096 || ur.blstart >= ur.uP.flashsize - 4094;
+}
 
 // What reset looks like for vector bootloaders
 static int set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz) {
   // Small part or larger flash that is power or 2: urboot P reset vector protection uses this
-  if(vecsz == 2 || (ur.uP.flashsize & (ur.uP.flashsize-1)) == 0) {
+  if(vecsz == 2 || rjmp_reaches_blstart(pgm)) {
     uint16tobuf(jmptoboot, rjmp_bwd_blstart(ur.blstart, ur.uP.flashsize));
+    if(ur.urprotocol && vecsz == 4) {
+      uint16tobuf(jmptoboot + 2, 0x7275 /* ur */);
+      return 4;
+    }
     return 2;
   }
 
@@ -757,14 +767,12 @@ nopatch_nometa:
     ur.emulate_ce = 0;
   }
 
-
   // Ensure that vector bootloaders have correct r/jmp at address 0
   if(ur.boothigh && ur.blstart && ur.vbllevel == 1) {
     int rc, set=0;
     for(int i=0; i < vecsz; i++)
       if(flm->tags[i] & TAG_ALLOCATED)
         set++;
-
 
     // Reset vector not programmed? Or -F? Ensure a jmp to bootloader
     if(ovsigck || set != vecsz) {

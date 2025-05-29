@@ -1632,6 +1632,13 @@ int is_generated_fname(const char *fname) {
   return str_starts(fname, "urboot:");
 }
 
+// Does generated file have contents, ie, no option parsing error, no _list/_show?
+int generated_file_has_contents(const AVRPART *part, const char *fname) {
+  if(str_starts(fname, "urboot:"))
+    return urboot_has_contents(part, fname);
+  return 1;
+}
+
 int fileio_fmt_autodetect(const char *fname) {
   if(is_generated_fname(fname))
     return FMT_IHEX;
@@ -1841,9 +1848,8 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
       rc = hiaddr;
   }
 
-  if(format != FMT_IMM && !using_stdio) {
+  if(format != FMT_IMM && !using_stdio)
     fclose(f);
-  }
 
   return rc;
 }

@@ -792,9 +792,12 @@ static int utf8width(wint_t wc) {
 
 // Given the first byte c of a character sequence, how long is the sequence going to be?
 static int utf8headlen(int c) {
-  return (c & 0xe0) == 0xc0? 2:
+  return
+    (c & 0xe0) == 0xc0? 2:
     (c & 0xf0) == 0xe0? 3:
-    (c & 0xf8) == 0xf0? 4: (c & 0xfc) == 0xf8? 5: (c & 0xfe) == 0xfc? 6: 1 /* not a utf8 header byte */ ;
+    (c & 0xf8) == 0xf0? 4:
+    (c & 0xfc) == 0xf8? 5:
+    (c & 0xfe) == 0xfc? 6: 1 /* not UTF-8 header */;
 }
 
 /*
@@ -854,13 +857,25 @@ static wint_t nextutf8char(const char *str, int n, int *lenp) {
   return wc;
 }
 
-// Return an mmt_malloc'd escaped string that looks like a C-style input string incl quotes
-char *cfg_escape(const char *s) {
-  char buf[50*1024], *d = buf;
+// Escape n characters of s and return a mmt_malloc'd  C-style input string incl quotes
+char *cfg_escapen(const char *s, size_t n) {
+  if(n > (SIZE_MAX - 3 - 16)/4) // Sanity
+    n = (SIZE_MAX - 3 - 16)/4;
+
+  size_t blen = n*4 + 3;        // Worst case: n octals \ooo plus two quotes plus terminating nul
+  char *buf = mmt_malloc(blen + 16), *d = buf, temp[64];
+  memset(buf + blen, 0xff, 16); // End of buffer marker
 
   *d++ = '"';
-  for(; *s && d - buf < (long) sizeof buf - 10; s++) {
+  while(n && (*d & 0xff) != 0xff) {
     switch(*s) {
+    case 0:
+      *d++ = '\\';
+      *d++ = '0';
+      // Expand \0 to \000 if UTF-8 chars or digits might *look* like an octal number
+      if(n > 1 && ((s[1] & 0x80) || (s[1] >= 0 && s[1] <= '9')))
+        *d++ = '0', *d++ = '0';
+      break;
     case '\n':
       *d++ = '\\';
       *d++ = 'n';
@@ -898,28 +913,39 @@ char *cfg_escape(const char *s) {
       *d++ = '\"';
       break;
     default:
-      if(*s & 0x80) {           // Check for utf8-sequences
+      if(*s & 0x80) {           // Leave UTF-8 sequences intact
         int chrlen;
 
-        if(0xFFFD == nextutf8char(s, strlen(s), &chrlen)) {     // Invalid UTF-8
-          sprintf(d, "\\%03o", *s & 0xff);
-          d += strlen(d);
+        if(0xFFFD == nextutf8char(s, n, &chrlen)) { // Invalid UTF-8
+          sprintf(temp, "\\%03o", *s & 0xff);
+          memcpy(d, temp, 4);
+          d += 4;
         } else {                // Copy over valid UTF-8 character
           memcpy(d, s, chrlen);
           d += chrlen;
-          s += chrlen - 1;
+          chrlen--;             // Compensate for s++ and n-- below
+          s += chrlen;
+          n = n > (size_t) chrlen? n - chrlen: 1;
         }
       } else if(*s == 0x7f || (unsigned char) *s < 32) {
-        sprintf(d, "\\%03o", *s);
-        d += strlen(d);
+        sprintf(temp, "\\%03o", *s);
+        memcpy(d, temp, 4);
+        d += 4;
       } else
         *d++ = *s;
     }
+    n--;
+    s++;
   }
   *d++ = '"';
   *d = 0;
 
-  return mmt_strdup(buf);
+  return buf;
+}
+
+// Return an mmt_malloc'd escaped string that looks like a C-style input string incl quotes
+char *cfg_escape(const char *s) {
+  return cfg_escapen(s, strlen(s));
 }
 
 static int cmp_comp(const void *v1, const void *v2) {

@@ -20,6 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <errno.h>
 
 #include "avrdude.h"
 #include <libavrdude.h>
@@ -27,6 +28,8 @@
 #include "urclock_private.h"
 
 #define Return(...) do { \
+  if(silent) \
+    return -1; \
   if(verbose > 0 || rethelp) \
     autogen_help(up); \
   pmsg_error("(urboot) "); \
@@ -114,6 +117,8 @@ static void autogen_help(const Avrintel *up) {
     "  fill=urboot\\x20  Fill unused bootloader flash repeatedly with argument\n"
     "  save=myfile.hex  Save bootloader to file with chosen name\n"
     "             save  Save bootloader to file with canonical file name\n"
+    "  tags=myfile.tag  Save symbols to tag file with chosen name\n"
+    "             tags  Save symbols to tag file with canonical file name\n"
     "          configs  Show needed fuse configuration but do not write to memories\n"
     "             show  Show bootloader features but do not write to flash\n"
     "             list  List possible bootloader configurations but do not write\n"
@@ -131,10 +136,10 @@ typedef struct {
   int gotbaud, b_value, b_extra, linlbt, linbrrlo, brr;
   int lednop, dual, cs;
   int led, ledpolarity;
-  int req_feats, req_ulevel, vecnum, save, configs, show, list, best;
+  int req_feats, req_ulevel, vecnum, save, tags, configs, show, list, best;
   FILEFMT savefmt;
   Urboot_template *ut;
-  char *serialno, *fill, *vectorstr, *savefname;
+  char *serialno, *fill, *vectorstr, *savefname, *tagsfname;
   size_t n_serialno, n_fill;
   const char *mcu;
   char iotype[32];
@@ -270,7 +275,7 @@ static int is_num_unit(const char *s, const char *unit) {
 
 // Return 0 if bit-addressable port is available; otherwise show error message and return -1
 static int assert_port(int port, const char *what, const char *mcu, int out, const Avrintel *up,
-  int rethelp) {
+  int rethelp, int silent) {
 
   if(!up)
     Return("unexpected lack of context info");
@@ -354,13 +359,13 @@ static int swio_in_range(const Avrintel *up, long f_cpu, long br) {
   return br <= max_br && br >= min_br;
 }
 
-static int set_swio_params(Urbootparams *ppp, long f_cpu, long brate, int rethelp) {
+static int set_swio_params(Urbootparams *ppp, long f_cpu, long brate, int rethelp, int silent) {
   const Avrintel *up = ppp->up;
 
   // Need a valid rx/tx for swio
-  if(assert_port(ppp->rx, "rx", ppp->mcu, 0, up, rethelp) == -1)
+  if(assert_port(ppp->rx, "rx", ppp->mcu, 0, up, rethelp, silent) == -1)
     return -1;
-  if(assert_port(ppp->tx, "tx", ppp->mcu, 1, up, rethelp) == -1)
+  if(assert_port(ppp->tx, "tx", ppp->mcu, 1, up, rethelp, silent) == -1)
     return -1;
   if(ppp->rx == ppp->tx)
     Return("cannot create SW I/O bootloader with RX pin same as TX pin");
@@ -656,7 +661,7 @@ static const char *ccuartnum(const Urbootparams *ppp) {
   return str_ccprintf("%d", ppp->uart);
 }
 
-static char *urboot_filename(const Urbootparams *ppp) {
+static char *urboot_filename(const Urbootparams *ppp, const char *ext) {
   char *ret = mmt_malloc(1024), *p = ret;
 
   sprintf(p, "urboot_%s_%s", ppp->mcu, wdtname(ppp));
@@ -715,12 +720,131 @@ static char *urboot_filename(const Urbootparams *ppp) {
     strcpy((p+=strlen(p)), "_serialno");
   if(ppp->n_fill && ppp->fill)
     strcpy((p+=strlen(p)), "_fill");
-  strcpy((p+=strlen(p)), ".hex");
+  strcpy((p+=strlen(p)), ext);
 
   if(p-ret >= 1024)             // This may never happen: panic
     exit(123);
 
   return ret;
+}
+
+typedef struct {
+  int addr, loc; const char *name, *com;
+} Tagsym;
+
+static int symaddrcmp(const void *p1, const void *p2) {
+  return ((Tagsym *) p1)->addr - ((Tagsym *) p2)->addr;
+}
+
+static void urboot_write_tagsfile(const Urbootparams *ppp) {
+  if(!ppp || !ppp->tagsfname || !ppp->ut || !ppp->up) {
+    pmsg_error("unexpectedly missing %s\n",
+      !ppp? "ppp": !ppp->tagsfname? "tagsfname": !ppp->ut? "ut": "up");
+    return;
+  }
+
+  Tagsym sy[] = {
+    { 0, UL_JMP_APPLICATION,  "application",      NULL },
+    { 0, UL_RJMP_APPLICATION, "application",      NULL },
+    { 0, UL_LDI_STK_OK,       "send_ok",          NULL },
+    { 0, UL_LDI_WDTO,         "serial_boot",      "Serial port bootloading" },
+    { 0, UL_BITDELAY,         "bit_delay",        NULL },
+    { 0, UL_HALFBITDELAY,     "halfbit_delay",    NULL },
+    { 0, UL_EEPROM_READ,      "eeprom_read",      NULL },
+    { 0, UL_EEPROM_WRITE,     "eeprom_write",     NULL },
+    { 0, UL_GETADDRLENGTH,    "get_addr_buflen",  NULL },
+    { 0, UL_GETCH,            "getch",            NULL },
+    { 0, UL_GET_SYNC,         "get_sync",         NULL },
+    { 0, UL_NOT_RESET_PAGE,   "not_reset_page",   NULL },
+    { 0, UL_PGM_WRITE_PAGE,   "pgm_write_page",   NULL },
+    { 0, UL_PUTCH,            "putch",            NULL },
+    { 0, UL_QEXITERR,         "quick_error_exit", NULL },
+    { 0, UL_RWW_ENABLE,       "rww_enable",       NULL },
+    { 0, UL_SFM_BOOT,         "sfm_boot",         "SPI flash memory bootloading" },
+    { 0, UL_SKIP_ERASE,       "skip_erase",       NULL },
+    { 0, UL_SPI_TRANSFER,     "spi_transfer",     NULL },
+    { 0, UL_UB_SPM,           "ub_spm",           "Generic SPM interface" },
+    { 0, UL_WATCHDOGCONFIG,   "set_watchdog",     NULL },
+    { 0, UL_WRITEBUFFERX,     "writebufferX",     NULL },
+  };
+
+  int start = ppp->start, bsize = ppp->ut->size, usage = ppp->ut->usage;
+  int fsz = ppp->up->flashsize, vecsz = fsz <= 8192? 2: 4;
+  int top = start + usage - 1, awd = top > 0xffff? 5: 4;
+  int vecnum = (ppp->ut->table[0] >> 8) & 0x7f;
+  int npages = ppp->ut->table[0] & 0x7f;
+  uint16_t *locs = ppp->ut->locs;
+
+  int payload = start+bsize-6, remain = usage - bsize;
+  int nserial, sitems, filled, fitems, nwd = 1, tmp;
+
+  if(remain < 0) {
+    pmsg_error("unexpected bootloader size %d and usage %d\n", bsize, usage);
+    return;
+  }
+
+  nserial = 0;                  // Serial number has priority over filling unused area
+  if(ppp->n_serialno && ppp->serialno) {
+    if((nserial = ppp->n_serialno) > remain)
+      nserial = remain;
+    remain -= nserial;
+  }
+  sitems = nserial & 1? nserial: nserial/2;
+  if(sitems && nwd < (tmp = strlen(str_ccprintf("%d", sitems))))
+    nwd = tmp;
+
+  filled = ppp->n_fill && ppp->fill;
+  fitems = remain & 1? remain: remain/2;
+  if(fitems && (nserial || filled) && nwd < (tmp = strlen(str_ccprintf("%d", fitems))))
+    nwd = tmp;
+
+  // Assign symbol addresses and sort them in ascending order
+  for(size_t i = 0; i < sizeof sy/sizeof*sy; i++)
+    sy[i].addr = locs[sy[i].loc]? start+2*locs[sy[i].loc]: 0;
+  qsort(sy, sizeof sy/sizeof*sy, sizeof *sy, symaddrcmp);
+
+  FILE *fp = str_eq(ppp->tagsfname, "-")? stdout: fopen(ppp->tagsfname, "w");
+  if(!fp) {
+    pmsg_ext_error("unable to open %s: %s\n", ppp->tagsfname, strerror(errno));
+    return;
+  }
+
+  // Vector table usage by the bootloader
+  fprintf(fp,   "0x%0*x L %*s __vector_reset\n", awd, 0, nwd+2, "");
+  if(vecnum && vecsz == 4 && usage < 4096 && (fsz & (fsz-1)) == 0)
+    fprintf(fp, "0x%0*x P B %*d urmarker         Urboot marker bytes\n", awd, 2, nwd, 2);
+  if(vecnum)
+    fprintf(fp, "0x%0*x L %*s __vector_%d\n", awd, vecnum*vecsz, nwd+2, "", vecnum);
+
+  fprintf(fp,   "0x%0*x L %*s urboot           Entry point for bootloader\n", awd, start, nwd+2, "");
+
+  for(size_t i = 0; i < sizeof sy/sizeof*sy; i++)
+    if(sy[i].addr && !sy[i].com)
+      fprintf(fp, "0x%0*x L %*s %s\n", awd, sy[i].addr, nwd+2, "", sy[i].name);
+    else if(sy[i].addr)
+      fprintf(fp, "0x%0*x L %*s %-*s %s\n", awd, sy[i].addr, nwd+2, "", 16, sy[i].name, sy[i].com);
+
+  if(fitems && (nserial || filled))
+    fprintf(fp, "0x%0*x P %c %*d fill             %s\n",
+      awd, payload, remain & 1? 'B': 'W', nwd, fitems,
+      filled? "Area set once at burn time": "Unused area by bootloader");
+
+  if(nserial)
+    fprintf(fp, "0x%0*x P %c %*d serialno         Set once at burn time\n",
+      awd, payload+remain, nserial & 1? 'B': 'W', nwd, sitems);
+
+  if(remain && !nserial && !filled)
+    fprintf(fp, "0x%0*x L %*s unused           %d bytes for _serialno= and/or _fill=\n",
+      awd, payload, nwd+2, "", usage - bsize);
+
+  // Version table
+  fprintf(fp,   "0x%0*x P B %*d npages_vecnum    Usage of %d pages; %s bootloader\n", awd, top-5, nwd, 2,
+    npages, ppp->ut->type);
+  fprintf(fp,   "0x%0*x P B %*d features_version Encodes %s\n", awd, top-1, nwd, 2,
+    ppp->ut->urversion);
+
+  if(!str_eq(ppp->tagsfname, "-"))
+    fclose(fp);
 }
 
 // Return temporary buffer with features that the user needs to add for this selection
@@ -757,7 +881,7 @@ static int urmatch(Urboot_template *ut, int req_feats, int req_ulevel) {
   return ru == 0 || ru == 4? 1: ut->update_level == ru;
 }
 
-static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *ppp) {
+static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *ppp, int silent) {
   char *p, *q, *tok;
   int idx, factor, ns, pnum, beyond = 0, rethelp = 0;
   const Avrintel *up = NULL;
@@ -1052,6 +1176,19 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       continue;
     }
 
+    if(str_starts(tok, "tags")) {
+      ppp->tags = 1;
+      if(tok[4] == '=') {
+        ppp->tagsfname = mmt_strdup(tok+5);
+        cfg_unescape(ppp->tagsfname, ppp->tagsfname);
+        if(!*ppp->tagsfname) {
+          mmt_free(ppp->tagsfname);
+          ppp->tagsfname = NULL;
+        }
+      }
+      continue;
+    }
+
     if(str_eq(tok, "configs")) {
       ppp->configs = 1;
       continue;
@@ -1123,12 +1260,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   const char *cfg = ppp->lednop? "lednop": "noled";
 
   if(ppp->dual) {
-    if(assert_port(ppp->cs, "cs", part->desc, 1, up, rethelp) == -1)
+    if(assert_port(ppp->cs, "cs", part->desc, 1, up, rethelp, silent) == -1)
       return -1;
     cfg = "dual";
   }
 
-  if(ppp->led != PNA && assert_port(ppp->led, "led", part->desc, 1, up, rethelp) == -1)
+  if(ppp->led != PNA && assert_port(ppp->led, "led", part->desc, 1, up, rethelp, silent) == -1)
     return -1;
   if(str_eq(cfg, "noled") && ppp->led != PNA) // Override noled if led explicitly requested
     cfg = "lednop";
@@ -1170,7 +1307,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     snprintf(ppp->iotype, sizeof ppp->iotype, "autobaud_uart%d%s",
       ppp->uart, ppp->alt? str_ccprintf("_alt%d", ppp->alt): "");
   } else if(ppp->swio) {
-    if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
+    if(set_swio_params(ppp, f_cpu, brate, rethelp, silent) == -1)
       return -1;
   } else { // UART
     if(!ppp->baudrate)
@@ -1217,7 +1354,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         if(ppp->best || !ppp->setuart) { // Switch to SWIO
           pmsg_notice("switching to SWIO as baud rate error %.2f%% too high for %s oscillator\n",
             signerr, ppp->fcpu_type == 'x'? "external": "internal");
-          if(set_swio_params(ppp, f_cpu, brate, rethelp) == -1)
+          if(set_swio_params(ppp, f_cpu, brate, rethelp, silent) == -1)
             return -1;
           ppp->swio = 1;
           signerr = 100.0*(ppp->gotbaud - ppp->baudrate)/ppp->baudrate, bauderr = fabs(signerr);
@@ -1247,14 +1384,12 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   int nut = 0;
 
   urlist = urboottemplate(up, ppp->mcu, ppp->iotype, cfg, ppp->req_feats, ppp->req_ulevel,
-    ppp->list || ppp->best, &nut);
+    ppp->list || ppp->best, &nut, silent);
 
-  if(!urlist || nut == 0) {
-    msg_error("\n");
+  if(!urlist || nut == 0)
     return -1;
-  }
 
-  if(ppp->list) {
+  if(ppp->list && !silent) {
     size_t maxtype = 0, maxver = 14, maxuse = 3;
     int add[32] = { 0 }, maxd = 0, addone = 0, alldiff = 0;
     int sw=0, se=0, sU=0, sd=0, sj=0, sh=0, sP=0, sr=0, sa=0, sc=0, sp=0, sm=0;
@@ -1298,7 +1433,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
       maxd, maxd, "Selection", (int) maxuse-3, "", maxver < 15? "": "i", (int) maxtype-4, "");
     for(int use=0, n=0; n<nut; n++) {
       ppp->ut = urlist[n];
-      char *p = urboot_filename(ppp);
+      char *p = urboot_filename(ppp, ".hex");
       char *t = ppp->vectorstr && !(urlist[n]->features & URFEATURE_HW)? "vector": urlist[n]->type;
       int fdiff = (ppp->req_feats ^ urlist[n]->features) & 31;
       term_out("%*.*s %c%3d %*d %*s %-*s %s\n",
@@ -1409,7 +1544,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   int loc, locok;
   // Parametrise the bootloader
-  for(int i=0; i < UL_CODELOCS_N; i++) {
+  for(int i=0; i < UL_PARAMETERS_N; i++) {
     if((loc = locations[i])) {
       switch(i) {
       case UL_LDI_BRRLO:
@@ -1529,6 +1664,26 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
   return 0;
 }
 
+int urboot_has_contents(const AVRPART *part, const char *filename) {
+  Urbootparams pp;
+  char *urname = mmt_strdup(filename);
+
+  // Silently parse the urboot:... string
+  int ret = urbootautogen_parse(part, urname, &pp, 1) == 0 && !(pp.show || pp.configs);
+
+  mmt_free(urname);
+  mmt_free(pp.serialno);
+  mmt_free(pp.fill);
+  mmt_free(pp.vectorstr);
+  mmt_free(pp.savefname);
+  mmt_free(pp.tagsfname);
+  if(pp.ut) {
+    mmt_free(pp.ut->tofree);
+    mmt_free(pp.ut);
+  }
+
+  return ret;
+}
 
 // Is the part configuration valid in principle?
 static int is_config_valid(int nc, const Configitem *cfg, const char *str) {
@@ -1613,17 +1768,12 @@ static void classic_configuration(const Avrintel *up, const PROGRAMMER *pgm, con
 
 // Show (pgm == NULL) or set (pgm != NULL) configurations for autogenerated urboot:... bootloaders
 int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename) {
-  int ret = -1;
+  int ret = -1, rc;
   Urbootparams pp;
   char *urname = mmt_strdup(filename);
 
   // Silently parse the urboot:... string
-  int bakverb = verbose, rc;
-  verbose = -123;
-  rc = urbootautogen_parse(part, urname, &pp);
-  verbose = bakverb;
-
-  if(rc < 0)
+  if((rc = urbootautogen_parse(part, urname, &pp, 1) < 0))
     goto done;
 
   if(is_classic(part))
@@ -1634,6 +1784,8 @@ done:
   mmt_free(pp.serialno);
   mmt_free(pp.fill);
   mmt_free(pp.vectorstr);
+  mmt_free(pp.savefname);
+  mmt_free(pp.tagsfname);
   if(pp.ut) {
     mmt_free(pp.ut->tofree);
     mmt_free(pp.ut);
@@ -1648,7 +1800,7 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
   Urbootparams pp;
   char *urname = mmt_strdup(filename);
 
-  if(urbootautogen_parse(part, urname, &pp) < 0)
+  if(urbootautogen_parse(part, urname, &pp, 0) < 0)
     goto done;
 
   int bsize = pp.ut->size, usage = pp.ut->usage;
@@ -1748,15 +1900,22 @@ int urbootautogen(const AVRPART *part, const AVRMEM *mem, const char *filename) 
 
   if(pp.save) {
     if(!pp.savefname)
-      pp.savefname = urboot_filename(&pp);
+      pp.savefname = urboot_filename(&pp, ".hex");
     pmsg_notice("writing autogenerated bootloader to %s\n", pp.savefname);
     AVRMEM *memwrite = avr_dup_mem(mem);
     fileio_segments(FIO_WRITE, pp.savefname, pp.savefmt, part, memwrite, pp.n_ursegs, pp.ursegs);
     avr_free_mem(memwrite);
   }
 
+  if(pp.tags) {
+    if(!pp.tagsfname)
+      pp.tagsfname = urboot_filename(&pp, ".tag");
+    pmsg_notice("writing symbols file to %s\n", pp.tagsfname);
+    urboot_write_tagsfile(&pp);
+  }
+
   if(pp.show) {
-    char *p = urboot_filename(&pp);
+    char *p = urboot_filename(&pp, ".hex");
 
     if(verbose > 0)
       term_out("Size %*sUse Vers%s Features  Type%*s Canonical file name\n", usage > 9999? 2: usage > 999, "",

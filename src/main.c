@@ -1816,9 +1816,11 @@ int main(int argc, char *argv[]) {
           if(flashread) {
             pmsg_info("NOT auto-erasing chip as flash might need reading before writing to it\n");
           } else {
-            erase = 1;
-            pmsg_notice("auto-erasing chip as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
-            imsg_notice("specify the -D option to disable this feature\n");
+            if(!is_generated_fname(upd->filename) || generated_file_has_contents(p, upd->filename)) {
+              erase = 1;
+              pmsg_notice("auto-erasing chip as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
+              imsg_notice("specify the -D option to disable this feature\n");
+            }
           }
           break;
         }
