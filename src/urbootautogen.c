@@ -752,7 +752,7 @@ static void urboot_write_tagsfile(const Urbootparams *ppp) {
     { 0, UL_HALFBITDELAY,     "halfbit_delay",    NULL },
     { 0, UL_EEPROM_READ,      "eeprom_read",      NULL },
     { 0, UL_EEPROM_WRITE,     "eeprom_write",     NULL },
-    { 0, UL_GETADDRLENGTH,    "get_addr_length",  NULL },
+    { 0, UL_GETADDRLENGTH,    "get_addr_buflen",  NULL },
     { 0, UL_GETCH,            "getch",            NULL },
     { 0, UL_GET_SYNC,         "get_sync",         NULL },
     { 0, UL_NOT_RESET_PAGE,   "not_reset_page",   NULL },
