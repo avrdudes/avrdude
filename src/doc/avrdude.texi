@@ -4424,9 +4424,10 @@ For details on urboot bootloaders and their features see @url{https://github.com
 @item *8 @tab @code{u1}...@code{u4} is not available for parts with the 4-page-erase quirk
 @item *9 @tab The file is still written to disk in connection with @code{configs}, @code{show} or
               @code{list}. Bootloader files are per default written as Intel Hex format with
-              comments. If a bootloader is a vector bootloader then the bootloader file contains
-              a segment for initialising the reset vector to point to the bootloader. Tag files
-              can be used in connection with the terminal @code{disasm} command.
+              comments. A filename of @code{-} writes the file to @code{stdout}. If a bootloader
+              is a vector bootloader then the bootloader file contains a segment for
+              initialising the reset vector to point to the bootloader. Tag files can be used in
+              connection with the terminal @code{disasm} command.
 @end multitable
 
 @*@noindent
