@@ -39,6 +39,9 @@ Changes since version 8.0:
     - Avrdude hangs if valid serial port specified #1986
     - Compiler warnings #1988
     - Display issues under Windows #1991
+    - SNAP in "MPLAB mode" has an incorrect USB VID #1999
+    - disasm -g can result in code that avr-gcc fails #1997
+    - -U urboot:..._show wrongly auto-erases the chip #1996
 
   * Pull requests:
 
@@ -82,6 +85,8 @@ Changes since version 8.0:
     - Supress compiler warnings #1989
     - Explain syntax verbally & avoid >= display for Windows #1992
     - Extend -c urclock to work with lower baud rates #1993
+    - Fix incorrect MPLAB SNAP VID #2000
+    - Improve urboot: and disasm #1998
 
   * Internals:
 
