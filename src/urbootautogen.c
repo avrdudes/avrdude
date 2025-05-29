@@ -803,7 +803,7 @@ static void urboot_write_tagsfile(const Urbootparams *ppp) {
     sy[i].addr = locs[sy[i].loc]? start+2*locs[sy[i].loc]: 0;
   qsort(sy, sizeof sy/sizeof*sy, sizeof *sy, symaddrcmp);
 
-  FILE *fp = fopen(ppp->tagsfname, "w");
+  FILE *fp = str_eq(ppp->tagsfname, "-")? stdout: fopen(ppp->tagsfname, "w");
   if(!fp) {
     pmsg_ext_error("unable to open %s: %s\n", ppp->tagsfname, strerror(errno));
     return;
@@ -843,7 +843,8 @@ static void urboot_write_tagsfile(const Urbootparams *ppp) {
   fprintf(fp,   "0x%0*x P B %*d features_version Encodes %s\n", awd, top-1, nwd, 2,
     ppp->ut->urversion);
 
-  fclose(fp);
+  if(!str_eq(ppp->tagsfname, "-"))
+    fclose(fp);
 }
 
 // Return temporary buffer with features that the user needs to add for this selection
