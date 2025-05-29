@@ -3428,7 +3428,7 @@ programmer # snap_mplab
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
-    usbvid                 = 0x03eb;
+    usbvid                 = 0x04d8;
     usbpid                 = 0x9018;    # SNAP (mplab mode)
 ;
 
