@@ -13,11 +13,11 @@ avrdude_bin=avrdude
 Usage() {
 cat <<END
 Syntax: $progname [<opts>] <programmer> <part>
-Function: test AVRDUDE for v 8.0 release with -c programmer -p part;
+Function: test AVRDUDE v 8.0 or later with -c programmer -p part;
   also leaves a file bak-<programmer>-<part.hex for inspection
 Options:
-  -i <n>     use avrdude -c dryrun -xinit=<n> to initialise part and exit
-  -r <n>     use avrdude -c dryrun -xrandom=<n> to initialise part and exit
+  -i <n>     Write human-readable contents seeded by <n> to part and exit
+  -r <n>     Write random contents seeded by <n> to part and exit
   -e <exe>   path of the avrdude executable
   -a <opt>   pass avrdude option <opt> through to avrdude test commands
   -m <mlist> use memory list <mlist> instead of ALL
