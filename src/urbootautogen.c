@@ -924,7 +924,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
   p = urname + 7;
   if(!*p) {
-    autogen_help(up);
+    if(!silent)
+      autogen_help(up);
     return -1;
   }
   while(*(tok = str_nexttok(p, "_", &p))) {
@@ -1210,7 +1211,8 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     }
 
     if(str_eq(tok, "help")) {
-      autogen_help(up);
+      if(!silent)
+        autogen_help(up);
       return -1;
     }
 
