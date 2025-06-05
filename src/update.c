@@ -411,8 +411,8 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       errno = 0;
       if(!known && !update_is_readable(upd->filename)) {
         ioerror("readable", upd);
-        ret = LIBAVRDUDE_SOFTFAIL; // Even so it might still be there later on
-        known = 1;              // Pretend we know it, so no auto detect needed
+        ret = LIBAVRDUDE_GENERAL_FAILURE;
+        known = 1;              // Pretend we know it, so auto detect is not carried out
       }
     }
   }
@@ -422,8 +422,8 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       pmsg_error("cannot auto detect file format for stdin/out, specify explicitly\n");
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else if((format_detect = fileio_fmt_autodetect(upd->filename)) < 0) {
-      pmsg_warning("cannot determine file format for %s, specify explicitly\n", upd->filename);
-      ret = LIBAVRDUDE_SOFTFAIL;
+      pmsg_error("cannot determine file format for %s, specify explicitly\n", upd->filename);
+      ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else {
       // Set format now (but might be wrong in edge cases, where user needs to specify explicity)
       upd->format = format_detect;
