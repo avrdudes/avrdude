@@ -93,7 +93,7 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 // List of commands; don't add a command starting with e: main.c relies on e expanding to erase
-struct command cmd[] = {
+static const struct command cmd[] = {
   {"dump", cmd_dump, _fo(read_byte_cached), "display a memory section as hex dump"},
   {"read", cmd_dump, _fo(read_byte_cached), "alias for dump"},
   {"disasm", cmd_disasm, _fo(read_byte_cached), "disassemble a memory section"},
