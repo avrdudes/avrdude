@@ -12,7 +12,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.44
- * 23.04.2025
+ * 05.06.2025
  *
  */
 
@@ -71,7 +71,7 @@ typedef struct {
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part
   uint16_t mcuid;               // ID of MCU in 0..2039
-  uint8_t  avrarch;             // F_AVR8L, F_AVR8, F_XMEGA or F_AVR8X
+  uint8_t  avrarch;             // F_AVR8L, F_AVR8, F_XMEGA, F_AVR8X or F_MCS51
   uint8_t sigs[3];              // Signature bytes
   int32_t flashoffset;          // Flash offset in dual-chip MCUs (not flash->offset)
   int32_t flashsize;            // Flash size
@@ -128,6 +128,7 @@ typedef enum {
 #define F_AVR8                2 // ISP programming with SPI, "classic" AVRs
 #define F_XMEGA               4 // PDI programming, ATxmega family
 #define F_AVR8X               8 // UPDI programming, newer 8-bit MCUs
+#define F_MCS51              16 // ISP programming, MCS-51 family (not AVR8)
 
 #define UARTTYPE_UNKNOWN    (-1)
 #define UARTTYPE_NONE         0
@@ -320,8 +321,6 @@ extern const Avrintel uP_table[412];
 #define id_at43usb355      163u
 #define id_at76c711        164u
 #define id_at86rf401       165u
-#define id_at89s51         372u
-#define id_at89s52         373u
 #define id_at90pwm1        166u
 #define id_at90pwm2        167u
 #define id_at90pwm2b       168u
@@ -563,6 +562,8 @@ extern const Avrintel uP_table[412];
 #define id_avr128da64      370u
 #define id_avr128da64s     397u
 #define id_avr128db64      371u
+#define id_at89s51         372u
+#define id_at89s52         373u
 
 
 // Interrupt vector table sizes (number of vectors)

@@ -671,10 +671,12 @@ int avr_get_archlevel(const AVRPART *p) {
 
   if(!ret) {                    // Non-TPI classic part
     switch(p->archnum) {
+    case -1:                    // Not 8-bit AVR: return 0
+      break;
     case 1:
       ret = PART_AVR1;
       break;
-    default:                   // If AVRDUE doesn't know, it's probably rare & old
+    default:                    // If AVRDUE doesn't know, it's probably rare & old
     case 2:
       ret = PART_AVR2;
       break;
@@ -683,7 +685,7 @@ int avr_get_archlevel(const AVRPART *p) {
       break;
     case 3:
     case 31:
-    case 35:                   // Sic
+    case 35:                    // Sic
       ret = PART_AVR3;
       break;
       break;
