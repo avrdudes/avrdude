@@ -789,6 +789,12 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       mem->page_size = 32;
       mem->readsize = 32;
     }
+    if((mem = avr_locate_bootrow(p))) {
+      if(mem->size == 256) {
+        mem->page_size = 256;
+        mem->readsize = 256;
+      }
+    }
   }
   if(is_debugwire(pgm)) {
     if((mem = avr_locate_flash(p))) {
