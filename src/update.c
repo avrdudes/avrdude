@@ -302,11 +302,10 @@ static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
  *
  * Memory list can be sth like ee,fl,all,-cal,efuse. -mem or /mem removes it
  * from the list. Normal use is to pass NULL for dry and let the function write
- * to *np and *rwvsoftfail indicating unknown memories for this part. If dry is
- * set then -1 will be written to *dry when a generally unknown memory is used.
+ * to *np and *rwvsoftp indicating unknown memories for this part. If dry is
+ * set then an error code will be written to *dry if an unknown memory is used.
  */
 AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
-
   int not, nm = (lsize(p->mem) + 1)*((int) str_numc(mstr, ',') + 1);  // Upper limit
   AVRMEM *m, **umemlist = mmt_malloc(nm*sizeof *umemlist);
   char *dstr = mmt_strdup(mstr), *s = dstr, *e;
@@ -389,6 +388,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
     return 0;
   }
 
+  // Construct, check and free memory list storing an error code, if any, in ret
   mmt_free(memory_list(upd->memstr, NULL, p, NULL, NULL, &ret));
 
   known = 0;
