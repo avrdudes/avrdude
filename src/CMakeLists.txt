@@ -287,6 +287,8 @@ set(SOURCES
     updi_nvm_v4.h
     updi_nvm_v5.c
     updi_nvm_v5.h
+    updi_nvm_v6.c
+    updi_nvm_v6.h
     updi_readwrite.c
     updi_readwrite.h
     updi_state.c
