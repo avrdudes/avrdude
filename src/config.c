@@ -872,8 +872,8 @@ char *cfg_escapen(const char *s, size_t n) {
     case 0:
       *d++ = '\\';
       *d++ = '0';
-      // Expand \0 to \000 if UTF-8 chars or digits might *look* like an octal number
-      if(n > 1 && ((s[1] & 0x80) || (s[1] >= 0 && s[1] <= '9')))
+      // Expand \0 to \000 if followed by UTF-8 chars or digits that *look* like octal digits
+      if(n > 1 && ((s[1] & 0x80) || (s[1] >= '0' && s[1] <= '9')))
         *d++ = '0', *d++ = '0';
       break;
     case '\n':
