@@ -24527,7 +24527,7 @@ part # .avr-sx
 
     memory "bootrow"
         size               = 256;
-        page_size          = 64;
+        page_size          = 256;
         offset             = 0x1100;
         readsize           = 256;
     ;
