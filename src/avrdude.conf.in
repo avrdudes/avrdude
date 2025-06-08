@@ -107,7 +107,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
 #       prog_modes       = PM_<i/f> {| PM_<i/f>}  # interfaces, eg, PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
 #       mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
-#       archnum          = <num>;                 # avr-gcc architecture number for the part
+#       archnum          = <num>;                 # avr-gcc architecture number; -1 if not 8-bit AVR
 #       n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
 #       n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
 #       n_boot_sections  = <num>;                 # Number of boot sections
@@ -15963,7 +15963,7 @@ part parent "m328" # lgt328p
 # AT89S51
 #------------------------------------------------------------
 
-# Nonstandard part
+# MCS-51 family part
 #   - Tested with -c avrisp
 #   - USBASP programmers may require different firmware
 
@@ -15977,7 +15977,7 @@ part # 89S51
         "AT89S51-24PU: PDIP40, Fmax=24 MHz, T=[-40 C, 85 C], Vcc=[4 V, 5.5 V]";
     prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 372;
-    archnum                = 1;
+    archnum                = -1; # Not 8-bit AVR
     stk500_devcode         = 0xe0;
     chip_erase_delay       = 250000;
     signature              = 0x1e 0x51 0x06;
@@ -18819,6 +18819,7 @@ part # uc3a0512
         "AT32UC3A0512AU-ALUT:  LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]";
     prog_modes             = PM_AVR32JTAG | PM_aWire;
     signature              = 0xed 0xc0 0x3f;
+    archnum                = -1; # Not 8-bit AVR
 
     memory "flash"
         paged              = yes;
