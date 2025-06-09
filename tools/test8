@@ -19,7 +19,7 @@ Options:
   -i <n>     Write human-readable contents seeded by <n> to part and exit
   -r <n>     Write random contents seeded by <n> to part and exit
   -e <exe>   path of the avrdude executable
-  -a <opt>   pass avrdude option <opt> through to avrdude test commands
+  -a <opt>   pass option <opt> to avrdude; no space in <opt>, eg, -Pch340
   -m <mlist> use memory list <mlist> instead of ALL
 
 Examples:
