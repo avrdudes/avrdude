@@ -93,7 +93,7 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 // List of commands; don't add a command starting with e: main.c relies on e expanding to erase
-struct command cmd[] = {
+static const struct command cmd[] = {
   {"dump", cmd_dump, _fo(read_byte_cached), "display a memory section as hex dump"},
   {"read", cmd_dump, _fo(read_byte_cached), "alias for dump"},
   {"disasm", cmd_disasm, _fo(read_byte_cached), "disassemble a memory section"},
@@ -2574,6 +2574,15 @@ static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   return 0;
 }
 
+// Is the i-th command of the cmd[] list available for programmer and part?
+static int is_available(const PROGRAMMER *pgm, const AVRPART *p, int i) {
+  if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+    return 0;
+  if(cmd[i].func == cmd_disasm && p->archnum < 0) // Disasm only covers 8-bit AVRs
+    return 0;
+  return 1;
+}
+
 static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error("Syntax: help\n" "Function: show help message for terminal commands\n");
@@ -2582,7 +2591,7 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   term_out("Valid commands:\n");
   for(int i = 0; i < NCMDS; i++) {
-    if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+    if(!is_available(pgm, p, i))
       continue;
     term_out("  %-7s : ", cmd[i].name);
     term_out(cmd[i].desc, cmd[i].name);
@@ -2756,7 +2765,7 @@ static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char 
   len = strlen(argv[0]);
   matches = 0;
   for(int i = 0; i < NCMDS; i++)
-    if(*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+    if(is_available(pgm, p, i))
       if(len && strncasecmp(argv[0], cmd[i].name, len) == 0) {  // Partial initial match
         hold = i;
         matches++;
@@ -2772,7 +2781,7 @@ static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char 
   pmsg_error("(cmd) command %s is %s", argv[0], matches > 1? "ambiguous": "invalid");
   if(matches > 1)
     for(int ch = ':', i = 0; i < NCMDS; i++)
-      if(*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+      if(is_available(pgm, p, i))
         if(len && strncasecmp(argv[0], cmd[i].name, len) == 0)
           msg_error("%c %s", ch, cmd[i].name), ch = ',';
   msg_error("\n");

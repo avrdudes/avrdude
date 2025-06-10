@@ -172,6 +172,11 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
     updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V5);
     updi_set_datalink_mode(pgm, UPDI_LINK_MODE_24BIT);
     break;
+  case '6':
+    pmsg_notice("NVM type 6: 24-bit, word oriented\n");
+    updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V6);
+    updi_set_datalink_mode(pgm, UPDI_LINK_MODE_24BIT);
+    break;
   default:
     pmsg_warning("unsupported NVM type: %c, please update software\n", sib_info->nvm_version);
     return -1;
@@ -538,16 +543,23 @@ static int serialupdi_write_userrow(const PROGRAMMER *pgm, const AVRPART *p, con
     return -1;
   }
 
-  if(n_bytes <= UPDI_MAX_REPEAT_SIZE) {
-    if(updi_write_data(pgm, m->offset + addr, m->buf + addr, n_bytes) < 0) {
+  unsigned int remaining_bytes = n_bytes;
+  unsigned int addr_offset = 0;
+  unsigned int current_write_size = 0;
+
+  while (remaining_bytes > 0) {
+    if (remaining_bytes <= UPDI_MAX_REPEAT_SIZE) {
+      current_write_size = remaining_bytes;
+    } else {
+      current_write_size = UPDI_MAX_REPEAT_SIZE;
+    }
+    pmsg_debug("Writing %d bytes to address 0x%06x in USERROW", current_write_size, m->offset + addr + addr_offset);
+    if(updi_write_data(pgm, m->offset + addr + addr_offset, m->buf + addr + addr_offset, current_write_size) < 0) {
       pmsg_error("writing USER ROW failed\n");
       return -1;
     }
-  } else {
-    if(updi_write_data_words(pgm, m->offset + addr, m->buf + addr, n_bytes) < 0) {
-      pmsg_error("writing USER ROW failed\n");
-      return -1;
-    }
+    addr_offset+=current_write_size;
+    remaining_bytes-=current_write_size;
   }
 
   if(updi_write_cs(pgm, UPDI_ASI_SYS_CTRLA,

@@ -1016,7 +1016,7 @@ int main(int argc, char *argv[]) {
       "%c%s version %s\n"
       "Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n"
       "Use https://github.com/avrdudes/avrdude/issues to report bugs and ask questions\n",
-      toupper(*progname), *progname? progname+1: "", AVRDUDE_FULL_VERSION
+      toupper((uint8_t) *progname), *progname? progname+1: "", AVRDUDE_FULL_VERSION
     );
     exit(0);
   }

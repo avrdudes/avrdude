@@ -167,6 +167,8 @@ echo -n "Testing $(type -p "$avrdude_bin")"
 $avrdude_bin -v 2>&1 | grep '[vV]ersion' | sed 's/^.* [Vv]ersion//' | head -n1 > "$outfile"
 if test -s "$outfile"; then
     cat "$outfile"
+    rm "$outfile"
+    touch "$outfile"
 else
     echo ": error obtaining version from '$avrdude_bin -v'"
     $avrdude_bin -v

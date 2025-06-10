@@ -47,6 +47,27 @@ const unsigned char EnterProgMode_updi_0[285] = {
   0x7f, 0x01, 0xfb, 0x1d, 0x01, 0x90, 0x01, 0x00, 0x01, 0x00, 0x00, 0x7f, 0x01, 
 };
 
+const unsigned char EnterProgMode_updi_1[288] = {  
+  0x50, 0x9b, 0x00, 0x08, 0x9b, 0x01, 0x00, 0x1e, 0x01, 0x00, 0x01, 0x51, 0xfd, 0x00, 0x00, 0x00, 
+  0x00, 0x16, 0x00, 0xfb, 0xf7, 0x00, 0x94, 0x32, 0x00, 0x94, 0x40, 0x00, 0x9b, 0x00, 0x0b, 0x1e, 
+  0x0e, 0x00, 0x6c, 0x01, 0x66, 0x01, 0x08, 0x00, 0x00, 0x00, 0xfe, 0x01, 0x08, 0x00, 0x00, 0x00, 
+  0x20, 0x01, 0x9b, 0x00, 0x08, 0x9b, 0x01, 0x59, 0x1e, 0x0f, 0x00, 0x01, 0x9b, 0x01, 0x00, 0x65, 
+  0x20, 0x67, 0x6f, 0x72, 0x04, 0x65, 0x50, 0x4d, 0x56, 0x4e, 0x04, 0x1e, 0x11, 0x01, 0x9b, 0x02, 
+  0x07, 0x1e, 0x0e, 0x02, 0x6c, 0x03, 0x66, 0x03, 0x10, 0x00, 0x00, 0x00, 0x9b, 0x04, 0x10, 0xfc, 
+  0x03, 0x04, 0x18, 0x01, 0x9b, 0x00, 0x08, 0x9b, 0x01, 0x59, 0x1e, 0x0f, 0x00, 0x01, 0x9b, 0x01, 
+  0x0b, 0xa2, 0x1e, 0x0e, 0x01, 0xa5, 0x20, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x0a, 0x00, 
+  0x9b, 0x00, 0x08, 0x9b, 0x01, 0x00, 0x1e, 0x0f, 0x00, 0x01, 0x9b, 0x01, 0x0b, 0xa2, 0x1e, 0x0e, 
+  0x01, 0xa5, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x94, 0x48, 0x00, 0x9b, 
+  0x00, 0x0b, 0x1e, 0x0e, 0x00, 0x6c, 0x01, 0x66, 0x01, 0x08, 0x00, 0x00, 0x00, 0xfe, 0x01, 0x08, 
+  0x00, 0x00, 0x00, 0x20, 0x01, 0x94, 0xf4, 0x01, 0x9b, 0x01, 0x0c, 0x1e, 0x0e, 0x01, 0x6c, 0x02, 
+  0x66, 0x02, 0x04, 0x00, 0x00, 0x00, 0xfe, 0x02, 0x04, 0x00, 0x00, 0x00, 0x0d, 0x01, 0x9b, 0x00, 
+  0x0b, 0x1e, 0x0e, 0x00, 0x6c, 0x01, 0x66, 0x01, 0x01, 0x00, 0x00, 0x00, 0xfe, 0x01, 0x01, 0x00, 
+  0x00, 0x00, 0x02, 0x01, 0x6c, 0x01, 0x66, 0x01, 0x02, 0x00, 0x00, 0x00, 0xfe, 0x01, 0x02, 0x00, 
+  0x00, 0x00, 0x02, 0x01, 0xfb, 0x18, 0x01, 0x90, 0x01, 0x1b, 0x00, 0x00, 0x00, 0x7f, 0x01, 0xfb, 
+  0x20, 0x01, 0x90, 0x01, 0x44, 0x00, 0x00, 0x00, 0x7f, 0x01, 0xfb, 0x20, 0x01, 0x90, 0x01, 0x43, 
+  0x00, 0x00, 0x00, 0x7f, 0x01, 0xfb, 0x20, 0x01, 0x90, 0x01, 0x00, 0x01, 0x00, 0x00, 0x7f, 0x01, 
+};
+
 const unsigned char EnterProgModeHvSp_updi_0[330] = {  
   0x50, 0x9b, 0x00, 0x08, 0x9b, 0x01, 0x01, 0x1e, 0x01, 0x00, 0x01, 0x51, 0xfd, 0x54, 0x00, 0x00, 
   0x00, 0x31, 0x01, 0xfd, 0x08, 0x03, 0x00, 0x00, 0x3c, 0x01, 0xfd, 0x09, 0x03, 0x00, 0x00, 0x3f, 
@@ -1033,7 +1054,6 @@ static void pickit_updi_script_init(SCRIPT *scr);
 static void pickit_updi_script_init(SCRIPT *scr) {
   memset(scr, 0x00, sizeof(SCRIPT));  // Make sure everything is NULL
 
-  scr->EnterProgMode = EnterProgMode_updi_0;
   scr->EnterProgModeHvSp = EnterProgModeHvSp_updi_0;
   scr->EnterProgModeHvSpRst = EnterProgModeHvSpRst_updi_0;
   scr->EnterProgModeHvUpt = EnterProgModeHvUpt_updi_0;
@@ -1048,7 +1068,6 @@ static void pickit_updi_script_init(SCRIPT *scr) {
   scr->ReadMem8 = ReadMem8_updi_0;
   scr->ReadSIB = ReadSIB_updi_0;
 
-  scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
   scr->EnterProgModeHvSp_len = sizeof(EnterProgModeHvSp_updi_0);
   scr->EnterProgModeHvSpRst_len = sizeof(EnterProgModeHvSpRst_updi_0);
   scr->EnterProgModeHvUpt_len = sizeof(EnterProgModeHvUpt_updi_0);
@@ -1148,6 +1167,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 42:  /* ATtiny824 */
     case 43:  /* ATtiny826 */
     case 44:  /* ATtiny827 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_0;
@@ -1177,6 +1198,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 5:  /* ATmega4809 */
     case 21:  /* ATtiny3216 */
     case 22:  /* ATtiny3217 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_0;
@@ -1203,6 +1226,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 23:  /* ATtiny3224 */
     case 24:  /* ATtiny3226 */
     case 25:  /* ATtiny3227 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_0;
@@ -1277,6 +1302,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 96:  /* AVR16DB28 */
     case 97:  /* AVR16DB32 */
     case 98:  /* AVR16DB48 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_1;
@@ -1303,6 +1330,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 79:  /* AVR64EA28 */
     case 80:  /* AVR64EA32 */
     case 81:  /* AVR64EA48 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_2;
@@ -1336,6 +1365,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 106:  /* AVR32DU32 */
     case 107:  /* AVR64DU28 */
     case 108:  /* AVR64DU32 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_3;
@@ -1367,6 +1398,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 114:  /* AVR32EA48 */
     case 115:  /* AVR8EA28 */
     case 116:  /* AVR8EA32 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_0;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_0);
       scr->EraseChip = EraseChip_updi_2;
@@ -1398,6 +1431,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 122:  /* AVR32EB32 */
     case 123:  /* AVR32EB14 */
     case 124:  /* AVR32EB20 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_2;
@@ -1427,6 +1462,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 128:  /* AVR64SD28 */
     case 129:  /* AVR64SD32 */
     case 130:  /* AVR64SD48 */
+      scr->EnterProgMode = EnterProgMode_updi_1;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_1);
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_4;
@@ -1453,6 +1490,8 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
     case 131:  /* AVR64EC28 */
     case 132:  /* AVR64EC32 */
     case 133:  /* AVR64EC48 */
+      scr->EnterProgMode = EnterProgMode_updi_0;
+      scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_1;
       scr->GetDeviceID_len = sizeof(GetDeviceID_updi_1);
       scr->EraseChip = EraseChip_updi_2;
