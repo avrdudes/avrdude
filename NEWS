@@ -17,9 +17,33 @@ Changes since version 8.0:
 
   * New programmers supported:
 
-    - pickit5 = pickit5_jtag, pickit5_dw, pickit5_isp, pickit5_pdi, pickit5_tpi
-    - pickit_basic = pickit_basic_jtag, pickit_basic_updi, pickit_basic_isp,
-      pickit_basic_dw, pickit_basic_tpi, pickit_basic_pdi
+    - pickit4_mplab = pickit4_mplab_jtag
+      pickit4_mplab_dw
+      pickit4_mplab_isp
+      pickit4_mplab_pdi
+      pickit4_mplab_tpi
+      pickit4_mplab_updi
+
+    - pickit5 = pickit5_jtag
+      pickit5_dw
+      pickit5_isp
+      pickit5_pdi
+      pickit5_tpi
+
+    - pickit_basic = pickit_basic_jtag = pickit_basic_mplab = pickit_basic_mplab_jtag
+      pickit_basic_dw = pickit_basic_mplab_dw
+      pickit_basic_isp = pickit_basic_mplab_isp
+      pickit_basic_pdi = pickit_basic_mplab_pdi
+      pickit_basic_tpi = pickit_basic_mplab_tpi
+      pickit_basic_updi = pickit_basic_mplab_updi
+
+    - snap_mplab = snap_mplab_jtag
+      snap_mplab_isp
+      snap_mplab_pdi
+      snap_mplab_tpi
+      snap_mplab_updi
+
+    - snap_dw
 
   * New serial adapters supported:
 
@@ -87,6 +111,13 @@ Changes since version 8.0:
     - Extend -c urclock to work with lower baud rates #1993
     - Fix incorrect MPLAB SNAP VID #2000
     - Improve urboot: and disasm #1998
+    - Bug fix for AVR32SD28 USERROW memory write #2014
+    - Draft implementation of NVM v6 #2008
+    - Toughen command-line parsing before auto-erase #2006
+    - Only offer terminal disasm for 8-bit AVRs #2005
+    - Devicepack update #2004
+    - Fix incorrect MPLAB SNAP VID #2000
+    - Provide 8.1 Release candidate #2009
 
   * Internals:
 
