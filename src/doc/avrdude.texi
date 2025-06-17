@@ -208,7 +208,7 @@ do not hold chip select down when a transfer is not occuring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer's SPI controller in the
-event that the chip is running at 5V and the SPI runs at 3.3V. The
+event that the chip is running at 5@w{ }V and the SPI runs at 3.3@w{ }V. The
 GPIO chosen for reset can be configured in the avrdude configuration
 file using the @code{reset} entry under the linuxspi programmer, or
 directly in the port specification. An external pull-up resistor
@@ -238,7 +238,7 @@ A typical programming cable would then look like:
 
 The @code{-P @var{port}} option defaults to
 @code{/dev/spidev0.0:/dev/gpiochip0} for this programmer. And, mind the
-3.3~V voltage level of the Raspberry Pi!
+3.3@w{ }V voltage level of the Raspberry Pi!
 
 @cindex Atmel STK500
 @cindex Atmel JTAG ICE mkI
@@ -909,7 +909,7 @@ Posix systems (by now).
 @cindex @code{--reconnect}
 Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
 for each @code{-r} on the command line and then establishes communication
-with the programmer. This is commonly known as a "1200bps touch", and is
+with the programmer. This is commonly known as a "1200@w{ }bps touch", and is
 used to trigger programming mode for certain boards like Arduino Leonardo,
 Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
 therefore multiple @code{-r} options, are sometimes needed for slower, less
@@ -1894,7 +1894,7 @@ Connection to the PICkit2 programmer:
 The PICkit2 programmer type accepts the following extended parameters:
 @table @code
 @item clockrate=@var{rate}
-Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
+Sets the SPI clocking rate in Hz (default is 100@w{ }kHz). Alternately the -B or -i options can be used to set the period.
 @item timeout=@var{usb-transaction-timeout}
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 @end table
