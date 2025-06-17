@@ -924,12 +924,6 @@ powerful hosts.
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
 
-@item -s, -u
-@cindex Option @code{-s}, @code{-u}
-@cindex @code{-s}, @code{-u}
-These options used to control the obsolete "safemode" feature which
-is no longer present. They are silently ignored for backwards compatibility.
-
 @item -T @var{cmd}
 @cindex Option @code{-T} @var{cmd}
 @cindex @code{-T} @var{cmd}
