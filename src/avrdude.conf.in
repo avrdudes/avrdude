@@ -2913,7 +2913,7 @@ programmer parent "powerdebugger" # powerdebugger_updi
 
 programmer parent "powerdebugger" # powerdebugger_dw
     id                     = "powerdebugger_dw";
-    desc                   = "Atmel PowerDebugger in debugWire mode";
+    desc                   = "Atmel PowerDebugger in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -3043,7 +3043,7 @@ programmer parent "pickit4" # pickit4_tpi
 
 programmer parent "pickit4" # pickit4_dw
     id                     = "pickit4_dw";
-    desc                   = "MPLAB(R) PICkit 4 in debugWire mode";
+    desc                   = "MPLAB(R) PICkit 4 in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
 ;
@@ -3094,7 +3094,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_isp
 
 programmer parent "pickit4_mplab" # pickit4_mplab_dw
     id                     = "pickit4_mplab_dw";
-    desc                   = "MPLAB(R) PICkit 4 in dW mode";
+    desc                   = "MPLAB(R) PICkit 4 in debugWIRE mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3193,7 +3193,7 @@ programmer parent "pickit5" # pickit5_isp
 
 programmer parent "pickit5" # pickit5_dw
     id                     = "pickit5_dw";
-    desc                   = "MPLAB(R) PICkit 5 in dW mode";
+    desc                   = "MPLAB(R) PICkit 5 in debugWIRE mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3288,7 +3288,7 @@ programmer parent "pickit_basic_mplab" # pickit_basic_isp
 
 programmer parent "pickit_basic_mplab" # pickit_basic_dw
     id                     = "pickit_basic_dw", "pickit_basic_mplab_dw";
-    desc                   = "MPLAB(R) PICkit Basic in dW mode";
+    desc                   = "MPLAB(R) PICkit Basic in debugWIRE mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3418,7 +3418,7 @@ programmer parent "snap" # snap_tpi
 
 programmer parent "snap" # snap_dw
     id                     = "snap_dw";
-    desc                   = "MPLAB(R) SNAP in debugWire mode";
+    desc                   = "MPLAB(R) SNAP in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
@@ -3487,7 +3487,7 @@ programmer parent "snap_mplab" # snap_mplab_isp
 
 programmer parent "snap_mplab" # snap_mplab_dw
     id                     = "snap_mplab_dw";
-    desc                   = "MPLAB(R) SNAP in dW mode";
+    desc                   = "MPLAB(R) SNAP in debugWIRE mode";
     prog_modes             = PM_debugWIRE;
 ;
 
