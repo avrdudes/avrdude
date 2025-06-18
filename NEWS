@@ -38,12 +38,15 @@ Changes since version 8.0:
       pickit_basic_updi = pickit_basic_mplab_updi
 
     - snap_mplab = snap_mplab_jtag
+      snap_mplab_dw
       snap_mplab_isp
       snap_mplab_pdi
       snap_mplab_tpi
       snap_mplab_updi
 
     - snap_dw
+
+    - pickit4_dw
 
   * New serial adapters supported:
 
@@ -118,6 +121,8 @@ Changes since version 8.0:
     - Devicepack update #2004
     - Fix incorrect MPLAB SNAP VID #2000
     - Provide 8.1 Release candidate #2009
+    - Disable Python Binding build in Windows CI #2018
+    - Add pickit4_dw and snap_mplab_dw programmers #2019
 
   * Internals:
 
