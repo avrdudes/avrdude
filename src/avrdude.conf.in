@@ -3037,6 +3037,17 @@ programmer parent "pickit4" # pickit4_tpi
     extra_features         = HAS_VTARG_READ;
 ;
 
+#------------------------------------------------------------
+# pickit4_dw
+#------------------------------------------------------------
+
+programmer parent "pickit4" # pickit4_dw
+    id                     = "pickit4_dw";
+    desc                   = "MPLAB(R) PICkit 4 in debugWire mode";
+    type                   = "jtagice3_dw";
+    prog_modes             = PM_debugWIRE;
+;
+
 # End of "Atmel" Mode
 #
 # Begin of "MPLAB" Mode
@@ -3468,6 +3479,16 @@ programmer parent "snap_mplab" # snap_mplab_isp
     id                     = "snap_mplab_isp";
     desc                   = "MPLAB(R) SNAP in ISP mode";
     prog_modes             = PM_ISP;
+;
+
+#------------------------------------------------------------
+# snap_mplab_dw
+#------------------------------------------------------------
+
+programmer parent "snap_mplab" # snap_mplab_dw
+    id                     = "snap_mplab_dw";
+    desc                   = "MPLAB(R) SNAP in dW Mode";
+    prog_modes             = PM_debugWIRE;
 ;
 
 #------------------------------------------------------------
