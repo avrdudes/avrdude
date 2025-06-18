@@ -3482,6 +3482,16 @@ programmer parent "snap_mplab" # snap_mplab_isp
 ;
 
 #------------------------------------------------------------
+# snap_mplab_dw
+#------------------------------------------------------------
+
+programmer parent "snap_mplab" # snap_mplab_dw
+    id                     = "snap_mplab_dw";
+    desc                   = "MPLAB(R) SNAP in dW Mode";
+    prog_modes             = PM_debugWIRE;
+;
+
+#------------------------------------------------------------
 # snap_mplab_tpi
 #------------------------------------------------------------
 
