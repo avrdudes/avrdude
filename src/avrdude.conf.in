@@ -3058,7 +3058,7 @@ programmer parent "pickit4" # pickit4_dw
 
 programmer # pickit4_mplab
     id                     = "pickit4_mplab", "pickit4_mplab_jtag";
-    desc                   = "MPLAB(R) PICkit 4 in JTAG Mode";
+    desc                   = "MPLAB(R) PICkit 4 in JTAG mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
@@ -3073,7 +3073,7 @@ programmer # pickit4_mplab
 
 programmer parent "pickit4_mplab" # pickit4_mplab_updi
     id                     = "pickit4_mplab_updi";
-    desc                   = "MPLAB(R) PICkit 4 in UPDI Mode";
+    desc                   = "MPLAB(R) PICkit 4 in UPDI mode";
     prog_modes             = PM_UPDI;
     hvupdi_support         = 0, 1, 2, 3;
 ;
@@ -3084,7 +3084,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_updi
 
 programmer parent "pickit4_mplab" # pickit4_mplab_isp
     id                     = "pickit4_mplab_isp";
-    desc                   = "MPLAB(R) PICkit 4 in ISP Mode";
+    desc                   = "MPLAB(R) PICkit 4 in ISP mode";
     prog_modes             = PM_ISP;
 ;
 
@@ -3094,7 +3094,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_isp
 
 programmer parent "pickit4_mplab" # pickit4_mplab_dw
     id                     = "pickit4_mplab_dw";
-    desc                   = "MPLAB(R) PICkit 4 in dW Mode";
+    desc                   = "MPLAB(R) PICkit 4 in dW mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3104,7 +3104,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_dw
 
 programmer parent "pickit4_mplab" # pickit4_mplab_tpi
     id                     = "pickit4_mplab_tpi";
-    desc                   = "MPLAB(R) PICkit 4 in TPI Mode";
+    desc                   = "MPLAB(R) PICkit 4 in TPI mode";
     prog_modes             = PM_TPI;
 ;
 
@@ -3114,7 +3114,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_tpi
 
 programmer parent "pickit4_mplab" # pickit4_mplab_pdi
     id                     = "pickit4_mplab_pdi";
-    desc                   = "MPLAB(R) PICkit 4 in PDI Mode";
+    desc                   = "MPLAB(R) PICkit 4 in PDI mode";
     prog_modes             = PM_PDI;
 ;
 
@@ -3157,7 +3157,7 @@ programmer parent "pickit4_mplab" # pickit4_mplab_pdi
 
 programmer # pickit5
     id                     = "pickit5", "pickit5_jtag";
-    desc                   = "MPLAB(R) PICkit 5 in JTAG Mode";
+    desc                   = "MPLAB(R) PICkit 5 in JTAG mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_SWITCH | HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
@@ -3172,7 +3172,7 @@ programmer # pickit5
 
 programmer parent "pickit5" # pickit5_updi
     id                     = "pickit5_updi";
-    desc                   = "MPLAB(R) PICkit 5 in UPDI Mode";
+    desc                   = "MPLAB(R) PICkit 5 in UPDI mode";
     prog_modes             = PM_UPDI;
     hvupdi_support         = 0, 1, 2, 3;
 ;
@@ -3183,7 +3183,7 @@ programmer parent "pickit5" # pickit5_updi
 
 programmer parent "pickit5" # pickit5_isp
     id                     = "pickit5_isp";
-    desc                   = "MPLAB(R) PICkit 5 in ISP Mode";
+    desc                   = "MPLAB(R) PICkit 5 in ISP mode";
     prog_modes             = PM_ISP;
 ;
 
@@ -3193,7 +3193,7 @@ programmer parent "pickit5" # pickit5_isp
 
 programmer parent "pickit5" # pickit5_dw
     id                     = "pickit5_dw";
-    desc                   = "MPLAB(R) PICkit 5 in dW Mode";
+    desc                   = "MPLAB(R) PICkit 5 in dW mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3203,7 +3203,7 @@ programmer parent "pickit5" # pickit5_dw
 
 programmer parent "pickit5" # pickit5_tpi
     id                     = "pickit5_tpi";
-    desc                   = "MPLAB(R) PICkit 5 in TPI Mode";
+    desc                   = "MPLAB(R) PICkit 5 in TPI mode";
     prog_modes             = PM_TPI;
 ;
 
@@ -3213,7 +3213,7 @@ programmer parent "pickit5" # pickit5_tpi
 
 programmer parent "pickit5" # pickit5_pdi
     id                     = "pickit5_pdi";
-    desc                   = "MPLAB(R) PICkit 5 in PDI Mode";
+    desc                   = "MPLAB(R) PICkit 5 in PDI mode";
     prog_modes             = PM_PDI;
 ;
 
@@ -3252,7 +3252,7 @@ programmer parent "pickit5" # pickit5_pdi
 
 programmer # pickit_basic
     id                     = "pickit_basic", "pickit_basic_mplab", "pickit_basic_jtag", "pickit_basic_mplab_jtag";
-    desc                   = "MPLAB(R) PICkit Basic in JTAG Mode";
+    desc                   = "MPLAB(R) PICkit Basic in JTAG mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_BITCLOCK_ADJ; # HAS_VTARG_READ was not working yet
@@ -3267,7 +3267,7 @@ programmer # pickit_basic
 
 programmer parent "pickit_basic_mplab" # pickit_basic_updi
     id                     = "pickit_basic_updi", "pickit_basic_mplab_updi";
-    desc                   = "MPLAB(R) PICkit Basic in UPDI Mode";
+    desc                   = "MPLAB(R) PICkit Basic in UPDI mode";
     prog_modes             = PM_UPDI;
     hvupdi_support         = 1;     # Dedicated reset and updi pin only
 ;
@@ -3278,7 +3278,7 @@ programmer parent "pickit_basic_mplab" # pickit_basic_updi
 
 programmer parent "pickit_basic_mplab" # pickit_basic_isp
     id                     = "pickit_basic_isp", "pickit_basic_mplab_isp";
-    desc                   = "MPLAB(R) PICkit Basic in ISP Mode";
+    desc                   = "MPLAB(R) PICkit Basic in ISP mode";
     prog_modes             = PM_ISP;
 ;
 
@@ -3288,7 +3288,7 @@ programmer parent "pickit_basic_mplab" # pickit_basic_isp
 
 programmer parent "pickit_basic_mplab" # pickit_basic_dw
     id                     = "pickit_basic_dw", "pickit_basic_mplab_dw";
-    desc                   = "MPLAB(R) PICkit Basic in dW Mode";
+    desc                   = "MPLAB(R) PICkit Basic in dW mode";
     prog_modes             = PM_debugWIRE;
 ;
 
@@ -3298,7 +3298,7 @@ programmer parent "pickit_basic_mplab" # pickit_basic_dw
 
 programmer parent "pickit_basic_mplab" # pickit_basic_tpi
     id                     = "pickit_basic_tpi", "pickit_basic_mplab_tpi";
-    desc                   = "MPLAB(R) PICkit Basic in TPI Mode";
+    desc                   = "MPLAB(R) PICkit Basic in TPI mode";
     prog_modes             = PM_TPI;
 ;
 
@@ -3308,7 +3308,7 @@ programmer parent "pickit_basic_mplab" # pickit_basic_tpi
 
 programmer parent "pickit_basic_mplab" # pickit_basic_pdi
     id                     = "pickit_basic_pdi", "pickit_basic_mplab_pdi";
-    desc                   = "MPLAB(R) PICkit Basic in PDI Mode";
+    desc                   = "MPLAB(R) PICkit Basic in PDI mode";
     prog_modes             = PM_PDI;
 ;
 
@@ -3487,7 +3487,7 @@ programmer parent "snap_mplab" # snap_mplab_isp
 
 programmer parent "snap_mplab" # snap_mplab_dw
     id                     = "snap_mplab_dw";
-    desc                   = "MPLAB(R) SNAP in dW Mode";
+    desc                   = "MPLAB(R) SNAP in dW mode";
     prog_modes             = PM_debugWIRE;
 ;
 
