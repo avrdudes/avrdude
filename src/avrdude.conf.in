@@ -3037,6 +3037,17 @@ programmer parent "pickit4" # pickit4_tpi
     extra_features         = HAS_VTARG_READ;
 ;
 
+#------------------------------------------------------------
+# pickit4_dw
+#------------------------------------------------------------
+
+programmer parent "pickit4" # pickit4_dw
+    id                     = "pickit4_dw";
+    desc                   = "MPLAB(R) PICkit 4 in debugWire mode";
+    type                   = "jtagice3_dw";
+    prog_modes             = PM_debugWIRE;
+;
+
 # End of "Atmel" Mode
 #
 # Begin of "MPLAB" Mode
