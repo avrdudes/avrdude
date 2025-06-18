@@ -202,10 +202,10 @@ result () {
   eval "$@" && ret=0 || ret=1
   if [[ $list_only -eq 0 ]]; then
     if [[ $ret -eq 0 ]]; then
-      echo ✅ "$(printf '%7.3f s' $elapsed): $specify"
-      bench_t=$(printf '%5.2f s' $elapsed)
+      echo ✅ "$(LC_ALL=C printf '%7.3f s' $elapsed): $specify"
+      bench_t=$(LC_ALL=C printf '%5.2f s' $elapsed)
     else
-      echo ❌ "$(printf '%7.3f s' $elapsed): $specify (failed command below)"
+      echo ❌ "$(LC_ALL=C printf '%7.3f s' $elapsed): $specify (failed command below)"
       echo "\$ ${command[@]}" | sed "s/ -l [^ ]* / /" | tr -s " "
       fail=true
       bench_char="❌"
