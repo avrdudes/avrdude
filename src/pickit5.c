@@ -1637,6 +1637,10 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
     pmsg_error("failed to start fuse write operation(%d)\n", my.rxBuf[24]);
     return -1;
   }
+
+  /* fix slow AVRs without write status polling. Performance impact shouldn't be
+   * noticable, as it's just for fuse writes and less then 10ms */
+  usleep(mem->min_write_delay); 
   return 1;
 }
 
@@ -1651,7 +1655,7 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
   unsigned char read_fuse_isp [] = {    // As we pull the command from avrdude's conf file, this isn't limited to fuses
     0x90, 0x00, 0x32, 0x00, 0x00, 0x00, // load 0x32 to r00
     0x1E, 0x37, 0x00,                   // Enable Programming?
-    //0x9F,                               // Send status from temp_reg to host
+    0x9F,                               // Send status from temp_reg to host
     0xA8, 0x00, 0x00, 0x00, 0x00,       // ???
     0x90, 0x01, (cmd >> 24), (cmd >> 16), (cmd >> 8), cmd, // load programming command to r01 (swapped bitorder)
     0x9B, 0x02, 0x03,                   // Load 0x03 to r02
@@ -1671,15 +1675,15 @@ static int pickit5_isp_read_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsig
     pmsg_error("read fuse script failed\n");
     return -1;
   }
-  if(0x01 != my.rxBuf[20]) {    // Length
+  if(0x02 != my.rxBuf[20]) {    // Length
     pmsg_error("unexpected amount (%d) of bytes returned\n", my.rxBuf[20]);
     return -1;
   }
-  //if(0x00 != my.rxBuf[24]) {
-  //  pmsg_error("failed to start fuse read operation (%d)\n", my.rxBuf[24]);
-  //  return -1;
-  //}
-  *value = my.rxBuf[24];        // Return value
+  if(0x00 != my.rxBuf[24]) {
+    pmsg_error("failed to start fuse read operation (%d)\n", my.rxBuf[24]);
+    return -1;
+  }
+  *value = my.rxBuf[25];        // Return value
   return 1;
 }
 
