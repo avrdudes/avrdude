@@ -331,7 +331,10 @@ jobs:
           - { arch: x64, platform: x64 }
           - { arch: arm64, platform: ARM64 }
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+             python-version: '3.13' 
       - name: Install prerequisites
         # As Chocolatey is notoriously unreliable, install winflexbison3 directly from GitHub.
         # run: choco install winflexbison3
@@ -426,6 +429,7 @@ jobs:
           -G"MSYS Makefiles"
           -D DEBUG_CMAKE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -D SWIG_EXECUTABLE=SWIG_EXECUTABLE-NOTFOUND
           -B build
       - name: Build
         run: cmake --build build
