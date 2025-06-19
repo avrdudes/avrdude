@@ -1639,8 +1639,12 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
   }
 
   /* fix slow AVRs without write status polling. Performance impact shouldn't be
-   * noticable, as it's just for fuse writes and less then 10ms */
-  usleep(mem->min_write_delay); 
+   * noticable, as it's just for fuse writes and less then 10ms per fuse 
+   */
+  int delay = mem->min_write_delay;
+  if (delay > 0) {
+    usleep(delay); 
+  }
   return 1;
 }
 
