@@ -7855,9 +7855,12 @@ part parent "pwm3" # pwm3b
     desc                   = "AT90PWM3B";
     id                     = "pwm3b";
     variants               =
-        "AT90PWM3B:       N/A,   Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3B-16MU:  QFN32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "AT90PWM3B-16MUR: QFN32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
+        "AT90PWM3B:       N/A,    Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16ME:  QFN32,  Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16MU:  QFN32,  Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16MUR: QFN32,  Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16SE:  SOIC32, Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
+        "AT90PWM3B-16SU:  SOIC32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 170;
     signature              = 0x1e 0x93 0x83;
 ;
@@ -12180,11 +12183,11 @@ part parent "m325" # m325a
         "ATmega325A-AN:  TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega325A-ANR: TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega325A-AU:  TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-AUR: TQFP64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325A-AUR: TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega325A-MN:  VQFN64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega325A-MNR: VQFN64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega325A-MU:  QFN64,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325A-MUR: VQFN64, Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]";
+        "ATmega325A-MUR: VQFN64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 115;
 ;
 
@@ -12196,11 +12199,15 @@ part parent "m325" # m325pa
     desc                   = "ATmega325PA";
     id                     = "m325pa";
     variants               =
-        "ATmega325PA:     N/A,    Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-AU:  TQFP64, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-AUR: TQFP64, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-MU:  VQFN64, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
-        "ATmega325PA-MUR: VQFN64, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]";
+        "ATmega325PA:     N/A,    Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-AN:  TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-ANR: TQFP64, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-AU:  TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-AUR: TQFP64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-MN:  QFN64,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-MNR: QFN64,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-MU:  VQFN64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega325PA-MUR: VQFN64, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 117;
     signature              = 0x1e 0x95 0x0d;
 ;
@@ -18839,8 +18846,8 @@ part # uc3a0512
         "AT32UC3A0512AU-ALTRA: LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
         "AT32UC3A0512AU-ALUT:  LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]";
     prog_modes             = PM_AVR32JTAG | PM_aWire;
-    signature              = 0xed 0xc0 0x3f;
     archnum                = -1; # Not 8-bit AVR
+    signature              = 0xed 0xc0 0x3f;
 
     memory "flash"
         paged              = yes;
