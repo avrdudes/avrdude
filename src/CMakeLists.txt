@@ -384,7 +384,7 @@ if(HAVE_SWIG)
   )
   target_link_libraries(swig_avrdude
     PRIVATE
-    Python::Python
+    Python3::Python
     ${LIB_MATH}
     ${LIB_LIBELF}
     ${LIB_LIBUSB}

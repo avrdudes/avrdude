@@ -282,14 +282,24 @@ endif()
 
 # -------------------------------------
 # Find SWIG
-find_package(Python COMPONENTS Interpreter Development)
+find_package(Python3 COMPONENTS Interpreter Development)
+if(PYTHON3_FOUND)
+    message(STATUS "Python 3 Version: ${Python3_VERSION}")
+    message(STATUS "Python 3 Include Dirs: ${Python3_INCLUDE_DIRS}")
+    message(STATUS "Python 3 Libraries: ${Python3_LIBRARIES}")
+
+    # For SWIG
+    set(Python_VERSION "${Python3_VERSION}")
+    set(Python_INCLUDE_DIRS "${Python3_INCLUDE_DIRS}")
+    set(Python_LIBRARIES "${Python3_LIBRARIES}")
+    set(Python_VERSION_MAJOR "${Python3_VERSION_MAJOR}")
+    set(Python_VERSION_MINOR "${Python3_VERSION_MINOR}")
+    set(Python_VERSION_PATCH "${Python3_VERSION_PATCH}")
+endif()
+
 find_package(SWIG 4.0 COMPONENTS python)
 if(SWIG_FOUND)
-  if(PYTHON_FOUND)
-    message(STATUS "Python Version: ${Python_VERSION}")
-    message(STATUS "Python Include Dir: ${Python_INCLUDE_DIRS}")
-    message(STATUS "Python Library Dirs: ${Python_LIBRARY_DIRS}")
-    message(STATUS "Python Libraries: ${Python_LIBRARIES}")
+  if(PYTHON3_FOUND)
     set(HAVE_SWIG 1)
   else()
     message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")
