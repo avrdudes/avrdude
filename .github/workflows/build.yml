@@ -325,6 +325,7 @@ jobs:
   msvc:
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { arch: x86, platform: Win32 }
