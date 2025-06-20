@@ -1629,7 +1629,7 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
     pmsg_error("write fuse script failed\n");
     return -1;
   }
-  if(0x01 != my.rxBuf[20]) {      // Length
+  if(0x01 != my.rxBuf[20]) {    // Length
     pmsg_error("write fuse script did not receive a status response\n");
     return -1;
   }
@@ -1637,6 +1637,12 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
     pmsg_error("failed to start fuse write operation(%d)\n", my.rxBuf[24]);
     return -1;
   }
+
+  // Support slow AVRs without write status polling (won't affect performance)
+  int delay = mem->min_write_delay;
+  if (delay > 0)
+    usleep(delay); 
+
   return 1;
 }
 

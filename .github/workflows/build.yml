@@ -43,6 +43,7 @@ jobs:
           build-essential
           automake
           libtool
+          pkg-config
           flex
           bison
           libelf-dev
@@ -95,6 +96,7 @@ jobs:
           sudo apt-get install -y
           build-essential
           cmake
+          pkg-config
           flex
           bison
           libelf-dev
@@ -167,6 +169,7 @@ jobs:
           apt-get install -y
           git
           cmake
+          pkg-config
           flex
           bison
           crossbuild-essential-${{matrix.arch}}
@@ -229,6 +232,7 @@ jobs:
           cmake
           flex
           bison
+          swig
           libelf
           libusb
           libusb-compat
