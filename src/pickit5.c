@@ -1637,6 +1637,14 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
     pmsg_error("failed to start fuse write operation(%d)\n", my.rxBuf[24]);
     return -1;
   }
+
+  /* fix slow AVRs without write status polling. Performance impact shouldn't be
+   * noticable, as it's just for fuse writes and less then 10ms per fuse 
+   */
+  int delay = mem->min_write_delay;
+  if (delay > 0) {
+    usleep(delay); 
+  }
   return 1;
 }
 
