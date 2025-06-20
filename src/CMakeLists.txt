@@ -376,7 +376,6 @@ if(HAVE_SWIG)
   swig_add_library(swig_avrdude LANGUAGE Python SOURCES libavrdude.i ${SOURCES})
   target_include_directories(swig_avrdude
     PUBLIC
-    "${Python3_INCLUDE_DIRS}"
     "${PROJECT_SOURCE_DIR}"
     "${PROJECT_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -397,8 +396,8 @@ if(HAVE_SWIG)
     ${LIB_LIBSERIALPORT}
     ${LIB_NCURSES}
     ${LIB_LIBGPIOD}
-    ${Python3_LIBRARIES}
     ${EXTRA_WINDOWS_LIBRARIES}
+    Python3::Python
     )
 endif()
 
