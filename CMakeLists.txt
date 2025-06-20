@@ -282,9 +282,9 @@ endif()
 
 # -------------------------------------
 # Find SWIG
+find_package(Python3 COMPONENTS Interpreter Development)
 find_package(SWIG 4.0 COMPONENTS python)
 if(SWIG_FOUND)
-  find_package(Python3 COMPONENTS Interpreter Development)
   if(PYTHON3_FOUND)
     message(STATUS "Python 3 Version: ${Python3_VERSION}")
     message(STATUS "Python 3 Include Dir: ${Python3_INCLUDE_DIRS}")
