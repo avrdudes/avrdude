@@ -12,7 +12,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.44
- * 05.06.2025
+ * 20.06.2025
  *
  */
 
@@ -2890,7 +2890,7 @@ extern const Register_file   rgftab_avr16ea28[444];
 #define rgftab_avr64ea28     rgftab_avr16ea28
 #define rgftab_avr64ea32     rgftab_avr16ea28
 
-extern const Register_file   rgftab_avr32sd20[543];
+extern const Register_file   rgftab_avr32sd20[540];
 
 extern const Register_file   rgftab_avr32da28[432];
 #define rgftab_avr32da28s    rgftab_avr32da28
@@ -2900,7 +2900,7 @@ extern const Register_file   rgftab_avr32da28[432];
 extern const Register_file   rgftab_avr32db28[461];
 #define rgftab_avr64db28     rgftab_avr32db28
 
-extern const Register_file   rgftab_avr32sd28[562];
+extern const Register_file   rgftab_avr32sd28[559];
 
 extern const Register_file   rgftab_avr32da32[447];
 #define rgftab_avr32da32s    rgftab_avr32da32
@@ -2910,7 +2910,7 @@ extern const Register_file   rgftab_avr32da32[447];
 extern const Register_file   rgftab_avr32db32[476];
 #define rgftab_avr64db32     rgftab_avr32db32
 
-extern const Register_file   rgftab_avr32sd32[577];
+extern const Register_file   rgftab_avr32sd32[575];
 
 extern const Register_file   rgftab_avr32da48[610];
 #define rgftab_avr32da48s    rgftab_avr32da48
