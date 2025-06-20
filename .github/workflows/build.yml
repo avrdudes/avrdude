@@ -336,7 +336,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
              python-version: '3.13'
-             architecture: ${{matrix.arch}}
       - name: Install prerequisites
         # As Chocolatey is notoriously unreliable, install winflexbison3 directly from GitHub.
         # run: choco install winflexbison3

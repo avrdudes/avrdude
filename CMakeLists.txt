@@ -290,12 +290,6 @@ if(SWIG_FOUND)
     message(STATUS "Python 3 Include Dir: ${Python3_INCLUDE_DIRS}")
     message(STATUS "Python 3 Library Dirs: ${Python3_LIBRARY_DIRS}")
     message(STATUS "Python 3 Libraries: ${Python3_LIBRARIES}")
-
-    file(GLOB DEBUG_PYTHON_LIBS_ITEMS "${Python3_LIBRARY_DIRS}/*")
-    foreach(ITEM IN LISTS DEBUG_PYTHON_LIBS_ITEMS)
-        message("  !! Debug:  - ${ITEM}")
-    endforeach()
-
     set(HAVE_SWIG 1)
   else()
     message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")

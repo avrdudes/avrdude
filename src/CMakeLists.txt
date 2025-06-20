@@ -382,8 +382,22 @@ if(HAVE_SWIG)
     "${LIBUSB_COMPAT_DIR}"
     ${EXTRA_WINDOWS_INCLUDES}
   )
+  message(" !!! Debug: LIB_MATH: ${LIB_MATH}")
+  message(" !!! Debug: LIB_LIBELF: ${LIB_LIBELF}")
+  message(" !!! Debug: LIB_LIBUSB: ${LIB_LIBUSB}")
+  message(" !!! Debug: LIB_LIBUSB_1_0: ${LIB_LIBUSB_1_0}")
+  message(" !!! Debug: LIB_LIBHID: ${LIB_LIBHID}")
+  message(" !!! Debug: LIB_LIBHIDAPI: ${LIB_LIBHIDAPI}")
+  message(" !!! Debug: LIB_LIBFTDI: ${LIB_LIBFTDI}")
+  message(" !!! Debug: LIB_LIBFTDI1: ${LIB_LIBFTDI1}")
+  message(" !!! Debug: LIB_LIBREADLINE: ${LIB_LIBREADLINE}")
+  message(" !!! Debug: LIB_LIBSERIALPORT: ${LIB_LIBSERIALPORT}")
+  message(" !!! Debug: LIB_NCURSES: ${LIB_NCURSES}")
+  message(" !!! Debug: LIB_LIBGPIOD: ${LIB_LIBGPIOD}")
+  message(" !!! Debug: EXTRA_WINDOWS_LIBRARIES: ${EXTRA_WINDOWS_LIBRARIES}")
   target_link_libraries(swig_avrdude
     PRIVATE
+    Python3::Python
     ${LIB_MATH}
     ${LIB_LIBELF}
     ${LIB_LIBUSB}
@@ -397,7 +411,6 @@ if(HAVE_SWIG)
     ${LIB_NCURSES}
     ${LIB_LIBGPIOD}
     ${EXTRA_WINDOWS_LIBRARIES}
-    Python3::Python
     )
 endif()
 
