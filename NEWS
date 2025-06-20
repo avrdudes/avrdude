@@ -123,6 +123,11 @@ Changes since version 8.0:
     - Provide 8.1 Release candidate #2009
     - Disable Python Binding build in Windows CI #2018
     - Add pickit4_dw and snap_mplab_dw programmers #2019
+    - Use bash printf with C locale #2020
+    - Add delay after ISP fuse writes readback #2021
+    - Update from device packs #2023
+    - Enable macOS Python binding build #2025
+    - Add pkg-config as a Linux build dependency #2026
 
   * Internals:
 
