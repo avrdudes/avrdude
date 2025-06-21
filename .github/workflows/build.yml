@@ -391,6 +391,10 @@ jobs:
             build/src/avrdude.exe
             build/src/avrdude.pdb
             build/src/avrdude.conf
+            build/src/_swig_avrdude.pyd
+            build/src/swig_avrdude.py
+            build/src/windows.rc
+            build/src/avrdude-gui.bat
 
   mingw:
     runs-on: windows-latest
