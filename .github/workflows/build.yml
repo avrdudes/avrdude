@@ -383,6 +383,7 @@ jobs:
         run: |
           mv build/src/${{env.BUILD_TYPE}}/avrdude.exe build/src
           mv build/src/${{env.BUILD_TYPE}}/avrdude.pdb build/src
+          mv build/src/${{env.BUILD_TYPE}}/_swig_avrdude.pyd build/src
       - name: Archive executables
         uses: actions/upload-artifact@v4
         with:
