@@ -218,7 +218,7 @@ jobs:
             build/src/avrdude
             build/src/avrdude.conf
 
-  macos-x86_64:
+  macos-arm64:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -265,7 +265,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-macos-x86_64
+          name: build-macos-arm64
           path: |
             build/
             !**/*.d
@@ -273,12 +273,12 @@ jobs:
       - name: Archive executables
         uses: actions/upload-artifact@v4
         with:
-          name: avrdude-macos-x86_64
+          name: avrdude-macos-arm64
           path: |
             build/src/avrdude
             build/src/avrdude.conf
 
-  macos-x86_64-autotools:
+  macos-arm64-autotools:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
