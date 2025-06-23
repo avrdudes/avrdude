@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on June 23, 2025 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: A.1.4.2 Linux USB Permissions</title>
+
+<meta name="description" content="AVRDUDE: A.1.4.2 Linux USB Permissions">
+<meta name="keywords" content="AVRDUDE: A.1.4.2 Linux USB Permissions">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Linux-USB-Permissions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_33.html#FreeBSD-USB-Permissions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_35.html#Unix-Documentation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_25.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_32.html#Unix-USB-Permissions" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_44.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="Linux-USB-Permissions-1"></a>
+<h4 class="subsubsection">A.1.4.2 Linux USB Permissions</h4>
+<a name="index-Linux-USB-permissions"></a>
+<a name="index-USB-permissions-2"></a>
+
+<p>Linux has a special userspace <code>/dev</code> device manager called udev that
+deals with, amongst other things, plug-and-play USB devices. It is
+recommended to specify so-called udev rules to define access permissions
+for these devices instead. These rules typically reside in a file with the
+name <var>nn</var><code>-</code><var>descriptive-name</var><code>.rules</code> in the directory
+<code>/etc/udev/rules.d</code>. Here, <var>nn</var> is a two-digit number that
+determines the lexical order in which the udev rule files are processed.
+Rules processed later can overwrite earlier rules, but it not recommended
+to put user-generated rules higher than 60, as some of the actions they
+require are processed by higher-level system rules.
+</p>
+<p>Here a typical udev rule for allowing an ordinary user access to the
+plugged-in AVRISP mkII programmer (product ID 0x2104) by Atmel (vendor ID
+0x0eb):
+</p>
+<table><tr><td>&nbsp;</td><td><table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;03eb&quot;, ATTRS{idProduct}==&quot;2104&quot;, \
+  MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+</pre></td></tr></table>
+</td></tr></table>
+
+<p>This furnishes the corresponding device node with <code>0660</code>
+access permissions: this means r/w for the user <code>root</code> and any user
+belonging to the group of the device, which the device driver might assign
+to a different group than the default <code>root</code>. The key of the rule is
+the attached <code>TAG</code> named <code>uaccess</code>, which has the effect that
+the login daemon applies a dynamic user access control list to the device
+node making the device usable for the currently logged-in user. When used
+in anger, udev rules must appear on one line; above example was broken
+into two lines so it fits into the example box.
+</p>
+<p>AVRDUDE&rsquo;s developer option <code>-c </code><var>programmer</var><code>/u</code> will show
+above suggested udev rule for the named programmer. Wildcards are allowed:
+</p>
+<table><tr><td>&nbsp;</td><td><table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">$ avrdude -c jtag\*/u
+
+1. Examine the suggested udev rules below; to install run:
+
+avrdude -c &quot;jtag*/u&quot; | tail -n +11 | sudo tee /etc/udev/rules.d/55-avrdude-jtagX.rules
+sudo chmod 0644 /etc/udev/rules.d/55-avrdude-jtagX.rules
+
+2. Unplug any AVRDUDE USB programmers and plug them in again
+3. Enjoy user access to the USB programmer(s)
+
+Note: To install all udev rules known to AVRDUDE follow: avrdude -c &quot;*/u&quot; | more
+
+# Generated from avrdude -c &quot;jtag*/u&quot;
+
+ACTION!=&quot;add|change&quot;, GOTO=&quot;avrdude_end&quot;
+
+# jtag2dw, jtag2fast, jtag2, jtag2isp, jtag2pdi, jtag2slow, jtagmkII, jtag2avr32
+SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;03eb&quot;, ATTRS{idProduct}==&quot;2103&quot;, \
+  MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+
+# jtag3, jtag3dw, jtag3isp, jtag3pdi, jtag3updi
+SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;03eb&quot;, ATTRS{idProduct}==&quot;2110&quot;, \
+  MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+KERNEL==&quot;hidraw*&quot;, SUBSYSTEM==&quot;hidraw&quot;, ATTRS{idVendor}==&quot;03eb&quot;, \
+  ATTRS{idProduct}==&quot;2110&quot;, MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;03eb&quot;, ATTRS{idProduct}==&quot;2140&quot;, \
+  MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+KERNEL==&quot;hidraw*&quot;, SUBSYSTEM==&quot;hidraw&quot;, ATTRS{idVendor}==&quot;03eb&quot;, \
+  ATTRS{idProduct}==&quot;2140&quot;, MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+
+# jtagkey
+SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;0403&quot;, ATTRS{idProduct}==&quot;cff8&quot;, \
+  MODE=&quot;0660&quot;, TAG+=&quot;uaccess&quot;
+</pre></td></tr></table>
+</td></tr></table>
+
+<a name="index-USB-permissions-3"></a>
+<p>Again, each rule must be written as one line: breaking up rules
+into two lines was only done to fit AVRDUDE&rsquo;s output to the boxed display.
+USB devices in HID mode require a second rule dealing with the
+<code>hidraw</code> subsystem as seen above.
+</p>
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_33.html#FreeBSD-USB-Permissions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_35.html#Unix-Documentation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_25.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_32.html#Unix-USB-Permissions" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_44.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>June 23, 2025</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 1.82</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on June 23, 2025 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: E.3 Modern AVR Parts</title>
+
+<meta name="description" content="AVRDUDE: E.3 Modern AVR Parts">
+<meta name="keywords" content="AVRDUDE: E.3 Modern AVR Parts">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Modern-AVR-Parts"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_49.html#ATxmegas" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_47.html#List-of-Memories" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_47.html#List-of-Memories" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="Modern-AVR-Parts-1"></a>
+<h2 class="section">E.3 Modern AVR Parts</h2>
+<a name="index-Memories-of-modern-AVR-parts"></a>
+
+<a name="index-signature-7"></a>
+<a name="index-flash-48"></a>
+<a name="index-eeprom-18"></a>
+<p>Modern 8-bit AVR devices have the following memories in addition to
+<code>eeprom</code>, <code>flash</code>, <code>signature</code> and <code>lock</code>:
+</p><dl compact="compact">
+<dd><a name="index-wdtcfg"></a>
+</dd>
+<dt> <code>fuse0</code></dt>
+<dd><p>A.k.a. <code>wdtcfg</code>: watchdog configuration
+<a name="index-bodcfg"></a>
+</p></dd>
+<dt> <code>fuse1</code></dt>
+<dd><p>A.k.a. <code>bodcfg</code>: brownout detection configuration
+<a name="index-osccfg"></a>
+</p></dd>
+<dt> <code>fuse2</code></dt>
+<dd><p>A.k.a. <code>osccfg</code>: oscillator configuration
+<a name="index-tcd0cfg"></a>
+</p></dd>
+<dt> <code>fuse4</code></dt>
+<dd><p>A.k.a. <code>tcd0cfg</code> (not all devices): timer counter type D configuration
+<a name="index-syscfg0"></a>
+</p></dd>
+<dt> <code>fuse5</code></dt>
+<dd><p>A.k.a. <code>syscfg0</code>: system configuration 0
+<a name="index-syscfg1"></a>
+</p></dd>
+<dt> <code>fuse6</code></dt>
+<dd><p>A.k.a. <code>syscfg1</code>: system configuration 1
+<a name="index-append"></a>
+<a name="index-codesize"></a>
+</p></dd>
+<dt> <code>fuse7</code></dt>
+<dd><p>A.k.a. <code>append</code> or <code>codesize</code>: either the end of the application code section or the code size in blocks of 256/512 bytes
+<a name="index-bootend"></a>
+<a name="index-bootsize"></a>
+</p></dd>
+<dt> <code>fuse8</code></dt>
+<dd><p>A.k.a. <code>bootend</code> or <code>bootsize</code>: end of the boot section or the boot size in blocks of 256/512 bytes
+<a name="index-pdicfg"></a>
+</p></dd>
+<dt> <code>fusea</code></dt>
+<dd><p>A.k.a. <code>pdicfg</code>: configures/locks updi access; it is the only fuse that consists of two bytes
+<a name="index-fuses-1"></a>
+</p></dd>
+<dt> <code>fuses</code></dt>
+<dd><p>A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
+<a name="index-osc16err"></a>
+</p></dd>
+<dt> <code>osc16err</code></dt>
+<dd><p>Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+<a name="index-osc20err"></a>
+</p></dd>
+<dt> <code>osc20err</code></dt>
+<dd><p>Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+<a name="index-osccal16"></a>
+</p></dd>
+<dt> <code>osccal16</code></dt>
+<dd><a name="index-calibration-6"></a>
+<p>Two oscillator calibration bytes for 16 MHz
+<a name="index-osccal20"></a>
+</p></dd>
+<dt> <code>osccal20</code></dt>
+<dd><a name="index-calibration-7"></a>
+<p>Two oscillator calibration bytes for 20 MHz
+<a name="index-prodsig-1"></a>
+</p></dd>
+<dt> <code>prodsig</code></dt>
+<dd><a name="index-signature-8"></a>
+<p>Read-only memory section for factory programmed data such as the
+signature, calibration values and serial number
+<a name="index-sigrow-1"></a>
+</p></dd>
+<dt> <code>sigrow</code></dt>
+<dd><p>Memory alias for prodsig
+<a name="index-sernum-1"></a>
+</p></dd>
+<dt> <code>sernum</code></dt>
+<dd><p>Serial number with a unique ID for the part (10 or 16 bytes)
+<a name="index-tempsense-1"></a>
+</p></dd>
+<dt> <code>tempsense</code></dt>
+<dd><a name="index-calibration-8"></a>
+<p>Temperature sensor calibration values
+<a name="index-bootrow-3"></a>
+</p></dd>
+<dt> <code>bootrow</code></dt>
+<dd><p>Extra page of memory that is only accessible by the MCU in bootloader
+code; UDPI can read and write this memory only when the device is
+unlocked
+<a name="index-eeprom-19"></a>
+<a name="index-userrow"></a>
+</p></dd>
+<dt> <code>userrow</code></dt>
+<dd><p>Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
+<a name="index-sib"></a>
+</p></dd>
+<dt> <code>sib</code></dt>
+<dd><p>Special system information block memory with information about AVR family, chip revision etc.
+<a name="index-io-1"></a>
+</p></dd>
+<dt> <code>io</code></dt>
+<dd><p>Volatile register memory; AVRDUDE can program this memory but this is of
+limited utility because anything written to the io memory will be undefined or
+lost after reset; writing to individual registers in the terminal can
+still be used, e.g., to test I/O ports
+<a name="index-sram-1"></a>
+</p></dd>
+<dt> <code>sram</code></dt>
+<dd><p>Volatile RAM memory; can be read and written but contents will be lost after reset
+</p></dd>
+</dl>
+
+
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_49.html#ATxmegas" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_47.html#List-of-Memories" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_47.html#List-of-Memories" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>June 23, 2025</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 1.82</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

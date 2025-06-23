@@ -1,0 +1,817 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on June 23, 2025 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 2.1 Option Descriptions</title>
+
+<meta name="description" content="AVRDUDE: 2.1 Option Descriptions">
+<meta name="keywords" content="AVRDUDE: 2.1 Option Descriptions">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Option-Descriptions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_5.html#Programmers-Accepting-Exitspec-Parameter" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="index-Options-_0028command_002dline_0029"></a>
+<a name="Option-Descriptions-1"></a>
+<h2 class="section">2.1 Option Descriptions</h2>
+<a name="index-Option-descriptions"></a>
+
+<p>AVRDUDE is a command line tool, used as follows:
+</p>
+<table><tr><td>&nbsp;</td><td><pre class="smallexample">avrdude -p partname <var>options</var> &hellip;
+</pre></td></tr></table>
+
+<p>Command line options are used to control AVRDUDE&rsquo;s behaviour.  The
+following options are recognized:
+</p>
+<dl compact="compact">
+<dt> <code>-p <var>partname</var></code></dt>
+<dt> <code>--part <var>partname</var></code></dt>
+<dd><a name="index-Option-_002dp-partname"></a>
+<a name="index-Option-_002d_002dpart-partname"></a>
+<a name="index-_002dp-partname"></a>
+<a name="index-_002d_002dpart-partname"></a>
+<p>This option tells AVRDUDE what part (MCU) is connected to the programmer.
+The <var>partname</var> parameter is the part&rsquo;s id listed in the configuration
+file. To see a list of currently supported MCUs use <code>?</code> as partname,
+which will, for each part, print its id; its official part name;
+alternative names, if any; and the list of available programming
+interfaces. Depending on the used shell, <code>?</code> may need to be quoted
+as in <code>&quot;?&quot;</code> or <code>\?</code>. In connection with <code>-v</code>, this will
+also print a table of variant part names with the package code and some
+absolute maximum ratings. The part id, their official part name, the
+listed alternative names or any of the full variant part names can be used
+to specify a part with the <code>-p</code> option. If a part is unknown to
+AVRDUDE, it means that there is no config file entry for that part, but it
+can be added to the configuration file if you have the Atmel datasheet so
+that you can enter the programming specifications. If <code>-p ?</code> is
+specified with a specific programmer, see <code>-c</code> below, then only those
+parts are output that the programmer expects to be able to handle,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. See <a href="avrdude_46.html#List-of-Parts">List of Parts</a> for a full and detailed listing of supported parts.
+</p>
+</dd>
+<dt> <code>-p <var>wildcard/flags</var></code></dt>
+<dt> <code>--part <var>wildcard/flags</var></code></dt>
+<dd><a name="index-Option-_002dp-wildcard_002fflags"></a>
+<a name="index-Option-_002d_002dpart-wildcard_002fflags"></a>
+<a name="index-_002dp-wildcard_002fflags"></a>
+<a name="index-_002d_002dpart-wildcard_002fflags"></a>
+<p>Run developer options for MCUs that are matched by <var>wildcard</var>. Whilst
+their main use is for developers some <var>flags</var> can be of utility for
+users, e.g.,  <code>avrdude -p m328p/S</code> outputs AVRDUDE&rsquo;s understanding of
+ATmega328P MCU properties; for more information run <code>avrdude -p x/h</code>.
+</p>
+</dd>
+<dt> <code>-b <var>baudrate</var></code></dt>
+<dt> <code>--baud <var>baudrate</var></code></dt>
+<dd><a name="index-Option-_002db-baudrate"></a>
+<a name="index-Option-_002d_002dbaud-baudrate"></a>
+<a name="index-_002db-baudrate"></a>
+<a name="index-_002d_002dbaud-baudrate"></a>
+<p>Override the RS-232 connection baud rate specified in the respective
+programmer&rsquo;s <code>baudrate</code> entry of the configuration file
+or defined by the <code>default_baudrate</code> entry in your
+<code>~/.config/avrdude/avrdude.rc</code> or <code>~/.avrduderc</code> configuration
+file if no <code>baudrate</code> entry was provided for this programmer.
+</p>
+</dd>
+<dt> <code>-B <var>bitclock</var></code></dt>
+<dt> <code>--bitclock <var>bitclock</var></code></dt>
+<dd><a name="index-Option-_002dB-bitclock"></a>
+<a name="index-Option-_002d_002dbitclock-bitclock"></a>
+<a name="index-_002dB-bitclock"></a>
+<a name="index-_002d_002dbitclock-bitclock"></a>
+<p>Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
+interface. The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with Hz, kHz or
+MHz in order to specify the bit clock frequency rather than a
+period. Some programmers default their bit clock value to a 1
+microsecond bit clock period, suitable for target MCUs running at 4
+MHz clock and above. Slower MCUs need a correspondingly higher bit
+clock period. Some programmers reset their bit clock value to the
+default value when the programming software signs off, whilst
+others store the last used bit clock value. It is recommended to
+always specify the bit clock if read/write speed is important.  You
+can use the &rsquo;default_bitclock&rsquo; keyword in your
+<code>~/.config/avrdude/avrdude.rc</code> or <code>~/.avrduderc</code>
+configuration file to assign a default value to keep from having to
+specify this option on every invocation.
+</p>
+<p>Note that some official Microchip programmers store the bitclock setting
+and will continue to use it until a different value is provided. This
+applies to 2nd generation programmers (AVRISPmkII, AVR Dragon, JTAG ICE
+mkII, STK600) and 3rd generation programmers (JTAGICE3, Atmel ICE, Power
+Debugger). 4th generation programmers (PICkit 4, MPLAB(R) SNAP) will store
+the last user-specified bitclock until the programmer is disconnected from
+the computer.
+</p>
+</dd>
+<dt> <code>-c <var>programmer-id</var></code></dt>
+<dt> <code>--programmer <var>programmer-id</var></code></dt>
+<dd><a name="index-Option-_002dc-programmer_002did"></a>
+<a name="index-Option-_002d_002dprogrammer-programmer_002did"></a>
+<a name="index-_002dc-programmer_002did"></a>
+<a name="index-_002d_002dprogrammer-programmer_002did"></a>
+<p>Specify the programmer to be used.  AVRDUDE knows about quite a few
+programmers. The <var>programmer-id</var> parameter is the programmer&rsquo;s id
+listed in the configuration file.  Specify <code>-c ?</code> to list all
+programmers in the configuration file. Depending on the used shell,
+<code>?</code> may need to be quoted as in <code>&quot;?&quot;</code> or <code>\?</code>. If you have
+a programmer that is unknown to AVRDUDE but related to a known programmer
+there is some chance that it can be added to the configuration file
+without any code changes to AVRDUDE: copy a similar entry and change those
+features that differ to match that of the unknown programmer. If <code>-c
+?</code> is specified with a specific part, see <code>-p</code> above, then only those
+programmers are output that expect to be able to handle this part,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. See <a href="avrdude_45.html#List-of-Programmers">List of Programmers</a> for a full and detailed listing of known programmers.
+</p>
+</dd>
+<dt> <code>-c <var>wildcard/flags</var></code></dt>
+<dt> <code>--programmer <var>wildcard/flags</var></code></dt>
+<dd><a name="index-Option-_002dc-wildcard_002fflags"></a>
+<a name="index-Option-_002d_002dprogrammer-wildcard_002fflags"></a>
+<a name="index-_002dc-wildcard_002fflags"></a>
+<a name="index-_002d_002dprogrammer-wildcard_002fflags"></a>
+<p>Run developer options for programmers that are matched by <var>wildcard</var>.
+Whilst their main use is for developers some <var>flags</var> can be of utility
+for users, e.g., <code>avrdude -c usbtiny/S</code> shows AVRDUDE&rsquo;s understanding of
+usbtiny&rsquo;s properties; for more information run <code>avrdude -c x/h</code>.
+</p>
+</dd>
+<dt> <code>-C <var>config-file</var></code></dt>
+<dt> <code>--config <var>config-file</var></code></dt>
+<dd><a name="index-Option-_002dc-config_002dfile"></a>
+<a name="index-Option-_002d_002dconfig-config_002dfile"></a>
+<a name="index-_002dC-config_002dfile"></a>
+<a name="index-_002d_002dconfig-config_002dfile"></a>
+<a name="index-Configuration-files"></a>
+<p>Use the specified config file for configuration data.  This file
+contains all programmer and part definitions that AVRDUDE knows about.
+If not specified, AVRDUDE looks for the configuration file in the following
+two locations:
+</p>
+<ol>
+<li>
+<code>&lt;directory from which application loaded&gt;/../etc/avrdude.conf</code>
+
+</li><li>
+<code>&lt;directory from which application loaded&gt;/avrdude.conf</code>
+
+</li></ol>
+
+<p>If not found there, the lookup procedure becomes platform dependent. On FreeBSD
+and Linux, AVRDUDE looks at <code>/usr/local/etc/avrdude.conf</code>. See Appendix A
+for the method of searching on Windows.
+</p>
+<p>If <var>config-file</var> is written as <var>+filename</var>
+then this file is read after the system wide and user configuration
+files. This can be used to add entries to the configuration
+without patching your system wide configuration file. It can be used
+several times, the files are read in same order as given on the command
+line.
+</p>
+</dd>
+<dt> <code>-N</code></dt>
+<dt> <code>--noconfig</code></dt>
+<dd><a name="index-Option-_002dN"></a>
+<a name="index-Option-_002d_002dnoconfig"></a>
+<a name="index-_002dN"></a>
+<a name="index-_002d_002dnoconfig"></a>
+<p>Do not load the personal configuration file that is usually located at
+<code>~/.config/avrdude/avrdude.rc</code>, <code>~/.avrduderc</code> or in the same
+directory as the avrdude executable.
+</p>
+</dd>
+<dt> <code>-A</code></dt>
+<dd><a name="index-Option-_002dA"></a>
+<a name="index-_002dA"></a>
+<a name="index-flash-4"></a>
+<p>Disable the automatic removal of trailing-0xFF sequences in file input
+that is to be programmed to flash and in AVR reads from flash memory.
+Normally, trailing 0xFFs can be discarded, as flash programming requires
+the memory be erased to 0xFF beforehand. <code>-A</code> should be used when the
+programmer hardware, or bootloader software for that matter, does not
+carry out chip erase and instead handles the memory erase on a page level.
+The popular Arduino bootloader exhibits this behaviour; for this reason
+<code>-A</code> is engaged by default when specifying <code>-c</code> arduino.
+</p>
+</dd>
+<dt> <code>-D</code></dt>
+<dt> <code>--noerase</code></dt>
+<dd><a name="index-Option-_002dD"></a>
+<a name="index-Option-_002d_002dnoerase"></a>
+<a name="index-_002dD"></a>
+<a name="index-_002d_002dnoerase"></a>
+<a name="index-flash-5"></a>
+<p>Disable auto-erase for flash. When the <code>-U</code> option for writing to any
+flash memory is specified, avrdude will perform a chip erase before
+starting any of the programming operations, since it generally is a
+mistake to program the flash without performing an erase first.  This
+option disables that. Auto-erase is not used for ATxmega parts nor for the
+UPDI (AVR8X family) parts as these can use page erase before writing each
+page so no explicit chip erase is required. Note, however, that any flash
+page not affected by the current operation will retain its previous
+contents. Setting <code>-D</code> implies <code>-A</code>.
+</p>
+</dd>
+<dt> <code>-e</code></dt>
+<dt> <code>--erase</code></dt>
+<dd><a name="index-Option-_002de"></a>
+<a name="index-Option-_002d_002derase"></a>
+<a name="index-_002de"></a>
+<a name="index-_002d_002derase"></a>
+<a name="index-flash-6"></a>
+<a name="index-eeprom-1"></a>
+<p>Causes a chip erase to be executed. This will reset the contents of the
+flash ROM and EEPROM to the value <code>0xff</code>, and clear all lock bits.
+Except for ATxmega and UPDI (AVR8X family) devices, all of which can use
+page erase, it is basically a prerequisite command before the flash ROM
+can be reprogrammed again.  The only exception would be if the new
+contents would exclusively cause bits to be programmed from the value
+<code>1</code> to <code>0</code>.  This option carries out the chip erase at the
+beginning, before any of the <code>-U</code>, <code>-T</code> or <code>-t</code> options are
+processed. If a chip erase is required in at a certain position within the
+sequence of <code>-U</code>, <code>-T</code> or <code>-t</code> options it is recommended to
+use <code>-T</code> erase instead which is processed in the given command line
+order.
+</p>
+<a name="index-Auto_002derase"></a>
+<a name="index-flash-7"></a>
+<p>In absence of an explicit <code>-e</code> or <code>-D</code> option avrdude tries to
+augur from the command line whether or not the chip should be auto-erased
+at the  beginning. If avrdude detects a <code>-U</code> command that writes to
+flash then auto-erase will be carried out before any other programming
+unless a <code>-T</code> erase commad has been detected beforehand and unless
+flash is read before writing to it. For the purpose of this analysis any
+terminal command is considered to possibly read flash.
+</p>
+<a name="index-eeprom-2"></a>
+<p>Note that for reprogramming EEPROM cells, no explicit prior chip erase is
+required since the MCU provides an auto-erase cycle in that case before
+programming the cell.
+</p>
+</dd>
+<dt> <code>-E <var>exitspec</var>[,&hellip;]</code></dt>
+<dd><a name="index-Option-_002dE-exitspec_005b_002c_2026_005d"></a>
+<a name="index-_002dE-exitspec_005b_002c_2026_005d"></a>
+<p>Pass <var>exitspec</var> to the programmer. The interpretation of the exitspec
+parameter depends on the programmer itself. See below for a list of
+programmers accepting exitspec parameter options or issue
+<code>avrdude -E help ...</code> to see the  options for the programmer.
+</p>
+<p>Multiple <var>exitspec</var> options can be separated with commas.
+</p>
+</dd>
+<dt> <code>-F</code></dt>
+<dd><a name="index-Option-_002dF"></a>
+<a name="index-_002dF"></a>
+<a name="index-signature-1"></a>
+<p>Normally, AVRDUDE tries to verify that the device signature read from
+the part is reasonable before continuing.  Since it can happen from time
+to time that a device has a broken (erased or overwritten) device
+signature but is otherwise operating normally, this options is provided
+to override the check.
+Also, for programmers like the Atmel STK500 and STK600 which can
+adjust parameters local to the programming tool (independent of an
+actual connection to a target controller), this option can be used
+together with &lsquo;<samp>-t</samp>&rsquo; to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
+</p>
+</dd>
+<dt> <code>-i <var>delay</var></code></dt>
+<dd><a name="index-Option-_002di-delay"></a>
+<a name="index-_002di-delay"></a>
+<p>For bitbang-type programmers, delay for approximately
+<var>delay</var>
+microseconds between each bit state change.
+If the host system is very fast, or the target runs off a slow clock
+(like a 32 kHz crystal, or the 128 kHz internal RC oscillator), this
+can become necessary to satisfy the requirement that the ISP clock
+frequency must not be higher than 1/4 of the CPU clock frequency.
+This is implemented as a spin-loop delay to allow even for very
+short delays.
+On Unix-style operating systems, the spin loop is initially calibrated
+against a system timer, so the number of microseconds might be rather
+realistic, assuming a constant system load while AVRDUDE is running.
+On Win32 operating systems, a preconfigured number of cycles per
+microsecond is assumed that might be off a bit for very fast or very
+slow machines.
+</p>
+</dd>
+<dt> <code>-l <var>logfile</var></code></dt>
+<dt> <code>--logfile <var>logfile</var></code></dt>
+<dd><a name="index-Option-_002dl-logfile"></a>
+<a name="index-Option-_002d_002dlogfile-logfile"></a>
+<a name="index-_002dl-logfile"></a>
+<a name="index-_002d_002dlogfile-logfile"></a>
+<p>Use <var>logfile</var> rather than <var>stderr</var> for diagnostics output.
+Note that initial diagnostic messages (during option parsing) are still
+written to <var>stderr</var> anyway.
+</p>
+</dd>
+<dt> <code>-n</code></dt>
+<dt> <code>--test-memory</code></dt>
+<dd><a name="index-Option-_002dn"></a>
+<a name="index-Option-_002d_002dtest_002dmemory"></a>
+<a name="index-_002dn"></a>
+<a name="index-_002d_002dtest_002dmemory"></a>
+<p>No-write: disables writing data to the MCU whilst processing <code>-U</code>
+(useful for debugging AVRDUDE). The terminal mode continues to write to
+the device.
+</p>
+</dd>
+<dt> <code>-O</code></dt>
+<dt> <code>--osccal</code></dt>
+<dd><a name="index-Option-_002dO"></a>
+<a name="index-Option-_002d_002dosccal"></a>
+<a name="index-_002dO"></a>
+<a name="index-_002d_002dosccal"></a>
+<a name="index-calibration-1"></a>
+<p>Perform a RC oscillator run-time calibration according to Atmel
+application note AVR053.
+This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
+hardware.
+<a name="index-eeprom-3"></a>
+Note that the result will be stored in the EEPROM cell at address 0.
+</p>
+</dd>
+<dt> <code>-P <var>port</var></code></dt>
+<dt> <code>--port <var>port</var></code></dt>
+<dd><a name="index-Option-_002dP-port"></a>
+<a name="index-Option-_002d_002dport-port"></a>
+<a name="index-_002dP-port"></a>
+<a name="index-_002d_002dport-port"></a>
+<p>Use <var>port</var> to identify the connection through which the programmer is
+attached. This can be a parallel, serial, spi or linuxgpio connection. The
+programmer normally specifies the connection type; in absence of a <code>-P</code>
+specification, system-dependent default values <code>default_parallel</code>,
+<code>default_serial</code>, <code>default_spi</code>, or <code>default_linuxgpio</code> from
+the configuration file are used. If you need to use a different port, use this
+option to specify the alternate port name.
+</p>
+<p>If avrdude has been configured with libserialport support, a serial port
+can be specified using a predefined serial adapter type in
+<var>avrdude.conf</var> or <var>.avrduderc</var>, e.g., <code>ch340</code> or
+<code>ft232r</code>. If more than one serial adapter of the same type is
+connected, they can be distinguished by appending a serial number, e.g.,
+<code>ft232r:12345678</code>. Note that the USB to serial chip has to have a
+serial number for this to work. Avrdude can check for leading and trailing
+serial number matches as well. In the above example, <code>ft232r:1234</code>
+would also result in a match, and so would <code>ft232r:...5678</code>. If the
+USB to serial chip is not known to avrdude, it can be specified using the
+hexadecimal USB vendor ID, hexadecimal product ID and an optional serial
+number, following the serial number matching rules described above, e.g.,
+<code>usb:0x2341:0x0043</code> or <code>usb:2341:0043:12345678</code>. To see a list
+of currently plugged-in serial ports use <code>-P ?s</code>. In order to see a
+list of all possible serial adapters known to avrdude use <code>-P ?sa</code>.
+Depending on the used shell, <code>?</code> may need to be quoted as in
+<code>&quot;?&quot;</code> or <code>\?</code>.
+</p>
+<p>For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
+<var>port</var> may alternatively be specified as
+<code>usb</code>[:<var>serialno</var>].  In that case, the JTAG ICE mkII will be
+looked up on USB.  If <var>serialno</var> is also specified, it will be
+matched against the serial number read from any JTAG ICE mkII found on
+USB.  The match is done after stripping any existing colons from the
+given serial number, and right-to-left, so only the least significant
+bytes from the serial number need to be given.
+For a trick how to find out the serial numbers of all JTAG ICEs
+attached to USB, see <a href="avrdude_7.html#Example-Command-Line-Invocations">Example Command Line Invocations</a>.
+</p>
+<p>As the AVRISP mkII device can only be talked to over USB, the very
+same method of specifying the port is required there.
+</p>
+<p>For the USB programmer &quot;AVR-Doper&quot; running in HID mode, the port must
+be specified as <var>avrdoper</var>. Libhidapi support is required on Unix
+and Mac OS but not on Windows. For more information about AVR-Doper see
+<a href="https://www.obdev.at/products/vusb/avrdoper.html">https://www.obdev.at/products/vusb/avrdoper.html</a>.
+</p>
+<p>For the USBtinyISP, which is a simplistic device not implementing
+serial numbers, multiple devices can be distinguished by their
+location in the USB hierarchy.
+For USBasp, multiple devices can be distinguished by either USB connection
+or serial number.
+See the respective <a href="avrdude_44.html#Troubleshooting">Troubleshooting</a> entry for examples.
+</p>
+<p>For the XBee programmer the target MCU is to be programmed wirelessly
+over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
+address for the target MCU&rsquo;s own XBee device must be supplied as a
+16-character hexadecimal value as a port prefix, followed by the
+<code>@</code> character, and the serial device to connect to a second
+directly contactable XBee device associated with the same mesh (with
+a default baud rate of 9600).  This may look similar to:
+<code>0013a20000000001dev/tty.serial</code>.
+</p>
+<p>For diagnostic purposes, if the target MCU with an XBeeBoot
+bootloader is connected directly to the serial port, the
+64-bit address field can be omitted.  In this mode the
+default baud rate will be 19200.
+</p>
+<p>For programmers that attach to a serial port using some kind of
+higher level protocol (as opposed to bit-bang style programmers),
+<var>port</var> can be specified as <code>net</code>:<var>host</var>:<var>port</var>.
+In this case, instead of trying to open a local device, a TCP
+network connection to (TCP) <var>port</var> on <var>host</var>
+is established.
+Square brackets may be placed around <var>host</var> to improve
+readability for numeric IPv6 addresses (e.g.
+<code>net:[2001:db8::42]:1337</code>).
+The remote endpoint is assumed to be a terminal or console server
+that connects the network stream to a local serial port where the
+actual programmer has been attached to.
+The port is assumed to be properly configured, for example using a
+transparent 8-bit data connection without parity at 115200 Baud
+for a STK500.
+</p>
+<p>Note: The ability to handle IPv6 hostnames and addresses is limited to
+Posix systems (by now).
+</p>
+</dd>
+<dt> <code>-r</code></dt>
+<dt> <code>--reconnect</code></dt>
+<dd><a name="index-Option-_002dr"></a>
+<a name="index-Option-_002d_002dreconnect"></a>
+<a name="index-_002dr"></a>
+<a name="index-_002d_002dreconnect"></a>
+<p>Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
+for each <code>-r</code> on the command line and then establishes communication
+with the programmer. This is commonly known as a &quot;1200 bps touch&quot;, and is
+used to trigger programming mode for certain boards like Arduino Leonardo,
+Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
+therefore multiple <code>-r</code> options, are sometimes needed for slower, less
+powerful hosts.
+</p>
+</dd>
+<dt> <code>-q</code></dt>
+<dt> <code>--quell</code></dt>
+<dd><a name="index-Option-_002dq"></a>
+<a name="index-Option-_002d_002dquell"></a>
+<a name="index-_002dq"></a>
+<a name="index-_002d_002dquell"></a>
+<p>Disable (or quell) output of the progress bar while reading or writing
+to the device.  Specify it a second time for even quieter operation.
+</p>
+</dd>
+<dt> <code>-T <var>cmd</var></code></dt>
+<dd><a name="index-Option-_002dT-cmd"></a>
+<a name="index-_002dT-cmd"></a>
+<p>Run terminal line <var>cmd</var> when it is its turn in relation to other
+<code>-t</code> interactive terminals, <code>-T</code> terminal commands and
+<code>-U</code> memory operations. Except for the simplest of terminal commands
+the argument <var>cmd</var> will most likely need to be set in quotes, see your
+OS shell manual for details. See below for a detailed description of all
+terminal commands.
+</p>
+</dd>
+<dt> <code>-t</code></dt>
+<dt> <code>--terminal</code></dt>
+<dd><a name="index-Option-_002dt"></a>
+<a name="index-Option-_002d_002dterminal"></a>
+<a name="index-_002dt"></a>
+<a name="index-_002d_002dterminal"></a>
+<p>Tells AVRDUDE to run an interactive terminal when it is its turn in
+relation to other <code>-t</code> interactive terminals, <code>-T</code>
+terminal commands and <code>-U</code> memory operations.
+</p>
+</dd>
+<dt> <code>-U <var>memory</var>:<var>op</var>:<var>filename</var>[:<var>format</var>]</code></dt>
+<dt> <code>--memory <var>memory</var>:<var>op</var>:<var>filename</var>[:<var>format</var>]</code></dt>
+<dd><a name="index-Option-_002dU-memory_003aop_003afilename_005b_003aformat_005d"></a>
+<a name="index-Option-_002d_002dmemory-memory_003aop_003afilename_005b_003aformat_005d"></a>
+<a name="index-_002dU-memory_003aop_003afilename_005b_003aformat_005d"></a>
+<a name="index-_002d_002dmemory-memory_003aop_003afilename_005b_003aformat_005d"></a>
+
+<p>Perform a memory operation when it is its turn in relation to other
+<code>-t</code> interactive terminals, <code>-T</code> terminal commands and <code>-U</code>
+memory operations. The <var>memory</var> field specifies the memory type to
+operate on. From version 8.0 the memory field can also be a
+comma-separated list of memories, eg, <code>flash,eeprom</code>; also, Intel Hex
+or Motorola S-Record files generated by AVRDUDE can store multiple
+memories. The special memory <code>ALL</code> expands to all memories that a
+part has while <code>all</code> expands to all memories with exception of
+sub-memories. <code>etc</code> is the same as <code>all</code>; this can be used to
+change the order in which memories are written to or read from file, eg,
+<code>signature,etc</code> is a list of all memories such that the
+<code>signature</code> memory comes first. It is possible to remove a memory
+from the list so far by preceding a minus or backslash, eg,
+<code>all,-calibration</code>. Use the &lsquo;<samp>-T part</samp>&rsquo; option on the command
+line or the <code>part</code> command in the interactive terminal to display all
+the memories supported by a particular device.
+</p>
+<a name="index-calibration-2"></a>
+<a name="index-signature-2"></a>
+<a name="index-flash-8"></a>
+<a name="index-eeprom-4"></a>
+<p>Typically, a device&rsquo;s memory configuration at least contains the memory
+types <code>flash</code>, <code>eeprom</code>, <code>signature</code> and <code>lock</code>, which
+is sometimes known as <code>lockbits</code>. The signature memory contains the
+three device signature bytes, which should be, but not always are, unique
+for the part. The <code>lock</code> memory of one or four bytes typically
+details whether or not external reading/writing of the flash memory, or
+parts of it, is allowed. After restricting access via the lock memory,
+often the only way to unlock memory is via a chip erase.  Parts will also
+typically have fuse bytes, which are read/write memories for configuration
+of the device and calibration memories that typically contain read-only
+factory calibration values.
+</p>
+<a name="index-flash-9"></a>
+<a name="index-eeprom-5"></a>
+<p>The flash memory, being physically implemented as NOR-memory, is special
+in the sense that it is normally only possible to program bits to change
+from 1 to 0. Before reprogramming takes place normally flash memory has to
+be erased. Older parts would only offer a chip erase to do so, which also
+erases EEPROM unless a fuse configuration preserves its contents. If
+AVRDUDE detects a <code>-U</code> option that writes to a flash memory it might
+automatically trigger a chip erase for these older parts. See the
+description of auto-erase under the <code>-e</code> option above. ATxmegas or
+UPDI parts (AVR8X family) offer a page erase, and AVRDUDE takes advantage
+of that by erasing pages before programming them unless <code>-e</code> (chip
+erase) or <code>-D</code> (do not erase before writing) was requested. It should
+be noted that in absence of the <code>-e</code> chip erase option any ATxmega or
+UPDI flash pages not affected by the programming will retain their
+previous content.
+</p>
+<p>See <a href="avrdude_47.html#List-of-Memories">List of Memories</a> for a complete list of memories that AVR
+devices can have.
+</p>
+<p>The <var>op</var> field specifies what operation to perform:
+</p>
+<dl compact="compact">
+<dt> <code>r</code></dt>
+<dd><p>read device memories and write to the specified file
+</p>
+</dd>
+<dt> <code>w</code></dt>
+<dd><p>read data from the specified file and write to the device memories in the
+list; read-only memories in a memory list are skipped, as are fuses and
+lock bits when the programmer is a bootloader; writing to single read-only
+memories fails only if the contents differs between the file and memory
+</p>
+</dd>
+<dt> <code>v</code></dt>
+<dd><p>read data from both the device and the specified file and perform a verify
+</p>
+</dd>
+</dl>
+
+<p>The <var>filename</var> field indicates the name of the file to read or
+write.  The <var>format</var> field is optional and contains the format of
+the file to read or write.  Possible values are:
+</p>
+<dl compact="compact">
+<dd><a name="index-Intel-Hex"></a>
+</dd>
+<dt> <code>i</code></dt>
+<dd><p>Intel Hex
+</p>
+</dd>
+<dt> <code>I</code></dt>
+<dd><p>Intel Hex with comments on reading from, and tolerance of checksum errors, writing to the AVR
+</p>
+<a name="index-Motorola-S_002dRecord"></a>
+</dd>
+<dt> <code>s</code></dt>
+<dd><p>Motorola S-Record
+</p>
+<a name="index-flash-10"></a>
+<a name="index-Raw-binary"></a>
+</dd>
+<dt> <code>r</code></dt>
+<dd><p>raw binary; little-endian byte order, in the case of the flash data
+</p>
+<a name="index-ELF-_0028Executable-and-Linkable-Format_0029"></a>
+</dd>
+<dt> <code>e</code></dt>
+<dd><p>ELF (Executable and Linkable Format), the final output file from the
+linker; currently only accepted as an input file
+</p>
+<a name="index-Immediate-file-mode"></a>
+</dd>
+<dt> <code>m</code></dt>
+<dd><p>immediate mode; actual byte values are specified on the command line,
+separated by commas or spaces in place of the <var>filename</var> field of the
+&lsquo;<samp>-U</samp>&rsquo; option.  This is useful for programming fuse bytes without
+having to create a single-byte file or enter terminal mode.
+</p>
+<a name="index-Auto_002ddetect-mode"></a>
+</dd>
+<dt> <code>a</code></dt>
+<dd><p>auto detect; valid for input only, and only if the input is not provided
+at stdin.
+</p>
+<a name="index-Decimal-file-mode"></a>
+</dd>
+<dt> <code>d</code></dt>
+<dd><p>decimal; this and the following formats generate one line of output for
+the respective memory section, forming a comma-separated list of the
+values. This can be particularly useful for subsequent processing, like
+for fuse bit settings.
+</p>
+<a name="index-Hexadecimal-file-mode"></a>
+</dd>
+<dt> <code>h</code></dt>
+<dd><p>hexadecimal; each value will get the string <em>0x</em> prepended.
+</p>
+<a name="index-Octal-file-mode"></a>
+</dd>
+<dt> <code>o</code></dt>
+<dd><p>octal; each value will get a <em>0</em>
+prepended unless it is less than 8 in which case it gets no prefix.
+</p>
+<a name="index-Binary-file-mode"></a>
+</dd>
+<dt> <code>b</code></dt>
+<dd><p>binary; each value will get the string <em>0b</em> prepended.
+</p></dd>
+</dl>
+
+<p>When used as input, the <code>m</code>, <code>d</code>, <code>h</code>, <code>o</code> and
+<code>b</code> formats will use the same code for reading lists of numbers
+separated by white space and/or commas. The read routine handles decimal,
+hexadecimal, octal or binary numbers on a number-by-number basis, and the
+list of numbers can therefore be of mixed type. In fact the syntax, is the
+same as for data used by the terminal write command, i.e., the file&rsquo;s input
+data can also be 2-byte short integers, 4-byte long integers or 8-byte
+long long integers, 4-byte floating point numbers, 8-byte double precision
+numbers, C-type strings with a terminating nul or C-like characters such
+as <code>'\t'</code>. Numbers are written as little endian to memory. When using
+<code>0x</code> hexadecimal or <code>0b</code> binary input leading zeros are used to
+determine the size of the integer, e.g., <code>0x002a</code> will occupy two
+bytes and write a <code>0x2a</code> to memory followed by <code>0x00</code>, while
+<code>0x01234</code> will occupy 4 bytes. See the description of the terminal
+write command for more details.
+</p>
+<p>In absence of an explicit file format, the default is to use auto
+detection for input files, raw binary format for output files from a
+single memory read and Intel Hex with comments when an output file is
+generated from a list of memories. Note that while AVRDUDE will generate a
+single output file from a memory list for all formats with the exception
+of elf (<code>:e</code>) it only recognises Intel hex (<code>:I</code> or <code>:i</code>),
+Motorola S-Record (<code>:s</code>) or elf files (<code>:e</code>, generated by the
+compiler) as valid multi-memory files when reading a file for verifying or
+writing memories. Note also that if a <var>filename</var> contains a colon as
+penultimate character the <var>format</var> field is no longer optional since
+the last character would otherwise be misinterpreted as <var>format</var>.
+</p>
+<a name="index-flash-11"></a>
+<p>When reading any kind of flash memory area (including the various sub-areas
+in Xmega devices), the resulting output file will be truncated to not contain
+trailing 0xFF bytes which indicate unprogrammed (erased) memory. Thus, if the
+entire memory is unprogrammed, this will result in an output file that has no
+contents at all. This behaviour can be overridden with the <code>-A</code> option.
+</p>
+<a name="index-flash-12"></a>
+<p>As an abbreviation, the form <code>-U</code> <var>filename</var>
+is equivalent to specifying
+<code>-U</code> <em>flash:w:</em><var>filename</var><em>:a</em> or
+<code>-U</code> <em>application:w:</em><var>filename</var><em>:a</em> for ATxmegas.
+This will only work if <var>filename</var> does not have a pair of colons in it
+that sandwich a single character as otherwise the first part might be
+interpreted as memory, and the single character as memory operation.
+</p>
+<p>A file  name  used for writing to flash that starts with <code>urboot:</code>
+autogenerates a read-only urboot bootloader file. Try for example <code>-c
+dryrun -U urboot:help</code> for a list of features that determine the contents
+of the bootloader. See section <a href="avrdude_19.html#Autogenerated-Files">Autogenerated files</a> for detailed documentation.
+Writing <code>urboot:...</code> files to flash using <code>-U</code> has the desired
+side-effect of also writing all necessary fuse configurations for the
+bootloader to work.
+</p>
+</dd>
+<dt> <code>-v</code></dt>
+<dt> <code>--verbose</code></dt>
+<dd><a name="index-Option-_002dv"></a>
+<a name="index-Option-_002d_002dverbose"></a>
+<a name="index-_002dv"></a>
+<a name="index-_002d_002dverbose"></a>
+<p>Enable verbose output.
+More <code>-v</code> options increase verbosity level.
+</p>
+</dd>
+<dt> <code>-V</code></dt>
+<dt> <code>--noverify-memory</code></dt>
+<dd><a name="index-Option-_002dV"></a>
+<a name="index-Option-_002d_002dnoverify_002dmemory"></a>
+<a name="index-_002dV"></a>
+<a name="index-_002d_002dnoverify_002dmemory"></a>
+<p>Disable automatic verify check when writing data to the AVR with <code>-U</code>.
+</p>
+</dd>
+<dt> <code>--version</code></dt>
+<dd><a name="index-Option-_002d_002dversion"></a>
+<p>Print avrdude version and exit
+</p>
+</dd>
+<dt> <code>-x <var>extended_param</var></code></dt>
+<dd><a name="index-Option-_002dx-extended_005fparam"></a>
+<a name="index-_002dx-extended_005fparam"></a>
+<p>Pass <var>extended_param</var> to the chosen programmer implementation as
+an extended parameter.  The interpretation of the extended parameter
+depends on the programmer itself.  See below for a list of programmers
+accepting extended parameters or issue <code>avrdude -x help ...</code> to
+see the extended options of the chosen programmer.
+</p>
+</dd>
+</dl>
+
+
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_5.html#Programmers-Accepting-Exitspec-Parameter" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_51.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>June 23, 2025</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 1.82</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
