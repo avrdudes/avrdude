@@ -170,6 +170,10 @@ static int pickit5_tpi_write(const PROGRAMMER *pgm, const AVRPART *p,
 static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char value);
 static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value);
 
+// PDI-Specific
+static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, 
+  unsigned long addr, int len, unsigned char *value);
+
 // Extra functions
 static int pickit5_get_fw_info(const PROGRAMMER *pgm);
 static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v);
@@ -825,7 +829,7 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
       mem->readsize = mem->size < 512? mem->size : 512;
     }
   }
-  if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
+  if(both_xmegajtag(pgm, p)) {    // True Page size is needed for a PDI fix, so don't increase them
     if((mem = avr_locate_flash(p))) {
       mem->page_size = mem->size < 1024? mem->size : 1024;
       mem->readsize = mem->size < 1024? mem->size : 1024;
@@ -1252,6 +1256,67 @@ static int pickit5_updi_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
   */
 }
 
+/* a little workaround function to write application and boot from one function */
+static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
+  pmsg_debug("%s\n", __func__);
+  unsigned short page_size = mem->page_size;
+  if (len % page_size != 0) { // sanity
+    pmsg_error("length %i is not a multiple of page size %i, aborting.\n", len, page_size);
+    return -1;
+  }
+
+  unsigned char flash_cmd[] = {
+    0x91, 0x00,                          // Load script paramter to r00
+    0x91, 0x01,                          // Load script paramter to r01
+    0x90, 0x04, 0xCA, 0x01, 0x00, 0x01,  // Set r04 to value 0x10001CA  (NVM CMD)
+    0x90, 0x05, 0xC4, 0x01, 0x00, 0x01,  // Set r05 to value 0x10001C4  (NVM Data)
+    0x90, 0x06, 0xCF, 0x01, 0x00, 0x01,  // Set r06 to value 0x10001CF  (NVM Status)
+    0x9B, 0x07, 0x23,                    // Set r07 to value 0x23       (NVM Load Page Buffer)
+    0x9B, 0x08, 0x2F,                    // Set r08 to value 0x2F       (NVM Erase and write flash page)
+    0x9B, 0x09, 0xFF,                    // Set r09 to value 0xFF       (Dummy Flash write value)
+    0x9C, 0x0A, page_size, (page_size >> 8),  // Load word (page size) to r09
+
+    0x1E, 0x03, 0x04,                    // load byte from NVM Command register (r04)
+    0x6C, 0x0B,                          // Move temp_reg to r11
+    0x1E, 0x03, 0x05,                    // Load byte from NVM Data register (r05)
+    0x6C, 0x0C,                          // Move temp_reg to r12
+  
+    0x60, 0x03, 0x01,                    // copy r01 to r03
+    0x93, 0x03, page_size, (page_size >> 8),  // Integer divide r03 by page size
+    0xAD, 0x03,                          // while (r03 --) {
+    
+    0x1E, 0x06, 0x04, 0x07,              // Load "load page command" to NVM Cmd Reg
+    0x1E, 0x09, 0x00,                    // Set pointer for indirect addressing to r00
+    0x1E, 0x10, 0x0A,                    // Set repeat counter to number in r09
+    0x1E, 0x0A, 0x0A,                    // read from data stream and send it to the device
+    
+    0x1E, 0x06, 0x04, 0x08,              // Load "Erase and write flash page" command into NVM Cmd buffer
+    0x1E, 0x06, 0x00, 0x09,              // Triger NVM Cmd by writing to the first address (r0, 0xFF)
+    0xA2,                                // Do {
+    0x1E, 0x03, 0x06,                    // Check status reg (r06)
+    0xA5, 0x80, 0x00, 0x00, 0x00,        // } while ((status reg & 0x80 != 0x00))
+    0x00, 0x00, 0x00, 0x00, 0x64, 0x00,  // for at most 100 times
+    0xAE,                                // } (End of Loop)
+
+    0x1E, 0x06, 0x05, 0x0C,              // Store byte in r12 to SRAM Address in r05
+    0x1E, 0x06, 0x04, 0x0B,              // Store byte in r11 to SRAM Address in r04
+    0x92, 0x00, page_size, (page_size >> 8), 0x00, 0x00,  // Increment r00 by page size
+    0x5A,                                // Set Error Status
+  };
+
+  addr += mem->offset;
+
+  unsigned char param[8];
+  pickit5_uint32_to_array(&param[0], addr);
+  pickit5_uint32_to_array(&param[4], len);
+  
+  int rc = pickit5_download_data(pgm, flash_cmd, sizeof(flash_cmd), param, sizeof(param), value, len);
+  if(rc < 0)
+    rc = LIBAVRDUDE_EXIT;
+  return rc;
+}
+
 // Return numbers of byte written
 static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
@@ -1270,7 +1335,9 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   if(is_debugwire(pgm) && !mem_is_in_flash(mem)) // For flash programming, stay in ISP mode
     pickit5_isp_switch_to_dw(pgm, p);
   if(is_tpi(pgm))
-    pickit5_tpi_write(pgm, p, mem, addr, len, value);
+    return pickit5_tpi_write(pgm, p, mem, addr, len, value);
+  if(is_pdi(pgm) && mem_is_in_flash(mem))
+    return pickit5_pdi_flash_write(pgm, p, mem, addr, len, value);
 
   const unsigned char *write_bytes = NULL;
   unsigned int write_bytes_len = 0;
