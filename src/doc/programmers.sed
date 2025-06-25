@@ -42,7 +42,7 @@ s/serial port: reset=!dtr sck=rts sdo=txd sdi=cts/Serial port programmer/
 s/Emulates bootloader programming without the part/Emulating a bootloader (dryboot)/
 s/Emulates programming without a programmer/Emulating a HW programmer (dryrun)/
 s/AVR ISP programmer from eHaJo.de/AVR ISP programmer/
-s/FLIP bootloader using USB DFU .*/FLIP bootloader/
+s/FLIP bootloader using USB DFU/FLIP bootloader DFU/
 s/FT2232H\/D.based generic programmer/FT2232H\/D programmer/
 s/FT2232H.based generic JTAG programmer/FT2232H JTAG programmer/
 s/FT232H.based generic programmer/FT232H programmer/
@@ -55,7 +55,7 @@ s/AVR ISP programmer from iascaled.com/AVR ISP programmer/
 s/Amontec JTAGKey\/JTAGKey-Tiny\/JTAGKey2/Amontec JTAGKey/
 s/KT-LINK FT2232H: IO switching, voltage buffers/KT-LINK FT2232H/
 s/Use Linux SPI device in \/dev\/spidev\*/Linux \/dev\/spidev\* programmer/
-s/Luminary Micro LM3S811 Eval Board.*/Luminary Micro LM3S811/
+s/Luminary Micro LM3S811 Eval Board (Rev. A)/Luminary Micro LM3S811/
 s/Crossbow MIB510 programming board/Crossbow MIB510/
 s/Jason Kyle's pAVR Serial Programmer/Jason Kyle's pAVR/
 s/ponyprog serial: reset=!txd sck=rts sdo=dtr sdi=cts/Serial port programmer/
@@ -67,6 +67,8 @@ s/uncompatino with all pairs of pins shorted/Uncompatino programmer/
 s/Urboot bootloaders using urprotocol/Urboot bootloader\n@cindex Urclock programmer\n@cindex Urprotocol/
 s/Any usbasp clone with correct VID\/PID/Usbasp clones/
 s/Wiring bootloader using STK500 v2 protocol/Wiring bootloader/
-s/XBeeBoot Over-The-Air bootloader.*/XBeeBoot OTA bootloader/
-s/@cindex Atmel \(.*\)/&\n@cindex \u\1/
-s/@cindex MPLAB(R) \(.*\)/&\n@cindex \u\1/
+s/XBeeBoot Over-The-Air bootloader (STK500 v1)/XBeeBoot OTA bootloader/
+y/_\n/\n_/
+s/@cindex Atmel \([^_]*\)/&_@cindex \u\1/
+s/@cindex MPLAB(R) \([^_]*\)/&_@cindex \u\1/
+y/_\n/\n_/
