@@ -15,7 +15,12 @@ Changes since version 8.1:
 
   * Issues fixed:
 
+    - GitHub deploy action fails #2038
+
   * Pull requests:
+
+    - Use download-artifact@v4 instead of v2 #2040
+    - Deduplicate programmer list in docs #2042
 
   * Internals:
 
