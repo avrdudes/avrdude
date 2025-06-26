@@ -284,6 +284,9 @@ endif()
 # Find SWIG
 find_package(SWIG 4.0 COMPONENTS python)
 if(SWIG_FOUND)
+  # https://discourse.cmake.org/t/find-package-python3-is-not-finding-the-correct-python/10563/8
+  set(Python3_FIND_STRATEGY LOCATION)
+  set(Python3_FIND_UNVERSIONED_NAMES FIRST)
   find_package(Python3 COMPONENTS Interpreter Development)
   if(PYTHON3_FOUND)
     set(HAVE_SWIG 1)
