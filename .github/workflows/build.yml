@@ -218,7 +218,7 @@ jobs:
             build/src/avrdude
             build/src/avrdude.conf
 
-  macos-x86_64:
+  macos-arm64:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -265,7 +265,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-macos-x86_64
+          name: build-macos-arm64
           path: |
             build/
             !**/*.d
@@ -273,12 +273,12 @@ jobs:
       - name: Archive executables
         uses: actions/upload-artifact@v4
         with:
-          name: avrdude-macos-x86_64
+          name: avrdude-macos-arm64
           path: |
             build/src/avrdude
             build/src/avrdude.conf
 
-  macos-x86_64-autotools:
+  macos-arm64-autotools:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -391,6 +391,21 @@ jobs:
             build/src/avrdude.exe
             build/src/avrdude.pdb
             build/src/avrdude.conf
+      - name: Move executables
+        if: matrix.arch == 'x64'
+        run: |
+          mv build/src/${{env.BUILD_TYPE}}/_swig_avrdude.pyd build/src
+      - name: Archive Python related files for x64
+        if: matrix.arch == 'x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: avrdude-msvc-python_x64
+          path: |        
+            build/src/avrdude.conf
+            build/src/_swig_avrdude.pyd
+            build/src/swig_avrdude.py
+            build/src/windows.rc
+            build/src/avrdude-gui.bat
 
   mingw:
     runs-on: windows-latest
@@ -411,7 +426,6 @@ jobs:
           update: true
           install: >-
             base-devel
-            swig
             mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-cmake
             mingw-w64-${{matrix.env}}-python            
@@ -431,6 +445,7 @@ jobs:
           -G"MSYS Makefiles"
           -D DEBUG_CMAKE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -D SWIG_EXECUTABLE=SWIG_EXECUTABLE-NOTFOUND
           -B build
       - name: Build
         run: cmake --build build

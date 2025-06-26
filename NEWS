@@ -3,7 +3,28 @@ Approximate change log for AVRDUDE by version.
 (For detailed changes, see the version control system logs.)
 
 ----------------------------------------------------------------------
-Changes since version 8.0:
+Changes since version 8.1:
+
+  * Major changes compared to the previous version:
+
+  * New devices supported:
+
+  * New programmers supported:
+
+  * New serial adapters supported:
+
+  * Issues fixed:
+
+    - GitHub deploy action fails #2038
+
+  * Pull requests:
+
+    - Use download-artifact@v4 instead of v2 #2040
+    - Deduplicate programmer list in docs #2042
+
+  * Internals:
+
+Changes in version 8.1:
 
   * Major changes compared to the previous version:
 
@@ -69,6 +90,7 @@ Changes since version 8.0:
     - SNAP in "MPLAB mode" has an incorrect USB VID #1999
     - disasm -g can result in code that avr-gcc fails #1997
     - -U urboot:..._show wrongly auto-erases the chip #1996
+    - MPLAB programmers can't write to Xmega boot memory #2028
 
   * Pull requests:
 
@@ -127,6 +149,10 @@ Changes since version 8.0:
     - Update from device packs #2023
     - Enable macOS Python binding build #2025
     - Add pkg-config as a Linux build dependency #2026
+    - Upload avrdude-gui artifacts for Windows x86_64 MSVC #2031
+    - Rename macOS CI build to arm64 #2033
+    - Fix PDI Bootmem write #2034
+    - Disable MSys2 Windows Python Binding in CI #2036
 
   * Internals:
 
