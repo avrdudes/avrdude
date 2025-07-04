@@ -284,6 +284,10 @@ endif()
 # Find SWIG
 find_package(SWIG 4.0 COMPONENTS python)
 if(SWIG_FOUND)
+  execute_process(COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT DEFINED PYTHON_SITE_PACKAGES)
+    execute_process(COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
   # https://discourse.cmake.org/t/find-package-python3-is-not-finding-the-correct-python/10563/8
   set(Python3_FIND_STRATEGY LOCATION)
   set(Python3_FIND_UNVERSIONED_NAMES FIRST)
