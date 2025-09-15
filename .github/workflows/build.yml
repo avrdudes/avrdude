@@ -229,7 +229,6 @@ jobs:
       - name: Install prerequisites
         run: >-
           brew install
-          cmake
           flex
           bison
           swig
