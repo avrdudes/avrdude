@@ -61,9 +61,10 @@ typedef uint32_t Pinmask;
  */
 #define LIBAVRDUDE_SUCCESS 0
 #define LIBAVRDUDE_GENERAL_FAILURE (-1)
-#define LIBAVRDUDE_NOTSUPPORTED (-2) // Operation not supported
-#define LIBAVRDUDE_SOFTFAIL (-3)     // Returned, eg, if caller might proceed with a plan B
-#define LIBAVRDUDE_EXIT (-4)         // End all operations in this session
+#define LIBAVRDUDE_NOTSUPPORTED (-2)  // Operation not supported
+#define LIBAVRDUDE_SOFTFAIL (-3)      // Returned, eg, if caller might proceed with a plan B
+#define LIBAVRDUDE_EXIT (-4)          // End all operations in this session
+#define LIBAVRDUDE_DEVICE_LOCKED (-5) // Returned if the programmer determined that the device is locked
 
 // Message system
 

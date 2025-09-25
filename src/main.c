@@ -1629,11 +1629,11 @@ int main(int argc, char *argv[]) {
       exitrc = 0;
       goto main_exit;
     }
-    if(str_starts(pgm->type, "pickit5") && rc == LIBAVRDUDE_SOFTFAIL) {  // ok, so the pickit5 with UPDI is a bit tricky
-      pmsg_error("device is locked; chip erase required to unlock\n");
-      if(erase) {                       // we have to go in blind on a locked device, not even the deviceID is readable
-        pmsg_info("\"-e\" option specified. Trying to erase target to unlock it\n");
-        pgm->chip_erase(pgm, p);        // a similar behavior is expected with the other protocols
+    if(str_starts(pgm->type, "pickit5") && rc == LIBAVRDUDE_DEVICE_LOCKED) {  // ok, so the pickit5 with UPDI is a bit tricky
+      pmsg_error("initialisation failed: device is locked; chip erase required to unlock\n"); // UPDI has no access to the system when locked
+      if(erase) {                           // so we have to go in blind, we can't even read out the deviceID
+        pmsg_info("\"-e\" option specified. Trying to erase target to unlock it\n");  // 
+        pgm->chip_erase(pgm, p);
       }
       goto main_exit;
     }

@@ -463,7 +463,14 @@ static int pickit5_read_response(const PROGRAMMER *pgm) {
 
   if(error_code == 0x44) {
     my.target_locked = 0x01;
-    return ERROR_SCRIPT_DEVICE_LOCKED;
+    return LIBAVRDUDE_DEVICE_LOCKED;
+  } else if (error_code == 0x51) {
+    if(is_updi(pgm)) {
+      pmsg_error("Failed to start session. Reason might be: no power, bad connection or missing HV pulse.");
+    } else {
+      pmsg_error("Failed to start session. Reason might be: no power or bad connection");
+    }
+    return LIBAVRDUDE_GENERAL_FAILURE;
   } else if(error_code != 0x00) {
     pmsg_error("script error returned: 0x%2X - %s\n", error_code, pickit5_error_to_str(error_code));
     return ERROR_SCRIPT_EXECUTION;
@@ -939,7 +946,7 @@ static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 static int pickit5_updi_init(const PROGRAMMER *pgm, const AVRPART *p, double v_target) {
   int rc = pickit5_program_enable(pgm, p);
   if(rc < LIBAVRDUDE_SUCCESS) {
-    if (rc < LIBAVRDUDE_EXIT) {
+    if (rc <= -16) {
       rc = LIBAVRDUDE_GENERAL_FAILURE;
     }
     return rc;                 
@@ -1151,13 +1158,7 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
   if(my.pk_op_mode == PK_OP_READY) {
-    int rc = pickit5_send_script_cmd(pgm, enter_prog, enter_prog_len, NULL, 0);
-    if (rc == ERROR_SCRIPT_DEVICE_LOCKED) {
-      //pmsg_error("device is locked; chip erase required to unlock\n");
-      return LIBAVRDUDE_SOFTFAIL;
-      //pickit5_send_script_cmd(pgm, my.scripts.EraseChip, my.scripts.EraseChip_len, NULL, 0);
-    }
-    return rc;
+    return pickit5_send_script_cmd(pgm, enter_prog, enter_prog_len, NULL, 0);
   }
   return LIBAVRDUDE_SUCCESS;
 }
