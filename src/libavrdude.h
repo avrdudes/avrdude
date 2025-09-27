@@ -65,6 +65,7 @@ typedef uint32_t Pinmask;
 #define LIBAVRDUDE_SOFTFAIL (-3)      // Returned, eg, if caller might proceed with a plan B
 #define LIBAVRDUDE_EXIT (-4)          // End all operations in this session
 #define LIBAVRDUDE_DEVICE_LOCKED (-5) // Returned if the programmer determined that the device is locked
+#define LIBAVRDUDE_BEYOND_ERRS (-6)   // This error and lower not normally used by libavrdude functions
 
 // Message system
 
@@ -829,8 +830,8 @@ const char *pinmask_to_str(const Pinmask *const pinmask);
  * The target file will be selected at configure time.
  */
 
-extern long serial_recv_timeout;        // ms
-extern long serial_drain_timeout;       // ms
+extern long serial_recv_timeout;        // Milliseconds
+extern long serial_drain_timeout;       // Milliseconds
 
 union filedescriptor {
   int ifd;
