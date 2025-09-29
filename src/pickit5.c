@@ -420,7 +420,7 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
 
   if(script == NULL) {
     pmsg_error("invalid script pointer passed\n");
-    return -3;
+    return LIBAVRDUDE_EXIT; // If script is NULL there is a significant problem
   }
 
   unsigned int header_len = 16 + 8;     // Header info + script header
@@ -442,7 +442,10 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
 
   memcpy(&buf[preamble_len], script, script_len);
 
-  return serial_send(&pgm->fd, buf, message_len);
+  if(serial_send(&pgm->fd, buf, message_len) < 0) {
+    return LIBAVRDUDE_GENERAL_FAILURE;
+  }
+  return LIBAVRDUDE_SUCCESS;
 }
 
 static int pickit5_read_response(const PROGRAMMER *pgm) {
@@ -542,19 +545,11 @@ static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status) {
 static int pickit5_send_script_cmd(const PROGRAMMER *pgm, const unsigned char *scr, unsigned int scr_len,
   const unsigned char *param, unsigned int param_len) {
   pmsg_debug("%s()\n", __func__);
-  int rc;
-  rc = pickit5_send_script(pgm, SCR_CMD, scr, scr_len, param, param_len, 0);
-  if(rc < 0) {
-    pmsg_error("sending script failed\n");
-    return rc;
+  int rc = pickit5_send_script(pgm, SCR_CMD, scr, scr_len, param, param_len, 0);
+  if(rc == LIBAVRDUDE_SUCCESS) {
+    return pickit5_read_response(pgm);
   }
-
-  rc = pickit5_read_response(pgm);
-  if(rc < 0) {
-    pmsg_error("reading script response failed\n");
-    return rc;
-  }
-  return LIBAVRDUDE_SUCCESS;
+  return rc;
 }
 
 /*
