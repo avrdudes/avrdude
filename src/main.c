@@ -1623,18 +1623,32 @@ int main(int argc, char *argv[]) {
   led_set(pgm, LED_BEG);
 
   // Initialize the chip in preparation for accepting commands
+  int reinitialised = 0;
+init_again:
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if(!init_ok) {
     if(rc == LIBAVRDUDE_EXIT) {
       exitrc = 0;
       goto main_exit;
     }
-    if(str_starts(pgm->type, "pickit5") && rc == LIBAVRDUDE_DEVICE_LOCKED) {  // The pickit5 with UPDI is a bit tricky
-      pmsg_error("initialisation failed: device is locked; chip erase required to unlock\n"); // UPDI has no access to the system when locked
-      if(erase) {                           // So we have to go in blind, we can't even read out the deviceID
-        pmsg_info("\"-e\" option specified. Trying to erase target to unlock it\n");
-        pgm->chip_erase(pgm, p);
+    if(rc == LIBAVRDUDE_DEVICE_LOCKED) { // The pickit5 with UPDI is a bit tricky
+      if(!explicit_e) {         // UPDI has no access to the system when locked: must be erased first
+        // If tasks are pending on the command line issue error otherwise just warn
+        exitrc = updates && lsize(updates) > 0;
+        if(exitrc)
+          pmsg_error("device locked; chip erase option -e required for unlocking device first\n");
+        else
+          pmsg_warning("device locked; any operation will require chip erase option -e\n");
+        goto main_exit;
       }
+      // Have to go in blind: cannot even read out the device ID
+      pmsg_notice2("-e option specified on locked device; erasing it should unlock\n");
+      // Reinitialise at most once if erase successful
+      if(reinitialised++)
+        pmsg_error("re-initialization failed despite part erasure; try re-running command line\n");
+      else if(pgm->chip_erase(pgm, p) == LIBAVRDUDE_SUCCESS)
+        goto init_again;
+      exitrc = 1;
       goto main_exit;
     }
     pmsg_error("initialization failed  (rc = %d)\n", rc);
