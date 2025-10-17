@@ -1624,6 +1624,7 @@ int main(int argc, char *argv[]) {
 
   // Initialize the chip in preparation for accepting commands
   int reinitialised = 0;
+  int erased_by_unlock = 0;
 init_again:
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if(!init_ok) {
@@ -1646,8 +1647,10 @@ init_again:
       // Reinitialise at most once if erase successful
       if(reinitialised++)
         pmsg_error("re-initialization failed despite part erasure; try re-running command line\n");
-      else if(pgm->chip_erase(pgm, p) == LIBAVRDUDE_SUCCESS)
+      else if(pgm->chip_erase(pgm, p) == LIBAVRDUDE_SUCCESS) {
+        erased_by_unlock = 1;
         goto init_again;
+      }
       exitrc = 1;
       goto main_exit;
     }
@@ -1850,10 +1853,10 @@ init_again:
     }
   }
 
-  if(init_ok && erase) {
+  if(init_ok && erase && !erased_by_unlock) {
     /*
      * Erase the chip's flash and eeprom memories, this is required before the
-     * chip can accept new programming
+     * chip can accept new programming. Skip if it was already erased when unlocking.
      */
     if(uflags & UF_NOWRITE) {
       if(explicit_e)
