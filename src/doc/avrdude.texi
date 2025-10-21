@@ -2199,16 +2199,16 @@ verbosity level:
 
 @smallexample
 @cartouche
-$ avrdude -c jtag2 -p m128 -P usb:xxx -v
+$ avrdude -c jtag2 -p m128 -P usb:xyz -v
 
-Using port            : usb:xxx
+Using port            : usb:xyz
 Using programmer      : jtag2fast
 Programmer baud rate  : 115200
-Usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
-Usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
-Usbdev_open(): Found JTAG ICE, serno: 00A000001C30
-Error: did not find any (matching) USB device usb:xxx (03eb:2103)
-Error: unable to open port usb:xxx for programmer jtag2fast
+Found JTAG ICE with serno: 00A000001C6B
+Found JTAG ICE with serno: 00A000001C3A
+Found JTAG ICE with serno: 00A000001C30
+Error: did not find any (matching) USB device usb:xyz (03eb:2103)
+Error: unable to open port usb:xyz for programmer jtag2fast
 
 Avrdude done.  Thank you.
 @end cartouche
@@ -5363,7 +5363,7 @@ The actual naming convention for the bus and device names is
 operating-system dependent; AVRDUDE will print out what it found
 on the bus when running it with (at least) one @var{-v} option.
 By specifying a string that cannot match any existing device
-(for example, @var{-P usb:xxx}), the scan will list all possible
+(for example, @var{-P usb:xyz}), the scan will list all possible
 candidate devices found on the bus.
 
 Examples:
