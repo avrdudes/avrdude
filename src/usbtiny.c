@@ -326,7 +326,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   for(bus = usb_busses; bus; bus = bus->next) {
     for(dev = bus->devices; dev; dev = dev->next) {
       if(dev->descriptor.idVendor == vid && dev->descriptor.idProduct == pid) { // Found match?
-        pmsg_debug("%s(): found USBtinyISP, bus:device: %s:%s\n", __func__, bus->dirname, dev->filename);
+        pmsg_notice("found USBtiny with bus:device = %s:%s\n", bus->dirname, dev->filename);
         // If -P was given, match device by device name and bus name
         if(name != NULL && (NULL == dev_name || !str_eq(bus->dirname, bus_name) || !str_eq(dev->filename, dev_name)))
           continue;
