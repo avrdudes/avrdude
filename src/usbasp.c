@@ -420,7 +420,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 
 static int check_for_port_argument_match(const char *port, char *bus, char *device, char *serial_num) {
 
-  pmsg_debug("%s(): found USBasp, bus:device: %s:%s, serial_number: %s\n", __func__, bus, device, serial_num);
+  pmsg_notice("found USBasp with bus:device = %s:%s, serial_number = %s\n", bus, device, serial_num);
   const size_t usb_len = strlen("usb");
 
   if(str_starts(port, "usb") && ':' == port[usb_len]) {
