@@ -5350,20 +5350,18 @@ The pin mapping for the JTAG-to-ISP adapter is:
 @end multitable
 
 @item
-Problem: Multiple USBasp or USBtinyISP programmers connected simultaneously are not
-found.
+Problem: Differentiate Multiple USBtinyISP (or USBasp) programmers
 
-Solution: The USBtinyISP code supports distinguishing multiple
-programmers based on their bus:device connection tuple that describes
-their place in the USB hierarchy on a specific host.  This tuple can
-be added to the @var{-P usb} option, similar to adding a serial number
-on other USB-based programmers.
+Solution: The @var{-c usbtiny} programmer supports distinguishing multiple
+physical USBtinyISP devices based on their bus:device pairs that describes
+their place in the USB hierarchy on a specific host.  This pair can be
+specified in the @var{-P usb:<bus>:<device>} option.
 
 The actual naming convention for the bus and device names is
 operating-system dependent; AVRDUDE will print out what it found
 on the bus when running it with (at least) one @var{-v} option.
-By specifying a string that cannot match any existing device
-(for example, @var{-P usb:xyz}), the scan will list all possible
+By specifying a string that cannot match any existing device,
+for example, @var{-P usb:xyz}, the scan will list all possible
 candidate devices found on the bus.
 
 Examples:
@@ -5374,7 +5372,7 @@ avrdude -c usbtiny -p atmega8 \
   -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
 @end example
 
-For USBasp, the same format for @var{-P usb} can be used to match usb bus/device. Alternatively,
+For USBasp, the same format for @var{-P usb} can be used to match usb bus:device. Alternatively,
 device serial number can be specified as follows (for serial number '1234').
 
 @example
