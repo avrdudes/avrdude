@@ -3691,7 +3691,7 @@ Assign the default programmer id.  Can be overridden using the @option{-c}
 option.
 
 @item default_baudrate = "@var{default-baudrate}";
-Assign the default baudrate value that will be used if the programmer doesn't
+Assign the default baudrate value that will be used if the programmer does not
 provide its specific @code{baudrate} entry. Can be overridden using the @option{-b}
 option.
 
@@ -5347,35 +5347,42 @@ The pin mapping for the JTAG-to-ISP adapter is:
 @end multitable
 
 @item
-Problem: Differentiate Multiple USBtinyISP (or USBasp) programmers
+Problem: Differentiate multiple USBtinyISP (or USBasp) programmers
 
-Solution: The @var{-c usbtiny} programmer supports distinguishing multiple
-physical USBtinyISP devices based on their bus:device pairs that describes
-their place in the USB hierarchy on a specific host.  This pair can be
-specified in the @var{-P usb:<bus>:<device>} option.
+Solution: The @var{-c usbtiny} programmer distinguishes multiple physical
+USBtinyISP devices based on their bus:device pairs that describe their
+place in the USB hierarchy on a specific host.  This pair can be specified
+in the @var{-P usb:<bus>:<device>} option.
 
-The actual naming convention for the bus and device names is
-operating-system dependent; AVRDUDE will print out what it found
-on the bus when running it with (at least) one @var{-v} option.
-By specifying a string that cannot match any existing device,
-for example, @var{-P usb:xyz}, the scan will list all possible
-candidate devices found on the bus.
-
-Examples:
-@example
-avrdude -c usbtiny -p atmega8 -P usb:003:025 (Linux)
-avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
-avrdude -c usbtiny -p atmega8 \
-  -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
-@end example
-
-For USBasp, the same format for @var{-P usb} can be used to match usb bus:device. Alternatively,
-device serial number can be specified as follows (for serial number '1234').
+The naming convention for the bus and device depends on the operating
+system. Examples for Linux, FreeBSD and Windows, respectively:
 
 @example
-avrdude -c USBasp -p atmega8 -P usb:1234
+$ avrdude -c usbtiny -p atmega8 -P usb:003:025
+$ avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3
+$ avrdude -c usbtiny -p atmega8 \
+    -P 'usb:bus-0:\\?\usb#vid_16c0&pid_05dc#0001#@{a5...ed@}--WinUSB'
 @end example
 
+The Windows device name contains the backslash file separator, so the
+@var{-P} option will need appropriate quoting on the command line, eg,
+in bash with single quotes.
+
+For USBasp the same @var{-P usb:<bus>:<device>} as with USBtiny selects
+the right device. Alternatively, USBasp can select the device via its
+serial number using @var{-P usb:<serial>}.
+
+Note that @code{avrdude -v -P usb:xyz} will print out suitable programmers
+on the bus assuming xyz does not match any device.
+
+@noindent
+@example
+$ avrdude -v -Pusb:xyz -c usbasp -p m328p 2>&1 | grep ^Found
+Found USBasp with bus:device = 001:008, serial_number = 0001
+Found USBasp with bus:device = 001:009, serial_number = 1234
+
+$ avrdude -qq -c USBasp -p atmega8 -P usb:1234
+@end example
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWIRE mode.
