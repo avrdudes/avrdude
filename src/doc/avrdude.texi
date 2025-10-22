@@ -1769,11 +1769,11 @@ with programming the AVR in the other design.
 Sets the SPI speed and uses the Bus Pirate's binary ``raw-wire'' mode instead
 of the default binary SPI mode:
 
-@multitable @columnfractions .05 .3
-@item @code{0} @tab 5 kHz
-@item @code{1} @tab 50 kHz
-@item @code{2} @tab 100 kHz (Firmware v4.2+ only)
-@item @code{3} @tab 400 kHz (v4.2+)
+@multitable @columnfractions 0.05 0.05 0.7
+@item @tab @code{0} @tab 5 kHz
+@item @tab @code{1} @tab 50 kHz
+@item @tab @code{2} @tab 100 kHz (Firmware v4.2+ only)
+@item @tab @code{3} @tab 400 kHz (v4.2+)
 @end multitable
 
 The only advantage of the ``raw-wire'' mode is that different SPI frequencies
