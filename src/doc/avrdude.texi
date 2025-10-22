@@ -5264,9 +5264,7 @@ Solution: This problem seems to appear with certain versions of Cygwin. Specifyi
 @item
 Problem: I'm using Linux and my AVR910 programmer is really slow.
 
-Solution (short): @code{setserial @var{port} low_latency}
-
-Solution (long):
+Solution:
 There are two problems here. First, the system may wait some time before it
 passes data from the serial port to the program. Under Linux the following
 command works around this (you may need root privileges for this).
@@ -5276,7 +5274,8 @@ command works around this (you may need root privileges for this).
 Secondly, the serial interface chip may delay the interrupt for some time.
 This behaviour can be changed by setting the FIFO-threshold to one. Under Linux this
 can only be done by changing the kernel source in @code{drivers/char/serial.c}.
-Search the file for @code{UART_FCR_TRIGGER_8} and replace it with @code{UART_FCR_TRIGGER_1}. Note that overall performance might suffer if there
+Search the file for @code{UART_FCR_TRIGGER_8} and replace it with @code{UART_FCR_TRIGGER_1}.
+Note that overall performance might suffer if there
 is high throughput on serial lines. Also note that you are modifying the kernel at
 your own risk.
 
@@ -5284,7 +5283,7 @@ your own risk.
 @item
 Problem: I'm not using Linux and my AVR910 programmer is really slow.
 
-Solutions: The reasons for this are the same as above.
+Solution: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
 
 @cindex @code{eeprom}
