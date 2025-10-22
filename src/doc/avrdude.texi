@@ -1754,15 +1754,15 @@ aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
 with programming the AVR in the other design.
 
 @item spifreq=@var{0..7}
-@multitable @columnfractions .05 .3
-@item @code{0} @tab  30 kHz (default)
-@item @code{1} @tab 125 kHz
-@item @code{2} @tab 250 kHz
-@item @code{3} @tab   1 MHz
-@item @code{4} @tab   2 MHz
-@item @code{5} @tab   2.6 MHz
-@item @code{6} @tab   4 MHz
-@item @code{7} @tab   8 MHz
+@multitable @columnfractions 0.05 0.05 0.3
+@item @tab @code{0} @tab  30 kHz (default)
+@item @tab @code{1} @tab 125 kHz
+@item @tab @code{2} @tab 250 kHz
+@item @tab @code{3} @tab   1 MHz
+@item @tab @code{4} @tab   2 MHz
+@item @tab @code{5} @tab   2.6 MHz
+@item @tab @code{6} @tab   4 MHz
+@item @tab @code{7} @tab   8 MHz
 @end multitable
 
 @item rawfreq=0..3
