@@ -5334,17 +5334,16 @@ state where it can accept standard ISP communication.  The ICE is then
 signed off (which will make it signing off from the USB as well), so
 AVRDUDE has to be called again afterwards.  This time, standard ISP
 communication can work, so the @var{DWEN} fuse can be cleared.
-
 The pin mapping for the JTAG-to-ISP adapter is:
 
-@multitable @columnfractions .2 .2
-@item @strong{JTAG pin} @tab @strong{ISP pin}
-@item 1 @tab 3
-@item 2 @tab 6
-@item 3 @tab 1
-@item 4 @tab 2
-@item 6 @tab 5
-@item 9 @tab 4
+@multitable @columnfractions 0.1 .1 .1
+@item @tab @strong{JTAG} @tab @strong{ISP}
+@item @tab 1 @tab 3
+@item @tab 2 @tab 6
+@item @tab 3 @tab 1
+@item @tab 4 @tab 2
+@item @tab 6 @tab 5
+@item @tab 9 @tab 4
 @end multitable
 
 @item
