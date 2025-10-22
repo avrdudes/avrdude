@@ -5424,19 +5424,19 @@ with the kit, yet I don't have it.
 
 Solution: Use the following pin mapping:
 
-@multitable @columnfractions .2 .2 .2 .2
-@item @strong{JTAGICE} @tab @strong{Target} @tab @strong{Squid cab-} @tab @strong{PDI}
-@item @strong{mkII probe} @tab @strong{pins} @tab @strong{le colors} @tab @strong{header}
-@item 1 (TCK)   @tab         @tab Black  @tab
-@item 2 (GND)   @tab GND     @tab White  @tab 6
-@item 3 (TDO)   @tab         @tab Grey   @tab
-@item 4 (VTref) @tab VTref   @tab Purple @tab 2
-@item 5 (TMS)   @tab         @tab Blue   @tab
-@item 6 (nSRST) @tab PDI_CLK @tab Green  @tab 5
-@item 7 (N.C.)  @tab         @tab Yellow @tab
-@item 8 (nTRST) @tab         @tab Orange @tab
-@item 9 (TDI)   @tab PDI_DATA @tab Red   @tab 1
-@item 10 (GND)  @tab         @tab Brown  @tab
+@multitable @columnfractions 0.05 0.2 0.2 0.2 0.2
+@item @tab @strong{JTAG ICE} @tab @strong{Target} @tab @strong{Squid cable} @tab @strong{PDI}
+@item @tab @strong{mkII probe} @tab @strong{pins} @tab @strong{colors} @tab @strong{header}
+@item @tab 1 (TCK)   @tab         @tab Black  @tab
+@item @tab 2 (GND)   @tab GND     @tab White  @tab 6
+@item @tab 3 (TDO)   @tab         @tab Grey   @tab
+@item @tab 4 (VTref) @tab VTref   @tab Purple @tab 2
+@item @tab 5 (TMS)   @tab         @tab Blue   @tab
+@item @tab 6 (nSRST) @tab PDI_CLK @tab Green  @tab 5
+@item @tab 7 (N.C.)  @tab         @tab Yellow @tab
+@item @tab 8 (nTRST) @tab         @tab Orange @tab
+@item @tab 9 (TDI)   @tab PDI_DATA @tab Red   @tab 1
+@item @tab 10 (GND)  @tab         @tab Brown  @tab
 @end multitable
 
 @item
