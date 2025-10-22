@@ -826,13 +826,13 @@ option to specify the alternate port name.
 
 USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
-@var{avrdude.conf} or @var{.avrduderc}. Only when there are multiple
+@code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
 programmers of the same type plugged into the host computer is the
 @code{-P} option needed, see below.
 
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
-@var{avrdude.conf} or @var{.avrduderc}, e.g., @code{ch340} or
+@code{avrdude.conf} or @code{.avrduderc}, e.g., @code{ch340} or
 @code{ft232r}. If more than one serial adapter of the same type is
 connected, they can be distinguished by appending a serial number, e.g.,
 @code{ft232r:12345678}. Note that the USB to serial chip has to have a
@@ -3126,11 +3126,11 @@ Display the device signature bytes.
 @cindex Programming mode
 @cindex Variants of parts
 Display the current part information, including supported programming modes,
-memory and variants tables. Use @var{-m} to only print the memory table,
-and @var{-v} to only print the variants table.
+memory and variants tables. Use @code{-m} to only print the memory table,
+and @code{-v} to only print the variants table.
 
-@item verbose @var{]level]}
-@cindex @code{verbose} @var{]level]}
+@item verbose @var{[level]}
+@cindex @code{verbose} @var{[level]}
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
@@ -5309,10 +5309,10 @@ when flushing the cache or leaving the terminal and takes some time.
 EESAVE needs to be unprogrammed for this.
 
 @item
-Problem: How do I turn off the @var{DWEN} fuse?
+Problem: How do I turn off the @code{DWEN} fuse?
 
-Solution: If the @var{DWEN} (debugWIRE enable) fuse is activated,
-the @var{/RESET} pin is not functional anymore, so normal ISP
+Solution: If the @code{DWEN} (debugWIRE enable) fuse is activated,
+the @code{/RESET} pin is not functional anymore, so normal ISP
 communication cannot be established.
 There are two options to deactivate that fuse again: high-voltage
 programming, or getting the JTAG ICE mkII talk debugWIRE, and
@@ -5321,9 +5321,9 @@ prepare the target AVR to accept normal ISP communication again.
 The first option requires a programmer that is capable of high-voltage
 programming (either serial or parallel, depending on the AVR device),
 for example the STK500.  In high-voltage programming mode, the
-@var{/RESET} pin is activated initially using a 12 V pulse (thus the
+@code{/RESET} pin is activated initially using a 12 V pulse (thus the
 name @emph{high voltage}), so the target AVR can subsequently be
-reprogrammed, and the @var{DWEN} fuse can be cleared.  Typically, this
+reprogrammed, and the @code{DWEN} fuse can be cleared.  Typically, this
 operation cannot be performed while the AVR is located in the target
 circuit though.
 
@@ -5331,13 +5331,13 @@ The second option requires a JTAG ICE mkII that can talk the debugWIRE
 protocol.  The ICE needs to be connected to the target using the
 JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWIRE
 initiator as well as an ISP programmer.  AVRDUDE will then be activated
-using the @var{jtag2isp} programmer type.  The initial ISP
+using the @code{jtag2isp} programmer type.  The initial ISP
 communication attempt will fail, but AVRDUDE then tries to initiate a
 debugWIRE reset.  When successful, this will leave the target AVR in a
 state where it can accept standard ISP communication.  The ICE is then
 signed off (which will make it signing off from the USB as well), so
 AVRDUDE has to be called again afterwards.  This time, standard ISP
-communication can work, so the @var{DWEN} fuse can be cleared.
+communication can work, so the @code{DWEN} fuse can be cleared.
 The pin mapping for the JTAG-to-ISP adapter is:
 
 @multitable @columnfractions 0.1 .1 .1
@@ -5353,11 +5353,10 @@ The pin mapping for the JTAG-to-ISP adapter is:
 @item
 Problem: Differentiate multiple USBtinyISP (or USBasp) programmers
 
-Solution: The @var{-c usbtiny} programmer distinguishes multiple physical
+Solution: The @code{-c usbtiny} programmer distinguishes multiple physical
 USBtinyISP devices based on their bus:device pairs that describe their
 place in the USB hierarchy on a specific host.  This pair can be specified
-in the @var{-P usb:<bus>:<device>} option.
-
+in the @code{-P usb:<bus>:<device>} option.
 The naming convention for the bus and device depends on the operating
 system. Examples for Linux, FreeBSD and Windows, respectively:
 
@@ -5369,12 +5368,12 @@ $ avrdude -c usbtiny -p atmega8 \
 @end example
 
 The Windows device name contains the backslash file separator, so the
-@var{-P} option will need appropriate quoting on the command line, eg,
+@code{-P} option will need appropriate quoting on the command line, eg,
 in bash with single quotes.
 
-For USBasp the same @var{-P usb:<bus>:<device>} as with USBtiny selects
+For USBasp the same @code{-P usb:<bus>:<device>} as with USBtiny selects
 the right device. Alternatively, USBasp can select the device via its
-serial number using @var{-P usb:<serial>}.
+serial number using @code{-P usb:<serial>}.
 
 Note that @code{avrdude -v -P usb:xyz} will print out suitable programmers
 on the bus assuming xyz does not match any device.
@@ -5395,8 +5394,8 @@ Solution: debugWIRE mode imposes several limitations.
 
 The debugWIRE protocol is Atmel's proprietary one-wire (plus ground)
 protocol to allow an in-circuit emulation of the smaller AVR devices,
-using the @var{/RESET} line.
-DebugWIRE mode is initiated by activating the @var{DWEN}
+using the @code{/RESET} line.
+DebugWIRE mode is initiated by activating the @code{DWEN}
 fuse, and then power-cycling the target.
 While this mode is mainly intended for debugging/emulation, it
 also offers limited programming capabilities.
@@ -5479,13 +5478,13 @@ Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel
 bitbang programmer.  How to connect the pins?
 
 Solution: Since TPI has only 1 pin for bi-directional data transfer, both
-@var{SDI} and @var{SDO} pins should be connected to the @var{TPIDATA} pin
+@code{SDI} and @code{SDO} pins should be connected to the @code{TPIDATA} pin
 on the ATtiny device.
-However, a 1K resistor should be placed between the @var{SDO} and @var{TPIDATA}.
-The @var{SDI} pin connects to @var{TPIDATA} directly.
-The @var{SCK} pin is connected to @var{TPICLK}.
+However, a 1K resistor should be placed between the @code{SDO} and @code{TPIDATA}.
+The @code{SDI} pin connects to @code{TPIDATA} directly.
+The @code{SCK} pin is connected to @code{TPICLK}.
 
-In addition, the @var{Vcc}, @var{/RESET} and @var{GND} pins should
+In addition, the @code{Vcc}, @code{/RESET} and @code{GND} pins should
 be connected to their respective ports on the ATtiny device.
 
 @item
@@ -5493,7 +5492,7 @@ Problem: How can I use a FTDI FT232R USB-to-Serial device for bitbang programmin
 
 Solution: When connecting the FT232 directly to the pins of the target Atmel device,
 the polarity of the pins defined in the @code{programmer} definition should be
-inverted by prefixing a tilde. For example, the @var{dasa} programmer would
+inverted by prefixing a tilde. For example, the @code{dasa} programmer would
 look like this when connected via a FT232R device (notice the tildes in
 front of pins 7, 4, 3 and 8):
 
@@ -5551,7 +5550,7 @@ speed (e.g. through the @code{CLKPR} register), further ISP connection
 attempts fail.  Or a programmer cannot initialize communication with
 a brand new chip.
 
-Solution: Even though ISP starts with pulling @var{/RESET} low, the
+Solution: Even though ISP starts with pulling @code{/RESET} low, the
 target continues to run at the internal clock speed either as defined by
 the firmware running before or as set by the factory.  Therefore, the
 ISP clock speed must be reduced appropriately (to less than 1/4 of the
