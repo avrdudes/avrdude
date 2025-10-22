@@ -5462,15 +5462,15 @@ ATtiny4/5/9/10 device through TPI.  How to connect the pins?
 
 Solution: Use the following pin mapping:
 
-@multitable @columnfractions .2 .2 .2
-@item @strong{AVRISP} @tab @strong{Target} @tab @strong{ATtiny}
-@item @strong{connector} @tab @strong{pins} @tab @strong{pin #}
-@item 1 (SDI)   @tab TPIDATA  @tab 1
-@item 2 (VTref) @tab Vcc      @tab 5
-@item 3 (SCK)   @tab TPICLK   @tab 3
-@item 4 (SDO)   @tab          @tab
-@item 5 (RESET) @tab /RESET   @tab 6
-@item 6 (GND)   @tab GND      @tab 2
+@multitable @columnfractions 0.05 .2 .2 .2
+@item @tab @strong{AVRISP} @tab @strong{Target} @tab @strong{ATtiny}
+@item @tab @strong{connector} @tab @strong{pins} @tab @strong{pin #}
+@item @tab 1 (SDI)   @tab TPIDATA  @tab 1
+@item @tab 2 (VTref) @tab Vcc      @tab 5
+@item @tab 3 (SCK)   @tab TPICLK   @tab 3
+@item @tab 4 (SDO)   @tab          @tab
+@item @tab 5 (RESET) @tab /RESET   @tab 6
+@item @tab 6 (GND)   @tab GND      @tab 2
 @end multitable
 
 @item
@@ -5519,7 +5519,7 @@ Solution: Mind the limited programming supply voltage range of these
 devices.
 
 In-circuit programming through TPI is only guaranteed by the datasheet
-at Vcc = 5 V.
+at Vcc = 5@w{ }V.
 
 @item
 Problem: My ATxmega@dots{}A1/A2/A3 cannot be programmed through PDI with
@@ -5575,8 +5575,8 @@ erase cycle.
 
 AVRDUDE supports the programmers below: the left column lists the
 programmer's id as used for @code{-c}, whilst the right column contains a
-short description and the list of available programming interface(s) in
-brackets; see @ref{Programmer Definitions}). There is more detail about
+short description and the list of available programming interfaces in
+brackets; see @ref{Programmer Definitions}. There is more detail about
 each programmer in the AVRDUDE configuration file.
 
 @multitable @columnfractions .24 .75
