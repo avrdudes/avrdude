@@ -824,6 +824,12 @@ specification, system-dependent default values @code{default_parallel},
 the configuration file are used. If you need to use a different port, use this
 option to specify the alternate port name.
 
+USB-only programmers normally do not need the port option be specified as
+they are automatically identified via their vendor and product IDs from
+@var{avrdude.conf} or @var{.avrduderc}. Only when there are multiple
+programmers of the same type plugged into the host computer is the
+@code{-P} option needed, see below.
+
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
 @var{avrdude.conf} or @var{.avrduderc}, e.g., @code{ch340} or
@@ -842,31 +848,31 @@ list of all possible serial adapters known to avrdude use @code{-P ?sa}.
 Depending on the used shell, @code{?} may need to be quoted as in
 @code{"?"} or @code{\?}.
 
-For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
-@var{port} may alternatively be specified as
-@code{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
-looked up on USB.  If @var{serialno} is also specified, it will be
-matched against the serial number read from any JTAG ICE mkII found on
-USB.  The match is done after stripping any existing colons from the
-given serial number, and right-to-left, so only the least significant
-bytes from the serial number need to be given.
-For a trick how to find out the serial numbers of all JTAG ICEs
+For the JTAG ICE mkII, if AVRDUDE has been built with libusb support, the
+port can be specified as @code{usb}[:@var{serialno}].  In that case, the
+JTAG ICE mkII will be looked up on USB.  If @var{serialno} is also
+specified, it will be matched against the serial number read from any JTAG
+ICE mkII found on USB.  The match is done after stripping any existing
+colons from the given serial number, and right-to-left, so only the least
+significant bytes from the serial number need to be given.
+@code{avrdude -v -P usb:xyz -c jtag2 -p ... 2>&1 | grep ^Found} lists all JTAG ICEs
 attached to USB, see @ref{Example Command Line Invocations}.
 
 As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
 
-For the USB programmer "AVR-Doper" running in HID mode, the port must
-be specified as @var{avrdoper}. Libhidapi support is required on Unix
-and Mac OS but not on Windows. For more information about AVR-Doper see
+For the USB programmer AVR-Doper running in HID mode, the port must be
+specified as @code{-P avrdoper}. Libhidapi support is required on Unix and
+Mac OS but not on Windows. For more information about AVR-Doper see
 @url{https://www.obdev.at/products/vusb/avrdoper.html}.
 
-For the USBtinyISP, which is a simplistic device not implementing
-serial numbers, multiple devices can be distinguished by their
-location in the USB hierarchy.
-For USBasp, multiple devices can be distinguished by either USB connection
-or serial number.
-See the respective @ref{Troubleshooting} entry for examples.
+For the USBtinyISP, which is a simplistic device not implementing serial
+numbers, multiple devices can be distinguished by their location in the
+USB hierarchy using @code{-P usb:<bus>:<device>}.
+
+For USBasp, multiple devices can also be also distinguished using @code{-P
+usb:<bus>:<device>} or using the serial number @code{-P usb:<serial>}. For
+examples, see the respective entry in @ref{Troubleshooting}.
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -877,10 +883,9 @@ directly contactable XBee device associated with the same mesh (with
 a default baud rate of 9600).  This may look similar to:
 @code{0013a20000000001@/dev/tty.serial}.
 
-For diagnostic purposes, if the target MCU with an XBeeBoot
-bootloader is connected directly to the serial port, the
-64-bit address field can be omitted.  In this mode the
-default baud rate will be 19200.
+For diagnostic purposes, if the target MCU with an XBeeBoot bootloader is
+connected directly to the serial port, the 64-bit address field can be
+omitted.  In this mode the default baud rate will be 19200.
 
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -898,8 +903,7 @@ The port is assumed to be properly configured, for example using a
 transparent 8-bit data connection without parity at 115200 Baud
 for a STK500.
 
-Note: The ability to handle IPv6 hostnames and addresses is limited to
-Posix systems (by now).
+Note: IPv6 hostnames and addresses are limited to Posix systems.
 
 @item -r
 @item --reconnect

@@ -41,7 +41,7 @@
 .Op Fl i Ar delay
 .Op Fl l, \-logfile Ar logfile
 .Op Fl n, \-test-memory
-.Op Fl O, \-osccal 
+.Op Fl O, \-osccal
 .Op Fl P, \-port Ar port
 .Op Fl r, \-reconnect
 .Op Fl q, \-quell
@@ -607,6 +607,12 @@ or
 from the configuration file are used. If you need to use a different port,
 use this option to specify the alternate port name.
 .Pp
+USB-only programmers normally do not need the port option be specified as
+they are automatically identified via their vendor and product IDs from
+avrdude.conf or .avrduderc. Only when there are multiple programmers of
+the same type plugged into the host computer is the -P option needed, see
+below.
+.Pp
 If
 .Nm
 has been configured with libserialport support, a serial port can be specified
@@ -663,20 +669,31 @@ The match is done after stripping any existing colons from the given
 serial number, and right-to-left, so only the least significant bytes
 from the serial number need to be given.
 .Pp
+avrdude -v -P usb:xyz -c jtag2 -p ... 2>&1 | grep ^Found
+.Pp
+lists all JTAG ICEs
+attached to USB, see the section
+.Em Example Command Line Invocations
+in the detailed pdf documentation.
+.Pp
 As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
 .Pp
-For the USB programmer "AVR-Doper" running in HID mode, the port must
+For the USB programmer AVR-Doper running in HID mode, the port must
 be specified as
 .Ar avrdoper.
 Libhidapi support is required on Unix and Mac OS but not on Windows. For more
 information about AVR-Doper see https://www.obdev.at/products/vusb/avrdoper.html.
 .Pp
-For the USBtinyISP, which is a simplistic device not implementing
-serial numbers, multiple devices can be distinguished by their
-location in the USB hierarchy.  See the respective
+For the USBtinyISP, which is a simplistic device not implementing serial
+numbers, multiple devices can be distinguished by their location in the
+USB hierarchy using -P usb:<bus>:<device>.
+.Pp
+For USBasp, multiple devices can also be also distinguished using -P
+usb:<bus>:<device> or using the serial number -P usb:<serial>. For
+examples, see the respective
 .Em Troubleshooting
-entry in the detailed documentation for examples.
+entry in the detailed pdf documentation.
 .Pp
 For the XBee programmer the target MCU is to be programmed wirelessly over a
 ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit address for the
@@ -1639,7 +1656,7 @@ to the target. If there is already a valid voltage applied to the VTG Pin,
 this setting will be ignored. When AVRDUDE detects an external voltage outside
 of this range, it will terminate the operation. You can disable this check by
 setting the voltage to 0 V. If an XMEGA part was selected, a requested voltage
-above 3.49 V will lead to an abort of operation. 
+above 3.49 V will lead to an abort of operation.
 .It Ar hvupdi
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use -x hvupdi to enable high-voltage UPDI
