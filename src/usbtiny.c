@@ -325,7 +325,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
       if(dev->descriptor.idVendor == vid && dev->descriptor.idProduct == pid) { // Found match?
         pmsg_notice("found USBtiny with bus:device = %s:%s\n", bus->dirname, dev->filename);
         // If -P was given, match device by device name and bus name
-        if(name && (!dev_name || !str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(dev->filename, dev_name)))
+        if(name && (!dev_name || !str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(dev->filename, dev_name+1)))
           continue;
         my.usb_handle = usb_open(dev); // Attempt to connect to device
 
