@@ -5445,15 +5445,15 @@ Xmega device through PDI.
 
 Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
 
-@multitable @columnfractions .2 .2
-@item @strong{Dragon} @tab @strong{Target}
-@item @strong{ISP Header} @tab @strong{pins}
-@item 1 (SDI)   @tab PDI_DATA
-@item 2 (VCC)   @tab VCC
-@item 3 (SCK)   @tab
-@item 4 (SDO)   @tab
-@item 5 (RESET) @tab PDI_CLK / RST
-@item 6 (GND)   @tab GND
+@multitable @columnfractions 0.05 0.2 0.3
+@item @tab @strong{Dragon} @tab @strong{Target}
+@item @tab @strong{ISP Header} @tab @strong{pins}
+@item @tab 1 (SDI)   @tab PDI_DATA
+@item @tab 2 (VCC)   @tab VCC
+@item @tab 3 (SCK)   @tab
+@item @tab 4 (SDO)   @tab
+@item @tab 5 (RESET) @tab PDI_CLK / RST
+@item @tab 6 (GND)   @tab GND
 @end multitable
 
 @item
