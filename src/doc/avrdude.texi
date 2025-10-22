@@ -1885,14 +1885,14 @@ be shortened accordingly.
 @item PICkit2
 
 Connection to the PICkit2 programmer:
-@multitable @columnfractions .05 .3
-@item @code{(AVR)} @tab      @code{(PICkit2)}
-@item @code{RST} @tab      @code{VPP/MCLR (1) }
-@item @code{VDD} @tab      @code{VDD Target (2) -- possibly optional if AVR self powered }
-@item @code{GND} @tab      @code{GND (3) }
-@item @code{SDI} @tab      @code{PGD (4) }
-@item @code{SCLK} @tab      @code{PDC (5) }
-@item @code{OSI} @tab      @code{AUX (6) }
+@multitable @columnfractions 0.05 0.15 0.8
+@headitem @tab @strong{AVR} @tab @strong{PICkit2}
+@item @tab @code{RST} @tab      @code{VPP/MCLR (1)}
+@item @tab @code{VDD} @tab      @code{VDD Target (2)} -- optional if AVR self powered
+@item @tab @code{GND} @tab      @code{GND (3)}
+@item @tab @code{SDI} @tab      @code{PGD (4)}
+@item @tab @code{SCLK} @tab      @code{PDC (5)}
+@item @tab @code{SDO} @tab      @code{AUX (6)}
 @end multitable
 
 The PICkit2 programmer type accepts the following extended parameters:
