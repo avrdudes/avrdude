@@ -2556,64 +2556,64 @@ recalled and edited.
 
 The @var{addr} and @var{len} parameters of the dump, read, disasm, write,
 save and erase commands can be negative with the same syntax as substring
-computations in perl or python. The table below details their meaning with
-respect to an example memory of size @code{sz=0x800} (2048 bytes).
+computations in perl or python. The table below defines the effective
+memory interval [@var{start}, @var{end}], given the memory size @var{sz}:
 
-@multitable {0/negativ}{negativ}{@code{[addr, addr+len-1]}}{End is @code{|len|} bytes below memory size @code{sz}}
-@headitem @code{addr}
-@tab @code{len}
+@multitable {0/positive}{negative}{[@var{sz}+@var{addr}, @var{sz}+@var{addr}+@var{len}-1]}{End is |@var{len}| bytes below mem size @var{sz}}
+@headitem @code{@var{addr}}
+@tab @code{@var{len}}
 @tab Memory interval
 @tab Comment
 @item 0/positive
 @tab  positive
-@tab  @code{[addr, addr+len-1]}
-@tab  Note: @code{len = end-start + 1}
+@tab  [@var{addr}, @var{addr}+@var{len}-1]
+@tab  Note: @var{len} = @var{end}-@var{start} + 1
 @item 0/positive
 @tab  negative
-@tab  @code{[addr, sz+len]}
-@tab  End is @code{|len|} bytes below memory size @code{sz}
+@tab  [@var{addr}, @var{sz}+@var{len}]
+@tab  End is |@var{len}| bytes below mem size @var{sz}
 @item negative
 @tab  positive
-@tab  @code{[sz+addr, @dots{}]}
-@tab  Start is @code{|addr|} bytes below memory size
+@tab  [@var{sz}+@var{addr}, @var{sz}+@var{addr}+@var{len}-1]
+@tab  Start is |@var{addr}| bytes below mem size
 @item negative
 @tab  negative
-@tab  @code{[sz+addr, sz+len]}
+@tab  [@var{sz}+@var{addr}, @var{sz}+@var{len}]
 @tab  Combining above two cases
 @item any
 @tab  zero
 @tab  empty set
 @tab  No action
-@item @verb{|0x700|}
-@tab  @verb{|   12|}
-@tab @code{[0x700, 0x70b]}
-@tab Conventional use
-@item @verb{| 1024|}
-@tab  @verb{| -257|}
-@tab @code{[0x400, 0x6ff]}
-@tab Size of memory is @code{2048} or @code{0x800}
-@item @verb{| -512|}
-@tab  @verb{|  512|}
-@tab @code{[0x600, 0x7ff]}
-@tab Last 512 bytes
-@item @verb{| -256|}
-@tab  @verb{|   -1|}
-@tab @code{[0x700, 0x7ff]}
-@tab Last 256 bytes
-@item @verb{|    0|}
-@tab  @verb{|   49|}
-@tab @code{[0, 48]}
-@tab First 49 bytes
-@item @verb{|    0|}
-@tab  @verb{|  -49|}
-@tab @code{[0, 1999]}
-@tab All but the last @code{48 = |len+1|} bytes
-@item @verb{|    0|}
-@tab  @verb{|   -1|}
-@tab @code{[0, 0x7ff]}
-@tab All memory without knowing its size
 @end multitable
 
+@noindent
+Note that @var{addr} must be in the range [-@var{sz}, @var{sz}-1]. After
+computing the memory interval [@var{start}, @var{end}] as per above table,
+the @emph{effective} length @var{end}-@var{start} + 1 must not be
+negative; if the effective length is zero then no action is carried out.
+@var{end} may be beyond the available memory for the dump, read or disasm
+commands, in which case the operation wraps around the memory end, but the
+effective length is always limited to the memory size.
+
+Here some examples for a memory with size @var{sz} of 0x800 (2048) bytes:
+
+@multitable {0/positive}{negative}{Memory interval}{Wrap around for read but error for write}
+@headitem @code{@var{addr}} @tab @code{@var{len}} @tab Memory interval @tab Comment
+@item 0x700 @tab  12   @tab [0x700, 0x70b]  @tab Conventional use
+@item 1024  @tab  -257 @tab [0x400, 0x6ff]  @tab 0x6ff = 2048-257
+@item -512  @tab  512  @tab [0x600, 0x7ff]  @tab Last 512 bytes
+@item -256  @tab  -1   @tab [0x700, 0x7ff]  @tab Last 256 bytes
+@item 0     @tab  49   @tab [0, 48]         @tab First 49 bytes
+@item 0     @tab  -49  @tab [0, 1999]       @tab All but the last 48 = |@var{len}+1| bytes
+@item 0     @tab -1    @tab [0, 0x7ff]      @tab All memory without knowing its size
+@item 2046  @tab 4     @tab [0x7fe, 0x801]  @tab Wrap around for read but error for write
+@item 2046  @tab 4096  @tab [0x7fe, 0x17fe] @tab Read wrap around stops at 0x7fd
+@item -1    @tab -1    @tab [0x7ff, 0x7ff]  @tab One byte at 0x7ff is addressed
+@item -1    @tab -2    @tab [0x7ff, 0x7fe]  @tab No action: effective length is zero
+@item -1    @tab -3    @tab [0x7ff, 0x7fd]  @tab Error: effective length is negative
+@end multitable
+
+@page
 @noindent
 The following commands are implemented for all programmers:
 
