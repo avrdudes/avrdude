@@ -2797,62 +2797,62 @@ access, depending on the programmer, might also have flash and EEPROM
 directly accessed without cache.
 Items @var{data} can have the following formats:
 
-@multitable @columnfractions .32 .42 .20
-@item @strong{Type}
+@multitable { }{Hexadecimal integer}{@code{C:/My\ projects/blink.hex}}{1, 2, 4 or 8}
+@headitem @tab @strong{Type}
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
 @c
-@item String
+@item @tab String
 @tab @code{"Hello, world\n"}
 @tab varying
 @c
-@item File
+@item @tab File
 @tab @code{C:/My\ projects/blink.hex}
 @tab varying
 @c
-@item File with format
+@item @tab File with format
 @tab @code{blink.hex:i}
 @tab varying
 @c
-@item Character
+@item @tab Character
 @tab @code{'A'}
 @tab 1
 @c
-@item Binary integer
+@item @tab Binary integer
 @tab @code{0b101010}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Octal integer
+@item @tab Octal integer
 @tab @code{012345}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Decimal integer
+@item @tab Decimal integer
 @tab @code{12345}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Hexadecimal integer
+@item @tab Hexadecimal integer
 @tab @code{0x12345}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Decimal float
+@item @tab Decimal float
 @tab @code{3.1415926}
 @tab 4
 @c
-@item Hexadecimal float
+@item @tab Hexadecimal float
 @tab @code{0xA.8p2}
 @tab 4
 @c
-@item Decimal double
+@item @tab Decimal double
 @tab @code{3.141592653589793D}
 @tab 8
 @c
-@item Hexadecimal double
+@item @tab Hexadecimal double
 @tab @code{0xA.8p2D}
 @tab 8
 @c
 @end multitable
 
-@var{data}
+@var{Data}
 can be binary, octal, decimal or hexadecimal integers, floating point
 numbers or C-style strings and characters. If nothing matches, @code{data}
 will be interpreted as a name of a file containing data, which will be
