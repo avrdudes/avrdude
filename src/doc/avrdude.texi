@@ -2872,14 +2872,14 @@ work (in contrast to @code{-U} operations).
 
 For integers, an optional case-insensitive suffix specifies the data size:
 
-@multitable {@code{H} or @code{S}}{8 bytes (64 bits) }
-@item @code{LL}
+@multitable { }{@code{H} or @code{S}}{8 bytes (64 bits) }
+@item @tab @code{LL}
 @tab 8 bytes (64 bits)
-@item @code{L}
+@item @tab @code{L}
 @tab 4 bytes (32 bits)
-@item @code{H} or @code{S}
+@item @tab @code{H} or @code{S}
 @tab 2 bytes (16 bits)
-@item @code{HH}
+@item @tab @code{HH}
 @tab 1 byte (8 bits)
 @end multitable
 
