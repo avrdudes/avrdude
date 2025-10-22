@@ -4909,17 +4909,17 @@ support parallel port programming under macOS.
 
 The following table lists the default names for a given system.
 
-@multitable @columnfractions .30 .30 .30
-@item @strong{System}
+@multitable @columnfractions 0.05 .15 .30 .30
+@item @tab @strong{System}
   @tab @strong{Default Parallel Port}
   @tab @strong{Default Serial Port}
-@item FreeBSD
+@item @tab FreeBSD
   @tab @code{/dev/ppi0}
   @tab @code{/dev/cuad0}
-@item Linux
+@item @tab Linux
   @tab @code{/dev/parport0}
   @tab @code{/dev/ttyS0}
-@item Solaris
+@item @tab Solaris
   @tab @code{/dev/printers/0}
   @tab @code{/dev/term/a}
 @end multitable
