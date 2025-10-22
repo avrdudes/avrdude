@@ -366,7 +366,7 @@ caters for these urboot bootloaders. Owing to its backward compatibility,
 bootloaders that can be served by the arduino programmer can normally also
 be served by the urclock programmer. This may require specifying the size
 of (to AVRDUDE) @emph{unknown} bootloaders in bytes using the @code{-x
-bootsize=<n>} option, which is necessary for the urclock programmer to
+bootsize=@var{n}} option, which is necessary for the urclock programmer to
 enable it to protect the bootloader from being overwritten. If an unknown
 bootloader has EEPROM read/write capability then the option @code{-x eepromrw}
 informs @code{avrdude -c urclock} of that capability.
@@ -637,10 +637,10 @@ two locations:
 @enumerate
 
 @item
-@code{<directory from which application loaded>/../etc/avrdude.conf}
+@code{@var{directory from which application loaded}/../etc/avrdude.conf}
 
 @item
-@code{<directory from which application loaded>/avrdude.conf}
+@code{@var{directory from which application loaded}/avrdude.conf}
 
 @end enumerate
 
@@ -868,10 +868,10 @@ Mac OS but not on Windows. For more information about AVR-Doper see
 
 For the USBtinyISP, which is a simplistic device not implementing serial
 numbers, multiple devices can be distinguished by their location in the
-USB hierarchy using @code{-P usb:<bus>:<device>}.
+USB hierarchy using @code{-P usb:@var{bus}:@var{device}}.
 
 For USBasp, multiple devices can also be also distinguished using @code{-P
-usb:<bus>:<device>} or using the serial number @code{-P usb:<serial>}. For
+usb:@var{bus}:@var{device}} or using the serial number @code{-P usb:@var{serial}}. For
 examples, see the respective entry in @ref{Troubleshooting}.
 
 For the XBee programmer the target MCU is to be programmed wirelessly
@@ -1313,8 +1313,8 @@ flash:r:-:I}. Patterns in flash memory are executable and represent benign
 AVR code, ie, no I/O memory access. Choose a fixed seed for reproducible
 results.
 
-@item init=<n>
-Shortcut for @code{-x init -x seed=<n>} (see below)
+@item init=@var{n}
+Shortcut for @code{-x init -x seed=@var{n}} (see below)
 
 @cindex @code{flash}
 @item random
@@ -1323,10 +1323,10 @@ randomly configured with respect to bootloader, data and code length.
 Random code in flash will be benign, that is, not accessing I/O memories,
 SRAM or flash. Choose a fixed seed for reproducible results.
 
-@item random=<n>
-Shortcut for @code{-x random -x seed=<n>}
+@item random=@var{n}
+Shortcut for @code{-x random -x seed=@var{n}}
 
-@item seed=<n>
+@item seed=@var{n}
 Seed random number generator with @var{n}; the default is
 @code{time(NULL)}. Setting this option with a fixed positive @var{n} will
 make the random choices reproducible, ie, they will stay the same between
@@ -1522,7 +1522,7 @@ The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
 The current reference voltage can be read by @code{-x varef0} or
 @code{-x varef1} alone.
-@item attempts[=<1..99>]
+@item attempts[=@var{1..99}]
 @var{STK500V1 only}
 @*
 Specify how many connection retry attempts to perform before exiting.
@@ -1575,7 +1575,7 @@ programmer creates errors during initial sequence.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item attempts[=<1..99>]
+@item attempts[=@var{1..99}]
 Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
 @item noautoreset
@@ -1600,10 +1600,10 @@ connected part and bootloader.
 @cindex @code{eeprom}
 @item showid
 Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
-@item id=<E|F>.<addr>.<len>
+@item id=@var{E|F}.@var{addr}.@var{len}
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
-number can be set by the @code{-x id=<E|F>.<addr>.<len>} extended parameter. @code{E}
+number can be set by the @code{-x id=@var{E|F}.@var{addr}.@var{len}} extended parameter. @code{E}
 stands for EEPROM and @code{F} stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
@@ -1617,8 +1617,8 @@ programmer stores by default in high flash just under the bootloader; see also
 @code{-x nometadata}.
 @item showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
-@item title=<string>
-When set, <string> will be used in lieu of the input filename. The maximum
+@item title=@var{string}
+When set, @var{string} will be used in lieu of the input filename. The maximum
 string length for the title/filename field is 254 bytes including
 terminating nul.
 @item showapp
@@ -1641,7 +1641,7 @@ just behind the vector table with the name @code{VBL_ADDITIONAL_VECTOR}.
 @item showpart
 Show the part for which the bootloader was compiled, then exit.
 @cindex @code{flash}
-@item bootsize=<size>
+@item bootsize=@var{size}
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
 i.e., typically top of flash, so the urclock programmer can look up the
@@ -1649,7 +1649,7 @@ bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
 @cindex @code{flash}
-@item vectornum=<n>
+@item vectornum=@var{n}
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1715,9 +1715,9 @@ that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
 @item noautoreset
 Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
-@item delay=<n>
-Add a <n> ms delay after reset. This can be useful if a board takes a
-particularly long time to exit from external reset. <n> can be negative,
+@item delay=@var{n}
+Add a @var{n} ms delay after reset. This can be useful if a board takes a
+particularly long time to exit from external reset. @var{n} can be negative,
 in which case the default 120 ms delay after issuing reset will be
 shortened accordingly.
 @item strict
@@ -1867,13 +1867,13 @@ device is plugged in.
 
 The Wiring programmer type accepts the following extended parameters:
 @table @code
-@item snooze=<n>
+@item snooze=@var{n}
 After performing the port open phase, AVRDUDE will wait/snooze for
 @var{snooze} milliseconds before continuing to the protocol sync phase.
 No toggling of DTR/RTS is performed if @var{snooze} > 0.
-@item delay=<n>
-Add a <n> milliseconds delay after reset. This can be useful if a board
-takes a particularly long time to exit from external reset. <n> can be
+@item delay=@var{n}
+Add a @var{n} milliseconds delay after reset. This can be useful if a board
+takes a particularly long time to exit from external reset. @var{n} can be
 negative, in which case the default 100 ms delay after issuing reset will
 be shortened accordingly.
 @end table
@@ -1925,7 +1925,7 @@ Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 The xbee programmer type accepts the following extended parameter:
 @table @code
 @item xbeeresetpin=@var{1..7}
-Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
+Select the XBee pin @code{DIO@var{1..7}} that is connected to the MCU's
 @code{/RESET} line.  The programmer needs to know which DIO pin to use to
 reset into the bootloader.  The default (3) is the @code{DIO3} pin
 (XBee pin 17), but some commercial products use a different XBee
@@ -2258,7 +2258,7 @@ Valid commands:
 For more details about a terminal command cmd type cmd -?
 
 Other:
-  !<line> : run the shell <line> in a subshell, eg, !ls *.hex
+  !@var{line}   : run the shell @var{line} in a subshell, eg, !ls *.hex
   # ...   : ignore rest of line (eg, used as comments in scripts)
 
 Note that not all programmer derivatives support all commands. Flash and
@@ -5356,7 +5356,7 @@ Problem: Differentiate multiple USBtinyISP (or USBasp) programmers
 Solution: The @code{-c usbtiny} programmer distinguishes multiple physical
 USBtinyISP devices based on their bus:device pairs that describe their
 place in the USB hierarchy on a specific host.  This pair can be specified
-in the @code{-P usb:<bus>:<device>} option.
+in the @code{-P usb:@var{bus}:@var{device}} option.
 The naming convention for the bus and device depends on the operating
 system. Examples for Linux, FreeBSD and Windows, respectively:
 
@@ -5371,9 +5371,9 @@ The Windows device name contains the backslash file separator, so the
 @code{-P} option will need appropriate quoting on the command line, eg,
 in bash with single quotes.
 
-For USBasp the same @code{-P usb:<bus>:<device>} as with USBtiny selects
+For USBasp the same @code{-P usb:@var{bus}:@var{device}} as with USBtiny selects
 the right device. Alternatively, USBasp can select the device via its
-serial number using @code{-P usb:<serial>}.
+serial number using @code{-P usb:@var{serial}}.
 
 Note that @code{avrdude -v -P usb:xyz} will print out suitable programmers
 on the bus assuming xyz does not match any device.
