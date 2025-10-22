@@ -5289,22 +5289,21 @@ If you know how to work around this on your OS, please let us know.
 
 @cindex @code{eeprom}
 @item
-Problem: Page-mode programming the EEPROM (using the -U option) does
+Problem: Page-mode programming the EEPROM using the -U option does
 not erase EEPROM cells before writing, and thus cannot necessarily overwrite
-previous values that are different to 0xff.
+non-0xff values.
 
-Solution: None.  This is an inherent feature of the way JTAG EEPROM
-programming works, and is documented that way in the Atmel AVR
-datasheets.
-In order to successfully program the EEPROM that way, a prior chip
-erase (with the EESAVE fuse unprogrammed) is required.
-This also applies to the STK500 and STK600 in high-voltage programming mode.
+Solution: This is an inherent feature of how JTAG EEPROM programming
+works, and is documented as such in the datasheets. In order to
+successfully program the EEPROM, a prior chip erase with the EESAVE fuse
+unprogrammed is required. This also applies to the STK500 and STK600 in
+high-voltage programming mode.
 
-Programming the EEPROM in the terminal, however, will recognise that the
-programmer struggles to write to EEPROM and read the flash, EEPROM and, if
-present, bootrow contents, perform a chip erase and then write the
-memories back. This happens when flushing the cache or leaving the
-terminal and, out of necessity, take some time.
+The terminal, however, recognises that the programmer struggles to write
+to EEPROM. It then reads flash, EEPROM and, if present, bootrow contents,
+performs a chip erase and then writes these memories back. This happens
+when flushing the cache or leaving the terminal and takes some time.
+EESAVE needs to be unprogrammed for this.
 
 @item
 Problem: How do I turn off the @var{DWEN} fuse?
