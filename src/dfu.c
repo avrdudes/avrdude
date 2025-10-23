@@ -162,6 +162,10 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
 
   for(bus = usb_busses; !found && bus != NULL; bus = bus->next) {
     for(dev = bus->devices; !found && dev != NULL; dev = dev->next) {
+       if(vid == dev->descriptor.idVendor && pid == dev->descriptor.idProduct)
+          pmsg_notice("found device with vendorID=0x%04x and productID=0x%04x, bus:device = %s:%s\n",
+            vid, pid, bus->dirname, dev->filename);
+
       if(dfu->bus_name && !str_busdev_eq(bus->dirname, dfu->bus_name))
         continue;
       if(dfu->dev_name) {
