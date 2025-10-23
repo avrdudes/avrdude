@@ -422,10 +422,9 @@ static int check_for_port_argument_match(const char *port, const char *bus,
   const char *device, const char *serial_num) {
 
   pmsg_notice("found USBasp with bus:device = %s:%s, serial_number = %s\n", bus, device, serial_num);
-  const size_t usb_len = strlen("usb");
 
-  if(str_starts(port, "usb") && ':' == port[usb_len]) {
-    port += usb_len + 1;
+  if(str_starts(port, "usb:")) {
+    port += 4;
     char *dev_name = strchr(port, ':');
 
     if(dev_name)                // Compare with bus:device
@@ -478,7 +477,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
         continue;
       }
       errorCode = 0;
-      // Do the names match? if vendorName not given ignore it (any vendor matches)
+      // Do the names match? If vendorName not given ignore it (any vendor matches)
       r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff,
         (unsigned char *) string, sizeof(string));
       if(r < 0) {
@@ -489,7 +488,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
         }
       } else {
         pmsg_notice2("seen device from vendor >%s<\n", string);
-        if((vendorName != NULL) && (vendorName[0] != 0) && !str_eq(string, vendorName))
+        if(vendorName && vendorName[0] && !str_eq(string, vendorName))
           errorCode = USB_ERROR_NOTFOUND;
       }
       // If productName not given ignore it (any product matches)
@@ -507,7 +506,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
           errorCode = USB_ERROR_NOTFOUND;
       }
       if(errorCode == 0) {
-        if(!str_eq(port, "usb")) {
+        if(!str_eq(port, DEFAULT_USB)) {
           // -P option given
           libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber,
             (unsigned char *) string, sizeof(string));
@@ -616,7 +615,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int ven
 
 // Interface prog
 static int usbasp_open(PROGRAMMER *pgm, const char *port) {
-  pmsg_debug("usbasp_open(\"%s\")\n", port);
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
 
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
