@@ -649,6 +649,11 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
        */
     }
 
+    if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+      pmsg_error("invalid -P %s; use -P usb:<bus>:<device> or -P usb:<serialno>\n", port);
+      return -1;
+    }
+
     pmsg_error("cannot find USB device with vid=0x%x pid=0x%x", vid, pid);
     if(pgm->usbvendor && *pgm->usbvendor)
       msg_error(" vendor='%s'", pgm->usbvendor);
