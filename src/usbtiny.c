@@ -279,23 +279,19 @@ static int usbtiny_avr_op(const PROGRAMMER *pgm, const AVRPART *p, int op, unsig
 
 // Find a device with the correct VID/PID match for USBtiny
 
-static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
+static int usbtiny_open(PROGRAMMER *pgm, const char *port) {
   struct usb_bus *bus;
   struct usb_device *dev = 0;
   const char *bus_name = NULL, *dev_name = NULL;
   int vid, pid;
 
-  // If no -P was given or '-P usb' was given
-  if(str_eq(name, "usb"))
-    name = NULL;
-  else {
-    // Calculate bus and device names from -P option
-    const size_t usb_len = strlen("usb");
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
 
-    if(str_starts(name, "usb") && ':' == name[usb_len]) {
-      bus_name = name + usb_len + 1;
-      dev_name = strchr(bus_name, ':');
-    }
+  // Calculate bus and device names from -P usb:<bus>:<device> option if present
+  if(str_starts(port, "usb:")) {
+    bus_name = port + 4;
+    if((dev_name = strchr(bus_name, ':')))
+      dev_name++;
   }
 
   usb_init();                   // Initialize the libusb system
@@ -324,9 +320,12 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     for(dev = bus->devices; dev; dev = dev->next) {
       if(dev->descriptor.idVendor == vid && dev->descriptor.idProduct == pid) { // Found match?
         pmsg_notice("found USBtiny with bus:device = %s:%s\n", bus->dirname, dev->filename);
-        // If -P was given, match device by device name and bus name
-        if(name && (!dev_name || !str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(dev->filename, dev_name+1)))
-          continue;
+
+        // If -P usb:<bus>:<device> was given, skip non-matching bus:device
+        if(bus_name && dev_name)
+          if(!str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(dev->filename, dev_name))
+            continue;
+
         my.usb_handle = usb_open(dev); // Attempt to connect to device
 
         // Wrong permissions or something?
@@ -338,10 +337,11 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     }
   }
 
-  if(NULL != name && NULL == dev_name) {
-    pmsg_error("invalid -P %s; use -P usb:bus:device\n", name);
+  if(bus_name && !dev_name) {   // Delayed error message, so found devices are printed with -P usb:xyz
+    pmsg_error("invalid -P %s; use -P usb:<bus>:<device>\n", port);
     return -1;
   }
+
   if(!my.usb_handle) {
     pmsg_error("cannot find USBtiny device (0x%x/0x%x)\n", vid, pid);
     return -1;
