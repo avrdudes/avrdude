@@ -690,10 +690,17 @@ numbers, multiple devices can be distinguished by their location in the
 USB hierarchy using -P usb:<bus>:<device>.
 .Pp
 For USBasp, multiple devices can also be also distinguished using -P
-usb:<bus>:<device> or using the serial number -P usb:<serial>. For
+usb:<bus>:<device> or using the serial number -P usb:<serialno>. For
 examples, see the respective
 .Em Troubleshooting
 entry in the detailed pdf documentation.
+.Pp
+The -c pickit5 programmer allows overriding the product ID with a
+hexadecimal number <pid> using -P usb::<pid> and the vendor and product
+IDs with hexadecimal numbers <vid> and <pid> using -P usb:<vid>:<pid>. The
+form -P usb:<serialno> requests AVRDUDE select the PICkit5 programmer with
+a serial number that ends in <serialno> (and with vid/pid from the
+configuration files).
 .Pp
 For the XBee programmer the target MCU is to be programmed wirelessly over a
 ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit address for the

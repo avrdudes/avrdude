@@ -872,9 +872,17 @@ USB hierarchy using @code{-P usb:@var{bus}:@var{device}}.
 
 For USBasp, multiple devices can also be also distinguished using @code{-P
 usb:@var{bus}:@var{device}} or using the serial number @code{-P
-usb:@var{serial}}. The USBasp serial number is matched from the end, so
+usb:@var{serialno}}. The USBasp serial number is matched from the end, so
 only the unique least significant bytes are needed. For examples, see the
 respective entry in @ref{Troubleshooting}.
+
+The @code{-c pickit5} programmer allows overriding the product ID with a
+hexadecimal number @var{pid} using @code{-P usb::@var{pid}} and the vendor
+and product IDs with hexadecimal numbers @var{vid} and @var{pid} using
+@code{-P usb:@var{vid}:@var{pid}}. The form @code{-P usb:@var{serialno}}
+requests AVRDUDE select the PICkit5 programmer with a serial number that
+ends in @var{serialno} (and with @var{vid}/@var{pid} from the
+configuration files).
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -5375,7 +5383,7 @@ in bash with single quotes.
 
 For USBasp the same @code{-P usb:@var{bus}:@var{device}} as with USBtiny selects
 the right device. Alternatively, USBasp can select the device via its
-serial number using @code{-P usb:@var{serial}}.
+serial number using @code{-P usb:@var{serialno}}.
 
 Note that @code{avrdude -v -P usb:xyz} will print out suitable programmers
 on the bus assuming xyz does not match any device.
