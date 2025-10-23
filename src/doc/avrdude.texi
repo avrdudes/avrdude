@@ -871,8 +871,10 @@ numbers, multiple devices can be distinguished by their location in the
 USB hierarchy using @code{-P usb:@var{bus}:@var{device}}.
 
 For USBasp, multiple devices can also be also distinguished using @code{-P
-usb:@var{bus}:@var{device}} or using the serial number @code{-P usb:@var{serial}}. For
-examples, see the respective entry in @ref{Troubleshooting}.
+usb:@var{bus}:@var{device}} or using the serial number @code{-P
+usb:@var{serial}}. The USBasp serial number is matched from the end, so
+only the unique least significant bytes are needed. For examples, see the
+respective entry in @ref{Troubleshooting}.
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -5384,7 +5386,7 @@ $ avrdude -v -Pusb:xyz -c usbasp -p m328p 2>&1 | grep ^Found
 Found USBasp with bus:device = 001:008, serial_number = 0001
 Found USBasp with bus:device = 001:009, serial_number = 1234
 
-$ avrdude -qq -c USBasp -p atmega8 -P usb:1234
+$ avrdude -qq -c USBasp -p atmega8 -P usb:34
 @end example
 
 @item
