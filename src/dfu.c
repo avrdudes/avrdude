@@ -101,7 +101,7 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    */
 
   if(!str_starts(port_spec, "usb:") && !str_eq(port_spec, "usb")) {
-    pmsg_error("port name %s must be usb:<bus>:<device>\n", port_spec);
+    pmsg_error("invalid -P %s; drop this option or use -P usb:<bus>:<device>\n", port_spec);
     return NULL;
   }
 
@@ -146,7 +146,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
    */
 
   if(pid == 0 && dfu->dev_name == NULL) {
-    pmsg_error("no DFU support for part; specify <pid> in config or USB address via -P usb:<bus>:<dev>\n");
+    pmsg_error("no DFU support for part; specify <pid> in config or USB address via -P usb:<bus>:<device>\n");
     return -1;
   }
 

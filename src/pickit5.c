@@ -580,7 +580,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 #endif
 
   if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
-    pmsg_error("port name %s must be usb:<vid>:<pid> or usb:<serno>\n", port);
+    pmsg_error("invalid -P %s; use -P usb:<vid>:<pid>, -P usb:<serialno> or -P usb\n", port);
     return -1;
   }
   unsigned int new_vid = 0, new_pid = 0, setids = 0;
@@ -612,7 +612,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       if(vidp != pidp) {        // User specified an VID
         // First: Handle VID input
         if(sscanf(vidp, "%x", &new_vid) != 1) {
-          pmsg_error("failed to parse -P VID input %s: unexpected format\n", vidp);
+          pmsg_error("failed to parse -P VID input %s: expected hexadecimal number\n", vidp);
           return -1;
         }
       } else {                  // VID space empty: default to Microchip
@@ -621,7 +621,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       // Now handle PID input
       if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
-        pmsg_error("failed to parse -P PID input %s: unexpected format\n", pidp+1);
+        pmsg_error("failed to parse -P PID input %s: expected hexadecimal number\n", pidp+1);
         return -1;
       }
 

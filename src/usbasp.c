@@ -620,6 +620,11 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
+  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+    pmsg_error("invalid -P %s; use -P usb:<bus>:<device>, -P usb:<serialno> or -P usb\n", port);
+    return -1;
+  }
+
   // usb_init will be done in usbOpenDevice
   LNODEID usbpid = lfirst(pgm->usbpid);
   int pid, vid;
@@ -647,11 +652,6 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
        * again here; no alternative found => fall through to generic error
        * message
        */
-    }
-
-    if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
-      pmsg_error("invalid -P %s; use -P usb:<bus>:<device> or -P usb:<serialno>\n", port);
-      return -1;
     }
 
     pmsg_error("cannot find USB device with vid=0x%x pid=0x%x", vid, pid);

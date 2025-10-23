@@ -585,6 +585,11 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   struct pdata *pdata = &my;
   const char *bus_name = NULL, *dev_name = NULL;
 
+  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+    pmsg_error("invalid -P %s; drop this option or use -P usb:<bus>:<device>\n", port);
+    return -1;
+  }
+
   // Calculate bus and device names from -P usb:<bus>:<device> option if present
   if(str_starts(port, "usb:")) {
     bus_name = port + 4;
@@ -683,7 +688,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   }
 
   if(bus_name && !dev_name) {   // Delayed error message, so found devices are printed with -P usb:xyz
-    pmsg_error("invalid -P %s; use -P usb:<bus>:<device>\n", port);
+    pmsg_error("invalid -P %s; use -P usb:<bus>:<device> or -P usb\n", port);
     return -1;
   }
 
