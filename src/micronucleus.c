@@ -577,34 +577,21 @@ static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
-  pmsg_debug("micronucleus_open(\"%s\")\n", port);
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
 
   if(pgm->bitclock)
     pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   struct pdata *pdata = &my;
-  const char *bus_name = NULL;
-  char *dev_name = NULL;
+  const char *bus_name = NULL, *dev_name = NULL;
 
-  // If no -P was given or '-P usb' was given
-  if(str_eq(port, "usb")) {
-    port = NULL;
-  } else {
-    // Calculate bus and device names from -P option
-    if(str_starts(port, "usb") && ':' == port[3]) {
-      bus_name = port + 4;
-      dev_name = strchr(bus_name, ':');
-      if(dev_name != NULL) {
-        *dev_name = '\0';
-        dev_name++;
-      }
-    }
+  // Calculate bus and device names from -P usb:<bus>:<device> option if present
+  if(str_starts(port, "usb:")) {
+    bus_name = port + 4;
+    if((dev_name = strchr(bus_name, ':')))
+      dev_name++;
   }
 
-  if(port != NULL && dev_name == NULL) {
-    pmsg_error("invalid -P %s; use -P usb:bus:device\n", port);
-    return -1;
-  }
   // Determine VID/PID
   int vid = pgm->usbvid? pgm->usbvid: MICRONUCLEUS_VID;
   int pid = MICRONUCLEUS_PID;
@@ -652,15 +639,13 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
             continue;
           }
 
-          pmsg_notice("found device with Micronucleus V%d.%d, bus:device: %s:%s\n",
+          pmsg_notice("found device with Micronucleus V%d.%d, bus:device = %s:%s\n",
             pdata->major_version, pdata->minor_version, bus->dirname, device->filename);
 
-          // If -P was given, match device by device name and bus name
-          if(port != NULL) {
-            if(dev_name == NULL || !str_eq(bus->dirname, bus_name) || !str_eq(device->filename, dev_name)) {
+          // If -P usb:<bus>:<device> was given, skip non-matching bus:device
+          if(bus_name && dev_name)
+            if(!str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(device->filename, dev_name))
               continue;
-            }
-          }
 
           if(pdata->major_version > MICRONUCLEUS_MAX_MAJOR_VERSION) {
             pmsg_warning("device with unsupported Micronucleus version V%d.%d\n",
@@ -695,6 +680,11 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
     }
 
     break;
+  }
+
+  if(bus_name && !dev_name) {   // Delayed error message, so found devices are printed with -P usb:xyz
+    pmsg_error("invalid -P %s; use -P usb:<bus>:<device>\n", port);
+    return -1;
   }
 
   if(!pdata->usb_handle) {
