@@ -100,6 +100,8 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    * function, where we actually open the device.
    */
 
+  pmsg_debug("%s(\"%s\")\n", __func__, port_spec);
+
   if(!str_starts(port_spec, "usb:") && !str_eq(port_spec, "usb")) {
     pmsg_error("invalid -P %s; drop this option or use -P usb:<bus>:<device>\n", port_spec);
     return NULL;
