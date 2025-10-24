@@ -641,6 +641,10 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 
   Avrftdi_data *pdata = to_pdata(pgm);
 
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
+  if(!str_eq(port, "usb"))
+    pmsg_warning("option -P %s ignored\n", port);
+
   // Parameter validation
 
   // Use vid/pid in following priority: config, defaults cmd-line is currently not supported

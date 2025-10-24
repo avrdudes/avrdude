@@ -1701,6 +1701,12 @@ int segment_normalise(const AVRMEM *mem, Segment *segp) {
     return -1;
   }
 
+  if(len > 0 && addr+len-1 >= maxsize) {
+    pmsg_error("segment length %d with starting address 0x%0*x reaches beyond memory end 0x%0*x\n",
+      segp->len, digits, addr, digits, maxsize-1);
+    return -1;
+  }
+
   segp->addr = addr;
   segp->len = len;
 

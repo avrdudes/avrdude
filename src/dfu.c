@@ -92,8 +92,7 @@ static char *get_usb_string(usb_dev_handle *dev_handle, int index);
 
 struct dfu_dev *dfu_open(const char *port_spec) {
   struct dfu_dev *dfu;
-  char *bus_name = NULL;
-  char *dev_name = NULL;
+  char *bus_name = NULL, *dev_name = NULL;
 
   /* The following USB device spec parsing code was copied from usbtiny.c. The
    * expected format is "usb:BUS:DEV" where BUS and DEV are the bus and device
@@ -101,16 +100,17 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    * function, where we actually open the device.
    */
 
-  if(!str_starts(port_spec, "usb")) {
-    pmsg_error("invalid port specification %s for USB device\n", port_spec);
+  pmsg_debug("%s(\"%s\")\n", __func__, port_spec);
+
+  if(!str_starts(port_spec, "usb:") && !str_eq(port_spec, "usb")) {
+    pmsg_error("invalid -P %s; drop this option or use -P usb:<bus>:<device>\n", port_spec);
     return NULL;
   }
 
   if(':' == port_spec[3]) {
     bus_name = mmt_strdup(port_spec + 3 + 1);
 
-    dev_name = strchr(bus_name, ':');
-    if(NULL != dev_name)
+    if((dev_name = strchr(bus_name, ':')))
       *dev_name++ = '\0';
   }
 
@@ -148,7 +148,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
    */
 
   if(pid == 0 && dfu->dev_name == NULL) {
-    pmsg_error("no DFU support for part; specify PID in config or USB address (via -P) to override\n");
+    pmsg_error("no DFU support for part; specify <pid> in config or USB address via -P usb:<bus>:<device>\n");
     return -1;
   }
 
@@ -164,10 +164,14 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
 
   for(bus = usb_busses; !found && bus != NULL; bus = bus->next) {
     for(dev = bus->devices; !found && dev != NULL; dev = dev->next) {
-      if(dfu->bus_name != NULL && !str_eq(bus->dirname, dfu->bus_name))
+       if(vid == dev->descriptor.idVendor && pid == dev->descriptor.idProduct)
+          pmsg_notice("found device with vendorID=0x%04x and productID=0x%04x, bus:device = %s:%s\n",
+            vid, pid, bus->dirname, dev->filename);
+
+      if(dfu->bus_name && !str_busdev_eq(bus->dirname, dfu->bus_name))
         continue;
-      if(dfu->dev_name != NULL) {
-        if(!str_eq(dev->filename, dfu->dev_name))
+      if(dfu->dev_name) {
+        if(!str_busdev_eq(dev->filename, dfu->dev_name))
           continue;
       } else if(vid != dev->descriptor.idVendor)
         continue;
@@ -223,14 +227,10 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
 void dfu_close(struct dfu_dev *dfu) {
   if(dfu->dev_handle != NULL)
     usb_close(dfu->dev_handle);
-  if(dfu->bus_name != NULL)
-    mmt_free(dfu->bus_name);
-  if(dfu->manf_str != NULL)
-    mmt_free(dfu->manf_str);
-  if(dfu->prod_str != NULL)
-    mmt_free(dfu->prod_str);
-  if(dfu->serno_str != NULL)
-    mmt_free(dfu->serno_str);
+  mmt_free(dfu->bus_name);
+  mmt_free(dfu->manf_str);
+  mmt_free(dfu->prod_str);
+  mmt_free(dfu->serno_str);
 }
 
 int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status) {

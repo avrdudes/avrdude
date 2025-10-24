@@ -811,6 +811,8 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
   int devnum = -1;
   char device[9] = "";
 
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
+
   rv = pins_check(pgm, pin_checklist, sizeof(pin_checklist)/sizeof(pin_checklist[0]), true);
 
   if(rv) {

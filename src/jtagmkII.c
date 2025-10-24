@@ -1384,7 +1384,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
 static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_open()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -1434,7 +1434,7 @@ static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
 static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_open_dw()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -1484,7 +1484,7 @@ static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
 static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_open_pdi()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -1540,7 +1540,7 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
 static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_dragon_open()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -1590,7 +1590,7 @@ static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
 static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_dragon_open_dw()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -1640,7 +1640,7 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
 static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_dragon_open_pdi()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -3222,7 +3222,7 @@ static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
   unsigned char buf[6], *resp;
   union pinfo pinfo;
 
-  pmsg_notice2("jtagmkII_open32()\n");
+  pmsg_notice2("%s(\"%s\")\n", __func__, port);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon

@@ -645,12 +645,12 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   return -1;
 #endif
 
-  if(!str_starts(port, "usb")) {
-    pmsg_error("port names must start with usb\n");
+  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+    pmsg_error("invalid -P %s; use -P usb:<vid>:<pid>, -P usb:<serialno> or -P usb\n", port);
     return -1;
   }
-  unsigned int new_vid = 0, new_pid = 0;
-  char *vidp, *pidp;
+  unsigned int new_vid = 0, new_pid = 0, setids = 0;
+  const char *vidp, *pidp;
 
   /*
    * The syntax for usb devices is defined as:
@@ -674,10 +674,11 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     vidp += 1;
     pidp = strchr(vidp, ':');
     if(pidp != NULL) {
+      setids = 1;
       if(vidp != pidp) {        // User specified an VID
         // First: Handle VID input
         if(sscanf(vidp, "%x", &new_vid) != 1) {
-          pmsg_error("failed to parse -P VID input %s: unexpected format\n", vidp);
+          pmsg_error("failed to parse -P VID input %s: expected hexadecimal number\n", vidp);
           return -1;
         }
       } else {                  // VID space empty: default to Microchip
@@ -686,14 +687,12 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       // Now handle PID input
       if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
-        pmsg_error("failed to parse -P PID input %s: unexpected format\n", pidp+1);
+        pmsg_error("failed to parse -P PID input %s: expected hexadecimal number\n", pidp+1);
         return -1;
       }
 
-      if((new_vid != 0) && (new_pid != 0)) {
-        pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
-        port = "usb";           // Overwrite the string to avoid confusing the libusb
-      }
+      pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
+      port = "usb";           // Overwrite the string to avoid confusing the libusb
     }                           // pidp == NULL means vidp could point to serial number
   }                             // vidp == NULL means just 'usb'
 
@@ -705,7 +704,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   // PICkit 5 does not have support for HID, so no need to support it
   serdev = &usb_serdev;
-  if(new_pid != 0 && new_vid != 0) {    // In case a specific VID/PID was specified
+  if(setids) {                  // In case a specific VID/PID was specified
     pinfo.usbinfo.vid = new_vid;
     pinfo.usbinfo.pid = new_pid;
     pinfo.usbinfo.flags = PINFO_FL_SILENT;

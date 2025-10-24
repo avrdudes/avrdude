@@ -305,34 +305,15 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
-  pmsg_debug("teensy_open(\"%s\")\n", port);
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
+  if(!str_eq(port, "usb"))
+    pmsg_warning("option -P %s ignored\n", port);
 
   if(pgm->bitclock)
     pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   struct pdata *pdata = &my;
-  const char *bus_name = NULL;
-  char *dev_name = NULL;
 
-  // If no -P was given or '-P usb' was given
-  if(str_eq(port, "usb")) {
-    port = NULL;
-  } else {
-    // Calculate bus and device names from -P option
-    if(str_starts(port, "usb") && ':' == port[3]) {
-      bus_name = port + 4;
-      dev_name = strchr(bus_name, ':');
-      if(dev_name != NULL) {
-        *dev_name = '\0';
-        dev_name++;
-      }
-    }
-  }
-
-  if(port != NULL && dev_name == NULL) {
-    pmsg_error("invalid -P %s; use -P usb:bus:device\n", port);
-    return -1;
-  }
   // Determine VID/PID
   int vid = pgm->usbvid? pgm->usbvid: TEENSY_VID;
   int pid = TEENSY_PID;
