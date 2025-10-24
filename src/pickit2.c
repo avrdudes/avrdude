@@ -172,6 +172,10 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
   if((pgm->ispdelay > 0 || pgm->bitclock > 0) && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
+  if(!str_eq(port, "usb"))
+    pmsg_warning("option -P %s ignored\n", port);
+
 #ifdef WIN32
   my.usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
 
