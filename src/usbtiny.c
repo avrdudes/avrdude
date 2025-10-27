@@ -288,11 +288,11 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("%s(\"%s\")\n", __func__, port);
 
   if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
-    pmsg_error("invalid -P %s; drop this option or use -P usb:<bus>:<device>\n", port);
+    pmsg_error("invalid -P %s; drop this option or use -P usb:<busdir>:<devicefile>\n", port);
     return -1;
   }
 
-  // Calculate bus and device names from -P usb:<bus>:<device> option if present
+  // Calculate bus and device names from -P usb:<busdir>:<devicefile> option if present
   if(str_starts(port, "usb:")) {
     bus_name = port + 4;
     if((dev_name = strchr(bus_name, ':')))
@@ -324,9 +324,9 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *port) {
   for(bus = usb_busses; bus; bus = bus->next) {
     for(dev = bus->devices; dev; dev = dev->next) {
       if(dev->descriptor.idVendor == vid && dev->descriptor.idProduct == pid) { // Found match?
-        pmsg_notice("found USBtiny with bus:device = %s:%s\n", bus->dirname, dev->filename);
+        pmsg_notice("found USBtiny with busdir:devicefile = %s:%s\n", bus->dirname, dev->filename);
 
-        // If -P usb:<bus>:<device> was given, skip non-matching bus:device
+        // If -P usb:<busdir>:<devicefile> was given, skip non-matching busdir:devicefile
         if(bus_name && dev_name)
           if(!str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(dev->filename, dev_name))
             continue;
@@ -343,7 +343,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *port) {
   }
 
   if(bus_name && !dev_name) {   // Delayed error message, so found devices are printed with -P usb:xyz
-    pmsg_error("invalid -P %s; use -P usb:<bus>:<device> or -P usb\n", port);
+    pmsg_error("invalid -P %s; drop -P option or use -P usb:<busdir>:<devicefile>\n", port);
     return -1;
   }
 
