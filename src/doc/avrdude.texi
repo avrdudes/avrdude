@@ -868,10 +868,10 @@ Mac OS but not on Windows. For more information about AVR-Doper see
 
 For the USBtinyISP, which is a simplistic device not implementing serial
 numbers, multiple devices can be distinguished by their location in the
-USB hierarchy using @code{-P usb:@var{bus}:@var{device}}.
+USB hierarchy using @code{-P usb:@var{busdir}:@var{devicefile}}.
 
 For USBasp, multiple devices can also be also distinguished using @code{-P
-usb:@var{bus}:@var{device}} or using the serial number @code{-P
+usb:@var{busdir}:@var{devicefile}} or using the serial number @code{-P
 usb:@var{serialno}}. The USBasp serial number is matched from the end, so
 only the unique least significant bytes are needed. For examples, see the
 respective entry in @ref{Troubleshooting}.
@@ -5364,11 +5364,11 @@ The pin mapping for the JTAG-to-ISP adapter is:
 Problem: Differentiate multiple USBtinyISP (or USBasp) programmers
 
 Solution: The @code{-c usbtiny} programmer distinguishes multiple physical
-USBtinyISP devices based on their bus:device pairs that describe their
-place in the USB hierarchy on a specific host.  This pair can be specified
-in the @code{-P usb:@var{bus}:@var{device}} option.
-The naming convention for the bus and device depends on the operating
-system. Examples for Linux, FreeBSD and Windows, respectively:
+USBtinyISP devices based on their busdir:devicefile pairs that describe
+their place in the USB hierarchy on a specific host.  This pair can be
+specified in the @code{-P usb:@var{busdir}:@var{devicefile}} option. The
+naming convention for the bus and device depends on the operating system.
+Examples for Linux, FreeBSD and Windows, respectively:
 
 @example
 $ avrdude -c usbtiny -p atmega8 -P usb:003:025
@@ -5381,9 +5381,9 @@ The Windows device name contains the backslash file separator, so the
 @code{-P} option will need appropriate quoting on the command line, eg,
 in bash with single quotes.
 
-For USBasp the same @code{-P usb:@var{bus}:@var{device}} as with USBtiny selects
-the right device. Alternatively, USBasp can select the device via its
-serial number using @code{-P usb:@var{serialno}}.
+For USBasp the same @code{-P usb:@var{busdir}:@var{devicefile}} as with
+USBtiny selects the right device. Alternatively, USBasp can select the
+device via its serial number using @code{-P usb:@var{serialno}}.
 
 Note that @code{avrdude -v -P usb:xyz} will print out suitable programmers
 on the bus assuming xyz does not match any device.
@@ -5391,8 +5391,8 @@ on the bus assuming xyz does not match any device.
 @noindent
 @example
 $ avrdude -v -Pusb:xyz -c usbasp -p m328p 2>&1 | grep ^Found
-Found USBasp with bus:device = 001:008, serial_number = 0001
-Found USBasp with bus:device = 001:009, serial_number = 1234
+Found USBasp with busdir:devicefile = 001:008, serial_number = 0001
+Found USBasp with busdir:devicefile = 001:009, serial_number = 1234
 
 $ avrdude -qq -c USBasp -p atmega8 -P usb:34
 @end example
