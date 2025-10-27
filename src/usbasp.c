@@ -421,13 +421,13 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 static int check_for_port_argument_match(const char *port, const char *bus,
   const char *device, const char *serial_num) {
 
-  pmsg_notice("found USBasp with bus:device = %s:%s, serial_number = %s\n", bus, device, serial_num);
+  pmsg_notice("found USBasp with busdir:devicefile = %s:%s, serial_number = %s\n", bus, device, serial_num);
 
   if(str_starts(port, "usb:")) {
     port += 4;
     char *dev_name = strchr(port, ':');
 
-    if(dev_name)                // Compare with bus:device
+    if(dev_name)                // Compare with busdir:devicefile
       return str_busdev_eq(port, bus) && str_busdev_eq(dev_name+1, device);
 
     // Serial number case
@@ -621,7 +621,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
-    pmsg_error("invalid -P %s; use -P usb:<bus>:<device>, -P usb:<serialno> or -P usb\n", port);
+    pmsg_error("invalid -P %s; drop -P option or else use -P usb:<busdir>:<devicefile> or -P usb:<serialno>\n", port);
     return -1;
   }
 
