@@ -142,7 +142,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             fd->usb.wep = 0x02;
           }
 
-          pmsg_notice("found %s with serno: %s\n", product, string);
+          pmsg_notice("found %s with serno = %s\n", product, string);
           if(*serno) {
             /*
              * See if the serial number requested by the user matches what we
