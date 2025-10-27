@@ -828,7 +828,9 @@ USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
 @code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
 programmers of the same type plugged into the host computer is the
-@code{-P} option needed, see below.
+@code{-P} option needed, see below. Some @code{-c} programmers, however,
+ignore the @code{-P} option altogether, eg, teensy, ch341a or avrftdi;
+these cannot distinguish multiple plugged-in programmers.
 
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
