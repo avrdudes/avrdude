@@ -586,11 +586,11 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   const char *bus_name = NULL, *dev_name = NULL;
 
   if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
-    pmsg_error("invalid -P %s; drop this option or use -P usb:<bus>:<device>\n", port);
+    pmsg_error("invalid -P %s; drop this option or use -P usb:<busdir>:<devicefile>\n", port);
     return -1;
   }
 
-  // Calculate bus and device names from -P usb:<bus>:<device> option if present
+  // Calculate bus and device names from -P usb:<busdir>:<devicefile> option if present
   if(str_starts(port, "usb:")) {
     bus_name = port + 4;
     if((dev_name = strchr(bus_name, ':')))
@@ -644,10 +644,10 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
             continue;
           }
 
-          pmsg_notice("found device with Micronucleus V%d.%d, bus:device = %s:%s\n",
+          pmsg_notice("found device with Micronucleus V%d.%d, busdir:devicefile = %s:%s\n",
             pdata->major_version, pdata->minor_version, bus->dirname, device->filename);
 
-          // If -P usb:<bus>:<device> was given, skip non-matching bus:device
+          // If -P usb:<busdir>:<devicefile> was given, skip non-matching busdir:devicefile
           if(bus_name && dev_name)
             if(!str_busdev_eq(bus->dirname, bus_name) || !str_busdev_eq(device->filename, dev_name))
               continue;
@@ -688,7 +688,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   }
 
   if(bus_name && !dev_name) {   // Delayed error message, so found devices are printed with -P usb:xyz
-    pmsg_error("invalid -P %s; use -P usb:<bus>:<device> or -P usb\n", port);
+    pmsg_error("invalid -P %s; drop -P option or use -P usb:<busdir>:<devicefile>\n", port);
     return -1;
   }
 
