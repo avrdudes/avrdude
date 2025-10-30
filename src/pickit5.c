@@ -171,7 +171,7 @@ static int pickit5_jtag_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, cons
 static int pickit5_jtag_read_fuse(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned char *value);
 
 // PDI-Specific
-static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, 
+static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, int len, unsigned char *value);
 
 // Extra functions
@@ -626,7 +626,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       }
 
       pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
-      port = "usb";           // Overwrite the string to avoid confusing the libusb
+      port = "usb";             // Overwrite the string to avoid confusing the libusb
     }                           // pidp == NULL means vidp could point to serial number
   }                             // vidp == NULL means just 'usb'
 
@@ -729,7 +729,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       return LIBAVRDUDE_EXIT;
     }
     pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
-              USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
+      USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
     imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
     return LIBAVRDUDE_EXIT;
   }
@@ -984,7 +984,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Now we try to figure out if we have to supply power from PICkit
   double v_target = 3.30; // Placeholder in case no VTARG Read
-  
+
   if(pgm->extra_features & HAS_VTARG_READ) { // If not supported (PK Basic), use a place
     pickit5_get_vtarget(pgm, &v_target);
     if(v_target < 1.8) {
@@ -1280,16 +1280,16 @@ static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p,
     0x6C, 0x0B,                          // Move temp_reg to r11
     0x1E, 0x03, 0x05,                    // Load byte from NVM Data register (r05)
     0x6C, 0x0C,                          // Move temp_reg to r12
-  
+
     0x60, 0x03, 0x01,                    // copy r01 to r03
     0x93, 0x03, page_size, (page_size >> 8),  // Integer divide r03 by page size
     0xAD, 0x03,                          // while (r03 --) {
-    
+
     0x1E, 0x06, 0x04, 0x07,              // Load "load page command" to NVM Cmd Reg
     0x1E, 0x09, 0x00,                    // Set pointer for indirect addressing to r00
     0x1E, 0x10, 0x0A,                    // Set repeat counter to number in r09
     0x1E, 0x0A, 0x0A,                    // read from data stream and send it to the device
-    
+
     0x1E, 0x06, 0x04, 0x08,              // Load "Erase and write flash page" command into NVM Cmd buffer
     0x1E, 0x06, 0x00, 0x09,              // Triger NVM Cmd by writing to the first address (r0, 0xFF)
     0xA2,                                // Do {
@@ -1309,7 +1309,7 @@ static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p,
   unsigned char param[8];
   pickit5_uint32_to_array(&param[0], addr);
   pickit5_uint32_to_array(&param[4], len);
-  
+
   int rc = pickit5_download_data(pgm, flash_cmd, sizeof(flash_cmd), param, sizeof(param), value, len);
   if(rc < 0)
     rc = LIBAVRDUDE_EXIT;
@@ -1707,7 +1707,7 @@ static int pickit5_isp_write_fuse(const PROGRAMMER *pgm, const AVRMEM *mem, unsi
   // Support slow AVRs without write status polling (won't affect performance)
   int delay = mem->min_write_delay;
   if (delay > 0)
-    usleep(delay); 
+    usleep(delay);
 
   return 1;
 }
