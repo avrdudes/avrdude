@@ -568,20 +568,20 @@ static int pickit5_upload_data(const PROGRAMMER *pgm, const unsigned char *scr, 
 
 static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   if(!pgm->cookie)              // Sanity
-    return -1;
+    return LIBAVRDUDE_GENERAL_FAILURE;
   pmsg_debug("%s(\"%s\")\n", __func__, port);
   union pinfo pinfo;
   LNODEID usbpid;
-  int rv = -1;
+  int rv = LIBAVRDUDE_GENERAL_FAILURE;
 
 #if !defined(HAVE_LIBUSB)
   pmsg_error("need to be compiled with USB or HIDAPI support\n");
-  return -1;
+  return LIBAVRDUDE_GENERAL_FAILURE;
 #endif
 
   if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
     pmsg_error("invalid -P %s; use -P usb:<vid>:<pid>, -P usb:<serialno> or -P usb\n", port);
-    return -1;
+    return LIBAVRDUDE_GENERAL_FAILURE;
   }
   unsigned int new_vid = 0, new_pid = 0, setids = 0;
   const char *vidp, *pidp;
@@ -613,7 +613,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
         // First: Handle VID input
         if(sscanf(vidp, "%x", &new_vid) != 1) {
           pmsg_error("failed to parse -P VID input %s: expected hexadecimal number\n", vidp);
-          return -1;
+          return LIBAVRDUDE_GENERAL_FAILURE;
         }
       } else {                  // VID space empty: default to Microchip
         new_vid = USB_VENDOR_MICROCHIP;
@@ -622,7 +622,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       // Now handle PID input
       if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
         pmsg_error("failed to parse -P PID input %s: expected hexadecimal number\n", pidp+1);
-        return -1;
+        return LIBAVRDUDE_GENERAL_FAILURE;
       }
 
       pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
