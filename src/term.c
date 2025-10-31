@@ -343,7 +343,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   }
   if(mi >= Nmems) {
     pmsg_error("(%s) cx->term_rmem[] under-dimensioned; increase and recompile\n", cmd);
-    return NULL;;
+    return NULL;
   }
   cx->term_mi = mi;
 

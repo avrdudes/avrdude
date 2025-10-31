@@ -471,7 +471,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     if(pgm->read_sig_bytes) {
       int rc = pgm->read_sig_bytes(pgm, p, mem);
 
-      if(rc < 0 && rc != LIBAVRDUDE_EXIT)
+      if(rc < 0 && rc != LIBAVRDUDE_EXIT_OK)
         led_set(pgm, LED_ERR);
       led_clr(pgm, LED_PGM);
       return rc;
@@ -1216,13 +1216,13 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   if(verbose > 1)
     report_progress(0, 1, "Reading");
   rc = avr_read(pgm, p, "signature", 0);
-  if(rc < LIBAVRDUDE_SUCCESS && rc != LIBAVRDUDE_EXIT) {
+  if(rc < LIBAVRDUDE_SUCCESS && rc != LIBAVRDUDE_EXIT_OK) {
     pmsg_error("unable to read signature data for part %s (rc = %d)\n", p->desc, rc);
     return rc;
   }
   report_progress(1, 1, NULL);
 
-  return rc < LIBAVRDUDE_SUCCESS? LIBAVRDUDE_EXIT: LIBAVRDUDE_SUCCESS;
+  return rc < LIBAVRDUDE_SUCCESS? LIBAVRDUDE_EXIT_OK: LIBAVRDUDE_SUCCESS;
 }
 
 // Obtain bitmask for byte in memory (classic, TPI, PDI and UPDI parts)

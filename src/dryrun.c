@@ -1016,7 +1016,7 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
     }
     if(str_eq(xpara, "help")) {
       help = true;
-      rc = LIBAVRDUDE_EXIT;
+      rc = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {

@@ -1348,7 +1348,7 @@ static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
       pmsg_error("programmer type %s is known not to work for %s\n", pgm->type, p->desc);
       pmsg_error("exiting, use -F to carry on regardless\n");
-      return LIBAVRDUDE_EXIT;
+      return LIBAVRDUDE_EXIT_FAIL;
     }
   }
 

@@ -1524,7 +1524,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rc = LIBAVRDUDE_EXIT;
+      rc = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {

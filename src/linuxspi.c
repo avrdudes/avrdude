@@ -405,7 +405,7 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     }
     if(str_eq(cp, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -438,7 +438,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rc = LIBAVRDUDE_EXIT;
+      rc = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
