@@ -17,12 +17,14 @@ Changes since version 8.1:
 
     - GitHub deploy action fails #2038
     - Pickit5 HVUPDI seems unable to unlock devices #2049
+    - Unify -P usb behaviour #2058
 
   * Pull requests:
 
     - Use download-artifact@v4 instead of v2 #2040
     - Deduplicate programmer list in docs #2042
     - Erase locked devices with pickit5 programmer when needed #2055
+    - Ignore leading zeros in -P usb:bbb:ddd; improve `-P` doc # 2060
 
   * Internals:
 
