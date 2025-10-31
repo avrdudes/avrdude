@@ -1341,7 +1341,7 @@ int main(int argc, char *argv[]) {
     } else {
       int rc = pgm->parseextparams(pgm, extended_params);
 
-      if(rc == LIBAVRDUDE_EXIT)
+      if(rc == LIBAVRDUDE_EXIT_OK)
         exit(0);
       if(rc < 0) {
         pmsg_error("unable to parse list of -x parameters\n");
@@ -1495,8 +1495,8 @@ int main(int argc, char *argv[]) {
 
   rc = pgm->open(pgm, port);
   if(rc < 0) {
-    if(rc == LIBAVRDUDE_EXIT) {
-      exitrc = 0;
+    if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
+      exitrc = rc == LIBAVRDUDE_EXIT_FAIL;
       goto main_exit;
     }
 
@@ -1536,7 +1536,7 @@ int main(int argc, char *argv[]) {
     } else {
       int rc = pgm->parseexitspecs(pgm, exitspecs);
 
-      if(rc == LIBAVRDUDE_EXIT)
+      if(rc == LIBAVRDUDE_EXIT_OK)
         exit(0);
       if(rc < 0) {
         pmsg_error("unable to parse list of -E parameters\n");
@@ -1628,8 +1628,8 @@ int main(int argc, char *argv[]) {
 init_again:
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if(!init_ok) {
-    if(rc == LIBAVRDUDE_EXIT) {
-      exitrc = 0;
+    if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
+      exitrc = rc == LIBAVRDUDE_EXIT_FAIL;
       goto main_exit;
     }
     if(rc == LIBAVRDUDE_DEVICE_LOCKED) { // The pickit5 with UPDI is a bit tricky
@@ -1699,8 +1699,8 @@ init_again:
     usleep(waittime);
     if(init_ok) {
       rc = avr_signature(pgm, p);
-      if(rc == LIBAVRDUDE_EXIT) {
-        exitrc = 0;
+      if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
+        exitrc =  rc == LIBAVRDUDE_EXIT_FAIL;
         goto main_exit;
       }
       if(rc != LIBAVRDUDE_SUCCESS) {

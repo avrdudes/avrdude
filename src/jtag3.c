@@ -1585,8 +1585,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         continue;
       }
       // Flag a switch to PIC mode
-      if(str_caseeq(extended_param, "mode=pic") ||
-         str_caseeq(extended_param, "mode=mplab")) {
+      if(str_caseeq(extended_param, "mode=mplab") || str_caseeq(extended_param, "mode=pic")) {
         my.pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
@@ -1597,7 +1596,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -1738,7 +1737,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             imsg_error("$ %s -c pickit4_mplab%s%s%s -P %s\n", progname, pgm_suffix, partsdesc_flag, partsdesc_str, port);
           }
           serial_close(&pgm->fd);
-          return LIBAVRDUDE_EXIT;;
+          return LIBAVRDUDE_EXIT_FAIL;
         }
       }
     }
@@ -1787,7 +1786,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     }
     msg_error("MPLAB mode switch successful\n");
     serial_close(&pgm->fd);
-    return LIBAVRDUDE_EXIT;;
+    return LIBAVRDUDE_EXIT_OK;
   }
 
   return 0;

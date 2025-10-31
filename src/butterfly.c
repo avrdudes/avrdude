@@ -640,7 +640,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
