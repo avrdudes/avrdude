@@ -1606,25 +1606,27 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     msg_error("%s -c %s extended options:\n", progname, pgmid);
     if(str_eq(pgm->type, "JTAGICE3")) {
       msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      msg_error("                           UB/UA = units before/after, BB/BA = bits before/after\n");
+      msg_error("                         UB/UA = units before/after, BB/BA = bits before/after\n");
     }
     if(lsize(pgm->hvupdi_support) > 1)
-      msg_error("  -x hvupdi                Enable high-voltage UPDI initialization\n");
+      msg_error("  -x hvupdi              Enable high-voltage UPDI initialization\n");
     if(pgm->extra_features & HAS_SUFFER) {
-      msg_error("  -x suffer                Read SUFFER register value\n");
-      msg_error("  -x suffer=<n>            Set SUFFER register to <n> (0x.. hex, 0.. oct or dec)\n");
+      msg_error("  -x suffer              Read SUFFER register value\n");
+      msg_error("  -x suffer=<n>          Set SUFFER register to <n> (0x.. hex, 0.. oct or dec)\n");
     }
     if(pgm->extra_features & HAS_VTARG_SWITCH) {
-      msg_error("  -x vtarg_switch          Read on-board target voltage switch state\n");
-      msg_error("  -x vtarg_switch=<0..1>   Set on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch=<0|1>  Set on-board target voltage switch state\n");
     }
     if(pgm->extra_features & HAS_VTARG_ADJ) {
-      msg_error("  -x vtarg                 Read on-board target supply voltage\n");
-      msg_error("  -x vtarg=<dbl>           Set on-board target supply voltage to <dbl> V\n");
+      msg_error("  -x vtarg               Read on-board target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
     }
-    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-      msg_error("  -x mode=avr|[pic|mplab]  Set programmer to AVR or MPLAB (PIC) mode, then exit\n");
-    msg_error("  -x help                  Show this help menu and exit\n");
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
+      msg_error("  -x mode=avr            Set programmer to AVR mode and exit if it was not\n");
+      msg_error("  -x mode=<mplab|pic>    Set programmer to MPLAB aka PIC mode and exit\n");
+    }
+    msg_error("  -x help                Show this help menu and exit\n");
     return rv;
   }
 
@@ -1713,11 +1715,18 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
           pic_mode = serial_open(port, pinfo, &pgm->fd);
         }
         if(pic_mode >= 0) {
-          msg_error("\n");
+          const char *partsdesc_flag = partdesc? " -p ": "";
+          const char *partsdesc_str = partdesc? partdesc: "";
+          const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+
           cx->usb_access_error = 0;
-          pmsg_error("%s in %s mode detected\n", pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
-          if(mode_switch == PK4_SNAP_MODE_AVR) {
-            imsg_error("switching to AVR mode; ");
+
+          switch(mode_switch) {
+          case PK4_SNAP_MODE_AVR:
+            msg_info("\n");
+            pmsg_info("%s in %s mode detected\n", pgmstr,
+              pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
+            pmsg_info("switching to AVR mode; ");
             if(pinfo.usbinfo.pid == bl_pid)
               serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
             else {
@@ -1725,19 +1734,29 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
               usleep(250*1000);
               serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
             }
-            imsg_error("run %s again to continue the session\n\n", progname);
-          } else {
+            imsg_info("run %s again to continue the session\n", progname);
+            serial_close(&pgm->fd);
+            return LIBAVRDUDE_EXIT_OK;
 
-            const char *partsdesc_flag = partdesc? " -p ": "";
-            const char *partsdesc_str = partdesc? partdesc: "";
-            const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+          case PK4_SNAP_MODE_PIC:
+            pmsg_info("%s in %s mode detected; exiting\n", pgmstr,
+              pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
+            serial_close(&pgm->fd);
+            return LIBAVRDUDE_EXIT_OK;
+
+          default:
+            msg_error("\n");
+            pmsg_error("%s in %s mode detected\n", pgmstr,
+              pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
             imsg_error("to switch into AVR mode try\n");
-            imsg_error("$ %s -c %s%s%s -P %s -x mode=avr\n\n", progname, pgmid, partsdesc_flag, partsdesc_str, port);
-            imsg_error("or use MPLAB mode by using the pickit4_mplab%s programmer option:\n", pgm_suffix);
-            imsg_error("$ %s -c pickit4_mplab%s%s%s -P %s\n", progname, pgm_suffix, partsdesc_flag, partsdesc_str, port);
+            imsg_error("$ %s -c %s%s%s -P %s -x mode=avr\n\n", progname,
+              pgmid, partsdesc_flag, partsdesc_str, port);
+            imsg_error("or use MPLAB mode with the pickit4_mplab%s programmer:\n", pgm_suffix);
+            imsg_error("$ %s -c pickit4_mplab%s%s%s -P %s\n", progname,
+              pgm_suffix, partsdesc_flag, partsdesc_str, port);
+            serial_close(&pgm->fd);
+            return LIBAVRDUDE_EXIT_FAIL;
           }
-          serial_close(&pgm->fd);
-          return LIBAVRDUDE_EXIT_FAIL;
         }
       }
     }
@@ -1778,13 +1797,12 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
   // Switch from AVR to PIC mode
   if(mode_switch == PK4_SNAP_MODE_PIC) {
-    imsg_error("switching to MPLAB mode: ");
     unsigned char *resp, buf[] = { SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a };
     if(jtag3_command(pgm, buf, sizeof(buf), &resp, "enter MPLAB mode") < 0) {
-      msg_error("entering MPLAB mode failed\n");
+      pmsg_error("switching to MPLAB mode failed\n");
       return -1;
     }
-    msg_error("MPLAB mode switch successful\n");
+    msg_info("switched successfully to MPLAB mode\n");
     serial_close(&pgm->fd);
     return LIBAVRDUDE_EXIT_OK;
   }
