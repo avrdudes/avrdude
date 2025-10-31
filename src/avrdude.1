@@ -41,7 +41,7 @@
 .Op Fl i Ar delay
 .Op Fl l, \-logfile Ar logfile
 .Op Fl n, \-test-memory
-.Op Fl O, \-osccal 
+.Op Fl O, \-osccal
 .Op Fl P, \-port Ar port
 .Op Fl r, \-reconnect
 .Op Fl q, \-quell
@@ -607,6 +607,14 @@ or
 from the configuration file are used. If you need to use a different port,
 use this option to specify the alternate port name.
 .Pp
+USB-only programmers normally do not need the port option be specified as
+they are automatically identified via their vendor and product IDs from
+avrdude.conf or .avrduderc. Only when there are multiple programmers of
+the same type plugged into the host computer is the -P option needed, see
+below. Some -c programmers, however, ignore the -P option altogether, eg,
+teensy, ch341a or avrftdi; these cannot distinguish multiple plugged-in
+programmers.
+.Pp
 If
 .Nm
 has been configured with libserialport support, a serial port can be specified
@@ -663,20 +671,38 @@ The match is done after stripping any existing colons from the given
 serial number, and right-to-left, so only the least significant bytes
 from the serial number need to be given.
 .Pp
+avrdude -v -P usb:xyz -c jtag2 -p ... 2>&1 | grep ^Found
+.Pp
+lists all JTAG ICEs
+attached to USB, see the section
+.Em Example Command Line Invocations
+in the detailed pdf documentation.
+.Pp
 As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
 .Pp
-For the USB programmer "AVR-Doper" running in HID mode, the port must
+For the USB programmer AVR-Doper running in HID mode, the port must
 be specified as
 .Ar avrdoper.
 Libhidapi support is required on Unix and Mac OS but not on Windows. For more
 information about AVR-Doper see https://www.obdev.at/products/vusb/avrdoper.html.
 .Pp
-For the USBtinyISP, which is a simplistic device not implementing
-serial numbers, multiple devices can be distinguished by their
-location in the USB hierarchy.  See the respective
+For the USBtinyISP, which is a simplistic device not implementing serial
+numbers, multiple devices can be distinguished by their location in the
+USB hierarchy using -P usb:<busdir>:<devicefile>.
+.Pp
+For USBasp, multiple devices can also be also distinguished using -P
+usb:<busdir>:<devicefile> or using the serial number -P usb:<serialno>.
+For examples, see the respective
 .Em Troubleshooting
-entry in the detailed documentation for examples.
+entry in the detailed pdf documentation.
+.Pp
+The -c pickit5 programmer allows overriding the product ID with a
+hexadecimal number <pid> using -P usb::<pid> and the vendor and product
+IDs with hexadecimal numbers <vid> and <pid> using -P usb:<vid>:<pid>. The
+form -P usb:<serialno> requests AVRDUDE select the PICkit5 programmer with
+a serial number that ends in <serialno> (and with vid/pid from the
+configuration files).
 .Pp
 For the XBee programmer the target MCU is to be programmed wirelessly over a
 ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit address for the
@@ -968,10 +994,13 @@ The
 .Ar addr
 and
 .Ar len
-parameters of the dump, read, disasm, write, save and erase commands can be
-negative with the same syntax as substring computations in perl or python.
-The table below details their meaning with respect to an example memory of size
-sz=0x800 (2048 bytes).
+parameters of the dump, read, disasm, write, save and erase commands can
+be negative with the same syntax as substring computations in perl or
+python. The table below defines the effective memory interval
+.Ar [start ,
+.Ar end],
+given the memory size
+.Ar sz :
 .Pp
 .nf
 addr    len  Memory interval     Comment
@@ -982,6 +1011,19 @@ addr    len  Memory interval     Comment
                  sz+addr+len-1]
   neg   neg  [sz+addr, sz+len]   Combining above two cases
   any     0  empty set           No action
+.fi
+.Pp
+Note that addr must be in the range [-sz, sz-1]. After computing the memory interval
+[start, end] as per above table, the effective length end-start + 1 must not be negative; if
+the effective length is zero then no action is carried out. End may be beyond the available
+memory for the dump, read or disasm commands, in which case the operation wraps around
+the memory end, but the effective length is always limited to the memory size.
+.Pp
+Here some examples for a memory with size sz of 0x800 (2048) bytes:
+.Pp
+.nf
+addr    len  Memory interval     Comment
+------------------------------------------------------------------------
 0x700    12  [0x700, 0x70b]      Conventional use
  1024  -257  [0x400, 0x6ff]      Size of memory is 2048 or 0x800
  -512   512  [0x600, 0x7ff]      Last 512 bytes
@@ -989,6 +1031,11 @@ addr    len  Memory interval     Comment
     0    49  [0, 48]             First 49 bytes
     0   -49  [0, 1999]           All but the last 48 = |len+1| bytes
     0    -1  [0, 0x7ff]          All memory without knowing its size
+ 2046     4  [0x7fe, 0x801]      Wrap around for read but error for write
+ 2046  4096  [0x7fe, 0x17fe]     Read wrap around stops at 0x7fd
+   -1    -1  [0x7ff, 0x7ff]      One byte at 0x7ff is addressed
+   -1    -2  [0x7ff, 0x7fe]      No action: effective length is zero
+   -1    -3  [0x7ff, 0x7fd]      Error: effective length is negative
 .fi
 .Pp
 The following commands are implemented for all programmers:
@@ -1639,7 +1686,7 @@ to the target. If there is already a valid voltage applied to the VTG Pin,
 this setting will be ignored. When AVRDUDE detects an external voltage outside
 of this range, it will terminate the operation. You can disable this check by
 setting the voltage to 0 V. If an XMEGA part was selected, a requested voltage
-above 3.49 V will lead to an abort of operation. 
+above 3.49 V will lead to an abort of operation.
 .It Ar hvupdi
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use -x hvupdi to enable high-voltage UPDI

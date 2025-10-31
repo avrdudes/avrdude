@@ -634,23 +634,24 @@ static int pickit5_upload_data(const PROGRAMMER *pgm, const AVRPART *p, const un
 
 static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   if(!pgm->cookie)              // Sanity
-    return -1;
+    return LIBAVRDUDE_GENERAL_FAILURE;
   pmsg_debug("%s(\"%s\")\n", __func__, port);
   union pinfo pinfo;
   LNODEID usbpid;
-  int rv = -1;
+  int rv = LIBAVRDUDE_GENERAL_FAILURE;
+  size_t serial_num_len = 0;
 
 #if !defined(HAVE_LIBUSB)
   pmsg_error("need to be compiled with USB or HIDAPI support\n");
-  return -1;
+  return LIBAVRDUDE_GENERAL_FAILURE;
 #endif
 
-  if(!str_starts(port, "usb")) {
-    pmsg_error("port names must start with usb\n");
-    return -1;
+  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+    pmsg_error("invalid -P %s; drop -P option or else use -P usb:<vid>:<pid> or -P usb:<serialno>\n", port);
+    return LIBAVRDUDE_GENERAL_FAILURE;
   }
-  unsigned int new_vid = 0, new_pid = 0;
-  char *vidp, *pidp;
+  unsigned int new_vid = 0, new_pid = 0, setids = 0;
+  const char *vidp, *pidp;
 
   /*
    * The syntax for usb devices is defined as:
@@ -674,11 +675,12 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     vidp += 1;
     pidp = strchr(vidp, ':');
     if(pidp != NULL) {
+      setids = 1;
       if(vidp != pidp) {        // User specified an VID
         // First: Handle VID input
         if(sscanf(vidp, "%x", &new_vid) != 1) {
-          pmsg_error("failed to parse -P VID input %s: unexpected format\n", vidp);
-          return -1;
+          pmsg_error("failed to parse -P VID input %s: expected hexadecimal number\n", vidp);
+          return LIBAVRDUDE_GENERAL_FAILURE;
         }
       } else {                  // VID space empty: default to Microchip
         new_vid = USB_VENDOR_MICROCHIP;
@@ -686,16 +688,16 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       // Now handle PID input
       if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
-        pmsg_error("failed to parse -P PID input %s: unexpected format\n", pidp+1);
-        return -1;
+        pmsg_error("failed to parse -P PID input %s: expected hexadecimal number\n", pidp+1);
+        return LIBAVRDUDE_GENERAL_FAILURE;
       }
 
-      if((new_vid != 0) && (new_pid != 0)) {
-        pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
-        port = "usb";           // Overwrite the string to avoid confusing the libusb
-      }
-    }                           // pidp == NULL means vidp could point to serial number
-  }                             // vidp == NULL means just 'usb'
+      pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
+      port = "usb";             // Overwrite the string to avoid confusing the libusb
+    } else {                    // pidp == NULL means vidp points to serial number
+      serial_num_len = strlen(vidp);
+    }
+  }                             // vidp == NULL means dropped -P option or -P usb
 
   // If the config entry did not specify a USB PID, insert the default one
   if(lfirst(pgm->usbpid) == NULL)
@@ -705,7 +707,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   // PICkit 5 does not have support for HID, so no need to support it
   serdev = &usb_serdev;
-  if(new_pid != 0 && new_vid != 0) {    // In case a specific VID/PID was specified
+  if(setids) {                  // In case a specific VID/PID was specified
     pinfo.usbinfo.vid = new_vid;
     pinfo.usbinfo.pid = new_pid;
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
@@ -795,8 +797,13 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       serial_close(&pgm->fd);
       return LIBAVRDUDE_EXIT;
     }
+    if(serial_num_len) {
+      pmsg_error("no device found matching the specified serial number %s", vidp);
+      return LIBAVRDUDE_GENERAL_FAILURE;
+    }
+
     pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
-              USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
+      USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
     imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
     return LIBAVRDUDE_EXIT;
   }

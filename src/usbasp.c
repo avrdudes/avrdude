@@ -418,22 +418,18 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
   return nbytes;
 }
 
-static int check_for_port_argument_match(const char *port, char *bus, char *device, char *serial_num) {
+static int check_for_port_argument_match(const char *port, const char *bus,
+  const char *device, const char *serial_num) {
 
-  pmsg_debug("%s(): found USBasp, bus:device: %s:%s, serial_number: %s\n", __func__, bus, device, serial_num);
-  const size_t usb_len = strlen("usb");
+  pmsg_notice("found USBasp with busdir:devicefile = %s:%s, serial_number = %s\n", bus, device, serial_num);
 
-  if(str_starts(port, "usb") && ':' == port[usb_len]) {
-    port += usb_len + 1;
-    char *colon_pointer = strchr(port, ':');
+  if(str_starts(port, "usb:")) {
+    port += 4;
+    char *dev_name = strchr(port, ':');
 
-    if(colon_pointer) {
-      // Value contains ':' character. Compare with bus/device.
-      if(strncmp(port, bus, colon_pointer - port))
-        return 0;
-      port = colon_pointer + 1;
-      return str_eq(port, device);
-    }
+    if(dev_name)                // Compare with busdir:devicefile
+      return str_busdev_eq(port, bus) && str_busdev_eq(dev_name+1, device);
+
     // Serial number case
     return *port && str_ends(serial_num, port);
   }
@@ -481,7 +477,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
         continue;
       }
       errorCode = 0;
-      // Do the names match? if vendorName not given ignore it (any vendor matches)
+      // Do the names match? If vendorName not given ignore it (any vendor matches)
       r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff,
         (unsigned char *) string, sizeof(string));
       if(r < 0) {
@@ -492,7 +488,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
         }
       } else {
         pmsg_notice2("seen device from vendor >%s<\n", string);
-        if((vendorName != NULL) && (vendorName[0] != 0) && !str_eq(string, vendorName))
+        if(vendorName && vendorName[0] && !str_eq(string, vendorName))
           errorCode = USB_ERROR_NOTFOUND;
       }
       // If productName not given ignore it (any product matches)
@@ -510,16 +506,15 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
           errorCode = USB_ERROR_NOTFOUND;
       }
       if(errorCode == 0) {
-        if(!str_eq(port, "usb")) {
+        if(!str_eq(port, DEFAULT_USB)) {
           // -P option given
           libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber,
             (unsigned char *) string, sizeof(string));
-          char bus_num[21];
 
-          sprintf(bus_num, "%d", libusb_get_bus_number(dev));
-          char dev_addr[21];
+          char bus_num[21], dev_addr[21];
+          sprintf(bus_num, "%03d", libusb_get_bus_number(dev));
+          sprintf(dev_addr, "%03d", libusb_get_device_address(dev));
 
-          sprintf(dev_addr, "%d", libusb_get_device_address(dev));
           if(!check_for_port_argument_match(port, bus_num, dev_addr, string))
             errorCode = USB_ERROR_NOTFOUND;
         }
@@ -620,10 +615,15 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int ven
 
 // Interface prog
 static int usbasp_open(PROGRAMMER *pgm, const char *port) {
-  pmsg_debug("usbasp_open(\"%s\")\n", port);
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
 
   if(pgm->bitclock && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
+
+  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+    pmsg_error("invalid -P %s; drop -P option or else use -P usb:<busdir>:<devicefile> or -P usb:<serialno>\n", port);
+    return -1;
+  }
 
   // usb_init will be done in usbOpenDevice
   LNODEID usbpid = lfirst(pgm->usbpid);
@@ -644,12 +644,11 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
         USBASP_OLD_PID, "USBasp", port) == 0) {
 
         cx->usb_access_error = 0;
-        // Found USBasp with old IDs
-        pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
+        pmsg_error("found USBasp with old VID/PID; please update its firmware\n");
         return 0;
       }
       /*
-       * original USBasp is specified in config file, so no need to check it
+       * Original USBasp is specified in config file, so no need to check it
        * again here; no alternative found => fall through to generic error
        * message
        */

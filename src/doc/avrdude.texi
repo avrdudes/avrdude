@@ -366,7 +366,7 @@ caters for these urboot bootloaders. Owing to its backward compatibility,
 bootloaders that can be served by the arduino programmer can normally also
 be served by the urclock programmer. This may require specifying the size
 of (to AVRDUDE) @emph{unknown} bootloaders in bytes using the @code{-x
-bootsize=<n>} option, which is necessary for the urclock programmer to
+bootsize=@var{n}} option, which is necessary for the urclock programmer to
 enable it to protect the bootloader from being overwritten. If an unknown
 bootloader has EEPROM read/write capability then the option @code{-x eepromrw}
 informs @code{avrdude -c urclock} of that capability.
@@ -637,10 +637,10 @@ two locations:
 @enumerate
 
 @item
-@code{<directory from which application loaded>/../etc/avrdude.conf}
+@code{@var{directory from which application loaded}/../etc/avrdude.conf}
 
 @item
-@code{<directory from which application loaded>/avrdude.conf}
+@code{@var{directory from which application loaded}/avrdude.conf}
 
 @end enumerate
 
@@ -824,9 +824,17 @@ specification, system-dependent default values @code{default_parallel},
 the configuration file are used. If you need to use a different port, use this
 option to specify the alternate port name.
 
+USB-only programmers normally do not need the port option be specified as
+they are automatically identified via their vendor and product IDs from
+@code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
+programmers of the same type plugged into the host computer is the
+@code{-P} option needed, see below. Some @code{-c} programmers, however,
+ignore the @code{-P} option altogether, eg, teensy, ch341a or avrftdi;
+these cannot distinguish multiple plugged-in programmers.
+
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
-@var{avrdude.conf} or @var{.avrduderc}, e.g., @code{ch340} or
+@code{avrdude.conf} or @code{.avrduderc}, e.g., @code{ch340} or
 @code{ft232r}. If more than one serial adapter of the same type is
 connected, they can be distinguished by appending a serial number, e.g.,
 @code{ft232r:12345678}. Note that the USB to serial chip has to have a
@@ -842,31 +850,41 @@ list of all possible serial adapters known to avrdude use @code{-P ?sa}.
 Depending on the used shell, @code{?} may need to be quoted as in
 @code{"?"} or @code{\?}.
 
-For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
-@var{port} may alternatively be specified as
-@code{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
-looked up on USB.  If @var{serialno} is also specified, it will be
-matched against the serial number read from any JTAG ICE mkII found on
-USB.  The match is done after stripping any existing colons from the
-given serial number, and right-to-left, so only the least significant
-bytes from the serial number need to be given.
-For a trick how to find out the serial numbers of all JTAG ICEs
+For the JTAG ICE mkII, if AVRDUDE has been built with libusb support, the
+port can be specified as @code{usb}[:@var{serialno}].  In that case, the
+JTAG ICE mkII will be looked up on USB.  If @var{serialno} is also
+specified, it will be matched against the serial number read from any JTAG
+ICE mkII found on USB.  The match is done after stripping any existing
+colons from the given serial number, and right-to-left, so only the least
+significant bytes from the serial number need to be given.
+@code{avrdude -v -P usb:xyz -c jtag2 -p ... 2>&1 | grep ^Found} lists all JTAG ICEs
 attached to USB, see @ref{Example Command Line Invocations}.
 
 As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
 
-For the USB programmer "AVR-Doper" running in HID mode, the port must
-be specified as @var{avrdoper}. Libhidapi support is required on Unix
-and Mac OS but not on Windows. For more information about AVR-Doper see
+For the USB programmer AVR-Doper running in HID mode, the port must be
+specified as @code{-P avrdoper}. Libhidapi support is required on Unix and
+Mac OS but not on Windows. For more information about AVR-Doper see
 @url{https://www.obdev.at/products/vusb/avrdoper.html}.
 
-For the USBtinyISP, which is a simplistic device not implementing
-serial numbers, multiple devices can be distinguished by their
-location in the USB hierarchy.
-For USBasp, multiple devices can be distinguished by either USB connection
-or serial number.
-See the respective @ref{Troubleshooting} entry for examples.
+For the USBtinyISP, which is a simplistic device not implementing serial
+numbers, multiple devices can be distinguished by their location in the
+USB hierarchy using @code{-P usb:@var{busdir}:@var{devicefile}}.
+
+For USBasp, multiple devices can also be also distinguished using @code{-P
+usb:@var{busdir}:@var{devicefile}} or using the serial number @code{-P
+usb:@var{serialno}}. The USBasp serial number is matched from the end, so
+only the unique least significant bytes are needed. For examples, see the
+respective entry in @ref{Troubleshooting}.
+
+The @code{-c pickit5} programmer allows overriding the product ID with a
+hexadecimal number @var{pid} using @code{-P usb::@var{pid}} and the vendor
+and product IDs with hexadecimal numbers @var{vid} and @var{pid} using
+@code{-P usb:@var{vid}:@var{pid}}. The form @code{-P usb:@var{serialno}}
+requests AVRDUDE select the PICkit5 programmer with a serial number that
+ends in @var{serialno} (and with @var{vid}/@var{pid} from the
+configuration files).
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -877,10 +895,9 @@ directly contactable XBee device associated with the same mesh (with
 a default baud rate of 9600).  This may look similar to:
 @code{0013a20000000001@/dev/tty.serial}.
 
-For diagnostic purposes, if the target MCU with an XBeeBoot
-bootloader is connected directly to the serial port, the
-64-bit address field can be omitted.  In this mode the
-default baud rate will be 19200.
+For diagnostic purposes, if the target MCU with an XBeeBoot bootloader is
+connected directly to the serial port, the 64-bit address field can be
+omitted.  In this mode the default baud rate will be 19200.
 
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -898,8 +915,7 @@ The port is assumed to be properly configured, for example using a
 transparent 8-bit data connection without parity at 115200 Baud
 for a STK500.
 
-Note: The ability to handle IPv6 hostnames and addresses is limited to
-Posix systems (by now).
+Note: IPv6 hostnames and addresses are limited to Posix systems.
 
 @item -r
 @item --reconnect
@@ -1309,8 +1325,8 @@ flash:r:-:I}. Patterns in flash memory are executable and represent benign
 AVR code, ie, no I/O memory access. Choose a fixed seed for reproducible
 results.
 
-@item init=<n>
-Shortcut for @code{-x init -x seed=<n>} (see below)
+@item init=@var{n}
+Shortcut for @code{-x init -x seed=@var{n}} (see below)
 
 @cindex @code{flash}
 @item random
@@ -1319,10 +1335,10 @@ randomly configured with respect to bootloader, data and code length.
 Random code in flash will be benign, that is, not accessing I/O memories,
 SRAM or flash. Choose a fixed seed for reproducible results.
 
-@item random=<n>
-Shortcut for @code{-x random -x seed=<n>}
+@item random=@var{n}
+Shortcut for @code{-x random -x seed=@var{n}}
 
-@item seed=<n>
+@item seed=@var{n}
 Seed random number generator with @var{n}; the default is
 @code{time(NULL)}. Setting this option with a fixed positive @var{n} will
 make the random choices reproducible, ie, they will stay the same between
@@ -1518,7 +1534,7 @@ The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
 The current reference voltage can be read by @code{-x varef0} or
 @code{-x varef1} alone.
-@item attempts[=<1..99>]
+@item attempts[=@var{1..99}]
 @var{STK500V1 only}
 @*
 Specify how many connection retry attempts to perform before exiting.
@@ -1571,7 +1587,7 @@ programmer creates errors during initial sequence.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item attempts[=<1..99>]
+@item attempts[=@var{1..99}]
 Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
 @item noautoreset
@@ -1596,10 +1612,10 @@ connected part and bootloader.
 @cindex @code{eeprom}
 @item showid
 Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
-@item id=<E|F>.<addr>.<len>
+@item id=@var{E|F}.@var{addr}.@var{len}
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
-number can be set by the @code{-x id=<E|F>.<addr>.<len>} extended parameter. @code{E}
+number can be set by the @code{-x id=@var{E|F}.@var{addr}.@var{len}} extended parameter. @code{E}
 stands for EEPROM and @code{F} stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
@@ -1613,8 +1629,8 @@ programmer stores by default in high flash just under the bootloader; see also
 @code{-x nometadata}.
 @item showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
-@item title=<string>
-When set, <string> will be used in lieu of the input filename. The maximum
+@item title=@var{string}
+When set, @var{string} will be used in lieu of the input filename. The maximum
 string length for the title/filename field is 254 bytes including
 terminating nul.
 @item showapp
@@ -1637,7 +1653,7 @@ just behind the vector table with the name @code{VBL_ADDITIONAL_VECTOR}.
 @item showpart
 Show the part for which the bootloader was compiled, then exit.
 @cindex @code{flash}
-@item bootsize=<size>
+@item bootsize=@var{size}
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
 i.e., typically top of flash, so the urclock programmer can look up the
@@ -1645,7 +1661,7 @@ bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
 @cindex @code{flash}
-@item vectornum=<n>
+@item vectornum=@var{n}
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1711,9 +1727,9 @@ that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
 @item noautoreset
 Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
-@item delay=<n>
-Add a <n> ms delay after reset. This can be useful if a board takes a
-particularly long time to exit from external reset. <n> can be negative,
+@item delay=@var{n}
+Add a @var{n} ms delay after reset. This can be useful if a board takes a
+particularly long time to exit from external reset. @var{n} can be negative,
 in which case the default 120 ms delay after issuing reset will be
 shortened accordingly.
 @item strict
@@ -1750,26 +1766,26 @@ aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
 with programming the AVR in the other design.
 
 @item spifreq=@var{0..7}
-@multitable @columnfractions .05 .3
-@item @code{0} @tab  30 kHz (default)
-@item @code{1} @tab 125 kHz
-@item @code{2} @tab 250 kHz
-@item @code{3} @tab   1 MHz
-@item @code{4} @tab   2 MHz
-@item @code{5} @tab   2.6 MHz
-@item @code{6} @tab   4 MHz
-@item @code{7} @tab   8 MHz
+@multitable @columnfractions 0.05 0.05 0.3
+@item @tab @code{0} @tab  30 kHz (default)
+@item @tab @code{1} @tab 125 kHz
+@item @tab @code{2} @tab 250 kHz
+@item @tab @code{3} @tab   1 MHz
+@item @tab @code{4} @tab   2 MHz
+@item @tab @code{5} @tab   2.6 MHz
+@item @tab @code{6} @tab   4 MHz
+@item @tab @code{7} @tab   8 MHz
 @end multitable
 
 @item rawfreq=0..3
 Sets the SPI speed and uses the Bus Pirate's binary ``raw-wire'' mode instead
 of the default binary SPI mode:
 
-@multitable @columnfractions .05 .3
-@item @code{0} @tab 5 kHz
-@item @code{1} @tab 50 kHz
-@item @code{2} @tab 100 kHz (Firmware v4.2+ only)
-@item @code{3} @tab 400 kHz (v4.2+)
+@multitable @columnfractions 0.05 0.05 0.7
+@item @tab @code{0} @tab 5 kHz
+@item @tab @code{1} @tab 50 kHz
+@item @tab @code{2} @tab 100 kHz (Firmware v4.2+ only)
+@item @tab @code{3} @tab 400 kHz (v4.2+)
 @end multitable
 
 The only advantage of the ``raw-wire'' mode is that different SPI frequencies
@@ -1863,13 +1879,13 @@ device is plugged in.
 
 The Wiring programmer type accepts the following extended parameters:
 @table @code
-@item snooze=<n>
+@item snooze=@var{n}
 After performing the port open phase, AVRDUDE will wait/snooze for
 @var{snooze} milliseconds before continuing to the protocol sync phase.
 No toggling of DTR/RTS is performed if @var{snooze} > 0.
-@item delay=<n>
-Add a <n> milliseconds delay after reset. This can be useful if a board
-takes a particularly long time to exit from external reset. <n> can be
+@item delay=@var{n}
+Add a @var{n} milliseconds delay after reset. This can be useful if a board
+takes a particularly long time to exit from external reset. @var{n} can be
 negative, in which case the default 100 ms delay after issuing reset will
 be shortened accordingly.
 @end table
@@ -1881,14 +1897,14 @@ be shortened accordingly.
 @item PICkit2
 
 Connection to the PICkit2 programmer:
-@multitable @columnfractions .05 .3
-@item @code{(AVR)} @tab      @code{(PICkit2)}
-@item @code{RST} @tab      @code{VPP/MCLR (1) }
-@item @code{VDD} @tab      @code{VDD Target (2) -- possibly optional if AVR self powered }
-@item @code{GND} @tab      @code{GND (3) }
-@item @code{SDI} @tab      @code{PGD (4) }
-@item @code{SCLK} @tab      @code{PDC (5) }
-@item @code{OSI} @tab      @code{AUX (6) }
+@multitable @columnfractions 0.05 0.15 0.8
+@headitem @tab @strong{AVR} @tab @strong{PICkit2}
+@item @tab @code{RST} @tab      @code{VPP/MCLR (1)}
+@item @tab @code{VDD} @tab      @code{VDD Target (2)} -- optional if AVR self powered
+@item @tab @code{GND} @tab      @code{GND (3)}
+@item @tab @code{SDI} @tab      @code{PGD (4)}
+@item @tab @code{SCLK} @tab      @code{PDC (5)}
+@item @tab @code{SDO} @tab      @code{AUX (6)}
 @end multitable
 
 The PICkit2 programmer type accepts the following extended parameters:
@@ -1921,7 +1937,7 @@ Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 The xbee programmer type accepts the following extended parameter:
 @table @code
 @item xbeeresetpin=@var{1..7}
-Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
+Select the XBee pin @code{DIO@var{1..7}} that is connected to the MCU's
 @code{/RESET} line.  The programmer needs to know which DIO pin to use to
 reset into the bootloader.  The default (3) is the @code{DIO3} pin
 (XBee pin 17), but some commercial products use a different XBee
@@ -2199,16 +2215,16 @@ verbosity level:
 
 @smallexample
 @cartouche
-$ avrdude -c jtag2 -p m128 -P usb:xxx -v
+$ avrdude -c jtag2 -p m128 -P usb:xyz -v
 
-Using port            : usb:xxx
+Using port            : usb:xyz
 Using programmer      : jtag2fast
 Programmer baud rate  : 115200
-Usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
-Usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
-Usbdev_open(): Found JTAG ICE, serno: 00A000001C30
-Error: did not find any (matching) USB device usb:xxx (03eb:2103)
-Error: unable to open port usb:xxx for programmer jtag2fast
+Found JTAG ICE with serno: 00A000001C6B
+Found JTAG ICE with serno: 00A000001C3A
+Found JTAG ICE with serno: 00A000001C30
+Error: did not find any (matching) USB device usb:xyz (03eb:2103)
+Error: unable to open port usb:xyz for programmer jtag2fast
 
 Avrdude done.  Thank you.
 @end cartouche
@@ -2254,7 +2270,7 @@ Valid commands:
 For more details about a terminal command cmd type cmd -?
 
 Other:
-  !<line> : run the shell <line> in a subshell, eg, !ls *.hex
+  !@var{line}   : run the shell @var{line} in a subshell, eg, !ls *.hex
   # ...   : ignore rest of line (eg, used as comments in scripts)
 
 Note that not all programmer derivatives support all commands. Flash and
@@ -2552,64 +2568,64 @@ recalled and edited.
 
 The @var{addr} and @var{len} parameters of the dump, read, disasm, write,
 save and erase commands can be negative with the same syntax as substring
-computations in perl or python. The table below details their meaning with
-respect to an example memory of size @code{sz=0x800} (2048 bytes).
+computations in perl or python. The table below defines the effective
+memory interval [@var{start}, @var{end}], given the memory size @var{sz}:
 
-@multitable {0/negativ}{negativ}{@code{[addr, addr+len-1]}}{End is @code{|len|} bytes below memory size @code{sz}}
-@headitem @code{addr}
-@tab @code{len}
+@multitable {0/positive}{negative}{[@var{sz}+@var{addr}, @var{sz}+@var{addr}+@var{len}-1]}{End is |@var{len}| bytes below mem size @var{sz}}
+@headitem @code{@var{addr}}
+@tab @code{@var{len}}
 @tab Memory interval
 @tab Comment
 @item 0/positive
 @tab  positive
-@tab  @code{[addr, addr+len-1]}
-@tab  Note: @code{len = end-start + 1}
+@tab  [@var{addr}, @var{addr}+@var{len}-1]
+@tab  Note: @var{len} = @var{end}-@var{start} + 1
 @item 0/positive
 @tab  negative
-@tab  @code{[addr, sz+len]}
-@tab  End is @code{|len|} bytes below memory size @code{sz}
+@tab  [@var{addr}, @var{sz}+@var{len}]
+@tab  End is |@var{len}| bytes below mem size @var{sz}
 @item negative
 @tab  positive
-@tab  @code{[sz+addr, @dots{}]}
-@tab  Start is @code{|addr|} bytes below memory size
+@tab  [@var{sz}+@var{addr}, @var{sz}+@var{addr}+@var{len}-1]
+@tab  Start is |@var{addr}| bytes below mem size
 @item negative
 @tab  negative
-@tab  @code{[sz+addr, sz+len]}
+@tab  [@var{sz}+@var{addr}, @var{sz}+@var{len}]
 @tab  Combining above two cases
 @item any
 @tab  zero
 @tab  empty set
 @tab  No action
-@item @verb{|0x700|}
-@tab  @verb{|   12|}
-@tab @code{[0x700, 0x70b]}
-@tab Conventional use
-@item @verb{| 1024|}
-@tab  @verb{| -257|}
-@tab @code{[0x400, 0x6ff]}
-@tab Size of memory is @code{2048} or @code{0x800}
-@item @verb{| -512|}
-@tab  @verb{|  512|}
-@tab @code{[0x600, 0x7ff]}
-@tab Last 512 bytes
-@item @verb{| -256|}
-@tab  @verb{|   -1|}
-@tab @code{[0x700, 0x7ff]}
-@tab Last 256 bytes
-@item @verb{|    0|}
-@tab  @verb{|   49|}
-@tab @code{[0, 48]}
-@tab First 49 bytes
-@item @verb{|    0|}
-@tab  @verb{|  -49|}
-@tab @code{[0, 1999]}
-@tab All but the last @code{48 = |len+1|} bytes
-@item @verb{|    0|}
-@tab  @verb{|   -1|}
-@tab @code{[0, 0x7ff]}
-@tab All memory without knowing its size
 @end multitable
 
+@noindent
+Note that @var{addr} must be in the range [-@var{sz}, @var{sz}-1]. After
+computing the memory interval [@var{start}, @var{end}] as per above table,
+the @emph{effective} length @var{end}-@var{start} + 1 must not be
+negative; if the effective length is zero then no action is carried out.
+@var{end} may be beyond the available memory for the dump, read or disasm
+commands, in which case the operation wraps around the memory end, but the
+effective length is always limited to the memory size.
+
+Here some examples for a memory with size @var{sz} of 0x800 (2048) bytes:
+
+@multitable {0/positive}{negative}{Memory interval}{Wrap around for read but error for write}
+@headitem @code{@var{addr}} @tab @code{@var{len}} @tab Memory interval @tab Comment
+@item 0x700 @tab  12   @tab [0x700, 0x70b]  @tab Conventional use
+@item 1024  @tab  -257 @tab [0x400, 0x6ff]  @tab 0x6ff = 2048-257
+@item -512  @tab  512  @tab [0x600, 0x7ff]  @tab Last 512 bytes
+@item -256  @tab  -1   @tab [0x700, 0x7ff]  @tab Last 256 bytes
+@item 0     @tab  49   @tab [0, 48]         @tab First 49 bytes
+@item 0     @tab  -49  @tab [0, 1999]       @tab All but the last 48 = |@var{len}+1| bytes
+@item 0     @tab -1    @tab [0, 0x7ff]      @tab All memory without knowing its size
+@item 2046  @tab 4     @tab [0x7fe, 0x801]  @tab Wrap around for read but error for write
+@item 2046  @tab 4096  @tab [0x7fe, 0x17fe] @tab Read wrap around stops at 0x7fd
+@item -1    @tab -1    @tab [0x7ff, 0x7ff]  @tab One byte at 0x7ff is addressed
+@item -1    @tab -2    @tab [0x7ff, 0x7fe]  @tab No action: effective length is zero
+@item -1    @tab -3    @tab [0x7ff, 0x7fd]  @tab Error: effective length is negative
+@end multitable
+
+@page
 @noindent
 The following commands are implemented for all programmers:
 
@@ -2793,62 +2809,62 @@ access, depending on the programmer, might also have flash and EEPROM
 directly accessed without cache.
 Items @var{data} can have the following formats:
 
-@multitable @columnfractions .32 .42 .20
-@item @strong{Type}
+@multitable { }{Hexadecimal integer}{@code{C:/My\ projects/blink.hex}}{1, 2, 4 or 8}
+@headitem @tab @strong{Type}
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
 @c
-@item String
+@item @tab String
 @tab @code{"Hello, world\n"}
 @tab varying
 @c
-@item File
+@item @tab File
 @tab @code{C:/My\ projects/blink.hex}
 @tab varying
 @c
-@item File with format
+@item @tab File with format
 @tab @code{blink.hex:i}
 @tab varying
 @c
-@item Character
+@item @tab Character
 @tab @code{'A'}
 @tab 1
 @c
-@item Binary integer
+@item @tab Binary integer
 @tab @code{0b101010}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Octal integer
+@item @tab Octal integer
 @tab @code{012345}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Decimal integer
+@item @tab Decimal integer
 @tab @code{12345}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Hexadecimal integer
+@item @tab Hexadecimal integer
 @tab @code{0x12345}
-@tab 1, 2, 4, or 8
+@tab 1, 2, 4 or 8
 @c
-@item Decimal float
+@item @tab Decimal float
 @tab @code{3.1415926}
 @tab 4
 @c
-@item Hexadecimal float
+@item @tab Hexadecimal float
 @tab @code{0xA.8p2}
 @tab 4
 @c
-@item Decimal double
+@item @tab Decimal double
 @tab @code{3.141592653589793D}
 @tab 8
 @c
-@item Hexadecimal double
+@item @tab Hexadecimal double
 @tab @code{0xA.8p2D}
 @tab 8
 @c
 @end multitable
 
-@var{data}
+@var{Data}
 can be binary, octal, decimal or hexadecimal integers, floating point
 numbers or C-style strings and characters. If nothing matches, @code{data}
 will be interpreted as a name of a file containing data, which will be
@@ -2868,14 +2884,14 @@ work (in contrast to @code{-U} operations).
 
 For integers, an optional case-insensitive suffix specifies the data size:
 
-@multitable {@code{H} or @code{S}}{8 bytes (64 bits) }
-@item @code{LL}
+@multitable { }{@code{H} or @code{S}}{8 bytes (64 bits) }
+@item @tab @code{LL}
 @tab 8 bytes (64 bits)
-@item @code{L}
+@item @tab @code{L}
 @tab 4 bytes (32 bits)
-@item @code{H} or @code{S}
+@item @tab @code{H} or @code{S}
 @tab 2 bytes (16 bits)
-@item @code{HH}
+@item @tab @code{HH}
 @tab 1 byte (8 bits)
 @end multitable
 
@@ -3122,11 +3138,11 @@ Display the device signature bytes.
 @cindex Programming mode
 @cindex Variants of parts
 Display the current part information, including supported programming modes,
-memory and variants tables. Use @var{-m} to only print the memory table,
-and @var{-v} to only print the variants table.
+memory and variants tables. Use @code{-m} to only print the memory table,
+and @code{-v} to only print the variants table.
 
-@item verbose @var{]level]}
-@cindex @code{verbose} @var{]level]}
+@item verbose @var{[level]}
+@cindex @code{verbose} @var{[level]}
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
@@ -3691,7 +3707,7 @@ Assign the default programmer id.  Can be overridden using the @option{-c}
 option.
 
 @item default_baudrate = "@var{default-baudrate}";
-Assign the default baudrate value that will be used if the programmer doesn't
+Assign the default baudrate value that will be used if the programmer does not
 provide its specific @code{baudrate} entry. Can be overridden using the @option{-b}
 option.
 
@@ -4905,17 +4921,17 @@ support parallel port programming under macOS.
 
 The following table lists the default names for a given system.
 
-@multitable @columnfractions .30 .30 .30
-@item @strong{System}
+@multitable @columnfractions 0.05 .15 .30 .30
+@item @tab @strong{System}
   @tab @strong{Default Parallel Port}
   @tab @strong{Default Serial Port}
-@item FreeBSD
+@item @tab FreeBSD
   @tab @code{/dev/ppi0}
   @tab @code{/dev/cuad0}
-@item Linux
+@item @tab Linux
   @tab @code{/dev/parport0}
   @tab @code{/dev/ttyS0}
-@item Solaris
+@item @tab Solaris
   @tab @code{/dev/printers/0}
   @tab @code{/dev/term/a}
 @end multitable
@@ -5264,9 +5280,7 @@ Solution: This problem seems to appear with certain versions of Cygwin. Specifyi
 @item
 Problem: I'm using Linux and my AVR910 programmer is really slow.
 
-Solution (short): @code{setserial @var{port} low_latency}
-
-Solution (long):
+Solution:
 There are two problems here. First, the system may wait some time before it
 passes data from the serial port to the program. Under Linux the following
 command works around this (you may need root privileges for this).
@@ -5276,7 +5290,8 @@ command works around this (you may need root privileges for this).
 Secondly, the serial interface chip may delay the interrupt for some time.
 This behaviour can be changed by setting the FIFO-threshold to one. Under Linux this
 can only be done by changing the kernel source in @code{drivers/char/serial.c}.
-Search the file for @code{UART_FCR_TRIGGER_8} and replace it with @code{UART_FCR_TRIGGER_1}. Note that overall performance might suffer if there
+Search the file for @code{UART_FCR_TRIGGER_8} and replace it with @code{UART_FCR_TRIGGER_1}.
+Note that overall performance might suffer if there
 is high throughput on serial lines. Also note that you are modifying the kernel at
 your own risk.
 
@@ -5284,33 +5299,32 @@ your own risk.
 @item
 Problem: I'm not using Linux and my AVR910 programmer is really slow.
 
-Solutions: The reasons for this are the same as above.
+Solution: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
 
 @cindex @code{eeprom}
 @item
-Problem: Page-mode programming the EEPROM (using the -U option) does
+Problem: Page-mode programming the EEPROM using the -U option does
 not erase EEPROM cells before writing, and thus cannot necessarily overwrite
-previous values that are different to 0xff.
+non-0xff values.
 
-Solution: None.  This is an inherent feature of the way JTAG EEPROM
-programming works, and is documented that way in the Atmel AVR
-datasheets.
-In order to successfully program the EEPROM that way, a prior chip
-erase (with the EESAVE fuse unprogrammed) is required.
-This also applies to the STK500 and STK600 in high-voltage programming mode.
+Solution: This is an inherent feature of how JTAG EEPROM programming
+works, and is documented as such in the datasheets. In order to
+successfully program the EEPROM, a prior chip erase with the EESAVE fuse
+unprogrammed is required. This also applies to the STK500 and STK600 in
+high-voltage programming mode.
 
-Programming the EEPROM in the terminal, however, will recognise that the
-programmer struggles to write to EEPROM and read the flash, EEPROM and, if
-present, bootrow contents, perform a chip erase and then write the
-memories back. This happens when flushing the cache or leaving the
-terminal and, out of necessity, take some time.
+The terminal, however, recognises that the programmer struggles to write
+to EEPROM. It then reads flash, EEPROM and, if present, bootrow contents,
+performs a chip erase and then writes these memories back. This happens
+when flushing the cache or leaving the terminal and takes some time.
+EESAVE needs to be unprogrammed for this.
 
 @item
-Problem: How do I turn off the @var{DWEN} fuse?
+Problem: How do I turn off the @code{DWEN} fuse?
 
-Solution: If the @var{DWEN} (debugWIRE enable) fuse is activated,
-the @var{/RESET} pin is not functional anymore, so normal ISP
+Solution: If the @code{DWEN} (debugWIRE enable) fuse is activated,
+the @code{/RESET} pin is not functional anymore, so normal ISP
 communication cannot be established.
 There are two options to deactivate that fuse again: high-voltage
 programming, or getting the JTAG ICE mkII talk debugWIRE, and
@@ -5319,9 +5333,9 @@ prepare the target AVR to accept normal ISP communication again.
 The first option requires a programmer that is capable of high-voltage
 programming (either serial or parallel, depending on the AVR device),
 for example the STK500.  In high-voltage programming mode, the
-@var{/RESET} pin is activated initially using a 12 V pulse (thus the
+@code{/RESET} pin is activated initially using a 12 V pulse (thus the
 name @emph{high voltage}), so the target AVR can subsequently be
-reprogrammed, and the @var{DWEN} fuse can be cleared.  Typically, this
+reprogrammed, and the @code{DWEN} fuse can be cleared.  Typically, this
 operation cannot be performed while the AVR is located in the target
 circuit though.
 
@@ -5329,58 +5343,61 @@ The second option requires a JTAG ICE mkII that can talk the debugWIRE
 protocol.  The ICE needs to be connected to the target using the
 JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWIRE
 initiator as well as an ISP programmer.  AVRDUDE will then be activated
-using the @var{jtag2isp} programmer type.  The initial ISP
+using the @code{jtag2isp} programmer type.  The initial ISP
 communication attempt will fail, but AVRDUDE then tries to initiate a
 debugWIRE reset.  When successful, this will leave the target AVR in a
 state where it can accept standard ISP communication.  The ICE is then
 signed off (which will make it signing off from the USB as well), so
 AVRDUDE has to be called again afterwards.  This time, standard ISP
-communication can work, so the @var{DWEN} fuse can be cleared.
-
+communication can work, so the @code{DWEN} fuse can be cleared.
 The pin mapping for the JTAG-to-ISP adapter is:
 
-@multitable @columnfractions .2 .2
-@item @strong{JTAG pin} @tab @strong{ISP pin}
-@item 1 @tab 3
-@item 2 @tab 6
-@item 3 @tab 1
-@item 4 @tab 2
-@item 6 @tab 5
-@item 9 @tab 4
+@multitable @columnfractions 0.1 .1 .1
+@item @tab @strong{JTAG} @tab @strong{ISP}
+@item @tab 1 @tab 3
+@item @tab 2 @tab 6
+@item @tab 3 @tab 1
+@item @tab 4 @tab 2
+@item @tab 6 @tab 5
+@item @tab 9 @tab 4
 @end multitable
 
 @item
-Problem: Multiple USBasp or USBtinyISP programmers connected simultaneously are not
-found.
+Problem: Differentiate multiple USBtinyISP (or USBasp) programmers
 
-Solution: The USBtinyISP code supports distinguishing multiple
-programmers based on their bus:device connection tuple that describes
-their place in the USB hierarchy on a specific host.  This tuple can
-be added to the @var{-P usb} option, similar to adding a serial number
-on other USB-based programmers.
-
-The actual naming convention for the bus and device names is
-operating-system dependent; AVRDUDE will print out what it found
-on the bus when running it with (at least) one @var{-v} option.
-By specifying a string that cannot match any existing device
-(for example, @var{-P usb:xxx}), the scan will list all possible
-candidate devices found on the bus.
-
-Examples:
-@example
-avrdude -c usbtiny -p atmega8 -P usb:003:025 (Linux)
-avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
-avrdude -c usbtiny -p atmega8 \
-  -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
-@end example
-
-For USBasp, the same format for @var{-P usb} can be used to match usb bus/device. Alternatively,
-device serial number can be specified as follows (for serial number '1234').
+Solution: The @code{-c usbtiny} programmer distinguishes multiple physical
+USBtinyISP devices based on their busdir:devicefile pairs that describe
+their place in the USB hierarchy on a specific host.  This pair can be
+specified in the @code{-P usb:@var{busdir}:@var{devicefile}} option. The
+naming convention for the bus and device depends on the operating system.
+Examples for Linux, FreeBSD and Windows, respectively:
 
 @example
-avrdude -c USBasp -p atmega8 -P usb:1234
+$ avrdude -c usbtiny -p atmega8 -P usb:003:025
+$ avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3
+$ avrdude -c usbtiny -p atmega8 \
+    -P 'usb:bus-0:\\?\usb#vid_16c0&pid_05dc#0001#@{a5...ed@}--WinUSB'
 @end example
 
+The Windows device name contains the backslash file separator, so the
+@code{-P} option will need appropriate quoting on the command line, eg,
+in bash with single quotes.
+
+For USBasp the same @code{-P usb:@var{busdir}:@var{devicefile}} as with
+USBtiny selects the right device. Alternatively, USBasp can select the
+device via its serial number using @code{-P usb:@var{serialno}}.
+
+Note that @code{avrdude -v -P usb:xyz} will print out suitable programmers
+on the bus assuming xyz does not match any device.
+
+@noindent
+@example
+$ avrdude -v -Pusb:xyz -c usbasp -p m328p 2>&1 | grep ^Found
+Found USBasp with busdir:devicefile = 001:008, serial_number = 0001
+Found USBasp with busdir:devicefile = 001:009, serial_number = 1234
+
+$ avrdude -qq -c USBasp -p atmega8 -P usb:34
+@end example
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWIRE mode.
@@ -5389,8 +5406,8 @@ Solution: debugWIRE mode imposes several limitations.
 
 The debugWIRE protocol is Atmel's proprietary one-wire (plus ground)
 protocol to allow an in-circuit emulation of the smaller AVR devices,
-using the @var{/RESET} line.
-DebugWIRE mode is initiated by activating the @var{DWEN}
+using the @code{/RESET} line.
+DebugWIRE mode is initiated by activating the @code{DWEN}
 fuse, and then power-cycling the target.
 While this mode is mainly intended for debugging/emulation, it
 also offers limited programming capabilities.
@@ -5419,19 +5436,19 @@ with the kit, yet I don't have it.
 
 Solution: Use the following pin mapping:
 
-@multitable @columnfractions .2 .2 .2 .2
-@item @strong{JTAGICE} @tab @strong{Target} @tab @strong{Squid cab-} @tab @strong{PDI}
-@item @strong{mkII probe} @tab @strong{pins} @tab @strong{le colors} @tab @strong{header}
-@item 1 (TCK)   @tab         @tab Black  @tab
-@item 2 (GND)   @tab GND     @tab White  @tab 6
-@item 3 (TDO)   @tab         @tab Grey   @tab
-@item 4 (VTref) @tab VTref   @tab Purple @tab 2
-@item 5 (TMS)   @tab         @tab Blue   @tab
-@item 6 (nSRST) @tab PDI_CLK @tab Green  @tab 5
-@item 7 (N.C.)  @tab         @tab Yellow @tab
-@item 8 (nTRST) @tab         @tab Orange @tab
-@item 9 (TDI)   @tab PDI_DATA @tab Red   @tab 1
-@item 10 (GND)  @tab         @tab Brown  @tab
+@multitable @columnfractions 0.05 0.2 0.2 0.2 0.2
+@item @tab @strong{JTAG ICE} @tab @strong{Target} @tab @strong{Squid cable} @tab @strong{PDI}
+@item @tab @strong{mkII probe} @tab @strong{pins} @tab @strong{colors} @tab @strong{header}
+@item @tab 1 (TCK)   @tab         @tab Black  @tab
+@item @tab 2 (GND)   @tab GND     @tab White  @tab 6
+@item @tab 3 (TDO)   @tab         @tab Grey   @tab
+@item @tab 4 (VTref) @tab VTref   @tab Purple @tab 2
+@item @tab 5 (TMS)   @tab         @tab Blue   @tab
+@item @tab 6 (nSRST) @tab PDI_CLK @tab Green  @tab 5
+@item @tab 7 (N.C.)  @tab         @tab Yellow @tab
+@item @tab 8 (nTRST) @tab         @tab Orange @tab
+@item @tab 9 (TDI)   @tab PDI_DATA @tab Red   @tab 1
+@item @tab 10 (GND)  @tab         @tab Brown  @tab
 @end multitable
 
 @item
@@ -5440,15 +5457,15 @@ Xmega device through PDI.
 
 Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
 
-@multitable @columnfractions .2 .2
-@item @strong{Dragon} @tab @strong{Target}
-@item @strong{ISP Header} @tab @strong{pins}
-@item 1 (SDI)   @tab PDI_DATA
-@item 2 (VCC)   @tab VCC
-@item 3 (SCK)   @tab
-@item 4 (SDO)   @tab
-@item 5 (RESET) @tab PDI_CLK / RST
-@item 6 (GND)   @tab GND
+@multitable @columnfractions 0.05 0.2 0.3
+@item @tab @strong{Dragon} @tab @strong{Target}
+@item @tab @strong{ISP Header} @tab @strong{pins}
+@item @tab 1 (SDI)   @tab PDI_DATA
+@item @tab 2 (VCC)   @tab VCC
+@item @tab 3 (SCK)   @tab
+@item @tab 4 (SDO)   @tab
+@item @tab 5 (RESET) @tab PDI_CLK / RST
+@item @tab 6 (GND)   @tab GND
 @end multitable
 
 @item
@@ -5457,15 +5474,15 @@ ATtiny4/5/9/10 device through TPI.  How to connect the pins?
 
 Solution: Use the following pin mapping:
 
-@multitable @columnfractions .2 .2 .2
-@item @strong{AVRISP} @tab @strong{Target} @tab @strong{ATtiny}
-@item @strong{connector} @tab @strong{pins} @tab @strong{pin #}
-@item 1 (SDI)   @tab TPIDATA  @tab 1
-@item 2 (VTref) @tab Vcc      @tab 5
-@item 3 (SCK)   @tab TPICLK   @tab 3
-@item 4 (SDO)   @tab          @tab
-@item 5 (RESET) @tab /RESET   @tab 6
-@item 6 (GND)   @tab GND      @tab 2
+@multitable @columnfractions 0.05 .2 .2 .2
+@item @tab @strong{AVRISP} @tab @strong{Target} @tab @strong{ATtiny}
+@item @tab @strong{connector} @tab @strong{pins} @tab @strong{pin #}
+@item @tab 1 (SDI)   @tab TPIDATA  @tab 1
+@item @tab 2 (VTref) @tab Vcc      @tab 5
+@item @tab 3 (SCK)   @tab TPICLK   @tab 3
+@item @tab 4 (SDO)   @tab          @tab
+@item @tab 5 (RESET) @tab /RESET   @tab 6
+@item @tab 6 (GND)   @tab GND      @tab 2
 @end multitable
 
 @item
@@ -5473,13 +5490,13 @@ Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel
 bitbang programmer.  How to connect the pins?
 
 Solution: Since TPI has only 1 pin for bi-directional data transfer, both
-@var{SDI} and @var{SDO} pins should be connected to the @var{TPIDATA} pin
+@code{SDI} and @code{SDO} pins should be connected to the @code{TPIDATA} pin
 on the ATtiny device.
-However, a 1K resistor should be placed between the @var{SDO} and @var{TPIDATA}.
-The @var{SDI} pin connects to @var{TPIDATA} directly.
-The @var{SCK} pin is connected to @var{TPICLK}.
+However, a 1K resistor should be placed between the @code{SDO} and @code{TPIDATA}.
+The @code{SDI} pin connects to @code{TPIDATA} directly.
+The @code{SCK} pin is connected to @code{TPICLK}.
 
-In addition, the @var{Vcc}, @var{/RESET} and @var{GND} pins should
+In addition, the @code{Vcc}, @code{/RESET} and @code{GND} pins should
 be connected to their respective ports on the ATtiny device.
 
 @item
@@ -5487,7 +5504,7 @@ Problem: How can I use a FTDI FT232R USB-to-Serial device for bitbang programmin
 
 Solution: When connecting the FT232 directly to the pins of the target Atmel device,
 the polarity of the pins defined in the @code{programmer} definition should be
-inverted by prefixing a tilde. For example, the @var{dasa} programmer would
+inverted by prefixing a tilde. For example, the @code{dasa} programmer would
 look like this when connected via a FT232R device (notice the tildes in
 front of pins 7, 4, 3 and 8):
 
@@ -5514,7 +5531,7 @@ Solution: Mind the limited programming supply voltage range of these
 devices.
 
 In-circuit programming through TPI is only guaranteed by the datasheet
-at Vcc = 5 V.
+at Vcc = 5@w{ }V.
 
 @item
 Problem: My ATxmega@dots{}A1/A2/A3 cannot be programmed through PDI with
@@ -5545,7 +5562,7 @@ speed (e.g. through the @code{CLKPR} register), further ISP connection
 attempts fail.  Or a programmer cannot initialize communication with
 a brand new chip.
 
-Solution: Even though ISP starts with pulling @var{/RESET} low, the
+Solution: Even though ISP starts with pulling @code{/RESET} low, the
 target continues to run at the internal clock speed either as defined by
 the firmware running before or as set by the factory.  Therefore, the
 ISP clock speed must be reduced appropriately (to less than 1/4 of the
@@ -5570,8 +5587,8 @@ erase cycle.
 
 AVRDUDE supports the programmers below: the left column lists the
 programmer's id as used for @code{-c}, whilst the right column contains a
-short description and the list of available programming interface(s) in
-brackets; see @ref{Programmer Definitions}). There is more detail about
+short description and the list of available programming interfaces in
+brackets; see @ref{Programmer Definitions}. There is more detail about
 each programmer in the AVRDUDE configuration file.
 
 @multitable @columnfractions .24 .75

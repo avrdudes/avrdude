@@ -201,7 +201,9 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   int errorCode = USB_ERROR_NOTFOUND;
   libusb_device_handle *handle = NULL;
 
-  pmsg_trace("ch341a_open(\"%s\")\n", port);
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
+  if(!str_eq(port, "usb"))
+    pmsg_warning("option -P %s ignored\n", port);
 
   if(!my.USB_init) {
     my.USB_init = 1;
