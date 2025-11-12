@@ -330,7 +330,7 @@ static int pickit5_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     }
     if(str_eq(cp, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -398,7 +398,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(can_gen_hv_pulse(pgm))
         msg_error("  -x hvupdi       Enable high-voltage UPDI initialization\n");
       msg_error("  -x help         Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;
+      return LIBAVRDUDE_EXIT_OK;
     }
 
     pmsg_error("invalid extended parameter: %s\n", extended_param);
@@ -420,7 +420,7 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
 
   if(script == NULL) {
     pmsg_error("invalid script pointer passed\n");
-    return LIBAVRDUDE_EXIT; // If script is NULL there is a significant problem
+    return LIBAVRDUDE_EXIT_FAIL; // If script is NULL there is a significant problem
   }
 
   unsigned int header_len = 16 + 8;     // Header info + script header
@@ -780,7 +780,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       imsg_error("$ %s -c snap%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
       serial_close(&pgm->fd);
-      return LIBAVRDUDE_EXIT;
+      return LIBAVRDUDE_EXIT_FAIL;
     }
     pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_AVR_MODE;
     rv = serial_open(port, pinfo, &pgm->fd);  // Try PICkit4 PID
@@ -795,7 +795,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       imsg_error("$ %s -c pickit4%s %s-P %s\n", progname, pgm_suffix, part_option, port);
 
       serial_close(&pgm->fd);
-      return LIBAVRDUDE_EXIT;
+      return LIBAVRDUDE_EXIT_FAIL;
     }
     if(serial_num_len) {
       pmsg_error("no device found matching the specified serial number %s", vidp);
@@ -805,7 +805,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pmsg_error("no device found matching VID 0x%04x and PID list: 0x%04x, 0x%04x, 0x%04x\n", USB_VENDOR_MICROCHIP,
       USB_DEVICE_PICKIT5, USB_DEVICE_PICKIT4_PIC_MODE, USB_DEVICE_SNAP_PIC_MODE);
     imsg_error("nor VID 0x%04x with PID list: 0x%04x, 0x%04x\n", USB_VENDOR_ATMEL, USB_DEVICE_PICKIT4_AVR_MODE, USB_DEVICE_SNAP_AVR_MODE);
-    return LIBAVRDUDE_EXIT;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
 
   if(str_starts(id, "pickit_basic")) {
@@ -815,7 +815,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       pmsg_error("PICkit Basic in CMSIS-DAP mode detected;\n");
       imsg_error("please use a Microchip tool to switch the firmware to \"mplab\"\n");
       imsg_error("in order to use the programmer with avrdude\n");
-      return LIBAVRDUDE_EXIT;
+      return LIBAVRDUDE_EXIT_FAIL;
     }
 
     rv = usbdev_check_connected(USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT_BASIC_BL);
@@ -823,7 +823,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       pmsg_error("PICkit Basic in Bootloader mode detected;\n");
       imsg_error("please use a Microchip tool to load the \"mplab\" firmware\n");
       imsg_error("in order to use the programmer with avrdude\n");
-      return LIBAVRDUDE_EXIT;
+      return LIBAVRDUDE_EXIT_FAIL;
     }
   }
 
@@ -837,7 +837,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     msg_error("0x%04x", (unsigned int) (*(int *) (ldata(usbpid))));
     notfirst = 1;
   }
-  return LIBAVRDUDE_EXIT;
+  return LIBAVRDUDE_EXIT_FAIL;
 }
 
 static void pickit5_close(PROGRAMMER *pgm) {
@@ -1386,9 +1386,7 @@ static int pickit5_pdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&param[4], len);
 
   int rc = pickit5_download_data(pgm, p, flash_cmd, sizeof(flash_cmd), param, sizeof(param), value, len);
-  if(rc < 0)
-    rc = LIBAVRDUDE_EXIT;
-  return rc;
+  return rc < 0? LIBAVRDUDE_EXIT_FAIL: rc;
 }
 
 // Return numbers of byte written
@@ -1455,7 +1453,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
 
   int rc = pickit5_download_data(pgm, p, write_bytes, write_bytes_len, param, 8, value, len);
   if(rc < 0)                    // Any error here means that a write fail occured, so restart
-    return LIBAVRDUDE_EXIT;
+    return LIBAVRDUDE_EXIT_FAIL;
   return len;
 }
 
@@ -1549,9 +1547,8 @@ static int pickit5_read_array(const PROGRAMMER *pgm, const AVRPART *p,
   pickit5_uint32_to_array(&param[4], len);
 
   int rc = pickit5_upload_data(pgm, p, read_bytes, read_bytes_len, param, 8, value, len);
-
   if(rc < 0)                    // Any error here means that a read fail occured, better restart
-    return LIBAVRDUDE_EXIT;
+    return LIBAVRDUDE_EXIT_FAIL;
   return len;
 }
 

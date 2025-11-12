@@ -1362,7 +1362,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -2674,7 +2674,7 @@ static int jtagmkII_reset32(const PROGRAMMER *pgm, unsigned short flags) {
 
     status = jtagmkII_recv(pgm, &resp);
     if(status != 2 || resp[0] != 0x87 || resp[1] != 01)
-      gotoerr;;
+      gotoerr;
   }
 
   if(flags & (AVR32_RESET_WRITE | AVR32_SET4RUNNING)) {

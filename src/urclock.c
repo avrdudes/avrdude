@@ -1617,7 +1617,7 @@ vblvecfound:
     term_out(&" %s"[first], ur.uP.name);
   if(!first) {
     term_out("\n");
-    return LIBAVRDUDE_EXIT;;
+    return LIBAVRDUDE_EXIT_OK;
   }
 
 alldone:
@@ -2560,7 +2560,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
         urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
-      return LIBAVRDUDE_EXIT;;
+      return LIBAVRDUDE_EXIT_OK;
   }
 
   if(parseUrclockID(pgm) < 0)
