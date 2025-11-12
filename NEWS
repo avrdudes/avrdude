@@ -25,6 +25,10 @@ Changes since version 8.1:
     - Deduplicate programmer list in docs #2042
     - Erase locked devices with pickit5 programmer when needed #2055
     - Ignore leading zeros in -P usb:bbb:ddd; improve `-P` doc # 2060
+    - Differentiate LIBAVRDUDE_EXIT_FAIL and ..._EXIT_OK #2061
+    - Fix apptable size for x128a4/u #2062
+    - Disassemble elpm/eijmp/eicall for all XMEGAs #2063
+    - No longer use I/O space registers for ldi operands #2065
 
   * Internals:
 
