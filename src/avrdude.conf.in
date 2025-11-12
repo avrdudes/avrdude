@@ -17609,8 +17609,9 @@ part parent ".xmega-ab" # x128a4
     ;
 
     memory "apptable"
+        size               = 8192;
         page_size          = 512;
-        offset             = 0x81f000;
+        offset             = 0x81e000;
     ;
 
     memory "boot"
@@ -17693,7 +17694,8 @@ part parent ".xmega-ab" # x128a4u
     ;
 
     memory "apptable"
-        offset             = 0x81f000;
+        size               = 8192;
+        offset             = 0x81e000;
     ;
 
     memory "boot"
