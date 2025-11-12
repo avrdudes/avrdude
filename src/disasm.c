@@ -922,8 +922,11 @@ static const char *get_ldi_name(int op1, int op2, Op_context *oxp) {
       if((s = find_symbol(*c, addr*awidth)))
         break;
     if(s && s->name) {          // Label matches the address loaded into register pair
-      s->used = 1;
-      return str_ccprintf("%s%s(%s)", awidth == 2? "pm_": "", ra & 1? "hi8": "lo8", s->name);
+      // Don't use register names in I/O space as ldi label names
+      if(s->type != 'M' || (uint16_t) addr >= 64 + cx->dis_io_offset) {
+        s->used = 1;
+        return str_ccprintf("%s%s(%s)", awidth == 2? "pm_": "", ra & 1? "hi8": "lo8", s->name);
+      }
     }
     if((ra | 1) == 31 && oxp->is_lpm && addr >= cx->dis_start && addr < cx->dis_end) {
       if(cx->dis_pass == 1)
