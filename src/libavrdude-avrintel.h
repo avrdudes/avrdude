@@ -3037,6 +3037,7 @@ extern const Port_bits       ports_atmega16m1[4];
 #define ports_atmega32c1     ports_atmega16m1
 #define ports_atmega32m1     ports_atmega16m1
 #define ports_atmega64c1     ports_atmega16m1
+#define ports_atmegas64m1    ports_atmega16m1
 #define ports_atmega64m1     ports_atmega16m1
 #define ports_at90pwm2b      ports_atmega16m1
 #define ports_at90pwm3       ports_atmega16m1
@@ -3151,10 +3152,9 @@ extern const Port_bits       ports_attiny4[1];
 #define ports_attiny10       ports_attiny4
 
 extern const Port_bits       ports_attiny20[2];
+#define ports_attiny104      ports_attiny20
 
 extern const Port_bits       ports_attiny40[3];
-
-extern const Port_bits       ports_attiny104[2];
 
 extern const Port_bits       ports_attiny11[1];
 #define ports_attiny12       ports_attiny11
@@ -3224,9 +3224,8 @@ extern const Port_bits       ports_atmega32u6[6];
 extern const Port_bits       ports_atmega64[7];
 #define ports_atmega64a      ports_atmega64
 #define ports_atmega128      ports_atmega64
+#define ports_atmegas128     ports_atmega64
 #define ports_atmega128a     ports_atmega64
-
-extern const Port_bits       ports_atmegas64m1[4];
 
 extern const Port_bits       ports_atmega64rfr2[7];
 #define ports_atmega128rfa1  ports_atmega64rfr2
@@ -3240,8 +3239,6 @@ extern const Port_bits       ports_atmega64rfr2[7];
 #define ports_atmega2564rfr2 ports_atmega64rfr2
 
 extern const Port_bits       ports_atmega103[6];
-
-extern const Port_bits       ports_atmegas128[7];
 
 extern const Port_bits       ports_atmega164a[4];
 #define ports_atmega164p     ports_atmega164a
