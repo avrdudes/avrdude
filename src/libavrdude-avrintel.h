@@ -11,7 +11,7 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.44
+ * v 1.45
  * 07.01.2026
  *
  */
@@ -3499,6 +3499,7 @@ extern const Uart_conf       uarts_atmega16m1[1];
 #define uarts_atmega32c1     uarts_atmega16m1
 #define uarts_atmega32m1     uarts_atmega16m1
 #define uarts_atmega64c1     uarts_atmega16m1
+#define uarts_atmegas64m1    uarts_atmega16m1
 #define uarts_atmega64m1     uarts_atmega16m1
 
 extern const Uart_conf       uarts_atmega64hve[1];
