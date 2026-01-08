@@ -21345,6 +21345,66 @@ part parent ".avr8x_mega" # m4809
 ;
 
 #------------------------------------------------------------
+# Classic parts with a defined degree of Radiation Tolerance
+#------------------------------------------------------------
+
+#------------------------------------------------------------
+# ATmegaS64M1
+#------------------------------------------------------------
+
+part parent "m64m1" # ms64m1
+    desc                   = "ATmegaS64M1";
+    id                     = "ms64m1";
+    variants               =
+        "ATmegaS64M1-KH-E:  CQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.6 V, 3.6 V]",
+        "ATmegaS64M1-KH-MQ: CQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.6 V, 3.6 V]",
+        "ATmegaS64M1-KH-SV: CQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.6 V, 3.6 V]",
+        "ATmegaS64M1-MA-HP: TQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]";
+    mcuid                  = 412;
+    chip_erase_delay       = 10500;
+
+    memory "flash"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "lock"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+;
+
+#------------------------------------------------------------
+# ATmegaS128
+#------------------------------------------------------------
+
+part parent "m128" # ms128
+    desc                   = "ATmegaS128";
+    id                     = "ms128";
+    variants               =
+        "ATmegaS128-MD-HP: TQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS128-ZC-E:  CQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS128-ZC-MQ: CQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS128-ZC-SV: CQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]";
+    mcuid                  = 413;
+;
+
+#------------------------------------------------------------
 # AVR-DA/DB family common values
 #------------------------------------------------------------
 
