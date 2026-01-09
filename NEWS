@@ -9,6 +9,8 @@ Changes since version 8.1:
 
   * New devices supported:
 
+    - ATmegaS128, ATmegaS64M1
+
   * New programmers supported:
 
   * New serial adapters supported:
@@ -29,6 +31,9 @@ Changes since version 8.1:
     - Fix apptable size for x128a4/u #2062
     - Disassemble elpm/eijmp/eicall for all XMEGAs #2063
     - No longer use I/O space registers for ldi operands #2065
+    - Update avr intelligence from device packs #2066
+    - Fix @node menu pointers in avrdude.texi #2067
+    - Add ATmegaS128 and ATmegaS64M1 #2068
 
   * Internals:
 
