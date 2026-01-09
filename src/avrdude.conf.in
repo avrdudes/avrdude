@@ -21345,7 +21345,7 @@ part parent ".avr8x_mega" # m4809
 ;
 
 #------------------------------------------------------------
-# Classic parts with a defined degree of Radiation Tolerance
+# Classic parts with a defined degree of radiation tolerance
 #------------------------------------------------------------
 
 #------------------------------------------------------------
