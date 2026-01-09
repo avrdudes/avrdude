@@ -9,8 +9,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.22
- * 26.05.2025
+ * v 1.3
+ * 09.01.2026
  *
  */
 
@@ -33,7 +33,7 @@ enum {
   UL_CODELOCS_N
 };
 
-#define UL_MCU_N            166
+#define UL_MCU_N            168
 #define UL_IOTYPE_N          31
 #define UL_BLTYPE_N           3
 #define UL_CONFIG_N          14
