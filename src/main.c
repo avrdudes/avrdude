@@ -1010,8 +1010,9 @@ int main(int argc, char *argv[]) {
       break;
 
     default:
-      pmsg_error("invalid option -%c\n\n", ch);
       usage();
+      msg_error("\n");
+      pmsg_error("invalid option -%c\n", ch);
       exit(1);
     }
   }
