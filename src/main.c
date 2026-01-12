@@ -236,49 +236,47 @@ static void usage(void) {
   char *cfg = home && str_casestarts(usr_config, home)?
     mmt_sprintf("~/%s", usr_config + l + (usr_config[l] == '/')): mmt_sprintf("%s", usr_config);
 
-  msg_error("Usage: %s [options]\n"
+  msg_error("Usage: %s {<option>}\n"
     "Options:\n"
-    "  -p, --part <partno>       Specify AVR device; -p ? lists all known parts\n"
-    "  -p, --part <wildcard>/<flags>\n"
-    "                            Run developer options for matched AVR devices,\n"
-    "                            e.g., -p ATmega328P/s or /S for part definition\n"
-    "  -b, --baud <baudrate>     Override RS-232 baud rate\n"
-    "  -B, --bitclock <bitclock> Specify bit clock period (us)\n"
-    "  -C, --config <config-file>\n"
-    "                            Specify location of configuration file\n"
-    "  -C, --config +<config-file>\n"
-    "                            Specify additional config file, can be repeated\n"
-    "  -N, --noconfig            Do not load %s%s\n"
-    "  -c, --programmer <programmer>\n"
-    "                            Specify programmer; -c ? and -c ?type list all\n"
-    "  -c, --programmer <wildcard>/<flags>\n"
-    "                            Run developer options for matched programmers,\n"
-    "                            e.g., -c 'ur*'/s for programmer info/definition\n"
-    "  -A                        Disable trailing-0xff removal for file/AVR read\n"
-    "  -D, --noerase             Disable auto-erase for flash memory; implies -A\n"
-    "  -i <delay>                Bit state change delay [in microseconds] for\n"
-    "                            bit-banged ISP and TPI programmers\n"
-    "  -P, --port <port>         Connection; -P ?s or -P ?sa lists serial ones\n"
-    "  -r, --reconnect           Reconnect to -P port after \"touching\" it; wait\n"
-    "                            400 ms for each -r; needed for some USB boards\n"
-    "  -F                        Override invalid signature or initial checks\n"
-    "  -e, --erase               Perform a chip erase at the beginning\n"
-    "  -O, --osccal              Perform RC oscillator calibration (see AVR053)\n"
-    "  -t, --terminal            Run an interactive terminal when it is its turn\n"
-    "  -T <terminal cmd line>    Run terminal line when it is its turn\n"
-    "  -U, --memory <memstr>:r|w|v:<filename>[:format]\n"
-    "                            Carry out memory operation when it is its turn\n"
-    "                            Multiple -t, -T and -U options can be specified\n"
-    "  -n, --test-memory         Do not write to the device whilst processing -U\n"
-    "  -V, --noverify-memory     Do not automatically verify during -U\n"
-    "  -E <exitsp>[,<exitsp>]    List programmer exit specifications\n"
-    "  -x <extended_param>       Pass <extended_param> to programmer, see -x help\n"
-    "  -v, --verbose             Verbose output; -v -v for more\n"
-    "  -q, --quell               Quell progress output; -q -q for less\n"
-    "  -l, --logfile logfile     Use logfile rather than stderr for diagnostics\n"
-    "  --version                 Print version and exit\n"
-    "  -?, --help                Display this usage\n"
-    "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
+    "  -p --part <part>         Specify AVR device; -p ? lists all known parts\n"
+    "  -p --part <wildcard>/<flags>\n"
+    "                           Run developer options for matched AVR devices,\n"
+    "                           e.g., -p ATmega328P/s or /S for part definition\n"
+    "  -b --baud <baudrate>     Override RS-232 baud rate\n"
+    "  -B --bitclock <period>   Bit clock period (us)\n"
+    "  -C --config <file>       Specify location of configuration file\n"
+    "  -C --config +<file>      Additional config file (*)\n"
+    "  -N --noconfig            Do not load %s%s\n"
+    "  -c --programmer <pgm>    Specify programmer; -c ? and -c ?type list all\n"
+    "  -c --programmer <wildcard>/<flags>\n"
+    "                           Run developer options for matched programmers,\n"
+    "                           e.g., -c 'ur*'/s for programmer definition\n"
+    "  -A --keep-trailing-0xff  Disable trailing-0xff removal for file/AVR read\n"
+    "  -D --noerase             Disable auto-erase for flash memory; implies -A\n"
+    "  -i --isp-delay <delay>   Bit state change delay [in microseconds] for\n"
+    "                           bit-banged ISP and TPI programmers\n"
+    "  -P --port <port>         Connection; -P ?s or -P ?sa lists serial ones\n"
+    "  -r --reconnect           Reconnect to -P port after \"touching\" it; wait\n"
+    "                           400 ms for each -r; needed for some USB boards\n"
+    "  -F --force               Override invalid signature or initial checks\n"
+    "  -e --erase               Perform a chip erase at the beginning\n"
+    "  -O --osccal              Perform RC oscillator calibration (see AVR053)\n"
+    "  -t --terminal            Run interactive terminal on its turn (*)\n"
+    "  -T --command <line>      Run terminal command <line> on its turn (*)\n"
+    "  -U --memory <mem>:r|w|v:<file>[:fmt]\n"
+    "                           Carry out memory operation on its turn (*)\n"
+    "  -n --test-memory         Do not write to the device whilst processing -U\n"
+    "  -V --noverify-memory     Do not automatically verify during -U\n"
+    "  -E --exitspecs <exitsp>{,<exitsp>}\n"
+    "                           Programmer exit specifications list\n"
+    "  -x --extended <param>    Pass <param> to programmer, see -x help (*)\n"
+    "  -v --verbose             Verbose output; -v -v for more\n"
+    "  -q --quell               Quell progress output; -q -q for less\n"
+    "  -l --logfile logfile     Use logfile rather than stderr for diagnostics\n"
+    "  --version                Print version and exit\n"
+    "  -h --help                Display this usage\n"
+    "(*) These options can be repeatedly used on the command line\n"
+    "\navrdude version %s https://github.com/avrdudes/avrdude\n",
     progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
 
   mmt_free(cfg);
@@ -825,36 +823,42 @@ int main(int argc, char *argv[]) {
 
   // Process command line arguments
   struct option longopts[] = {
-    {"help",       no_argument,       NULL, '?'},
-    {"baud",       required_argument, NULL, 'b'},
-    {"bitclock",   required_argument, NULL, 'B'},
-    {"programmer", required_argument, NULL, 'c'},
-    {"config",     required_argument, NULL, 'C'},
-    {"noerase",    no_argument,       NULL, 'D'},
-    {"erase",      no_argument,       NULL, 'e'},
-    {"logfile",    required_argument, NULL, 'l'},
-    {"test-memory",no_argument,       NULL, 'n'},
-    {"noconfig",   no_argument,       NULL, 'N'},
-    {"osccal",     no_argument,       NULL, 'O'},
-    {"part",       required_argument, NULL, 'p'},
-    {"port",       required_argument, NULL, 'P'},
-    {"quell",      no_argument,       NULL, 'q'},
-    {"reconnect",  no_argument,       NULL, 'r'},
-    {"terminal",   no_argument,       NULL, 't'},
-    {"memory",     required_argument, NULL, 'U'},
-    {"verbose",    no_argument,       NULL, 'v'},
-    {"noverify-memory",no_argument,   NULL, 'V'},
-    {"version",    no_argument,       &showversion, 0},
-    {NULL,         0,                 NULL, 0}
+    {"keep-trailing-0xff", no_argument,       NULL, 'A'},
+    {"baud",               required_argument, NULL, 'b'},
+    {"bitclock",           required_argument, NULL, 'B'},
+    {"programmer",         required_argument, NULL, 'c'},
+    {"config",             required_argument, NULL, 'C'},
+    {"noerase",            no_argument,       NULL, 'D'},
+    {"erase",              no_argument,       NULL, 'e'},
+    {"exitspecs",          required_argument, NULL, 'E'},
+    {"force",              no_argument,       NULL, 'F'},
+    {"help",               no_argument,       NULL, 'h'},
+    {"isp-clock-delay",    required_argument, NULL, 'i'},
+    {"logfile",            required_argument, NULL, 'l'},
+    {"test-memory",        no_argument,       NULL, 'n'},
+    {"noconfig",           no_argument,       NULL, 'N'},
+    {"osccal",             no_argument,       NULL, 'O'},
+    {"part",               required_argument, NULL, 'p'},
+    {"port",               required_argument, NULL, 'P'},
+    {"quell",              no_argument,       NULL, 'q'},
+    {"reconnect",          no_argument,       NULL, 'r'},
+    {"terminal",           no_argument,       NULL, 't'},
+    {"command",            required_argument, NULL, 'T'},
+    {"memory",             required_argument, NULL, 'U'},
+    {"verbose",            no_argument,       NULL, 'v'},
+    {"noverify-memory",    no_argument,       NULL, 'V'},
+    {"version",            no_argument, &showversion, 1},
+    {"extended",           required_argument, NULL, 'x'},
+    {NULL,                 0,                 NULL, 0}
   };
 
   int option_idx = 0;
-
   while((ch = getopt_long(argc, argv,
-			  "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:",
-			  longopts, &option_idx)) != -1) {
+    "aAb:B:c:C:dDeE:fFgGhHi:IjJkKl:LmMnNoOp:P:qQrRsStT:uU:vVwWx:XyYzZ0123456789",
+    longopts, &option_idx)) != -1) {
+
     switch(ch) {
-    case 'b':                  // Override default programmer baud rate
+    case 'b':                   // Override default programmer baud rate
       baudrate = str_int(optarg, STR_INT32, &errstr);
       if(errstr) {
         pmsg_error("invalid baud rate %s specified: %s\n", optarg, errstr);
@@ -862,7 +866,7 @@ int main(int argc, char *argv[]) {
       }
       break;
 
-    case 'B':                  // Specify bit clock period
+    case 'B':                   // Specify bit clock period
       bitclock = strtod(optarg, &e);
       if((e == optarg) || bitclock <= 0.0) {
         pmsg_error("invalid bit clock period %s\n", optarg);
@@ -884,7 +888,47 @@ int main(int argc, char *argv[]) {
       }
       break;
 
-    case 'i':                  // Specify isp clock delay
+    case 'c':                   // Programmer
+      pgmid = optarg;
+      explicit_c = 1;
+      break;
+
+    case 'C':                   // System wide configuration file (can be repeated)
+      if(optarg[0] == '+') {
+        ladd(additional_config_files, optarg + 1);
+      } else {
+        strncpy(sys_config, optarg, PATH_MAX);
+        sys_config[PATH_MAX - 1] = 0;
+      }
+      break;
+
+    case 'D':                   // Disable auto-erase
+      uflags &= ~UF_AUTO_ERASE;
+      // Fall through
+
+    case 'A':                   // Keep trailing flash 0xff
+      cx->avr_disableffopt = 1;
+      break;
+
+    case 'e':                   // Perform a chip erase
+      erase = 1;
+      explicit_e = 1;
+      uflags &= ~UF_AUTO_ERASE;
+      break;
+
+    case 'E':                   // Voltage levels on exit
+      exitspecs = optarg;
+      break;
+
+    case 'F':                   // Override invalid signature check
+      ovsigck = 1;
+      break;
+
+    case 'h':                   // Help message
+      usage();
+      exit(0);
+
+    case 'i':                   // ISP clock delay
       ispdelay = str_int(optarg, STR_INT32, &errstr);
       if(errstr || ispdelay == 0) {
         pmsg_error("invalid isp clock delay %s specified", optarg);
@@ -896,83 +940,47 @@ int main(int argc, char *argv[]) {
       }
       break;
 
-    case 'c':                  // Programmer id
-      pgmid = optarg;
-      explicit_c = 1;
-      break;
-
-    case 'C':                  // System wide configuration file
-      if(optarg[0] == '+') {
-        ladd(additional_config_files, optarg + 1);
-      } else {
-        strncpy(sys_config, optarg, PATH_MAX);
-        sys_config[PATH_MAX - 1] = 0;
-      }
-      break;
-
-    case 'D':                  // Disable auto-erase
-      uflags &= ~UF_AUTO_ERASE;
-      // Fall through
-
-    case 'A':                  // Explicit disabling of trailing-0xff removal
-      cx->avr_disableffopt = 1;
-      break;
-
-    case 'e':                  // Perform a chip erase
-      erase = 1;
-      explicit_e = 1;
-      uflags &= ~UF_AUTO_ERASE;
-      break;
-
-    case 'E':
-      exitspecs = optarg;
-      break;
-
-    case 'F':                  // Override invalid signature check
-      ovsigck = 1;
-      break;
-
-    case 'l':
+    case 'l':                   // Log file
       logfile = optarg;
       break;
 
-    case 'n':
+    case 'n':                   // -U does not write to chip
       uflags |= UF_NOWRITE;
       break;
 
-    case 'N':
+    case 'N':                   // Do not load user config file
       no_avrduderc = 1;
       break;
 
-    case 'O':                  // Perform RC oscillator calibration
+    case 'O':                   // Perform RC oscillator calibration
       calibrate = 1;
       break;
 
-    case 'p':                  // Specify AVR part
+    case 'p':                   // Specify AVR part
       partdesc = optarg;
       break;
 
-    case 'P':
+    case 'P':                   // Port
       port = mmt_strdup(optarg);
       break;
 
-    case 'q':                  // Quell progress output
+    case 'q':                   // Quell progress output
       quell_progress++;
       break;
 
-    case 'r':
+    case 'r':                   // Reconnect
       touch_1200bps++;
       break;
 
-    case 't':                  // Enter terminal mode
+    case 't':                   // Enter terminal mode (can be repeated)
       ladd(updates, cmd_update("interactive terminal"));
       break;
 
-    case 'T':
+    case 'T':                   // Execute terminal command (can be repeated)
       ladd(updates, cmd_update(optarg));
       break;
 
-    case 'U':
+    case 'U':                   // Memory operation (can be repeated)
       upd = parse_op(optarg);
       if(upd == NULL) {
         pmsg_error("unable to parse update operation %s\n", optarg);
@@ -981,33 +989,30 @@ int main(int argc, char *argv[]) {
       ladd(updates, upd);
       break;
 
-    case 'v':
+    case 'v':                   // Increase verbosity
       verbose++;
       break;
 
-    case 'V':
+    case 'V':                   // No verification on -U
       uflags &= ~UF_VERIFY;
       break;
 
-    case 'x':
+    case 'x':                   // Extended parameter (can be repeated)
       ladd(extended_params, optarg);
       break;
 
-    case 0:
-      if(longopts[option_idx].flag)
-        *longopts[option_idx].flag = 1;
-      break;
+    case '?':                   // Some error with options
+      if(optopt == '?')
+        usage();
+      exit(optopt != '?');
 
-    case '?':                  // Help
-      usage();
-      exit(0);
+    case 0:                     // Nothing to do for long options
       break;
 
     default:
       pmsg_error("invalid option -%c\n\n", ch);
       usage();
       exit(1);
-      break;
     }
   }
 
