@@ -253,7 +253,8 @@ static void usage(void) {
     "                           e.g., -c 'ur*'/s for programmer definition\n"
     "  -A --keep-trailing-0xff  Disable trailing-0xff removal for file/AVR read\n"
     "  -D --noerase             Disable auto-erase for flash memory; implies -A\n"
-    "  -i --isp-delay <delay>   Bit state change delay [in microseconds] for\n"
+    "  -i --isp-clock-delay <delay>\n"
+    "                           Bit state change delay [in microseconds] for\n"
     "                           bit-banged ISP and TPI programmers\n"
     "  -P --port <port>         Connection; -P ?s or -P ?sa lists serial ones\n"
     "  -r --reconnect           Reconnect to -P port after \"touching\" it; wait\n"
@@ -851,12 +852,11 @@ int main(int argc, char *argv[]) {
     {"extended",           required_argument, NULL, 'x'},
     {NULL,                 0,                 NULL, 0}
   };
-
+  const char shortopts[] =
+    "aAb:B:c:C:dDeE:fFgGhHi:IjJkKl:LmMnNoOp:P:qQrRsStT:uU:vVwWx:XyYzZ0123456789";
   int option_idx = 0;
-  while((ch = getopt_long(argc, argv,
-    "aAb:B:c:C:dDeE:fFgGhHi:IjJkKl:LmMnNoOp:P:qQrRsStT:uU:vVwWx:XyYzZ0123456789",
-    longopts, &option_idx)) != -1) {
 
+  while((ch = getopt_long(argc, argv, shortopts, longopts, &option_idx)) != -1) {
     switch(ch) {
     case 'b':                   // Override default programmer baud rate
       baudrate = str_int(optarg, STR_INT32, &errstr);
