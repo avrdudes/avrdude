@@ -22,36 +22,38 @@
 .Dt AVRDUDE 1
 .Sh NAME
 .Nm avrdude
-.Nd driver program for ``simple'' Atmel AVR MCU programmer
+.Nd driver program for AVR MCU programmers
 .Sh SYNOPSIS
 .Nm
-.Op Fl p, \-part Ar partname
-.Op Fl b, \-baud Ar baudrate
-.Op Fl B, \-bitclock Ar bitclock
-.Op Fl c, \-programmer Ar programmer-id
-.Op Fl C, \-config Ar config-file
-.Op Fl N, \-noconfig
-.Op Fl A
-.Op Fl D, \-noerase
-.Op Fl e, \-erase
-.Oo Fl E Ar exitspec Ns
+.Op Fl p \-part Ar part
+.Op Fl b \-baud Ar baudrate
+.Op Fl B \-bitclock Ar clock
+.Op Fl c \-programmer Ar pgm
+.Op Fl C \-config Ar file
+.Op Fl C \-config Ar +file
+.Op Fl N \-noconfig
+.Op Fl A \-keep-trailing-0xff
+.Op Fl D \-noerase
+.Op Fl e \-erase
+.Oo Fl E \-exitspecs Ar exitspec Ns
 .Op \&, Ns Ar exitspec
 .Oc
-.Op Fl F
-.Op Fl i Ar delay
-.Op Fl l, \-logfile Ar logfile
-.Op Fl n, \-test-memory
-.Op Fl O, \-osccal
-.Op Fl P, \-port Ar port
-.Op Fl r, \-reconnect
-.Op Fl q, \-quell
-.Op Fl T Ar cmd
-.Op Fl t, \-terminal
-.Op Fl U, \-memory Ar memory:op:filename:filefmt
-.Op Fl v, \-verbose
-.Op Fl x Ar extended_param
-.Op Fl V, \-noverify-memory
+.Op Fl F \-force
+.Op Fl i \-isp-clock-delay Ar delay
+.Op Fl l \-logfile Ar file
+.Op Fl n \-test-memory
+.Op Fl O \-osccal
+.Op Fl P \-port Ar port
+.Op Fl r \-reconnect
+.Op Fl q \-quell
+.Op Fl T \-command Ar cmd
+.Op Fl t \-terminal
+.Op Fl U \-memory Ar mem:op:file:fmt
+.Op Fl v \-verbose
+.Op Fl x \-extended Ar extended_param
+.Op Fl V \-noverify-memory
 .Op Fl \-version
+.Op Fl h \-help
 .Sh DESCRIPTION
 .Nm Avrdude
 is a program for downloading and uploading on-chip memories of Atmel AVR
@@ -430,7 +432,7 @@ Run developer options for programmers that are matched by wildcard. Whilst
 their main use is for developers some flags can be of utility for users, e.g.,
 avrdude -c usbtiny/S shows AVRDUDE's understanding of usbtiny's properties;
 for more information run avrdude -c x/h.
-.It Fl C \-config Ar config-file
+.It Fl C \-config Ar file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
 .Nm avrdude
@@ -440,9 +442,9 @@ See the config file, located at
 which contains a description of the format.
 .Pp
 If
-.Ar config-file
+.Ar file
 is written as
-.Pa +filename
+.Pa +file
 then this file is read after the system wide and user configuration
 files. This can be used to add entries to the configuration
 without patching your system wide configuration file. It can be used
@@ -452,7 +454,7 @@ line.
 Do not load the personal configuration file that is usually located at
 ~/.config/avrdude/avrdude.rc, ~/.avrduderc or in the same directory as the
 avrdude executable
-.It Fl A
+.It Fl A \-keep-trailing-0xff
 Disable the automatic removal of trailing-0xFF sequences in file
 input that is to be programmed to flash and in AVR reads from
 flash memory. Normally, trailing 0xFFs can be discarded, as flash
@@ -527,7 +529,7 @@ flash.
 Note that for reprogramming EEPROM cells, no explicit prior chip
 erase is required since the MCU provides an auto-erase cycle in that
 case before programming the cell.
-.It Xo Fl E Ar exitspec Ns
+.It Xo Fl E \-exitspecs Ar exitspec Ns
 .Op \&, Ns Ar exitspec
 .Xc
 Pass
@@ -537,7 +539,7 @@ depends on the programmer itself. See below for a list of programmers
 accepting exitspec parameter options or issue
 .Nm
 -E help ... to see the options of the chosen programmer.
-.It Fl F
+.It Fl F \-force
 Normally,
 .Nm
 tries to verify that the device signature read from the part is
@@ -553,7 +555,7 @@ together with
 to continue in terminal mode.
 Moreover, the option allows to continue despite failed initialization
 of connection between a programmer and a target.
-.It Fl i Ar delay
+.It Fl i \-isp-clock-delay Ar delay
 For bitbang-type programmers, delay for approximately
 .Ar delay
 microseconds between each bit state change.
@@ -571,9 +573,9 @@ is running.
 On Win32 operating systems, a preconfigured number of cycles per
 microsecond is assumed that might be off a bit for very fast or very
 slow machines.
-.It Fl l \-logfile Ar logfile
+.It Fl l \-logfile Ar file
 Use
-.Ar logfile
+.Ar file
 rather than
 .Va stderr
 for diagnostics output.
@@ -747,7 +749,7 @@ Posix systems (by now).
 .It Fl q \-quell
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it more often for even quieter operations.
-.It Fl T Ar cmd
+.It Fl T \-command Ar cmd
 Run terminal line
 .Ar cmd
 when it is its turn in relation to other -t interactive terminals
@@ -969,7 +971,7 @@ options increase verbosity level.
 Disable automatic verify check when writing data to the AVR with -U.
 .It Fl \-version
 Print version and exit
-.It Fl x Ar extended_param
+.It Fl x \-extended Ar extended_param
 Pass
 .Ar extended_param
 to the chosen programmer implementation as an extended parameter.
@@ -979,6 +981,8 @@ See below for a list of programmers accepting extended parameters
 or issue
 .Nm
 -x help ... to see the extended options of the chosen programmer.
+.It Fl h \-help
+Show a short help message and exit
 .El
 .Ss Terminal mode
 In this mode,
