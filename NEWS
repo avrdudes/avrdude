@@ -34,6 +34,8 @@ Changes since version 8.1:
     - Update avr intelligence from device packs #2066
     - Fix @node menu pointers in avrdude.texi #2067
     - Add ATmegaS128 and ATmegaS64M1 #2068
+    - Provide urboot: bootloaders for classic ATmegaS* parts #2069
+    - Update command line option parsing #2070
 
   * Internals:
 
