@@ -34,6 +34,7 @@ option(USE_EXTERNAL_LIBS "Use external libraries from AVRDUDE GitHub repositorie
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(ENABLE_PYTHON_SUPPORT "Enable Python support" ON)
 
 if(WIN32)
     # Prefer static libraries over DLLs on Windows
@@ -281,14 +282,16 @@ if(HAVE_LINUXGPIO)
 endif()
 
 # -------------------------------------
-# Find SWIG
-find_package(SWIG 4.0 COMPONENTS python)
-if(SWIG_FOUND)
-  find_package(Python3 COMPONENTS Interpreter Development)
-  if(PYTHON3_FOUND)
-    set(HAVE_SWIG 1)
-  else()
-    message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")
+# Find SWIG/Python3 if needed
+if(ENABLE_PYTHON_SUPPORT)
+  find_package(SWIG 4.0 COMPONENTS python)
+  if(SWIG_FOUND)
+    find_package(Python3 COMPONENTS Interpreter Development)
+    if(PYTHON3_FOUND)
+      set(HAVE_SWIG 1)
+    else()
+      message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")
+    endif()
   endif()
 endif()
 
