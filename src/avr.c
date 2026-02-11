@@ -1122,12 +1122,14 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
         if(auto_erase && pgm->page_erase && !mem_is_eeprom(cm))
           rc = pgm->page_erase(pgm, p, cm, pageaddr);
-        if(rc >= 0)
+        if(pgm->paged_write && (rc >= 0))
           rc = pgm->paged_write(pgm, p, cm, cm->page_size, pageaddr, cm->page_size);
-        if(rc < 0)
+        if(!pgm->paged_write || (rc < 0))
           failure = 1;          // Paged write failed, fall back to byte-at-a-time write below
-        nwritten++;
-        report_progress(nwritten, npages, NULL);
+        else {
+          nwritten++;
+          report_progress(nwritten, npages, NULL);
+        }
       } else {
         pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr/cm->page_size);
       }
