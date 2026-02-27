@@ -1644,7 +1644,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
 
     dev_info("1. Examine the suggested udev rule%s below; to install run:\n\n", str_plural(ui + udr[0].ishid));
     dev_info("%s -c \"%s/u\" | tail -n +%d | sudo tee /etc/udev/rules.d/55-%s%s.rules\n",
-      progname, pgmidcp, all? 9: 11, progname, var);
+      progname, pgmidcp, all? 10: 12, progname, var);
     dev_info("sudo chmod 0644 /etc/udev/rules.d/55-%s%s.rules\n\n", progname, var);
     dev_info("2. sudo udevadm control --reload\n\n");
     dev_info("3. Unplug any AVRDUDE USB programmers and plug them in again\n\n");
