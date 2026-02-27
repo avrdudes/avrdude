@@ -1638,11 +1638,6 @@ void dev_output_pgm_defs(char *pgmidcp) {
       dev_pgm_raw(pgm);
   }
 
-  int reboot = 0;
-
-  for(Dev_udev *u = udr; !reboot && u - udr < ui; u++)
-    reboot |= u->ishid;
-
   if(udev && ui) {
     int all = str_eq(pgmidcp, "*");
     const char *var = all? "": str_asciiname((char *) str_ccprintf("-%s", pgmidcp));
@@ -1651,8 +1646,9 @@ void dev_output_pgm_defs(char *pgmidcp) {
     dev_info("%s -c \"%s/u\" | tail -n +%d | sudo tee /etc/udev/rules.d/55-%s%s.rules\n",
       progname, pgmidcp, all? 9: 11, progname, var);
     dev_info("sudo chmod 0644 /etc/udev/rules.d/55-%s%s.rules\n\n", progname, var);
-    dev_info("2. %s\n", reboot? "Reboot your computer": "Unplug any AVRDUDE USB programmers and plug them in again");
-    dev_info("3. Enjoy user access to the USB programmer(s)\n\n");
+    dev_info("2. sudo udevadm control --reload");
+    dev_info("3. Unplug any AVRDUDE USB programmers and plug them in again");
+    dev_info("4. Enjoy user access to the USB programmer(s)\n\n");
     if(!all)
       dev_info("Note: To install all udev rules known to AVRDUDE follow: %s -c \"*/u\" | more\n\n", progname);
     dev_info("# Generated from avrdude -c \"%s/u\"\n", pgmidcp);
