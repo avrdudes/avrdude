@@ -100,6 +100,8 @@
  *
  * // Does the programmer/memory combo have paged memory access?
  * int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
+ * int avr_has_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
+ * int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
  *
  * // Read the page containing addr from the device into buf
  * int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);
@@ -124,6 +126,18 @@
 
 int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   return pgm->paged_load && pgm->paged_write &&
+    mem->page_size > 0 && (mem->page_size & (mem->page_size - 1)) == 0 &&
+    mem->size > 0 && mem->size%mem->page_size == 0 && mem_is_paged_type(mem) && !(p && avr_mem_exclude(pgm, p, mem));
+}
+
+int avr_has_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  return pgm->paged_write &&
+    mem->page_size > 0 && (mem->page_size & (mem->page_size - 1)) == 0 &&
+    mem->size > 0 && mem->size%mem->page_size == 0 && mem_is_paged_type(mem) && !(p && avr_mem_exclude(pgm, p, mem));
+}
+
+int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  return pgm->paged_load &&
     mem->page_size > 0 && (mem->page_size & (mem->page_size - 1)) == 0 &&
     mem->size > 0 && mem->size%mem->page_size == 0 && mem_is_paged_type(mem) && !(p && avr_mem_exclude(pgm, p, mem));
 }
