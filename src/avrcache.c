@@ -156,7 +156,7 @@ int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *me
  *       + LIBAVRDUDE_SUCCESS (0) if the fallback of bytewise read succeeded
  */
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf) {
-  if(!avr_has_paged_access(pgm, p, mem) || addr < 0 || addr >= mem->size)
+  if(!avr_has_paged_load(pgm, p, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   int rc, pgsize = mem->page_size, base = addr & ~(pgsize - 1);
@@ -201,7 +201,7 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
  *   - Uses write_byte() if memory page size is one, otherwise paged_write()
  */
 int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *data) {
-  if(!avr_has_paged_access(pgm, p, mem) || addr < 0 || addr >= mem->size)
+  if(!avr_has_paged_write(pgm, p, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   int rc, pgsize = mem->page_size, base = addr & ~(pgsize - 1);
