@@ -1024,7 +1024,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     return i;
   }
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
-  if((pgm->paged_load && m->page_size > 1 && m->size%m->page_size == 0) ||
+  if((pgm->paged_write && m->page_size > 1 && m->size%m->page_size == 0) ||
     (is_spm(pgm) && avr_has_paged_access(pgm, p, m))) {
 
     // The programmer supports a paged mode write
