@@ -1202,6 +1202,8 @@ extern "C" {
   void report_progress(int completed, int total, const char *hdr);
   void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
   int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
+  int avr_has_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
+  int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     int addr, unsigned char *buf);
   int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,

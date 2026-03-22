@@ -420,7 +420,8 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if((pgm->paged_load && mem->page_size > 1 && mem->size%mem->page_size == 0) ||
-    (is_spm(pgm) && avr_has_paged_access(pgm, p, mem))) {
+    (is_spm(pgm) && avr_has_paged_load(pgm, p, mem))) {
+
     // The programmer supports a paged mode read
     int need_read, failure;
     unsigned int pageaddr;
@@ -1024,8 +1025,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     return i;
   }
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
-  if((pgm->paged_load && m->page_size > 1 && m->size%m->page_size == 0) ||
-    (is_spm(pgm) && avr_has_paged_access(pgm, p, m))) {
+  if((pgm->paged_write && m->page_size > 1 && m->size%m->page_size == 0) ||
+    (is_spm(pgm) && avr_has_paged_write(pgm, p, m))) {
 
     // The programmer supports a paged mode write
     int need_write, failure, nset;

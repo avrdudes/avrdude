@@ -150,7 +150,7 @@ static int dryrun_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   AVRMEM *dmem;
 
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
-    Return("cannot locate %s %s memory for paged write", dry.dp->desc, m->desc);
+    Return("cannot locate %s %s memory for page erase", dry.dp->desc, m->desc);
 
   if(!avr_has_paged_access(pgm, dry.dp, dmem) || addr >= (unsigned) dmem->size)
     Return("%s does not support paged access", dmem->desc);
