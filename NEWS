@@ -36,6 +36,8 @@ Changes since version 8.1:
     - Add ATmegaS128 and ATmegaS64M1 #2068
     - Provide urboot: bootloaders for classic ATmegaS* parts #2069
     - Update command line option parsing #2070
+    - Suggest udevadm control --reload instead of rebooting #2077
+    - Make paged_write independent from paged_load #2078
 
   * Internals:
 
