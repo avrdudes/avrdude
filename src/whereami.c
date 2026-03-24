@@ -24,13 +24,12 @@ extern "C" {
 
 #if !defined(WAI_MALLOC) || !defined(WAI_FREE) || !defined(WAI_REALLOC)
 #include <stdlib.h>
+#include "avrdude.h"
+#include "libavrdude.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
 #endif
-
-#include "avrdude.h"
-#include "libavrdude.h"
 #endif
 
 #if !defined(WAI_MALLOC)
