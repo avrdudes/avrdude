@@ -13,6 +13,15 @@
 extern "C" {
 #endif
 
+#if defined(__linux__) || defined(__CYGWIN__)
+#undef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#elif defined(__APPLE__)
+#undef _DARWIN_C_SOURCE
+#define _DARWIN_C_SOURCE
+#define _DARWIN_BETTER_REALPATH
+#endif
+
 #if !defined(WAI_MALLOC) || !defined(WAI_FREE) || !defined(WAI_REALLOC)
 #include <stdlib.h>
 
@@ -72,7 +81,13 @@ extern "C" {
 #pragma warning(pop)
 #endif
 
+#if (_MSC_VER >= 1900)
 #include <stdbool.h>
+#else
+#define bool int
+#define false 0
+#define true 1
+#endif
 
   static int WAI_PREFIX(getModulePath_) (HMODULE module, char *out, int capacity, int *dirname_length) {
     wchar_t buffer1[MAX_PATH];
@@ -234,6 +249,11 @@ extern "C" {
 #endif
 #endif
 
+#if !defined(WAI_STRINGIZE)
+#define WAI_STRINGIZE(s)
+#define WAI_STRINGIZE_(s) #s
+#endif
+
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -252,21 +272,20 @@ extern "C" {
         break;
 
       for(;;) {
-        char buffer[PATH_MAX < 1024? 1024: PATH_MAX];
-        uint64_t low, high;
+        char buffer[128 + PATH_MAX];
+        uintptr_t low, high;
         char perms[5];
         uint64_t offset;
-        uint32_t major, minor;
-        char path[PATH_MAX];
-        uint32_t inode;
+        uint32_t major, minor, inode;
+        char path[PATH_MAX + 1];
 
         if(!fgets(buffer, sizeof(buffer), maps))
           break;
 
-        if(sscanf(buffer, "%" PRIx64 "-%" PRIx64 " %s %" PRIx64 " %x:%x %u %s\n",
-          &low, &high, perms, &offset, &major, &minor, &inode, path) == 8) {
-
-          uint64_t addr = (uintptr_t) WAI_RETURN_ADDRESS();
+        if(sscanf(buffer, "%" SCNxPTR "-%" SCNxPTR " %s %" SCNx64 " %x:%x %u %" WAI_STRINGIZE(PATH_MAX) "[^\n]\n", &low, &high,
+            perms, &offset, &major, &minor, &inode, path) == 8) {
+          void *_addr = WAI_RETURN_ADDRESS();
+          uintptr_t addr = (uintptr_t) _addr;
 
           if(low <= addr && addr <= high) {
             char *resolved;
@@ -353,7 +372,6 @@ extern "C" {
 
 #elif defined(__APPLE__)
 
-#define _DARWIN_BETTER_REALPATH
 #include <mach-o/dyld.h>
 #include <limits.h>
 #include <stdlib.h>
