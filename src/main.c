@@ -1052,28 +1052,19 @@ int main(int argc, char *argv[]) {
      * Executable abspath: Determine the absolute path to avrdude executable.
      * This will be used to locate the avrdude.conf file later.
      */
-    int executable_dirpath_len;
-    int executable_abspath_len = wai_getExecutablePath(executable_abspath,
-      PATH_MAX,
+    int executable_dirpath_len = 0;
+    int executable_abspath_len = wai_getExecutablePath(executable_abspath, PATH_MAX,
       &executable_dirpath_len);
 
-    if(
-      (executable_abspath_len != -1) &&
-      (executable_abspath_len != 0) && (executable_dirpath_len != -1) && (executable_dirpath_len != 0)
-      ) {
-      // All requirements satisfied, executable path was found
+    if(executable_abspath_len > 0 && executable_dirpath_len > 0) {
       executable_abspath_found = true;
-
-      // Make sure the string is null terminated
       executable_abspath[executable_abspath_len] = '\0';
-
       replace_backslashes(executable_abspath);
 
       // Define executable_dirpath to be the path to the parent folder of the executable
       strcpy(executable_dirpath, executable_abspath);
       executable_dirpath[executable_dirpath_len] = '\0';
 
-      // Debug output
       msg_trace2("executable_abspath = %s\n", executable_abspath);
       msg_trace2("executable_abspath_len = %i\n", executable_abspath_len);
       msg_trace2("executable_dirpath = %s\n", executable_dirpath);
