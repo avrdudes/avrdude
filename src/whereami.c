@@ -737,7 +737,18 @@ extern "C" {
 
 #else
 
-#error unsupported platform
+  WAI_FUNCSPEC int WAI_PREFIX(getExecutablePath)(char *out, int capacity, int *dirname_length) {
+    if(dirname_length)
+      *dirname_length = -1;
+    return -1;
+  }
+
+  WAI_NOINLINE WAI_FUNCSPEC int WAI_PREFIX(getModulePath)(char *out, int capacity, int *dirname_length) {
+    if(dirname_length)
+      *dirname_length = -1;
+    return -1;
+  }
+
 #endif
 
 #ifdef __cplusplus
