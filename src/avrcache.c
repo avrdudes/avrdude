@@ -155,6 +155,7 @@ static int write_byte_error(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 // Sanity only: guard against a user setting pgm->xyz_byte to avr_xyz_read_byte_cached (AVRDUDE doesn't)
 #define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? led_read_byte: read_byte_error)
 #define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? led_write_byte: write_byte_error)
+#define fallback_update_byte (pgm->write_byte != avr_write_byte_cached? led_update_byte: write_byte_error)
 
 /*
  * Read the page containing addr from the device into buf
@@ -681,7 +682,7 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   // Use pgm->write_byte() if not flash/EEPROM/bootrow/usersig or no paged access
   if(!avr_has_paged_access(pgm, p, mem))
-    return fallback_write_byte(pgm, p, mem, addr, data);
+    return fallback_update_byte(pgm, p, mem, addr, data);
 
   // If address is out of range synchronise caches with device and return whether successful
   if(addr >= (unsigned long) mem->size)
