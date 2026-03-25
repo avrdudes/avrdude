@@ -1174,6 +1174,8 @@ extern "C" {
     unsigned long addr, unsigned char *datap);
   int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char data);
+  int avr_can_skip_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+    unsigned long addr, uint8_t wanted, int *readrc);
   int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char data);
   int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);

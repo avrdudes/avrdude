@@ -641,6 +641,46 @@ int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   return data;
 }
 
+// Can pgm->write_byte() be skipped, eg, if the wanted data are already there?
+int avr_can_skip_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, uint8_t wanted, int *readrc) {
+
+  if(readrc)
+    *readrc = -99;
+
+  /*
+   * Check to see if the write is necessary by reading the existing value and
+   * only write if we are changing the value; we can't use this optimization
+   * for paged addressing nor for IO memory (as it's not necessarily storage).
+   *
+   * For mysterious reasons, on the AT90S1200, this read operation sometimes
+   * causes the high byte of the same word to be programmed to the value of
+   * the low byte that has just been programmed before. Avoid that
+   * optimization on this device.
+   */
+  if(mem->paged || mem_is_io(mem) || (p->flags & AVRPART_IS_AT90S1200))
+    return 0;
+
+  // Don't skip write when programming a bootloader
+  if(is_spm(pgm))
+    return 0;
+
+  // Unclear whether this optimisation would work for TPI parts
+  if(is_tpi(p))
+    return 0;
+
+  unsigned char is;
+  int rc = avr_read_byte_silent(pgm, p, mem, addr, &is);
+  if(readrc)
+    *readrc = rc;
+  if(rc < 0)
+    return 0;
+
+  int bm = avr_mem_bitmask(p, mem, addr);
+
+  return (is & bm) == (wanted & bm);
+}
+
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
