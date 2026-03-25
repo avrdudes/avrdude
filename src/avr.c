@@ -693,7 +693,6 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   int ready;
   int tries;
   unsigned long start, now;
-  unsigned char b;
   unsigned short caddr;
   OPCODE *writeop;
   int rc;
@@ -770,29 +769,19 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     goto success;
   }
 
-  int bm = avr_mem_bitmask(p, mem, addr);
-
-  if(!mem->paged && (p->flags & AVRPART_IS_AT90S1200) == 0) {
-    /*
-     * Check to see if the write is necessary by reading the existing value and
-     * only write if we are changing the value; we can't use this optimization
-     * for paged addressing.
-     *
-     * For mysterious reasons, on the AT90S1200, this read operation sometimes
-     * causes the high byte of the same word to be programmed to the value of
-     * the low byte that has just been programmed before. Avoid that
-     * optimization on this device.
-     */
-    rc = pgm->read_byte(pgm, p, mem, addr, &b);
+  // Check to see if writing could be skipped
+  int rbrc, skip = avr_can_skip_write_byte(pgm, p, mem, addr, data, &rbrc);
+  if(rbrc != -99) {              // read_byte() was executed
+    rc = rbrc;
     if(rc != 0) {
       if(rc != -1) {
         rc = -2;
         goto rcerror;
       }
-      // Read operation is not support on this memory
+      // Read operation is not supported on this memory
     } else {
       readok = 1;
-      if((b & bm) == (data & bm))
+      if(skip)
         goto success;
     }
   }
@@ -836,6 +825,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     goto success;
   }
 
+  int bm = avr_mem_bitmask(p, mem, addr);
   tries = 0;
   ready = 0;
   while(!ready) {
