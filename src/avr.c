@@ -919,13 +919,12 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
     str_ccaddress(addr, mem->size), data);
 
-  if(mem_is_readonly(mem)) {
-    unsigned char is;
-
-    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+  if(mem_is_readonly(mem) || (pgm->readonly && pgm->readonly(pgm, p, mem, addr))) {
+    if(avr_can_skip_write_byte(pgm, p, mem, addr, data, NULL))
       return 0;
 
-    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    pmsg_error("cannot write to %s memory %s of %s\n",
+      mem_is_readonly(mem)? "read-only": "write-protected", mem->desc, p->desc);
     return -1;
   }
 
