@@ -1254,7 +1254,7 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   return bitmask;
 }
 
-// Bitmask for ISP programming (classic parts only)
+// Bitmask for verification after ISP programming (classic parts only)
 static uint8_t get_fuse_bitmask(const AVRMEM *m) {
   int ret = 0xFF;
 

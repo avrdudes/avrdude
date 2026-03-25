@@ -529,7 +529,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if(rc < 0)
     return -1;
-  // @@@ has there has been output in the meantime to make the ", x bytes written" look out of place?
+  // @@@ has there been output in the meantime to make the ", x bytes written" look out of place?
   if(pbar && !(flags & UF_VERIFY))
     pmsg_info("%d byte%s of %s written", fs.nbytes, str_plural(fs.nbytes), m_name);
   else if(!pbar)
