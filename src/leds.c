@@ -199,8 +199,16 @@ int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 // Programmer specific write byte function with ERR/PGM LED info
 int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, unsigned char value) {
 
-  if(mem_is_readonly(m))
-    return pgm->write_byte(pgm, p, m, addr, value);
+  pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, m->desc, str_ccaddress(addr, m->size), value);
+
+  if(mem_is_readonly(m) || (pgm->readonly && pgm->readonly(pgm, p, m, addr))) {
+    if(avr_can_skip_write_byte(pgm, p, m, addr, value, NULL))
+      return 0;
+
+    pmsg_error("cannot write to %s memory %s of %s\n",
+      mem_is_readonly(m)? "read-only": "write-protected", m->desc, p->desc);
+    return -1;
+  }
 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
