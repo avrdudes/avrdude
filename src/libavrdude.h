@@ -1051,7 +1051,7 @@ typedef struct programmer {
   int (*write_byte)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     unsigned long addr, unsigned char value);
   int (*read_byte)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-    unsigned long addr, unsigned char *value);
+    unsigned long addr, unsigned char *valp);
   int (*read_sig_bytes)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int (*read_sib)(const PROGRAMMER *pgm, const AVRPART *p, char *sib);
   int (*read_chip_rev)(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev);
@@ -1747,10 +1747,12 @@ extern "C" {
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
   int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+  int led_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+    unsigned long addr, unsigned char value);
   int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     unsigned long addr, unsigned char value);
   int led_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-    unsigned long addr, unsigned char *value);
+    unsigned long addr, unsigned char *valp);
   int led_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     unsigned int page_size, unsigned int addr, unsigned int n);
   int led_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
