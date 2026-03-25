@@ -209,6 +209,10 @@ int led_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, un
     return -1;
   }
 
+  if(pgm->write_byte != avr_write_byte_default)
+    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+      value = avr_bitmask_data(pgm, p, m, addr, value);
+
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
 
@@ -233,6 +237,10 @@ int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, uns
       mem_is_readonly(m)? "read-only": "write-protected", m->desc, p->desc);
     return -1;
   }
+
+  if(pgm->write_byte != avr_write_byte_default)
+    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+      value = avr_bitmask_data(pgm, p, m, addr, value);
 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
