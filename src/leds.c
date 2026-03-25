@@ -198,6 +198,9 @@ int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 // Programmer specific update byte function with ERR/PGM LED info (ie, only write if data not there)
 int led_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, unsigned char value) {
+  if(pgm->write_byte == avr_write_byte_default) // avr_write_byte_default() already updates
+    return led_write_byte(pgm, p, m, addr, value);
+
   pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, m->desc, str_ccaddress(addr, m->size), value);
 
   if(avr_can_skip_write_byte(pgm, p, m, addr, value, NULL))
@@ -209,9 +212,8 @@ int led_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, un
     return -1;
   }
 
-  if(pgm->write_byte != avr_write_byte_default)
-    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
-      value = avr_bitmask_data(pgm, p, m, addr, value);
+  if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+    value = avr_bitmask_data(pgm, p, m, addr, value);
 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);

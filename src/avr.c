@@ -916,6 +916,9 @@ rcerror:
 int avr_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
+  if(pgm->write_byte == avr_write_byte_default) // avr_write_byte_default() already updates
+    return avr_write_byte(pgm, p, mem, addr, data);
+
   pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
     str_ccaddress(addr, mem->size), data);
 
@@ -928,9 +931,8 @@ int avr_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     return -1;
   }
 
-  if(pgm->write_byte != avr_write_byte_default)
-    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
-      data = avr_bitmask_data(pgm, p, mem, addr, data);
+  if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+    data = avr_bitmask_data(pgm, p, mem, addr, data);
 
   return pgm->write_byte(pgm, p, mem, addr, data);
 }
