@@ -1168,8 +1168,6 @@ extern "C" {
   uint64_t avr_mstimestamp(void);
   double avr_timestamp(void);
   void init_cx(PROGRAMMER *pgm);
-  int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-    unsigned long addr, unsigned char data);
   int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char *datap);
   int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
@@ -1177,6 +1175,10 @@ extern "C" {
   int avr_can_skip_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, uint8_t wanted, int *readrc);
   int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+    unsigned long addr, unsigned char data);
+  int avr_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+    unsigned long addr, unsigned char data);
+  int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char data);
   int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
   int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase);

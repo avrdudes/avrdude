@@ -912,6 +912,29 @@ rcerror:
   return rc;
 }
 
+// Update one byte of data at the specified address, ie, write unless already there
+int avr_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data) {
+
+  pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
+    str_ccaddress(addr, mem->size), data);
+
+  if(avr_can_skip_write_byte(pgm, p, mem, addr, data, NULL))
+    return 0;
+
+  if(mem_is_readonly(mem) || (pgm->readonly && pgm->readonly(pgm, p, mem, addr))) {
+    pmsg_error("cannot write to %s memory %s of %s\n",
+      mem_is_readonly(mem)? "read-only": "write-protected", mem->desc, p->desc);
+    return -1;
+  }
+
+  if(pgm->write_byte != avr_write_byte_default)
+    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+      data = avr_bitmask_data(pgm, p, mem, addr, data);
+
+  return pgm->write_byte(pgm, p, mem, addr, data);
+}
+
 // Write a byte of data at the specified address
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
