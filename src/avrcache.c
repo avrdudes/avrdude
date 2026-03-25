@@ -142,9 +142,19 @@ int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *me
     mem->size > 0 && mem->size%mem->page_size == 0 && mem_is_paged_type(mem) && !(p && avr_mem_exclude(pgm, p, mem));
 }
 
+static int read_byte_error(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, uint8_t *value) {
+  pmsg_error("pgm->read_byte must not be pointing to avr_read_byte_cached()\n");
+  return -1;
+}
+
+static int write_byte_error(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, uint8_t data) {
+  pmsg_error("pgm->write_byte must not be pointing to avr_write_byte_cached()\n");
+  return -1;
+}
+
 // Sanity only: guard against a user setting pgm->xyz_byte to avr_xyz_read_byte_cached (AVRDUDE doesn't)
-#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? led_read_byte: avr_read_byte_default)
-#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? led_write_byte: avr_write_byte_default)
+#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? led_read_byte: read_byte_error)
+#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? led_write_byte: write_byte_error)
 
 /*
  * Read the page containing addr from the device into buf
