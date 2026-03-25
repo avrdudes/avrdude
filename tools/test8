@@ -14,7 +14,7 @@ Usage() {
 cat <<END
 Syntax: $progname [<opts>] <programmer> <part>
 Function: test AVRDUDE v 8.0 or later with -c programmer -p part;
-  also leaves a file bak-<programmer>-<part.hex for inspection
+  also leaves a file bak-<programmer>-<part>.hex for inspection
 Options:
   -i <n>     Write human-readable contents seeded by <n> to part and exit
   -r <n>     Write random contents seeded by <n> to part and exit
