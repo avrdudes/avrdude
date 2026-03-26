@@ -51,6 +51,9 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #endif
   ;
 
+// Reduce effective verbosity level by number of -q options above one
+#define verblevel (quell_progress < 2? verbose: verbose + 1 - quell_progress)
+
 // Shortcuts
 #define msg_ext_error(...)  avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_EXT_ERROR, __VA_ARGS__)
 #define msg_error(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_ERROR, __VA_ARGS__)
