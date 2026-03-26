@@ -297,7 +297,7 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
     mlen -= tx_size;
   } while(mlen > 0);
 
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     trace_buffer(__func__, p, i);
   return 0;
 }
@@ -347,7 +347,7 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
     i += amnt;
   }
 
-  if(verbose >= MSG_TRACE2)
+  if(verblevel >= MSG_TRACE2)
     trace_buffer(__func__, p, i);
 
   return 0;
@@ -422,7 +422,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
  *
  */
 printout:
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     trace_buffer(__func__, p, n & USB_RECV_LENGTH_MASK);
 
   return n;

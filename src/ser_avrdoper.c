@@ -226,7 +226,7 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
     pmsg_error("%s() called with too large buflen = %lu\n", __func__, (unsigned long) buflen);
     return -1;
   }
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     dumpBlock("Send", buf, buflen);
   while(buflen > 0) {
     unsigned char buffer[256];
@@ -300,7 +300,7 @@ static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, si
     remaining -= len;
     cx->sad_avrdoperRxPosition += len;
   }
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     dumpBlock("Receive", buf, buflen);
   return 0;
 }

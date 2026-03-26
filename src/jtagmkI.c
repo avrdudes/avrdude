@@ -105,7 +105,7 @@ static void u16_to_b2(unsigned char *b, unsigned short l) {
 }
 
 static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     msg_trace("Raw message:\n");
 
     size_t i;
@@ -185,7 +185,7 @@ static int jtagmkI_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     pmsg_error("unable to send command to serial port\n");
     return -1;
   }
-  if(verbose >= MSG_DEBUG) {
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkI_prmsg(pgm, buf, len);
   }

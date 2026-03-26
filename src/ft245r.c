@@ -782,7 +782,7 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
   for(i = 0; i < res_len; ++i)
     if((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
       break;
-  if(verbose >= MSG_DEBUG) {
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("%s: [ ", __func__);
     for(i = 0; i < cmd_len; i++)
       msg_debug("%02X ", cmd[i]);

@@ -117,7 +117,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func,
     fflush(stderr);
   }
   // Reduce effective verbosity level by number of -q above one when printing to stderr
-  if((quell_progress < 2 || fp != stderr? verbose: verbose + 1 - quell_progress) >= msglvl) {
+  if((fp == stderr? verblevel: verbose) >= msglvl) {
     if(msgmode & MSG2_LEFT_MARGIN && !bols[bi].bol) {
       fprintf(fp, "\n");
       bols[bi].bol = 1;
@@ -145,7 +145,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func,
           fprintf(fp, " %s", mt);
         bols[bi].bol = 0;
       }
-      if(verbose >= MSG_NOTICE2) {
+      if(verblevel >= MSG_NOTICE2) {
         const char *bfname = strrchr(file, '/');        // Only print basename
 
 #if defined (WIN32)
@@ -1467,11 +1467,9 @@ int main(int argc, char *argv[]) {
   }
 
   // Open the programmer
-  if(verbose > 0) {
-    if(!is_dryrun)
-      pmsg_notice("using port            : %s\n", port);
-    pmsg_notice("using programmer      : %s\n", pgmid);
-  }
+  if(!is_dryrun)
+    pmsg_notice("using port            : %s\n", port);
+  pmsg_notice("using programmer      : %s\n", pgmid);
 
   if(baudrate && !pgm->baudrate && !default_baudrate) { // None set
     pmsg_notice("setting baud rate     : %d\n", baudrate);

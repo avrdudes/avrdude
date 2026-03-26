@@ -208,8 +208,8 @@ const char *pinmask_to_str(const Pinmask *const pinmask) {
  * @li any mandatory pin is not set all.
  *
  * In case of any error it report the wrong function and the pin numbers
- * For verbose >= MSG_NOTICE2 it also reports the possible correct values
- * For verbose >= MSG_DEBUG it shows also which pins were ok
+ * For verblevel >= MSG_NOTICE2 it also reports the possible correct values
+ * For verblevel >= MSG_DEBUG it shows also which pins were ok
  *
  * @param[in] pgm the programmer to check
  * @param[in] checklist the constraint for the pins

@@ -237,7 +237,7 @@ static void jtag3_print_data(unsigned char *b, size_t s) {
 }
 
 static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     size_t i;
 
     msg_trace("Raw message:\n");
@@ -365,7 +365,7 @@ static int jtag3_errcode(int reason) {
 }
 
 static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     size_t i;
 
     msg_trace("Raw event:\n");
@@ -482,7 +482,7 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
   unsigned char status[USBDEV_MAX_XFER_3];
   int rv;
 
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     memset(buf, 0, USBDEV_MAX_XFER_3);
     memset(status, 0, USBDEV_MAX_XFER_3);
   }
@@ -562,7 +562,7 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_prepare()\n");
 
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_CONNECT;
@@ -607,7 +607,7 @@ static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_signoff()\n");
 
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_LED;
@@ -780,7 +780,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
       return rv;
 
     if((rv & USB_RECV_FLAG_EVENT) != 0) {
-      if(verbose >= MSG_DEBUG)
+      if(verblevel >= MSG_DEBUG)
         jtag3_prevent(pgm, *msg, rv & USB_RECV_LENGTH_MASK);
 
       mmt_free(*msg);
@@ -831,7 +831,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
     if(status == 0)
       mmt_free(*resp);
     return LIBAVRDUDE_GENERAL_FAILURE;
-  } else if(verbose >= MSG_DEBUG) {
+  } else if(verblevel >= MSG_DEBUG) {
     msg_debug("\n");
     jtag3_prmsg(pgm, *resp, status);
   } else {
