@@ -827,7 +827,7 @@ nopatch_nometa:
 
   if(!ur.done_ce) {             // Unless chip erase was just issued (where all mem is 0xff)
     if((ur.urprotocol && !(ur.urfeatures & UB_FLASH_LL_NOR)) || !ur.urprotocol) {
-      // Scan the memory for eff pages with unset bytes and read these bytes from device flash
+      // Scan memory for effective pages with unset bytes and read these bytes from device flash
       int ai, npe, addr, nset;
 
       uint8_t spc[2048];

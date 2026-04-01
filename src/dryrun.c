@@ -45,7 +45,7 @@
 
 // Context of the programmer
 typedef enum {
-  DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
+  DRY_NOBOOTLOADER,             // No bootloader, talking to an ordinary programmer
   DRY_TOP,                      // Bootloader and it sits at top of flash
   DRY_BOTTOM,                   // Bootloader sits at bottom of flash (UPDI parts)
 } Dry_prog;
