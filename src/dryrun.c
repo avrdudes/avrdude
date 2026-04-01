@@ -61,10 +61,18 @@ typedef struct {
   int datastart, datasize;      // Start and size of application data section (if any)
   int bootstart, bootsize;      // Start and size of boot section (if any)
   int initialised;              // 1 once the part memories are initialised
+  struct {
+    int vblvectornum,           // Vector bootloader vector number for jump to application op code
+        vbllevel,               // 0=n/a, 1=patch externally, 2=bl patches, 3=bl patches & verifies
+        blurversion;            // Octal byte 076 means v7.6 (minor version number is lowest 3 bit)
+    int32_t blstart, blend;     // Bootloader address range [blstart, blend] for write protection
+    int32_t pfstart, pfend;     // Programmable flash address range [pfstart, pfend]
+  } urdesc;
 } Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
 #define dry (*(Dryrun_data *)(pgm->cookie))
+#define ur (dry.urdesc)
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while(0)
 #define Retwarning(...) do { pmsg_warning(__VA_ARGS__); \
