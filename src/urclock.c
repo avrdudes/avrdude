@@ -345,15 +345,6 @@ static int nmeta(int mcode, int flashsize) {
 
 // Need to know a bit about avr opcodes, in particular jmp and rjmp for patching vector table
 
-#define ret_opcode 0x9508
-
-
-// Is the opcode an rjmp, ie, a relative jump [.-4096, .+4094]
-static int isRjmp(uint16_t opcode) {
-  return (opcode & 0xf000) == 0xc000;
-}
-
-
 /*
  * Map distances to [-flashsize/2, flashsize/2) for smaller devices. As rjmp can go +/- 4 kB, so
  * smaller flash than 8k (eg, 4k) benefit from wrap around logic.
@@ -412,12 +403,6 @@ int addr_jmp(uint32_t jmp) {
   addr <<= 1;                   // Convert to byte address
 
   return addr;
-}
-
-
-// Is the instruction word the lower 16 bit part of a jmp instruction?
-static int isJmp(uint16_t opcode) {
-  return (opcode & 0xfe0e) == 0x940c;
 }
 
 
@@ -497,9 +482,9 @@ static int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int
   op16 = buf2uint16(opcode); // First word of the jmp or the full rjmp
   op32 = vecsz == 2? op16: buf2uint32(opcode);
 
-  if(vecsz == 4 && isJmp(op16)) {
+  if(vecsz == 4 && isop(op16, jmp)) {
     addr = addr_jmp(op32);      // Accept compiler's destination (do not normalise)
-  } else if(isRjmp(op16)) {     // rjmp might be generated for larger parts, too
+  } else if(isop(op16, rjmp)) { // rjmp might be generated for larger parts, too
     addr = dist_rjmp(op16, flashsize);
     while(addr < 0)             // If rjmp was backwards
       addr += flashsize;        // OK for small parts, likely(!) OK if flashsize is a power of 2
@@ -628,7 +613,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   bool llvectors = firstbeg == 0 && firstlen >= ur.uP.ninterrupts*vecsz; // Looks like vector table
   for(int i=0; llvectors && i<ur.uP.ninterrupts*vecsz; i+=vecsz) {
     uint16_t op16 = buf2uint16(flm->buf+i);
-    if(!isRjmp(op16) && !(vecsz == 4 && isJmp(op16)))
+    if(!isop(op16, rjmp) && !(vecsz == 4 && isop(op16, jmp)))
       llvectors = 0;
   }
 
@@ -916,7 +901,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
   if(hi >= 072) {               // These are urboot versions
     sprintf(buf, "u%d.%d ", hi>>3, hi&7);
     buf += strlen(buf);
-    *buf++ = (hi < 077 && (type & UR_PGMWRITEPAGE)) || (hi >= 077 && rjmpwp != ret_opcode)? 'w': '-';
+    *buf++ = (hi < 077 && (type & UR_PGMWRITEPAGE)) || (hi >= 077 && !isop(rjmpwp, ret))? 'w': '-';
     *buf++ = type & UR_EEPROM? 'e': '-';
     if(hi >= 076) {
       if(hi > 077)              // From version 8.0 it's always urprotocol
@@ -1340,7 +1325,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       Return("please specify -x bootsize=<num> and, if needed, %s-x eepromrw",
         ur.boothigh? "-x vectornum=<num> or ": "");
 
-  uint16_t v16 = 0xffff, rjmpwp = ret_opcode;
+  uint16_t v16 = 0xffff, rjmpwp = 0x9508; // 0x9508 is the ret opcode
 
   // Sporting chance that we can read top flash to get intell about bootloader?
   if(ur.boothigh && (!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH))) {
@@ -1357,7 +1342,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     v16 = buf2uint16(spc+4);    // Combo word for neatly printed version line of urboot bootloader
 
     // Extensively check this is an urboot bootloader v7.2 .. v12.7 == 0147 and extract properties
-    if(urver >= 072 && urver <= 0147 && (isRjmp(rjmpwp) || rjmpwp == ret_opcode)) { // Prob urboot
+    if(urver >= 072 && urver <= 0147 && (isop(rjmpwp, rjmp) || isop(rjmpwp, ret))) { // Prob urboot
       if(urver < 075) {         // Early urboot versions don't offer many sanity checks
         ur.blurversion = urver;
         ur.bleepromrw = iseeprom_cap(cap);
@@ -1369,7 +1354,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
         if(blsize >= 64 && blsize <= 2048 && vectnum <= ur.uP.ninterrupts) { // Within range
           int dfromend  = dist_rjmp(rjmpwp, ur.uP.flashsize) - 4;
           // Further check whether writepage() rjmp opcode jumps backwards into bootloader
-          if(rjmpwp == ret_opcode || (dfromend >= -blsize && dfromend < -6)) { // Due diligence
+          if(isop(rjmpwp, ret) || (dfromend >= -blsize && dfromend < -6)) { // Due diligence
             if(ur.xbootsize) {
               if(flm->size - blsize != ur.blstart) {
                 pmsg_warning("urboot bootloader size %d explicitly overwritten by -x bootsize=%d\n",
@@ -1419,7 +1404,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
       uint16_t reset16 = buf2uint16(spc);
 
-      if(isRjmp(reset16)) {     // rjmp op code (could be from a large or a small part)
+      if(isop(reset16, rjmp)) { // rjmp op code (could be from a large or a small part)
         if((flm->size & (flm->size-1)) == 0) { // Flash size a power of 2? True for small parts
           int guess = dist_rjmp(reset16, ur.uP.flashsize); // Relative destination to reset vector
           while(guess < 0)      // Convert to absolute address
@@ -1431,7 +1416,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
               ur.pfend   = guess - 1;
             }
         }
-      } else if(vecsz == 4 && isJmp(reset16)) { // Jmp op code
+      } else if(vecsz == 4 && isop(reset16, jmp)) { // Jmp op code
         int guess = addr_jmp(buf2uint32(spc));
         if(guess < flm->size)
           if((guess & (flm->page_size-1)) == 0) // Page aligned? Good
@@ -1469,14 +1454,14 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
               op16 = 0;
             } else if(wasop32) { // Skip opcode evaluation
               wasop32 = 0;
-            } else if(isRjmp(opcode) && toend > 4) { // 4 top bytes of bl are data, not rjmp
+            } else if(isop(opcode, rjmp) && toend > 4) { // 4 top bytes of bl are data, not rjmp
               // Does that rjmp end in the vector table?
               if((dist = dist_rjmp(opcode, ur.uP.flashsize)) > toend &&
                   dist <= toend+ur.uP.ninterrupts*vecsz) { // "<=" for extended vector table
                 ur.vblvectornum = (dist-toend)/vecsz; // Solve for the vbl vector number
                 goto vblvecfound;
               }
-            } else if(isJmp(opcode) && toend > 6) { // 4 top bytes are data + 2 the jmp addr
+            } else if(isop(opcode, jmp) && toend > 6) { // 4 top bytes are data + 2 the jmp addr
               op16 = opcode;
               wasjmp = 1;       // Look at destination address in next loop iteration
             } else if(is_opcode32(opcode)) { // Skip next opcode, too

@@ -1761,6 +1761,9 @@ extern "C" {
 
   char *avr_cc_buffer(size_t n);
 
+// Shortcut for testing whether a 16-bit opcode is a certain mnemonic (rjmp, ret, ...)
+#define isop(op16, code) op16_is_mnemo(op16, MNEMO_ ## code)
+
   int op16_is_mnemo(int op16, AVR_mnemo mnemo);
   int is_opcode32(int op16);
   int op_width(int op16);
