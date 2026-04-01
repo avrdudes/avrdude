@@ -473,9 +473,8 @@ static void set_date_filename(const PROGRAMMER *pgm, const char *fname) {
 }
 
 
-
 // Put destination address of reset vector jmp or rjmp into addr, return -1 if not an r/jmp
-static int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp) {
+int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp) {
   int op32, addr, rc = 0;
   uint16_t op16;
 

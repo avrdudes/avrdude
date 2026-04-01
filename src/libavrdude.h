@@ -1794,6 +1794,7 @@ extern "C" {
   uint16_t buf2uint16(const unsigned char *buf);
   void uint32tobuf(unsigned char *buf, uint32_t opcode32);
   void uint16tobuf(unsigned char *buf, uint16_t opcode16);
+  int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp);
 
   const Uart_conf *getuartsigs(const Avrintel *up, int uart, int alt);
   int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename);
