@@ -1080,6 +1080,7 @@ typedef struct programmer {
   int (*flash_readhook)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
     const char *fname, int size);
   int (*updatehook)(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, int flags);
+  int (*cmdhook)(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
