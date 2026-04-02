@@ -498,29 +498,28 @@ int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp
   return rc;
 }
 
-// Can a rjmp at 0 reach the bootloader in a large part?
-static int rjmp_reaches_blstart(const PROGRAMMER *pgm) {
-  if(ur.uP.flashsize & (ur.uP.flashsize-1)) // Only if flash is a power of 2
+// Can a rjmp at reset location 0 reach the bootloader in a large part?
+static int rjmp_reaches_blstart(int blstart, int flsize) {
+  if(flsize & (flsize-1))       // No as flash is not a power of 2
     return 0;
-  return ur.blstart <= 4096 || ur.blstart >= ur.uP.flashsize - 4094;
+  return blstart <= 4096 || blstart >= flsize - 4094;
 }
 
 // What reset looks like for vector bootloaders
-static int set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz) {
+int set_resetvector(int blstart, int flsize, uint8_t *reset, int vecsz, int isur) {
   // Small part or larger flash that is power or 2: urboot P reset vector protection uses this
-  if(vecsz == 2 || rjmp_reaches_blstart(pgm)) {
-    uint16tobuf(jmptoboot, rjmp_bwd_blstart(ur.blstart, ur.uP.flashsize));
-    if(ur.urprotocol && vecsz == 4) {
-      uint16tobuf(jmptoboot + 2, 0x7275 /* ur */);
+  if(vecsz == 2 || rjmp_reaches_blstart(blstart, flsize)) {
+    uint16tobuf(reset, rjmp_bwd_blstart(blstart, flsize));
+    if(isur && vecsz == 4) {
+      uint16tobuf(reset + 2, 0x7275 /* ur */);
       return 4;
     }
     return 2;
   }
 
-  uint32tobuf(jmptoboot, jmp_opcode(ur.blstart));
+  uint32tobuf(reset, jmp_opcode(blstart));
   return 4;
 }
-
 
 // Called after the input file has been read for writing or verifying flash
 static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
@@ -661,7 +660,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
         }
 
         // OK, now have bootloader start and application start: patch
-        set_reset(pgm, flm->buf+0, vecsz);
+        set_resetvector(ur.blstart, ur.uP.flashsize, flm->buf+0, vecsz, ur.urprotocol);
         if(vecsz == 4)
           uint32tobuf(flm->buf+appvecloc, jmp_opcode(appstart));
         else
@@ -761,7 +760,7 @@ nopatch_nometa:
     // Reset vector not programmed? Or -F? Ensure a jmp to bootloader
     if(ovsigck || set != vecsz) {
       unsigned char jmptoboot[4];
-      int resetsize = set_reset(pgm, jmptoboot, vecsz);
+      int resetsize = set_resetvector(ur.blstart, ur.uP.flashsize, jmptoboot, vecsz, ur.urprotocol);
 
       if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) { // Flash readable?
         int resetdest;
@@ -1680,7 +1679,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       unsigned char jmptoboot[4];
-      int resetsize = set_reset(pgm, jmptoboot, vecsz);
+      int resetsize = set_resetvector(ur.blstart, ur.uP.flashsize, jmptoboot, vecsz, ur.urprotocol);
 
       if(badd < (unsigned int) resetsize) { // Ensure reset vector points to bl
         int n = urmin((unsigned int) resetsize - badd, (unsigned int) len);
@@ -2165,7 +2164,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
       if(flm && flm->page_size >= vecsz) {
         unsigned char *page = mmt_malloc(flm->page_size);
         memset(page, 0xff, flm->page_size);
-        set_reset(pgm, page, vecsz);
+        set_resetvector(ur.blstart, ur.uP.flashsize, page, vecsz, ur.urprotocol);
         if(avr_write_page_default(pgm, p, flm, 0, page) < 0) {
           mmt_free(page);
           return -1;
@@ -2351,7 +2350,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         int vecsz = ur.uP.flashsize <= 8192? 2: 4;
         if(chunk == ur.uP.pagesize && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
           unsigned char jmptoboot[4];
-          int resetsize = set_reset(pgm, jmptoboot, vecsz);
+          int resetsize = set_resetvector(ur.blstart, ur.uP.flashsize, jmptoboot, vecsz, ur.urprotocol);
           int resetdest;
 
           if(reset2addr(m->buf, vecsz, ur.uP.flashsize, &resetdest) < 0 || resetdest != ur.blstart) {
