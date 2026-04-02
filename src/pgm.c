@@ -119,6 +119,7 @@ void pgm_init_functions(PROGRAMMER *pgm) {
   pgm->parseextparams = NULL;
   pgm->readonly = NULL;
   pgm->flash_readhook = NULL;
+  pgm->updatehook = NULL;
 }
 
 PROGRAMMER *pgm_new(void) {

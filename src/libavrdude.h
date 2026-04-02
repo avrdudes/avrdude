@@ -981,6 +981,8 @@ typedef struct {
   unsigned long ms[LED_N];      // Time in ms after last physical change
 } Leds;
 
+typedef struct update UPDATE;
+
 /*
  * Any changes in PROGRAMMER, please also ensure changes are made in
  *  - lexer.l
@@ -1077,6 +1079,7 @@ typedef struct programmer {
   void (*teardown)(PROGRAMMER *pgm);
   int (*flash_readhook)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
     const char *fname, int size);
+  int (*updatehook)(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, int flags);
 
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
