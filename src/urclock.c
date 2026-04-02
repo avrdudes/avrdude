@@ -890,7 +890,7 @@ nopatch_nometa:
 
 
 // Put version string into a buffer of max 19 characters incl nul (normally 15-16 bytes incl nul)
-static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uint16_t rjmpwp) {
+static void allbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uint16_t rjmpwp) {
   uint8_t hi = ver>>8, type = ver & 0xff, flags;
 
   if(ver == 0xffff)             // Unknown provenance
@@ -923,14 +923,18 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     *buf = 0;
   } else if(hi) {               // Version number in binary from optiboot v4.1
     sprintf(buf, "o%d.%d -%cs-%c-r--", hi, type,
-      ur.blguessed? (ur.bleepromrw? 'e': '-'): '?',
-      ur.blguessed? "hjvV"[ur.vbllevel & 3]: '?');
+      pgm && ur.blguessed? (ur.bleepromrw? 'e': '-'): '?',
+      pgm && ur.blguessed? "hjvV"[ur.vbllevel & 3]: '?');
   } else
     sprintf(buf, "x0.0 .........");
 
   return;
 }
 
+// Puts urboot version and capabilities into 19+ byte buffer from table with top 6 bytes
+void urbootPutVersion(char *buf, uint16_t *top6table) {
+  allbootPutVersion(NULL, buf, top6table[2], top6table[1]);
+}
 
 // Return name of the vector with number num
 static const char *vblvecname(const PROGRAMMER *pgm, int num) {
@@ -1485,7 +1489,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
 vblvecfound:
-  urbootPutVersion(pgm, ur.desc, v16, rjmpwp);
+  allbootPutVersion(pgm, ur.desc, v16, rjmpwp);
 
   ur.mcode = 0xff;
   int havemetadata = !ur.nometadata;
