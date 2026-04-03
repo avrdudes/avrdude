@@ -1600,7 +1600,9 @@ versions of the bootloader.
 .Bl -tag -offset indent -width indent
 .It Ar dryrun
 .It Ar dryboot
-These two programmers emulate programming and accept the following parameters:
+Dryrun emulates external programming without the need to connect a
+programmer or a part while dryboot emulates bootloader programming without
+the need to connect the target part. They accept the following parameters:
 .Bl -tag -offset indent -width indent
 .It Ar init
 Initialise memories with human-readable patterns. Flash memory will be
