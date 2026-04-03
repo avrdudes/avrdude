@@ -1195,7 +1195,7 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return 1;
     if(addr < (unsigned int) ur.pfstart)
       return 1;
-    // Vector table
+    // Protect two vector table entries once vector bootloader detected
     if(!is_updi(p) && addr < 512 && ur.vectornum > 0) {
       unsigned int vecsz = (m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u;
       unsigned int appvecloc = ur.vectornum*vecsz;
@@ -1205,8 +1205,11 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if(addr >= appvecloc && addr < appvecloc+vecsz)
         return 1;
     }
-  } else if(is_classic(p) && !mem_is_eeprom(mem))
-    return 1;
+  }
+  /* // Below is too realistic as it precludes -U urboot: fuse settings
+   * else if(is_classic(p) && !mem_is_eeprom(mem))
+   *   return 1;
+   */
 
   if(dry.initialised && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
     return 1;
