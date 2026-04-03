@@ -91,7 +91,7 @@ static int dryrun_init_ur(const PROGRAMMER *pgm, const AVRPART *p) {
     Return("cannot locate flash memory for %s\n", p->desc);
 
   // No urboot bootloaders on AVR32 parts, neither on really small devices
-  if(is_awire(p) || flm->size < 512)
+  if(is_awire(p) || flm->size < 1024)
     return 0;
 
   if(!is_updi(p)) {
@@ -120,6 +120,7 @@ static int dryrun_init_ur(const PROGRAMMER *pgm, const AVRPART *p) {
         if(isop(rjmpwp, ret) || (dfromend >= -blsize && dfromend < -6)) { // urboot!
           ur.blstart = flm->size - blsize;
           ur.blend   = flm->size - 1;
+          ur.pfstart = 0;
           ur.pfend   = ur.blstart - 1;
           ur.vectornum = vectnum;
           ur.urversion = urver;
@@ -1173,7 +1174,6 @@ static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 // Return whether an address is write protected
 static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int addr) {
-
   if(mem_is_readonly(mem))
     return 1;
 
@@ -1183,7 +1183,30 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return 0;
   }
 
-  // @@@ check for bootloader write protection
+  // Bootloader
+  if(mem_is_in_flash(mem) && !mem_is_apptable(mem)) {
+    const AVRMEM *m;
+
+    // Translate XMEGA boot addresses to flash addresses
+    if(is_pdi(p) && mem_is_boot(mem) && (m = avr_locate_application(p)))
+      addr += m->size;
+
+    if(addr > (unsigned int) ur.pfend)
+      return 1;
+    if(addr < (unsigned int) ur.pfstart)
+      return 1;
+    // Vector table
+    if(!is_updi(p) && addr < 512 && ur.vectornum > 0) {
+      unsigned int vecsz = (m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u;
+      unsigned int appvecloc = ur.vectornum*vecsz;
+
+      if(addr < vecsz)
+        return 1;
+      if(addr >= appvecloc && addr < appvecloc+vecsz)
+        return 1;
+    }
+  } else if(is_classic(p) && !mem_is_eeprom(mem))
+    return 1;
 
   if(dry.initialised && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
     return 1;
