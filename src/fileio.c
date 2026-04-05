@@ -1156,7 +1156,8 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
       continue;
 
     pmsg_debug("considering PT_LOAD program header entry #%d\n", (int) i);
-    imsg_debug("p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
+    imsg_debug("p_vaddr 0x%lx, p_paddr 0x%lx, p_filesz %ld\n",
+     (unsigned long) ph[i].p_vaddr, (unsigned long) ph[i].p_paddr, (unsigned long) ph[i].p_filesz);
 
     Elf_Scn *scn = NULL;
 
@@ -1182,7 +1183,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
       const char *sname = sndx? elf_strptr(e, sndx, sh->sh_name): "*unknown*";
       unsigned int lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
 
-      pmsg_debug("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
+      pmsg_debug("found section %s, LMA 0x%x, sh_size %lu\n", sname, lma, (unsigned long) sh->sh_size);
 
       if(!(lma >= low && lma + sh->sh_size < high)) {
         pmsg_debug("skipping %s (inappropriate for %s)\n", sname, mem->desc);
@@ -1197,8 +1198,8 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
        * obtained above.
        */
       if(mem->size != 1 && sh->sh_size > (unsigned) mem->size) {
-        pmsg_error("section %s of size %u does not fit into %s of size %d\n",
-          sname, sh->sh_size, mem->desc, mem->size);
+        pmsg_error("section %s of size %lu does not fit into %s of size %d\n",
+          sname, (unsigned long) sh->sh_size, mem->desc, mem->size);
         rv = -1;
         continue;
       }
