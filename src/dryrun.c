@@ -998,9 +998,26 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       Return("cannot write page [0x%04x, 0x%04x] to %s %s as it is incompatible with memory [0, 0x%04x]",
         addr, end - 1, dry.dp->desc, dmem->desc, dmem->size - 1);
 
+    // Protect reset vector just as -c urclock would
+    if(dry.bl == DRY_TOP && ur.vectornum > 0 && (mem_is_application(m) || mem_is_flash(m)) && addr == 0)
+      for(unsigned vecsz = m->size <= 8192? 2u: 4u, i = 0; i < vecsz && i < n_bytes; i++)
+        pgm->read_byte(pgm, p, dmem, i, m->buf+i);
+
     for(; addr < end; addr += chunk) {
       chunk = end - addr < page_size? end - addr: page_size;
-      // @@@ Check for bootloader write protection here
+
+      // Silently skip writing the chunk if that were to overwrite bootloader
+      if(dry.bl && mchr == 'F' && !mem_is_apptable(m) && ur.blend > ur.blstart) {
+        const AVRMEM *am;
+        int testa = addr;
+
+        // Translate XMEGA boot addresses to flash addresses
+        if(is_pdi(p) && mem_is_boot(m) && (am = avr_locate_application(p)))
+          testa += am->size;
+
+        if(testa >= ur.blstart && testa+chunk-1 <= ur.blend)
+          continue;
+      }
 
       // Unless it is a bootloader flash looks like NOR-memory
       (mchr == 'F' && !dry.bl? memand: memcpy) (dmem->buf + addr, m->buf + addr, chunk);
