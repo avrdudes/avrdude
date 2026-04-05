@@ -157,10 +157,6 @@ static int dryrun_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const 
   int maxsize = ur.pfend+1, firstbeg, firstlen;
   const int vecsz = flm->size <= 8192? 2: 4; // Small parts use rjmp, large a 4-byte jmp
 
-  // Sanity: no patching if bootloader location is unknown
-  if(ur.blend <= ur.blstart)
-    goto nopatch;
-
   // Compute begin and length of first contiguous block in input
   for(firstbeg=0; firstbeg < size; firstbeg++)
     if(flm->tags[firstbeg] & TAG_ALLOCATED)
@@ -168,6 +164,10 @@ static int dryrun_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const 
   for(firstlen=0; firstbeg+firstlen < size; firstlen++)
     if(!(flm->tags[firstbeg+firstlen] & TAG_ALLOCATED))
       break;
+
+  // Sanity: no patching if bootloader location is unknown
+  if(ur.blend <= ur.blstart)
+    goto nopatch;
 
   // Sanity check the bootloader position
   if(ur.blstart < 0 || ur.blstart >= flm->size || ur.blend < 0 || ur.blend >= flm->size)
@@ -1195,16 +1195,10 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return 1;
     if(addr < (unsigned int) ur.pfstart)
       return 1;
-    // Protect two vector table entries once vector bootloader detected
-    if(!is_updi(p) && addr < 512 && ur.vectornum > 0) {
-      unsigned int vecsz = (m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u;
-      unsigned int appvecloc = ur.vectornum*vecsz;
-
-      if(addr < vecsz)
+    // Protect reset vector once vector bootloader detected
+    if(addr < 4 && !is_updi(p) && ur.vectornum > 0)
+      if(addr < ((m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u))
         return 1;
-      if(addr >= appvecloc && addr < appvecloc+vecsz)
-        return 1;
-    }
   }
   /* // Below is too realistic as it precludes -U urboot: fuse settings
    * else if(is_classic(p) && !mem_is_eeprom(mem))

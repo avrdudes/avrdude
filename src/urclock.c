@@ -2431,16 +2431,10 @@ static int urclock_readonly(const PROGRAMMER *pgm, const AVRPART *p_unused, cons
       return 1;
     if(addr < (unsigned int) ur.pfstart)
       return 1;
-    if(ur.boothigh && addr < 512 && ur.vbllevel) {
-      unsigned int vecsz = ur.uP.flashsize <= 8192? 2u: 4u;
-      if(addr < vecsz)
+    // Protect reset vector once vector bootloader detected
+    if(addr < 4 && ur.boothigh && ur.vblvectornum > 0)
+      if(addr < (ur.uP.flashsize <= 8192? 2u: 4u))
         return 1;
-      if(ur.vblvectornum > 0) {
-        unsigned int appvecloc = ur.vblvectornum*vecsz;
-        if(addr >= appvecloc && addr < appvecloc+vecsz)
-          return 1;
-      }
-    }
   } else if(!mem_is_eeprom(mem))
     return 1;
 
