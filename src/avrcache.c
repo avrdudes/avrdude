@@ -76,7 +76,7 @@
  * avr_chip_erase_cached() erases the chip and discards pending writes() to
  * flash or EEPROM. It presets the flash cache to all 0xff alleviating the
  * need to read from the device flash. However, if the programmer serves
- * bootloaders is_spm(pgm) then the flash cache is reset
+ * bootloaders, recognised by is_spm(pgm), then the flash cache is reset
  * instead, necessitating flash memory be fetched from the device on first
  * read; the reason for this is that bootloaders emulate chip erase and they
  * won't overwrite themselves (some bootloaders, eg, optiboot ignore chip
@@ -142,8 +142,20 @@ int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *me
     mem->size > 0 && mem->size%mem->page_size == 0 && mem_is_paged_type(mem) && !(p && avr_mem_exclude(pgm, p, mem));
 }
 
-#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? led_read_byte: avr_read_byte_default)
-#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? led_write_byte: avr_write_byte_default)
+static int read_byte_error(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, uint8_t *value) {
+  pmsg_error("pgm->read_byte must not be pointing to avr_read_byte_cached()\n");
+  return -1;
+}
+
+static int write_byte_error(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, uint8_t data) {
+  pmsg_error("pgm->write_byte must not be pointing to avr_write_byte_cached()\n");
+  return -1;
+}
+
+// Sanity only: guard against a user setting pgm->xyz_byte to avr_xyz_read_byte_cached (AVRDUDE doesn't)
+#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? led_read_byte: read_byte_error)
+#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? led_write_byte: write_byte_error)
+#define fallback_update_byte (pgm->write_byte != avr_write_byte_cached? led_update_byte: write_byte_error)
 
 /*
  * Read the page containing addr from the device into buf
@@ -670,7 +682,7 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   // Use pgm->write_byte() if not flash/EEPROM/bootrow/usersig or no paged access
   if(!avr_has_paged_access(pgm, p, mem))
-    return fallback_write_byte(pgm, p, mem, addr, data);
+    return fallback_update_byte(pgm, p, mem, addr, data);
 
   // If address is out of range synchronise caches with device and return whether successful
   if(addr >= (unsigned long) mem->size)
