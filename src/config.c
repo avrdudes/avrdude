@@ -1077,7 +1077,7 @@ void cfg_update_mcuid(AVRPART *part) {
   for(size_t i = 0; i < sizeof uP_table/sizeof *uP_table; i++) {
     if(str_caseeq(part->desc, uP_table[i].name)) {
       if(part->mcuid != (int) uP_table[i].mcuid) {
-        if(part->mcuid >= 0 && verbose >= MSG_DEBUG)
+        if(part->mcuid >= 0 && verblevel >= MSG_DEBUG)
           yywarning("overwriting mcuid of part %s to be %d", part->desc, uP_table[i].mcuid);
         part->mcuid = uP_table[i].mcuid;
       }

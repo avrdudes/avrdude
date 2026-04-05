@@ -1181,7 +1181,7 @@ void dev_output_part_defs(char *partdesc) {
             n = 1 << c;
           }
           dev_info(".cfgt\t%s\t%d\t%s\n", p->desc, n, cp->name);
-          if(cp->vlist && verbose)
+          if(cp->vlist && verbose > 0)
             for(int k = 0; k < cp->nvalues; k++)
               dev_info(".cfgv\t%s\t\tvalue\t%d\t%s\n", p->desc, cp->vlist[k].value, cp->vlist[k].label);
         }

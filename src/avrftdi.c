@@ -568,9 +568,9 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 
   Avrftdi_data *pdata = to_pdata(pgm);
 
-  bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verbose >= MSG_TRACE));
+  bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verblevel >= MSG_TRACE));
 
-  bool pin_check_bitbanging = (0 == avrftdi_check_pins_bb(pgm, verbose >= MSG_TRACE));
+  bool pin_check_bitbanging = (0 == avrftdi_check_pins_bb(pgm, verblevel >= MSG_TRACE));
 
   if(!pin_check_mpsse && !pin_check_bitbanging) {
     pmsg_error("no valid pin configuration found\n");
@@ -896,7 +896,7 @@ static int avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m
   avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], buf);
   avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], buf, address);
 
-  if(verbose >= MSG_TRACE2)
+  if(verblevel >= MSG_TRACE2)
     buf_dump(buf, sizeof(buf), "load extended address command", 0, 16*3);
 
   if(0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, 4))
@@ -1020,7 +1020,7 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if(poll_index + 1 > addr) {
     buf_size = bufptr - buf;
 
-    if(verbose >= MSG_TRACE2)
+    if(verblevel >= MSG_TRACE2)
       buf_dump(buf, buf_size, "command buffer", 0, 16*2);
 
     pmsg_notice("transmitting buffer of size: %d\n", buf_size);
@@ -1089,14 +1089,14 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
    * if there was an error, we did not see, memory validation will
    * subsequently fail.
    */
-  if(verbose >= MSG_TRACE2) {
+  if(verblevel >= MSG_TRACE2) {
     buf_dump(o_buf, sizeof(o_buf), "o_buf", 0, 32);
   }
 
   if(0 > avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, o_buf, i_buf, len*4))
     return -1;
 
-  if(verbose >= MSG_TRACE2) {
+  if(verblevel >= MSG_TRACE2) {
     buf_dump(i_buf, sizeof(i_buf), "i_buf", 0, 32);
   }
 
@@ -1115,7 +1115,7 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     avr_get_output(readop, &i_buf[byte*4], &m->buf[addr + byte]);
   }
 
-  if(verbose >= MSG_TRACE2)
+  if(verblevel >= MSG_TRACE2)
     buf_dump(&m->buf[addr], page_size, "page:", 0, 32);
 
   return len;

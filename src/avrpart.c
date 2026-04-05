@@ -1148,7 +1148,7 @@ void avr_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *p
   fprintf(f, "%sAVR part              : %s\n", prefix, p->desc);
   fprintf(f, "%sProgramming modes     : %s\n", prefix, str_prog_modes(p->prog_modes));
 
-  if(verbose > 1) {
+  if(verbose >= MSG_NOTICE2) {
     avr_mem_display(f, pgm, p, prefix);
     avr_variants_display(f, p, prefix);
   }

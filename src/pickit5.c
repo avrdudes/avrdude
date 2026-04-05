@@ -2282,7 +2282,7 @@ static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, 
     i += amnt;
   }
 
-  if(verbose > 4)
+  if(verblevel >= MSG_TRACE2)
     trace_buffer(__func__, p, i);
 
   return 0;
@@ -2315,7 +2315,7 @@ static int usbdev_bulk_send(const union filedescriptor *fd, const unsigned char 
     i += tx_size;
   } while(mlen > 0);
 
-  if(verbose > 3)
+  if(verblevel >= MSG_TRACE)
     trace_buffer(__func__, p, i);
   return 0;
 }
