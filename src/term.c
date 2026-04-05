@@ -2762,6 +2762,9 @@ static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char 
   int hold, matches;
   size_t len;
 
+  if(pgm->cmdhook)
+    pgm->cmdhook(pgm, p, argc, argv);
+
   len = strlen(argv[0]);
   matches = 0;
   for(int i = 0; i < NCMDS; i++)

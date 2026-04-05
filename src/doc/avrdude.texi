@@ -149,6 +149,8 @@ eeprom, programming fuse/lock bits, etc.
 @cindex Programmers supported
 @cindex Emulating a HW programmer (dryrun)
 @cindex Emulating a bootloader (dryboot)
+@cindex dryrun
+@cindex dryboot
 
 Programming a microcontroller either requires a physical programmer that
 sits between the target chip and the PC running AVRDUDE, or a  bootloader
@@ -1339,7 +1341,9 @@ extended parameters to be specified on the command line.
 @item dryrun
 @itemx dryboot
 
-Both dryrun and dryboot programmers emulate programming and accept the following parameters:
+Dryrun emulates external programming without the need to connect a
+programmer or a part while dryboot emulates bootloader programming without
+the need to connect the target part. They accept the following parameters:
 
 @table @code
 @cindex @code{flash}
@@ -4573,6 +4577,92 @@ L7ffe:  .byte   0xe6, 0x40           ; _@
 @end cartouche
 @end smallexample
 
+
+@page
+
+@noindent
+It is noteworthy that @code{-c dryboot} allows uploading of one urboot
+bootloader and, from that point onwards, emulates @code{-c urclock -x
+nometadata}. This means, eg, @code{-c dryboot} will not allow the
+bootloader be overwritten:
+
+@cindex Emulating a bootloader (dryboot)
+@cindex Emulating a HW programmer (dryrun)
+@cindex Vector table
+@cindex Patching the vector table
+@cindex dryrun
+@cindex dryboot
+@cindex urclock
+
+@smallexample
+@cartouche
+$ avrdude -q -c dryboot -p m328p -U urboot:autobaud_ee -U blink.hex \
+  -T "write flash 0x7f80 0x00"
+
+Processing -U flash:w:urboot:autobaud_ee:i
+Reading 376 bytes for flash from input file urboot:autobaud_ee
+Writing 376 bytes to flash, 376 bytes written, 376 verified
+Setting fuses for bootloader urboot:autobaud_ee
+Detected urboot bootloader u8.0 weU-jPra- in [0x7e80, 0x7fff] with vector=25
+
+Processing -U flash:w:blink.hex:i
+Reading 354 bytes for flash from input file blink.hex
+Writing 354 bytes to flash, 354 bytes written, 354 verified
+
+Processing -T write flash 0x7f80 0x00
+Warning: (write) programmer write protects flash address 0x7f80
+
+Avrdude done.  Thank you.
+@end cartouche
+@end smallexample
+
+@noindent
+More importantly, @code{-c dryboot} patches the vector table of any
+to-be-uploaded sketch if the previously installed bootloader is an urboot
+vector bootloader just like @code{avrdude -c urclock -x nometadata} would;
+this is needed for the vector bootloader to work (for details, see the
+@url{https://github.com/stefanrueger/urboot} project):
+
+@smallexample
+@cartouche
+$ avrdude -qq -c dryboot -p m328p -U urboot:autobaud_ee -U blink.hex \
+  -T "disasm flash 0 2" -T "disasm flash 100 4"
+
+L0000: 3f cf        rjmp    .-386                ; L7e80
+L0064: 0c 94 34 00  jmp     0x0068
+@end cartouche
+@end smallexample
+
+@noindent
+In contrast, using @code{-c dryrun} does not patch the vector table of a
+sketch as it emulates and behaves like an external programmer:
+
+@smallexample
+@cartouche
+$ avrdude -qq -c dryrun -p m328p -U urboot:autobaud_ee -U blink.hex \
+  -T "disasm flash 0 2" -T "disasm flash 100 2"
+
+L0000: 33 c0        rjmp    .+102                ; L0068
+L0064: 11 c0        rjmp    .+34                 ; L0088
+@end cartouche
+@end smallexample
+
+@noindent
+The following example prepares a patched sketch for upload through a
+self-written uploader or through urboot's dual boot. Note that @code{385}
+is the size of the bootloader plus 1 and that the generated file
+@code{blink-patched.hex} has the size of flash minus 384. In absence of
+the option @code{-A} AVRDUDE drops all trailing 0xff from the patched
+sketch.
+
+@cindex Dual boot
+
+@smallexample
+@cartouche
+$ avrdude -qq -c dryboot -p m328p -U urboot:autobaud_ee -U blink.hex \
+  -T "save flash 0 -385 blink-patched.hex:I"
+@end cartouche
+@end smallexample
 
 @page
 

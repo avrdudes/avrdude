@@ -45,7 +45,7 @@
 
 // Context of the programmer
 typedef enum {
-  DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
+  DRY_NOBOOTLOADER,             // No bootloader, talking to an ordinary programmer
   DRY_TOP,                      // Bootloader and it sits at top of flash
   DRY_BOTTOM,                   // Bootloader sits at bottom of flash (UPDI parts)
 } Dry_prog;
@@ -61,16 +61,233 @@ typedef struct {
   int datastart, datasize;      // Start and size of application data section (if any)
   int bootstart, bootsize;      // Start and size of boot section (if any)
   int initialised;              // 1 once the part memories are initialised
+  struct {
+    int vectornum;              // Vector bootloader vector number for jump to application op code
+    int urversion;              // Octal byte 076 means v7.6 (minor version number is lowest 3 bit)
+    int32_t blstart, blend;     // Bootloader address range [blstart, blend] for write protection
+    int32_t pfstart, pfend;     // Programmable flash address range [pfstart, pfend]
+  } urdesc;
 } Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
 #define dry (*(Dryrun_data *)(pgm->cookie))
+#define ur (dry.urdesc)
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while(0)
 #define Retwarning(...) do { pmsg_warning(__VA_ARGS__); \
   msg_warning("; not initialising %s memories\n", p->desc); return -1; } while(0)
 
 static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int addr);
+
+// Initialise urboot descriptor once an urboot bootloader is detected
+static int dryrun_init_ur(const PROGRAMMER *pgm, const AVRPART *p) {
+  // The first urboot bootloader detection freezes the parameters
+  if(ur.urversion)
+    return 0;
+
+  uint8_t top[6];
+  const AVRMEM *flm = avr_locate_flash(p);
+  if(!flm)
+    Return("cannot locate flash memory for %s\n", p->desc);
+
+  // No urboot bootloaders on AVR32 parts, neither on really small devices
+  if(is_awire(p) || flm->size < 1024)
+    return 0;
+
+  if(!is_updi(p)) {
+    // Check top 6 bytes from flash to obtain intell about bootloader and type
+    for(int i = sizeof top - 1; i >= 0; i--) {
+      if(pgm->read_byte(pgm, p, flm, flm->size - sizeof top + i, top + i) < 0)
+        return -1;
+      // Abort if last byte in flash does not indicate urboot v7.5 ... v12.7 == 0147
+      if(i == sizeof top - 1 && (top[i] < 075 || top[i] > 0147))
+        return 0;
+    }
+
+    uint8_t numpags = top[0] & 0x7f; // Number of bootloader pages from v7.5
+    uint8_t vectnum = top[1] & 0x7f; // Vector number for application start from v7.5
+    uint16_t rjmpwp = buf2uint16(top+2); // rjmp to bootloader pgm_write_page() or ret
+    // uint8_t cap = top[4];    // Capability byte not needed
+    uint8_t urver = top[5];     // Urboot version; low 3 bits = minor version: 076 = v7.6
+
+    // Could be urboot bootloader v7.5 .. v12.7: check further properties
+    if(isop(rjmpwp, rjmp) || isop(rjmpwp, ret)) { // OK, valid rjmpwp opcode
+      int blsize = numpags*flm->page_size;
+      // Size of urboot bootloader should be in [64, 2048] (in v7.6 these are 224-512 bytes)
+      if(blsize >= 64 && blsize <= 2048 && vectnum <= p->n_interrupts) { // Within range
+        int dfromend  = dist_rjmp(rjmpwp, flm->size) - 4;
+        // Further check whether writepage() rjmp opcode jumps backwards into bootloader
+        if(isop(rjmpwp, ret) || (dfromend >= -blsize && dfromend < -6)) { // urboot!
+          ur.blstart = flm->size - blsize;
+          ur.blend   = flm->size - 1;
+          ur.pfstart = 0;
+          ur.pfend   = ur.blstart - 1;
+          ur.vectornum = vectnum;
+          ur.urversion = urver;
+        }
+      }
+    }
+  } else {                      // @@@ Fixme: todo when UPDI urboot bootloaders available
+  }
+
+  if(ur.urversion) {
+    char buf[20];
+    urbootPutVersion(buf, (uint16_t *) top);
+    pmsg_info("detected urboot bootloader %s in [0x%04x, 0x%04x] with vector=%d\n", 
+      buf, ur.blstart, ur.blend, ur.vectornum);
+  }
+
+  return 0;
+}
+
+// At the beginning of every terminal command
+static int dryrun_cmdhook(const PROGRAMMER *pgm, const AVRPART *p, int argc_uu, const char *argv_uu[]) {
+  return dryrun_init_ur(pgm, p);
+}
+
+// At the beginning of every -U command and during execution of terminal backup, restore and verify
+static int dryrun_updatehook(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd_uu, int flags_uu) {
+  return dryrun_init_ur(pgm, p);
+}
+
+// Called after the input file has been read for writing or verifying flash
+static int dryrun_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
+  const char *fname_uu, int size) {
+
+  int maxsize = ur.pfend+1, firstbeg, firstlen;
+  const int vecsz = flm->size <= 8192? 2: 4; // Small parts use rjmp, large a 4-byte jmp
+
+  // Compute begin and length of first contiguous block in input
+  for(firstbeg=0; firstbeg < size; firstbeg++)
+    if(flm->tags[firstbeg] & TAG_ALLOCATED)
+      break;
+  for(firstlen=0; firstbeg+firstlen < size; firstlen++)
+    if(!(flm->tags[firstbeg+firstlen] & TAG_ALLOCATED))
+      break;
+
+  // Sanity: no patching if bootloader location is unknown
+  if(ur.blend <= ur.blstart)
+    goto nopatch;
+
+  // Sanity check the bootloader position
+  if(ur.blstart < 0 || ur.blstart >= flm->size || ur.blend < 0 || ur.blend >= flm->size)
+    Return("bootloader [0x%04x, 0x%04x] outside flash [0, 0x%04x]",
+      ur.blstart, ur.blend, flm->size-1);
+
+  // Check size of uploded application and protect bootloader from being overwritten
+  if((!is_updi(p) && size > maxsize) || (is_updi(p) && firstbeg <= ur.blend))
+    Return("input [0x%04x, 0x%04x] overlaps b/loader [0x%04x, 0x%04x]",
+      firstbeg, size-1, ur.blstart, ur.blend);
+
+  if(size > maxsize)
+    Return("input [0x%04x, 0x%04x] extends programmable area [0x%04x, 0x%04x]",
+      firstbeg, size-1, ur.pfstart, ur.pfend);
+
+  if(is_updi(p))
+    goto nopatch;
+
+  bool llcode = firstbeg == 0 && firstlen > p->n_interrupts*vecsz; // Looks like code
+  bool llvectors = firstbeg == 0 && firstlen >= p->n_interrupts*vecsz; // Looks like vector table
+  for(int i = 0; llvectors && i < p->n_interrupts*vecsz; i += vecsz) {
+    uint16_t op16 = buf2uint16(flm->buf+i);
+    if(!isop(op16, rjmp) && !(vecsz == 4 && isop(op16, jmp)))
+      llvectors = 0;
+  }
+
+  if(llcode && !llvectors && ur.vectornum > 0)
+    pmsg_warning("not patching jmp to application as input does not start with a vector table\n");
+
+  // Patch vectors if input looks like code and it's a vector bootloader with known vector number
+  if(llcode && llvectors && ur.vectornum > 0) {
+    uint16_t reset16;
+    int reset32, appstart, appvecloc;
+
+    appvecloc = ur.vectornum*vecsz; // Location of jump-to-application in vector table
+    reset16 = buf2uint16(flm->buf); // First reset word of to-be-written application
+    reset32 = vecsz == 2? reset16: buf2uint32(flm->buf);
+
+    /*
+     * Compute where the application starts from the reset vector. The assumptions are that the
+     *  - Vector table, and therefore the reset vector, resides at address zero
+     *  - Compiler puts either a jmp or an rjmp at address zero
+     *  - Compiler does not shorten the vector table if no or few interrupts are used
+     *  - Compiler does not utilise unused interrupt vectors to place code there
+     */
+
+    if(reset2addr(flm->buf, vecsz, flm->size, &appstart) < 0) {
+      pmsg_warning("not patching input as opcode word %04x at reset is not r/jmp\n", reset16);
+      goto nopatch;
+    }
+
+    // Only patch if appstart does not already point to the bootloader
+    if(appstart != ur.blstart) {
+      int vectorsend = vecsz*ur.vectornum;
+      if(appstart < vectorsend || appstart >= size) { // appstart should be in [vectorsend, size)
+        if(appstart != ur.blstart) {
+          pmsg_warning("not patching as reset opcode %0*x jumps to 0x%04x,\n",
+            vecsz*2, reset32, appstart);
+          imsg_warning("ie, outside code area [0x%04x, 0x%04x)\n",
+            vectorsend, size);
+        }
+        goto nopatch;
+      }
+
+      // OK, now have bootloader start and application start: patch
+      set_resetvector(ur.blstart, flm->size, flm->buf+0, vecsz, 1);
+      if(vecsz == 4)
+        uint32tobuf(flm->buf+appvecloc, jmp_opcode(appstart));
+      else
+        uint16tobuf(flm->buf+appvecloc, rjmp_opcode(appstart - appvecloc, flm->size));
+    }
+  }
+
+nopatch:
+
+  // Ensure that vector bootloaders have correct r/jmp at address 0
+  if(!is_updi(p) && ur.blstart && ur.vectornum > 0) {
+    int resetdest, set = 0;
+    for(int i = 0; i < vecsz; i++)
+      if(flm->tags[i] & TAG_ALLOCATED)
+        set++;
+
+    // Reset vector not programmed? Or -F? Ensure a jmp to bootloader
+    if(ovsigck || set != vecsz) {
+      unsigned char jmptoboot[4];
+      int resetsize = set_resetvector(ur.blstart, flm->size, jmptoboot, vecsz, 1);
+
+      if(set != vecsz) {
+        unsigned char device[4];
+        // Read reset vector from device flash
+        for(int i = 0; i < vecsz; i++)
+          if(pgm->read_byte(pgm, p, flm, i, device+i) < 0)
+            return -1;
+
+        // Mix with already set bytes
+        for(int i = 0; i < vecsz; i++)
+          if(!(flm->tags[i] & TAG_ALLOCATED))
+            flm->buf[i] = device[i];
+      }
+
+      if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0 || resetdest != ur.blstart) {
+        for(int i=0; i < resetsize; i++) {
+          flm->buf[i] = jmptoboot[i];
+          flm->tags[i] |= TAG_ALLOCATED;
+        }
+      }
+    } else if(firstbeg < vecsz) { // Double-check reset vector jumps to bootloader
+      if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
+        Return("input would overwrite the reset vector bricking the bootloader\n"
+          "  using -F will try to patch the input but this may not be what is needed");
+      if(resetdest != ur.blstart)
+        Return("input points reset to 0x%04x, not to bootloader at 0x%04x\n"
+          "  using -F will try to patch the input but this may not be what is needed",
+          resetdest, ur.blstart);
+    }
+  }
+
+  return size;
+}
+
 
 // Read expected signature bytes from part description
 static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *sigmem) {
@@ -515,6 +732,10 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *m, *fusesm = NULL, *prodsigm = NULL, *calm;
   AVRPART *q = dry.dp = avr_dup_part(p);        // Allocate dryrun part and abbreviate with q
 
+  // Initialise urboot descriptor so that all flash is programmable and there is no bootloader
+  if((m = avr_locate_flash(p)))
+    ur.pfend = m->size-1;
+
   memset(inifuses, 0xff, sizeof inifuses);
   srandom(dry.seed? dry.seed: time(NULL));
 
@@ -777,9 +998,26 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       Return("cannot write page [0x%04x, 0x%04x] to %s %s as it is incompatible with memory [0, 0x%04x]",
         addr, end - 1, dry.dp->desc, dmem->desc, dmem->size - 1);
 
+    // Protect reset vector just as -c urclock would
+    if(dry.bl == DRY_TOP && ur.vectornum > 0 && (mem_is_application(m) || mem_is_flash(m)) && addr == 0)
+      for(unsigned vecsz = m->size <= 8192? 2u: 4u, i = 0; i < vecsz && i < n_bytes; i++)
+        pgm->read_byte(pgm, p, dmem, i, m->buf+i);
+
     for(; addr < end; addr += chunk) {
       chunk = end - addr < page_size? end - addr: page_size;
-      // @@@ Check for bootloader write protection here
+
+      // Silently skip writing the chunk if that were to overwrite bootloader
+      if(dry.bl && mchr == 'F' && !mem_is_apptable(m) && ur.blend > ur.blstart) {
+        const AVRMEM *am;
+        int testa = addr;
+
+        // Translate XMEGA boot addresses to flash addresses
+        if(is_pdi(p) && mem_is_boot(m) && (am = avr_locate_application(p)))
+          testa += am->size;
+
+        if(testa >= ur.blstart && testa+chunk-1 <= ur.blend)
+          continue;
+      }
 
       // Unless it is a bootloader flash looks like NOR-memory
       (mchr == 'F' && !dry.bl? memand: memcpy) (dmem->buf + addr, m->buf + addr, chunk);
@@ -953,7 +1191,6 @@ static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 // Return whether an address is write protected
 static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int addr) {
-
   if(mem_is_readonly(mem))
     return 1;
 
@@ -963,7 +1200,27 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return 0;
   }
 
-  // @@@ check for bootloader write protection
+  // Bootloader
+  if(mem_is_in_flash(mem) && !mem_is_apptable(mem)) {
+    const AVRMEM *m;
+
+    // Translate XMEGA boot addresses to flash addresses
+    if(is_pdi(p) && mem_is_boot(mem) && (m = avr_locate_application(p)))
+      addr += m->size;
+
+    if(addr > (unsigned int) ur.pfend)
+      return 1;
+    if(addr < (unsigned int) ur.pfstart)
+      return 1;
+    // Protect reset vector once vector bootloader detected
+    if(addr < 4 && !is_updi(p) && ur.vectornum > 0)
+      if(addr < ((m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u))
+        return 1;
+  }
+  /* // Below is too realistic as it precludes -U urboot: fuse settings
+   * else if(is_classic(p) && !mem_is_eeprom(mem))
+   *   return 1;
+   */
 
   if(dry.initialised && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
     return 1;
@@ -1074,4 +1331,9 @@ void dryrun_initpgm(PROGRAMMER *pgm) {
   pgm->term_keep_alive = dryrun_term_keep_alive;
   pgm->readonly = dryrun_readonly;
   pgm->parseextparams = dryrun_parseextparams;
+  if(is_spm(pgm)) {
+    pgm->flash_readhook = dryrun_flash_readhook;
+    pgm->updatehook = dryrun_updatehook;
+    pgm->cmdhook = dryrun_cmdhook;
+  }
 }

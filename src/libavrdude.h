@@ -981,6 +981,8 @@ typedef struct {
   unsigned long ms[LED_N];      // Time in ms after last physical change
 } Leds;
 
+typedef struct update UPDATE;
+
 /*
  * Any changes in PROGRAMMER, please also ensure changes are made in
  *  - lexer.l
@@ -1077,6 +1079,8 @@ typedef struct programmer {
   void (*teardown)(PROGRAMMER *pgm);
   int (*flash_readhook)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
     const char *fname, int size);
+  int (*updatehook)(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, int flags);
+  int (*cmdhook)(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
@@ -1767,6 +1771,9 @@ extern "C" {
 
   char *avr_cc_buffer(size_t n);
 
+// Shortcut for testing whether a 16-bit opcode is a certain mnemonic (rjmp, ret, ...)
+#define isop(op16, code) op16_is_mnemo(op16, MNEMO_ ## code)
+
   int op16_is_mnemo(int op16, AVR_mnemo mnemo);
   int is_opcode32(int op16);
   int op_width(int op16);
@@ -1797,6 +1804,9 @@ extern "C" {
   uint16_t buf2uint16(const unsigned char *buf);
   void uint32tobuf(unsigned char *buf, uint32_t opcode32);
   void uint16tobuf(unsigned char *buf, uint16_t opcode16);
+  int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp);
+  int set_resetvector(int blstart, int flsize, uint8_t *reset, int vecsz, int isur);
+  void urbootPutVersion(char *buf, uint16_t *top6table);
 
   const Uart_conf *getuartsigs(const Avrintel *up, int uart, int alt);
   int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename);

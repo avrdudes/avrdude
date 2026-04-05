@@ -640,6 +640,9 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   Filestats fs;
   const char *umstr = upd->memstr;
 
+  if(pgm->updatehook)
+    pgm->updatehook(pgm, p, upd, flags);
+
   if(!(flags & UF_NOHEADING)) {
     char *heading = update_str(upd);
 
