@@ -38,8 +38,18 @@ Changes since version 8.1:
     - Update command line option parsing #2070
     - Suggest udevadm control --reload instead of rebooting #2077
     - Make paged_write independent from paged_load #2078
+    - Update whereami.[ch] from github source #2084
+    - Update single byte writes, ie, skip write if data already there #2085
+    - Use verbosity levels consistently #2086
+    - Simplify buspirate_expect_bin_byte() function #2087
+    - Make -c dryboot emulate -c urclock -x nometadata #2090
+    - Remove PM_TPI from -c stk600 prog modes #2092
 
   * Internals:
+
+    - Command line -U and terminal writes to non-cached memory (eg, fuses
+      or lock bytes) will read the byte first and only physically write if
+      the byte differs from the one on the device.
 
 Changes in version 8.1:
 
