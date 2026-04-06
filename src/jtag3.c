@@ -1622,10 +1622,6 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
       msg_error("  -x vtarg_switch=<0|1>  Set on-board target voltage switch state\n");
     }
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
-      msg_error("  -x vtarg               Read on-board target supply voltage\n");
-      msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
-    }
     if(pgm->extra_features & HAS_VTARG_READ)
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
     if(pgm->extra_features & HAS_VTARG_ADJ)
