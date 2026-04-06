@@ -1432,11 +1432,14 @@ High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use @code{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets.
 
-@item vtarg=VALUE, vtarg
+@item vtarg
+Read the target voltage.
+
+@item vtarg=VALUE
 @var{Power Debugger only}
 @*
 The voltage generator can be enabled by setting a target voltage.
-The current set-voltage can be read by @code{-x vtarg} alone.
+
 
 @end table
 
@@ -1453,14 +1456,15 @@ The current set-voltage can be read by @code{-x vtarg} alone.
 
 The PICkit 4 and MPLAB(R) SNAP programmers accept the following extended parameters:
 @table @code
+@item vtarg
+Read the target voltage.
 @item mode=avr
 Switch programmer to AVR mode, then exit unless it was already in AVR mode
 @item mode=<mplab|pic>
 Switch programmer to MPLAB aka PIC mode, then exit
 @end table
 
-The PICkit 4 and MPLAB(R) SNAP programmer can only be utilised by AVRDUDE
-when in AVR mode. Use @code{-x mode=avr} for switching to AVR mode, or
+Use @code{-x mode=avr} for switching to AVR mode, or
 @code{-x mode=mplab} for switching (back) to MPLAB mode.
 
 @cindex Option @code{-x} PICkit 5
@@ -1474,6 +1478,8 @@ when in AVR mode. Use @code{-x mode=avr} for switching to AVR mode, or
 
 The PICkit 5 and PICkit 4 (MPLAB Mode) programmer can accept following extended parameters
 @table @code
+@item vtarg
+Read the target voltage.
 @item vtarg=VALUE
 Specify a voltage between 1.8 and 5.5@w{ }V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,
