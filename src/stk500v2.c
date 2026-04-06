@@ -3773,7 +3773,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   int decimals;
   const char *unit;
 
-  if(pgm->extra_features & HAS_VTARG_READ) {
+  if(pgm->extra_features & HAS_VTARG_READ && my.pgmtype != PGMTYPE_JTAGICE3) {
     fmsg_out(fp, "%sVtarget               : %.1f V\n", p, stk500v2_vtarget_value(pgm));
   }
 
