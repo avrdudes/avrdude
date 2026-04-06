@@ -1743,11 +1743,18 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           my.vtarg_set = true;
           continue;
         }
+        pmsg_error("invalid setting in -x %s; use or -x vtarg=<dbl>\n", extended_param);
+        rv = -1;
+        break;
+      }
+      if(pgm->extra_features & HAS_VTARG_READ) {
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
+        if(str_eq(extended_param, "vtarg")) {
           my.vtarg_get = true;
           continue;
         }
+        rv = -1;
+        break;
       }
     }
 
