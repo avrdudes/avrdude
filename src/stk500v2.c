@@ -1386,12 +1386,12 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
     if(my.vtarg_get)
-      msg_info("Target voltage value read as %.2f V\n", vtarg_read);
+      msg_info("Target voltage value read as %.2f V\n", b2_to_u16(buf)/1000.0);
     // Write target voltage value
     else {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
@@ -1886,10 +1886,10 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
-      msg_error("  -x vtarg          Read target supply voltage\n");
-      msg_error("  -x vtarg=<dbl>    Set target supply voltage to <dbl> V\n");
-    }
+    if(pgm->extra_features & HAS_VTARG_READ)
+      msg_error("  -x vtarg          Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
+      msg_error("  -x vtarg=<dbl>    Set on-board target supply voltage to <dbl> V\n");
     if(pgm->extra_features & HAS_VAREF_ADJ) {
       if(str_contains(pgm->type, "STK500")) {
         msg_error("  -x varef          Read analog reference voltage\n");
@@ -1996,12 +1996,16 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           my.vtarg_set = true;
           continue;
         }
+        pmsg_error("invalid setting in -x %s; use or -x vtarg=<dbl>\n", extended_param);
+        rv = -1;
+        break;
+      }
+      if(pgm->extra_features & HAS_VTARG_READ) {
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
+        if(str_eq(extended_param, "vtarg")) {
           my.vtarg_get = true;
           continue;
         }
-        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -2041,10 +2045,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
       msg_error("  -x vtarg_switch=<0..1> Set on-board target voltage switch state\n");
     }
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
+    if(pgm->extra_features & HAS_VTARG_READ)
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
       msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
-    }
     if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
       msg_error("  -x mode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
     msg_error("  -x help                Show this help menu and exit\n");

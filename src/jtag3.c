@@ -1139,7 +1139,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
@@ -1567,12 +1567,16 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           my.vtarg_set = true;
           continue;
         }
+        pmsg_error("invalid setting in -x %s; use or -x vtarg=<dbl>\n", extended_param);
+        rv = -1;
+        break;
+      }
+      if(pgm->extra_features & HAS_VTARG_READ) {
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
+        if(str_eq(extended_param, "vtarg")) {
           my.vtarg_get = true;
           continue;
         }
-        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1622,6 +1626,10 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
       msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
     }
+    if(pgm->extra_features & HAS_VTARG_READ)
+      msg_error("  -x vtarg               Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
+      msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
     if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
       msg_error("  -x mode=avr            Set programmer to AVR mode and exit if it was not\n");
       msg_error("  -x mode=<mplab|pic>    Set programmer to MPLAB aka PIC mode and exit\n");
