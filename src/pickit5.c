@@ -71,10 +71,10 @@
 #define ERROR_SCRIPT_DEVICE_LOCKED  (LIBAVRDUDE_BEYOND_ERRS - 5)
 #define ERROR_SCRIPT_EXECUTION      (LIBAVRDUDE_BEYOND_ERRS - 6)
 
-
-#define can_power_target(pgm) (!!(pgm->extra_features & HAS_VTARG_ADJ))
-#define can_gen_hv_pulse(pgm) (!!(pgm->extra_features & HAS_VTARG_ADJ))  // Currently, with the 4
-#define can_do_ptg(pgm)       (can_power_target(pgm)) //  supported ICDs, it is enough to figure this out
+#define can_read_target_power(pgm)  (!!(pgm->extra_features & HAS_VTARG_READ))
+#define can_power_target(pgm)       (!!(pgm->extra_features & HAS_VTARG_ADJ))
+#define can_gen_hv_pulse(pgm)       (!!(pgm->extra_features & HAS_VTARG_ADJ))  // Currently, with the 4
+#define can_do_ptg(pgm)             (can_power_target(pgm)) //  supported ICDs, it is enough to figure this out
 
 // Private data for this programmer
 struct pdata {
@@ -84,6 +84,7 @@ struct pdata {
   unsigned char keep_power;     // 0: No power on exit / 1: Keeps supplying power on exit
   double target_voltage;        // Voltage to supply to target
 
+  bool get_vcc;
   double measured_vcc;          // This and below for print_params()
   unsigned int measured_current;
   unsigned int actual_pgm_clk;
@@ -381,6 +382,14 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       my.target_voltage = voltage;
       continue;
     }
+    if(str_eq(extended_param, "vtarg")) {
+      if(!can_read_target_power(pgm)) {
+        pmsg_warning("programmer does not support target voltage reading, continuing\n");
+        continue;
+      }
+      my.get_vcc = true;
+      continue;
+    }
     if(str_starts(extended_param, "hvupdi")) {
       if(can_gen_hv_pulse(pgm))
         for(LNODEID ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
@@ -393,6 +402,8 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
+      if(can_read_target_power(pgm))
+        msg_error("  -x vtarg        Read target supply voltage\n");
       if(can_power_target(pgm))
         msg_error("  -x vtarg=<dbl>  Enable power output; <dbl> must be in [1.8, 5.5] V\n");
       if(can_gen_hv_pulse(pgm))
@@ -1064,6 +1075,8 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(pgm->extra_features & HAS_VTARG_READ) { // If not supported (PK Basic), use a place
     pickit5_get_vtarget(pgm, &v_target);
+    if(my.get_vcc)
+      msg_info("Target voltage value read as %1.2fV\n", my.measured_vcc);
     if(v_target < 1.8) {
       if(my.power_source == POWER_SOURCE_NONE) {
         pmsg_warning("no external voltage detected but continuing anyway\n");
