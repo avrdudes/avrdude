@@ -17080,31 +17080,8 @@ part parent ".xmega-ab" # x64a4
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "sram"
@@ -17620,31 +17597,8 @@ part parent ".xmega-ab" # x128a4
         offset             = 0x820000;
     ;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "prodsig"
@@ -17967,31 +17921,8 @@ part parent ".xmega-ab" # x192a1
         offset             = 0x830000;
     ;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "prodsig"
@@ -18285,31 +18216,8 @@ part parent ".xmega-ab" # x256a1
         offset             = 0x840000;
     ;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "prodsig"
