@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.45
- * 07.01.2026
+ * v 1.46
+ * 09.04.2026
  *
  */
 
@@ -1999,14 +1999,16 @@ extern const Configitem      cfgtab_atxmega16e5[17];
 #define cfgtab_atxmega8e5    cfgtab_atxmega16e5
 #define cfgtab_atxmega32e5   cfgtab_atxmega16e5
 
-extern const Configitem      cfgtab_atxmega128a3[16];
-#define cfgtab_atxmega64a1   cfgtab_atxmega128a3
-#define cfgtab_atxmega64a3   cfgtab_atxmega128a3
-#define cfgtab_atxmega128a1  cfgtab_atxmega128a3
-#define cfgtab_atxmega128a1revd cfgtab_atxmega128a3
-#define cfgtab_atxmega192a3  cfgtab_atxmega128a3
-#define cfgtab_atxmega256a3  cfgtab_atxmega128a3
-#define cfgtab_atxmega256a3b cfgtab_atxmega128a3
+extern const Configitem      cfgtab_atxmega192a1[16];
+#define cfgtab_atxmega256a1  cfgtab_atxmega192a1
+#define cfgtab_atxmega128a3  cfgtab_atxmega192a1
+#define cfgtab_atxmega64a1   cfgtab_atxmega192a1
+#define cfgtab_atxmega64a3   cfgtab_atxmega192a1
+#define cfgtab_atxmega128a1  cfgtab_atxmega192a1
+#define cfgtab_atxmega128a1revd cfgtab_atxmega192a1
+#define cfgtab_atxmega192a3  cfgtab_atxmega192a1
+#define cfgtab_atxmega256a3  cfgtab_atxmega192a1
+#define cfgtab_atxmega256a3b cfgtab_atxmega192a1
 
 extern const Configitem      cfgtab_atxmega128a3u[17];
 #define cfgtab_atxmega16a4u  cfgtab_atxmega128a3u
@@ -2019,6 +2021,11 @@ extern const Configitem      cfgtab_atxmega128a3u[17];
 #define cfgtab_atxmega192a3u cfgtab_atxmega128a3u
 #define cfgtab_atxmega256a3bu cfgtab_atxmega128a3u
 #define cfgtab_atxmega256a3u cfgtab_atxmega128a3u
+
+extern const Configitem      cfgtab_atxmega64a4[16];
+#define cfgtab_atxmega128a4  cfgtab_atxmega64a4
+#define cfgtab_atxmega16a4   cfgtab_atxmega64a4
+#define cfgtab_atxmega32a4   cfgtab_atxmega64a4
 
 extern const Configitem      cfgtab_attiny204[23];
 #define cfgtab_attiny202     cfgtab_attiny204
@@ -2342,9 +2349,6 @@ extern const Configitem      cfgtab_ata5790n[10];
 
 extern const Configitem      cfgtab_ata6289[17];
 
-extern const Configitem      cfgtab_atxmega16a4[16];
-#define cfgtab_atxmega32a4   cfgtab_atxmega16a4
-
 extern const Configitem      cfgtab_atxmega16c4[15];
 #define cfgtab_atxmega16d4   cfgtab_atxmega16c4
 #define cfgtab_atxmega32c3   cfgtab_atxmega16c4
@@ -2470,7 +2474,7 @@ extern const Register_file   rgftab_atmega32hvbrevb[91];
 #define rgftab_atmega16hvbrevb rgftab_atmega32hvbrevb
 #define rgftab_atmega32hvb   rgftab_atmega32hvbrevb
 
-extern const Register_file   rgftab_atmega328pb[123];
+extern const Register_file   rgftab_atmega328pb[125];
 
 extern const Register_file   rgftab_atmega8515[52];
 
@@ -3560,6 +3564,12 @@ extern const Uart_conf       uarts_atxmega8e5[4];
 #define uarts_atxmega16e5    uarts_atxmega8e5
 #define uarts_atxmega32e5    uarts_atxmega8e5
 
+extern const Uart_conf       uarts_atxmega64a1[8];
+#define uarts_atxmega128a1   uarts_atxmega64a1
+#define uarts_atxmega128a1revd uarts_atxmega64a1
+#define uarts_atxmega192a1   uarts_atxmega64a1
+#define uarts_atxmega256a1   uarts_atxmega64a1
+
 extern const Uart_conf       uarts_atxmega64a3[7];
 #define uarts_atxmega128a3   uarts_atxmega64a3
 #define uarts_atxmega192a3   uarts_atxmega64a3
@@ -3569,6 +3579,15 @@ extern const Uart_conf       uarts_atxmega64a3u[11];
 #define uarts_atxmega128a3u  uarts_atxmega64a3u
 #define uarts_atxmega192a3u  uarts_atxmega64a3u
 #define uarts_atxmega256a3u  uarts_atxmega64a3u
+
+extern const Uart_conf       uarts_atxmega16a4[7];
+#define uarts_atxmega16a4u   uarts_atxmega16a4
+#define uarts_atxmega32a4    uarts_atxmega16a4
+#define uarts_atxmega32a4u   uarts_atxmega16a4
+#define uarts_atxmega64a4    uarts_atxmega16a4
+#define uarts_atxmega64a4u   uarts_atxmega16a4
+#define uarts_atxmega128a4   uarts_atxmega16a4
+#define uarts_atxmega128a4u  uarts_atxmega16a4
 
 extern const Uart_conf       uarts_attiny204[2];
 #define uarts_attiny214      uarts_attiny204
@@ -3700,14 +3719,6 @@ extern const Uart_conf       uarts_atmega640[4];
 #define uarts_atmega1280     uarts_atmega640
 #define uarts_atmega2560     uarts_atmega640
 
-extern const Uart_conf       uarts_atxmega16a4[7];
-#define uarts_atxmega32a4    uarts_atxmega16a4
-
-extern const Uart_conf       uarts_atxmega16a4u[7];
-#define uarts_atxmega32a4u   uarts_atxmega16a4u
-#define uarts_atxmega64a4u   uarts_atxmega16a4u
-#define uarts_atxmega128a4u  uarts_atxmega16a4u
-
 extern const Uart_conf       uarts_atxmega16c4[4];
 #define uarts_atxmega32c4    uarts_atxmega16c4
 
@@ -3728,10 +3739,6 @@ extern const Uart_conf       uarts_atxmega32c3[4];
 #define uarts_atxmega256d3   uarts_atxmega32c3
 #define uarts_atxmega384c3   uarts_atxmega32c3
 #define uarts_atxmega384d3   uarts_atxmega32c3
-
-extern const Uart_conf       uarts_atxmega64a1[8];
-#define uarts_atxmega128a1   uarts_atxmega64a1
-#define uarts_atxmega128a1revd uarts_atxmega64a1
 
 extern const Uart_conf       uarts_atxmega64a1u[9];
 #define uarts_atxmega128a1u  uarts_atxmega64a1u
