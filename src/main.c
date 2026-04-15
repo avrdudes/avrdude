@@ -644,13 +644,9 @@ static void programmer_not_found(const char *programmer, const PROGRAMMER *pgm, 
 static void part_not_found(const char *partdesc) {
   msg_error("\n");
   if(partdesc && *partdesc)
-    pmsg_error("AVR part %s not found\n", partdesc);
+    pmsg_error("AVR part %s not found. Use -p? to see all valid parts\n", partdesc);
   else
     pmsg_error("no AVR part has been specified; use -p part\n");
-
-  msg_error("\nValid parts are:\n");
-  list_parts(stderr, "  ", part_list, ~0);
-  msg_error("\n");
 }
 
 #if !defined(WIN32)
