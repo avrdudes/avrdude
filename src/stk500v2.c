@@ -1740,12 +1740,12 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           double vtarg_set_val = -1;    // Default = invalid value
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           my.vtarg_set = true;
           continue;
         }
@@ -1999,12 +1999,12 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           my.vtarg_set = true;
           continue;
         }
