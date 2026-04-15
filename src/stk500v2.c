@@ -1187,7 +1187,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
       if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
@@ -1393,7 +1393,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", b2_to_u16(buf)/1000.0);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f V to %.2f V\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
@@ -1468,7 +1468,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
       if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
@@ -1553,7 +1553,6 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       }
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      // Write target voltage value
       else {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
@@ -1575,7 +1574,6 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       f_get = f_to_kHz_MHz(f_get, &unit_get);
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      // Write target voltage value
       else {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
@@ -1755,8 +1753,6 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         rv = -1;
         break;
       }
-      rv = -1;
-      break;
     }
 
     if(str_starts(extended_param, "varef")) {
@@ -2016,8 +2012,6 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         rv = -1;
         break;
       }
-      rv = -1;
-      break;
     }
 
     if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {

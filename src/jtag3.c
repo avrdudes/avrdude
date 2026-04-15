@@ -1146,7 +1146,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2fV\n", vtarg_read);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
@@ -1579,8 +1579,6 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         rv = -1;
         break;
       }
-      rv = -1;
-      break;
     }
 
     if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
@@ -2931,7 +2929,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2fV\n", vtarg_read);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
