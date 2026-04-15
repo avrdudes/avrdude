@@ -2922,7 +2922,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
