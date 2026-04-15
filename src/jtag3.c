@@ -1552,6 +1552,14 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
@@ -1567,19 +1575,12 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           my.vtarg_set = true;
           continue;
         }
-        pmsg_error("invalid setting in -x %s; use or -x vtarg=<dbl>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
-      if(pgm->extra_features & HAS_VTARG_READ) {
-        // Get target voltage
-        if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
-        rv = -1;
-        break;
-      }
+      rv = -1;
+      break;
     }
 
     if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {

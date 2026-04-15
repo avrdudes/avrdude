@@ -1728,6 +1728,14 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     const char *extended_param = ldata(ln);
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
@@ -1743,19 +1751,12 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           my.vtarg_set = true;
           continue;
         }
-        pmsg_error("invalid setting in -x %s; use or -x vtarg=<dbl>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
-      if(pgm->extra_features & HAS_VTARG_READ) {
-        // Get target voltage
-        if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
-        rv = -1;
-        break;
-      }
+      rv = -1;
+      break;
     }
 
     if(str_starts(extended_param, "varef")) {
@@ -1988,6 +1989,14 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     }
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
@@ -2003,19 +2012,12 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           my.vtarg_set = true;
           continue;
         }
-        pmsg_error("invalid setting in -x %s; use or -x vtarg=<dbl>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
-      if(pgm->extra_features & HAS_VTARG_READ) {
-        // Get target voltage
-        if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
-        rv = -1;
-        break;
-      }
+      rv = -1;
+      break;
     }
 
     if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
