@@ -646,7 +646,7 @@ static void part_not_found(const char *partdesc) {
   if(partdesc && *partdesc)
     pmsg_error("AVR part %s not found. Use -p? to see all valid parts\n", partdesc);
   else
-    pmsg_error("no AVR part has been specified; use -p part\n");
+    pmsg_error("no AVR part has been specified; use -p part or -p? to see all valid parts\n");
 }
 
 #if !defined(WIN32)
