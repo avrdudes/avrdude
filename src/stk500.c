@@ -546,7 +546,7 @@ retry:
     if(my.varef_get)
       msg_info("Analog reference voltage value read as %.2f V\n", (varef_read/10.0));
     // Write analog reference voltage
-    else {
+    if(my.varef_set) {
       msg_info("Changing analog reference voltage from %.2f V to %.2f V\n", (varef_read/10.0), my.varef_data);
       if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
         return -1;
