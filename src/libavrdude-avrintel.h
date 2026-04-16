@@ -12,7 +12,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.46
- * 09.04.2026
+ * 15.04.2026
  *
  */
 
@@ -1984,10 +1984,6 @@ extern const Configitem      cfgtab_ata5781[11];
 #define cfgtab_ata5831       cfgtab_ata5781
 #define cfgtab_ata5832       cfgtab_ata5781
 #define cfgtab_ata5833       cfgtab_ata5781
-#define cfgtab_ata8210       cfgtab_ata5781
-#define cfgtab_ata8215       cfgtab_ata5781
-#define cfgtab_ata8510       cfgtab_ata5781
-#define cfgtab_ata8515       cfgtab_ata5781
 
 extern const Configitem      cfgtab_ata5790[11];
 #define cfgtab_ata5791       cfgtab_ata5790
@@ -2098,7 +2094,8 @@ extern const Configitem      cfgtab_attiny4[4];
 #define cfgtab_attiny10      cfgtab_attiny4
 
 extern const Configitem      cfgtab_attiny20[5];
-#define cfgtab_attiny40      cfgtab_attiny20
+
+extern const Configitem      cfgtab_attiny40[5];
 
 extern const Configitem      cfgtab_attiny11[4];
 
@@ -2125,12 +2122,6 @@ extern const Configitem      cfgtab_attiny25[11];
 extern const Configitem      cfgtab_attiny26[8];
 
 extern const Configitem      cfgtab_attiny43u[11];
-#define cfgtab_attiny261     cfgtab_attiny43u
-#define cfgtab_attiny261a    cfgtab_attiny43u
-#define cfgtab_attiny461     cfgtab_attiny43u
-#define cfgtab_attiny461a    cfgtab_attiny43u
-#define cfgtab_attiny861     cfgtab_attiny43u
-#define cfgtab_attiny861a    cfgtab_attiny43u
 
 extern const Configitem      cfgtab_attiny48[11];
 #define cfgtab_attiny88      cfgtab_attiny48
@@ -2142,6 +2133,13 @@ extern const Configitem      cfgtab_attiny87[11];
 #define cfgtab_ata6616c      cfgtab_attiny87
 #define cfgtab_ata6617c      cfgtab_attiny87
 #define cfgtab_ata664251     cfgtab_attiny87
+
+extern const Configitem      cfgtab_attiny261[11];
+#define cfgtab_attiny261a    cfgtab_attiny261
+#define cfgtab_attiny461     cfgtab_attiny261
+#define cfgtab_attiny461a    cfgtab_attiny261
+#define cfgtab_attiny861     cfgtab_attiny261
+#define cfgtab_attiny861a    cfgtab_attiny261
 
 extern const Configitem      cfgtab_attiny828[16];
 #define cfgtab_attiny828r    cfgtab_attiny828
@@ -2235,13 +2233,14 @@ extern const Configitem      cfgtab_atmega164a[14];
 #define cfgtab_atmega164pa   cfgtab_atmega164a
 
 extern const Configitem      cfgtab_atmega165[15];
-#define cfgtab_atmega165a    cfgtab_atmega165
-#define cfgtab_atmega165p    cfgtab_atmega165
-#define cfgtab_atmega165pa   cfgtab_atmega165
 #define cfgtab_atmega169     cfgtab_atmega165
-#define cfgtab_atmega169a    cfgtab_atmega165
-#define cfgtab_atmega169p    cfgtab_atmega165
-#define cfgtab_atmega169pa   cfgtab_atmega165
+
+extern const Configitem      cfgtab_atmega165a[15];
+#define cfgtab_atmega165p    cfgtab_atmega165a
+#define cfgtab_atmega165pa   cfgtab_atmega165a
+#define cfgtab_atmega169a    cfgtab_atmega165a
+#define cfgtab_atmega169p    cfgtab_atmega165a
+#define cfgtab_atmega169pa   cfgtab_atmega165a
 
 extern const Configitem      cfgtab_atmega168[14];
 #define cfgtab_atmega168a    cfgtab_atmega168
@@ -2342,12 +2341,18 @@ extern const Configitem      cfgtab_at90s4433[5];
 extern const Configitem      cfgtab_at90s8515comp[13];
 
 extern const Configitem      cfgtab_ata5787[11];
-#define cfgtab_ata5835       cfgtab_ata5787
 
 extern const Configitem      cfgtab_ata5790n[10];
 #define cfgtab_ata5795       cfgtab_ata5790n
 
+extern const Configitem      cfgtab_ata5835[11];
+
 extern const Configitem      cfgtab_ata6289[17];
+
+extern const Configitem      cfgtab_ata8210[11];
+#define cfgtab_ata8215       cfgtab_ata8210
+#define cfgtab_ata8510       cfgtab_ata8210
+#define cfgtab_ata8515       cfgtab_ata8210
 
 extern const Configitem      cfgtab_atxmega16c4[15];
 #define cfgtab_atxmega16d4   cfgtab_atxmega16c4
