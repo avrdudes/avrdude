@@ -1097,10 +1097,10 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       MEDBG_REG_SUFFER_OFFSET, my.suffer_data, 1) < 0) {
       return -1;
     }
-    if(!my.suffer_set)
+    if(my.suffer_get)
       msg_info("SUFFER register value read as 0x%02x\n", my.suffer_data[0]);
     // Write new SUFFER value
-    else {
+    if(my.suffer_set) {
       if(jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
         MEDBG_REG_SUFFER_OFFSET, my.suffer_data + 1, 1) < 0) {
         return -1;
@@ -1116,11 +1116,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data, 1) < 0) {
       return -1;
     }
-    if(!my.vtarg_switch_set)
+    if(my.vtarg_switch_get)
       msg_info("Vtarg switch setting read as %u: target power is switched %s\n", my.vtarg_switch_data[0],
         my.vtarg_switch_data[0]? "on": "off");
     // Write Vtarg switch value
-    else {
+    if(my.vtarg_switch_set) {
       if(jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL,
         EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data + 1, 1) < 0) {
         return -1;

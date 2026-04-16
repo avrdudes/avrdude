@@ -528,7 +528,7 @@ retry:
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
       if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
@@ -596,7 +596,7 @@ retry:
     if(my.fosc_get)
       msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
     // Write target voltage value
-    else {
+    if(my.fosc_set) {
       const char *unit_set;
       double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 

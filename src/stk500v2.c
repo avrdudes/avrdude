@@ -1205,7 +1205,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(my.varef_get)
         msg_info("Analog reference voltage value read as %.2f V\n", (varef_read/10.0));
       // STK500: Write analog reference voltage
-      else {
+      if(my.varef_set) {
         msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
           varef_read/10.0, my.varef_data);
         if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
@@ -1221,7 +1221,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         msg_info("Analog reference channel %d voltage read as %.2f V\n",
           my.varef_channel, (varef_read/100.0));
       // STK600: Write target voltage value for channel n
-      else {
+      if(my.varef_set) {
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
           my.varef_channel, (varef_read/100.0), my.varef_data);
         if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
@@ -1241,7 +1241,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
       // Write new osc freq
-      else {
+      if(my.fosc_set) {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
@@ -1340,10 +1340,10 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
       return -1;
     }
-    if(!my.suffer_set)
+    if(my.suffer_get)
       imsg_info("SUFFER register value read as 0x%02x\n", my.suffer_data[0]);
     // Write new SUFFER value
-    else {
+    if(my.suffer_set) {
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
         MEDBG_REG_SUFFER_OFFSET, my.suffer_data + 1, 1) < 0) {
 
@@ -1362,13 +1362,14 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
       return -1;
     }
-    if(!my.vtarg_switch_set) {
+    if(my.vtarg_switch_get) {
       pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n",
         my.vtarg_switch_data[0], my.vtarg_switch_data[0]? "on": "off");
-    } else {                    // Write Vtarg switch value
+    } 
+    // Write Vtarg switch value
+    if(my.vtarg_switch_set) {
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL,
         EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data + 1, 1) < 0) {
-
         return -1;
       }
       pmsg_info("Vtarg switch setting changed from %u to %u\n", my.vtarg_switch_data[0],
@@ -1483,9 +1484,10 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
 
       if(stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read) < 0)
         return -1;
-      if(my.varef_get) {
+      if(my.varef_get)
         msg_info("Analog reference voltage value read as %.2f V\n", varef_read/10.0);
-      } else {                  // STK500: Write analog reference voltage
+      // STK500: Write analog reference voltage
+      if(my.varef_set) {
         msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
           varef_read/10.0, my.varef_data);
         if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
@@ -1500,7 +1502,9 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       if(my.varef_get) {
         msg_info("Analog reference channel %d voltage read as %.2f V\n",
           my.varef_channel, (varef_read/100.0));
-      } else {                  // STK600: Write target voltage value for channel n
+      }
+      // STK600: Write target voltage value for channel n
+      if(my.varef_set) {                  
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
           my.varef_channel, (varef_read/100.0), my.varef_data);
         if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
@@ -1553,7 +1557,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       }
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      else {
+      if(my.fosc_set) {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
@@ -1574,7 +1578,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       f_get = f_to_kHz_MHz(f_get, &unit_get);
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      else {
+      if(my.fosc_set) {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
