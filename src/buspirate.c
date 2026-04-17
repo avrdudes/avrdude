@@ -137,24 +137,18 @@ static int buspirate_recv_bin(const PROGRAMMER *pgm, unsigned char *buf, size_t 
   return len;
 }
 
-static int buspirate_expect_bin(const PROGRAMMER *pgm,
-  unsigned char *send_data, size_t send_len, unsigned char *expect_data, size_t expect_len) {
-  unsigned char *recv_buf = alloca(expect_len);
+static int buspirate_expect_bin_byte(const PROGRAMMER *pgm, unsigned char send_byte, unsigned char expect_byte) {
+  unsigned char recv_byte;
 
   if((my.flag & BP_FLAG_IN_BINMODE) == 0) {
     pmsg_error("called from ascii mode\n");
     return -1;
   }
 
-  buspirate_send_bin(pgm, send_data, send_len);
-  buspirate_recv_bin(pgm, recv_buf, expect_len);
-  if(memcmp(expect_data, recv_buf, expect_len) != 0)
-    return 0;
-  return 1;
-}
+  buspirate_send_bin(pgm, &send_byte, 1);
+  buspirate_recv_bin(pgm, &recv_byte, 1);
 
-static int buspirate_expect_bin_byte(const PROGRAMMER *pgm, unsigned char send_byte, unsigned char expect_byte) {
-  return buspirate_expect_bin(pgm, &send_byte, 1, &expect_byte, 1);
+  return expect_byte == recv_byte;
 }
 
 // ====== Serial talker functions - ASCII mode ======
@@ -395,7 +389,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {

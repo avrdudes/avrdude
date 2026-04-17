@@ -237,7 +237,7 @@ static void jtag3_print_data(unsigned char *b, size_t s) {
 }
 
 static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     size_t i;
 
     msg_trace("Raw message:\n");
@@ -365,7 +365,7 @@ static int jtag3_errcode(int reason) {
 }
 
 static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     size_t i;
 
     msg_trace("Raw event:\n");
@@ -482,7 +482,7 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
   unsigned char status[USBDEV_MAX_XFER_3];
   int rv;
 
-  if(verbose >= MSG_TRACE) {
+  if(verblevel >= MSG_TRACE) {
     memset(buf, 0, USBDEV_MAX_XFER_3);
     memset(status, 0, USBDEV_MAX_XFER_3);
   }
@@ -562,7 +562,7 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_prepare()\n");
 
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_CONNECT;
@@ -607,7 +607,7 @@ static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_signoff()\n");
 
-  if(verbose >= MSG_TRACE)
+  if(verblevel >= MSG_TRACE)
     memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_LED;
@@ -780,7 +780,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
       return rv;
 
     if((rv & USB_RECV_FLAG_EVENT) != 0) {
-      if(verbose >= MSG_DEBUG)
+      if(verblevel >= MSG_DEBUG)
         jtag3_prevent(pgm, *msg, rv & USB_RECV_LENGTH_MASK);
 
       mmt_free(*msg);
@@ -831,7 +831,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
     if(status == 0)
       mmt_free(*resp);
     return LIBAVRDUDE_GENERAL_FAILURE;
-  } else if(verbose >= MSG_DEBUG) {
+  } else if(verblevel >= MSG_DEBUG) {
     msg_debug("\n");
     jtag3_prmsg(pgm, *resp, status);
   } else {
@@ -1097,10 +1097,10 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       MEDBG_REG_SUFFER_OFFSET, my.suffer_data, 1) < 0) {
       return -1;
     }
-    if(!my.suffer_set)
+    if(my.suffer_get)
       msg_info("SUFFER register value read as 0x%02x\n", my.suffer_data[0]);
     // Write new SUFFER value
-    else {
+    if(my.suffer_set) {
       if(jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
         MEDBG_REG_SUFFER_OFFSET, my.suffer_data + 1, 1) < 0) {
         return -1;
@@ -1116,11 +1116,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data, 1) < 0) {
       return -1;
     }
-    if(!my.vtarg_switch_set)
+    if(my.vtarg_switch_get)
       msg_info("Vtarg switch setting read as %u: target power is switched %s\n", my.vtarg_switch_data[0],
         my.vtarg_switch_data[0]? "on": "off");
     // Write Vtarg switch value
-    else {
+    if(my.vtarg_switch_set) {
       if(jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL,
         EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data + 1, 1) < 0) {
         return -1;
@@ -1139,14 +1139,14 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2fV\n", vtarg_read);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
@@ -1552,27 +1552,30 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           my.vtarg_set = true;
           continue;
         }
-        // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
-        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1585,8 +1588,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         continue;
       }
       // Flag a switch to PIC mode
-      if(str_caseeq(extended_param, "mode=pic") ||
-         str_caseeq(extended_param, "mode=mplab")) {
+      if(str_caseeq(extended_param, "mode=mplab") || str_caseeq(extended_param, "mode=pic")) {
         my.pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
@@ -1597,7 +1599,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -1607,25 +1609,27 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     msg_error("%s -c %s extended options:\n", progname, pgmid);
     if(str_eq(pgm->type, "JTAGICE3")) {
       msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      msg_error("                           UB/UA = units before/after, BB/BA = bits before/after\n");
+      msg_error("                         UB/UA = units before/after, BB/BA = bits before/after\n");
     }
     if(lsize(pgm->hvupdi_support) > 1)
-      msg_error("  -x hvupdi                Enable high-voltage UPDI initialization\n");
+      msg_error("  -x hvupdi              Enable high-voltage UPDI initialization\n");
     if(pgm->extra_features & HAS_SUFFER) {
-      msg_error("  -x suffer                Read SUFFER register value\n");
-      msg_error("  -x suffer=<n>            Set SUFFER register to <n> (0x.. hex, 0.. oct or dec)\n");
+      msg_error("  -x suffer              Read SUFFER register value\n");
+      msg_error("  -x suffer=<n>          Set SUFFER register to <n> (0x.. hex, 0.. oct or dec)\n");
     }
     if(pgm->extra_features & HAS_VTARG_SWITCH) {
-      msg_error("  -x vtarg_switch          Read on-board target voltage switch state\n");
-      msg_error("  -x vtarg_switch=<0..1>   Set on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch=<0|1>  Set on-board target voltage switch state\n");
     }
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
-      msg_error("  -x vtarg                 Read on-board target supply voltage\n");
-      msg_error("  -x vtarg=<dbl>           Set on-board target supply voltage to <dbl> V\n");
+    if(pgm->extra_features & HAS_VTARG_READ)
+      msg_error("  -x vtarg               Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
+      msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
+      msg_error("  -x mode=avr            Set programmer to AVR mode and exit if it was not\n");
+      msg_error("  -x mode=<mplab|pic>    Set programmer to MPLAB aka PIC mode and exit\n");
     }
-    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-      msg_error("  -x mode=avr|[pic|mplab]  Set programmer to AVR or MPLAB (PIC) mode, then exit\n");
-    msg_error("  -x help                  Show this help menu and exit\n");
+    msg_error("  -x help                Show this help menu and exit\n");
     return rv;
   }
 
@@ -1714,11 +1718,18 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
           pic_mode = serial_open(port, pinfo, &pgm->fd);
         }
         if(pic_mode >= 0) {
-          msg_error("\n");
+          const char *partsdesc_flag = partdesc? " -p ": "";
+          const char *partsdesc_str = partdesc? partdesc: "";
+          const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+
           cx->usb_access_error = 0;
-          pmsg_error("%s in %s mode detected\n", pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
-          if(mode_switch == PK4_SNAP_MODE_AVR) {
-            imsg_error("switching to AVR mode; ");
+
+          switch(mode_switch) {
+          case PK4_SNAP_MODE_AVR:
+            msg_info("\n");
+            pmsg_info("%s in %s mode detected\n", pgmstr,
+              pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
+            pmsg_info("switching to AVR mode; ");
             if(pinfo.usbinfo.pid == bl_pid)
               serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
             else {
@@ -1726,19 +1737,29 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
               usleep(250*1000);
               serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
             }
-            imsg_error("run %s again to continue the session\n\n", progname);
-          } else {
+            imsg_info("run %s again to continue the session\n", progname);
+            serial_close(&pgm->fd);
+            return LIBAVRDUDE_EXIT_OK;
 
-            const char *partsdesc_flag = partdesc? " -p ": "";
-            const char *partsdesc_str = partdesc? partdesc: "";
-            const char *pgm_suffix = strchr(pgmid, '_')? strchr(pgmid, '_'): "";
+          case PK4_SNAP_MODE_PIC:
+            pmsg_info("%s in %s mode detected; exiting\n", pgmstr,
+              pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
+            serial_close(&pgm->fd);
+            return LIBAVRDUDE_EXIT_OK;
+
+          default:
+            msg_error("\n");
+            pmsg_error("%s in %s mode detected\n", pgmstr,
+              pinfo.usbinfo.pid == bl_pid? "bootloader": "mplab");
             imsg_error("to switch into AVR mode try\n");
-            imsg_error("$ %s -c %s%s%s -P %s -x mode=avr\n\n", progname, pgmid, partsdesc_flag, partsdesc_str, port);
-            imsg_error("or use MPLAB mode by using the pickit4_mplab%s programmer option:\n", pgm_suffix);
-            imsg_error("$ %s -c pickit4_mplab%s%s%s -P %s\n", progname, pgm_suffix, partsdesc_flag, partsdesc_str, port);
+            imsg_error("$ %s -c %s%s%s -P %s -x mode=avr\n\n", progname,
+              pgmid, partsdesc_flag, partsdesc_str, port);
+            imsg_error("or use MPLAB mode with the pickit4_mplab%s programmer:\n", pgm_suffix);
+            imsg_error("$ %s -c pickit4_mplab%s%s%s -P %s\n", progname,
+              pgm_suffix, partsdesc_flag, partsdesc_str, port);
+            serial_close(&pgm->fd);
+            return LIBAVRDUDE_EXIT_FAIL;
           }
-          serial_close(&pgm->fd);
-          return LIBAVRDUDE_EXIT;;
         }
       }
     }
@@ -1779,15 +1800,14 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
   // Switch from AVR to PIC mode
   if(mode_switch == PK4_SNAP_MODE_PIC) {
-    imsg_error("switching to MPLAB mode: ");
     unsigned char *resp, buf[] = { SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a };
     if(jtag3_command(pgm, buf, sizeof(buf), &resp, "enter MPLAB mode") < 0) {
-      msg_error("entering MPLAB mode failed\n");
+      pmsg_error("switching to MPLAB mode failed\n");
       return -1;
     }
-    msg_error("MPLAB mode switch successful\n");
+    msg_info("switched successfully to MPLAB mode\n");
     serial_close(&pgm->fd);
-    return LIBAVRDUDE_EXIT;;
+    return LIBAVRDUDE_EXIT_OK;
   }
 
   return 0;
@@ -2902,14 +2922,14 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2fV\n", vtarg_read);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {

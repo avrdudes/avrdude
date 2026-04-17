@@ -420,7 +420,8 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if((pgm->paged_load && mem->page_size > 1 && mem->size%mem->page_size == 0) ||
-    (is_spm(pgm) && avr_has_paged_access(pgm, p, mem))) {
+    (is_spm(pgm) && avr_has_paged_load(pgm, p, mem))) {
+
     // The programmer supports a paged mode read
     int need_read, failure;
     unsigned int pageaddr;
@@ -471,7 +472,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     if(pgm->read_sig_bytes) {
       int rc = pgm->read_sig_bytes(pgm, p, mem);
 
-      if(rc < 0 && rc != LIBAVRDUDE_EXIT)
+      if(rc < 0 && rc != LIBAVRDUDE_EXIT_OK)
         led_set(pgm, LED_ERR);
       led_clr(pgm, LED_PGM);
       return rc;
@@ -640,6 +641,46 @@ int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   return data;
 }
 
+// Can pgm->write_byte() be skipped, eg, if the wanted data are already there?
+int avr_can_skip_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, uint8_t wanted, int *readrc) {
+
+  if(readrc)
+    *readrc = -99;
+
+  /*
+   * Check to see if the write is necessary by reading the existing value and
+   * only write if we are changing the value; we can't use this optimization
+   * for paged addressing nor for IO memory (as it's not necessarily storage).
+   *
+   * For mysterious reasons, on the AT90S1200, this read operation sometimes
+   * causes the high byte of the same word to be programmed to the value of
+   * the low byte that has just been programmed before. Avoid that
+   * optimization on this device.
+   */
+  if(mem->paged || mem_is_io(mem) || (p->flags & AVRPART_IS_AT90S1200))
+    return 0;
+
+  // Don't skip write when programming a bootloader
+  if(is_spm(pgm))
+    return 0;
+
+  // Unclear whether this optimisation would work for TPI parts
+  if(is_tpi(p))
+    return 0;
+
+  unsigned char is;
+  int rc = avr_read_byte_silent(pgm, p, mem, addr, &is);
+  if(readrc)
+    *readrc = rc;
+  if(rc < 0)
+    return 0;
+
+  int bm = avr_mem_bitmask(p, mem, addr);
+
+  return (is & bm) == (wanted & bm);
+}
+
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
@@ -652,7 +693,6 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   int ready;
   int tries;
   unsigned long start, now;
-  unsigned char b;
   unsigned short caddr;
   OPCODE *writeop;
   int rc;
@@ -729,29 +769,19 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     goto success;
   }
 
-  int bm = avr_mem_bitmask(p, mem, addr);
-
-  if(!mem->paged && (p->flags & AVRPART_IS_AT90S1200) == 0) {
-    /*
-     * Check to see if the write is necessary by reading the existing value and
-     * only write if we are changing the value; we can't use this optimization
-     * for paged addressing.
-     *
-     * For mysterious reasons, on the AT90S1200, this read operation sometimes
-     * causes the high byte of the same word to be programmed to the value of
-     * the low byte that has just been programmed before. Avoid that
-     * optimization on this device.
-     */
-    rc = pgm->read_byte(pgm, p, mem, addr, &b);
+  // Check to see if writing could be skipped
+  int rbrc, skip = avr_can_skip_write_byte(pgm, p, mem, addr, data, &rbrc);
+  if(rbrc != -99) {              // read_byte() was executed
+    rc = rbrc;
     if(rc != 0) {
       if(rc != -1) {
         rc = -2;
         goto rcerror;
       }
-      // Read operation is not support on this memory
+      // Read operation is not supported on this memory
     } else {
       readok = 1;
-      if((b & bm) == (data & bm))
+      if(skip)
         goto success;
     }
   }
@@ -795,6 +825,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     goto success;
   }
 
+  int bm = avr_mem_bitmask(p, mem, addr);
   tries = 0;
   ready = 0;
   while(!ready) {
@@ -881,6 +912,31 @@ rcerror:
   return rc;
 }
 
+// Update one byte of data at the specified address, ie, write unless already there
+int avr_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data) {
+
+  if(pgm->write_byte == avr_write_byte_default) // avr_write_byte_default() already updates
+    return avr_write_byte(pgm, p, mem, addr, data);
+
+  pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
+    str_ccaddress(addr, mem->size), data);
+
+  if(avr_can_skip_write_byte(pgm, p, mem, addr, data, NULL))
+    return 0;
+
+  if(mem_is_readonly(mem) || (pgm->readonly && pgm->readonly(pgm, p, mem, addr))) {
+    pmsg_error("cannot write to %s memory %s of %s\n",
+      mem_is_readonly(mem)? "read-only": "write-protected", mem->desc, p->desc);
+    return -1;
+  }
+
+  if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+    data = avr_bitmask_data(pgm, p, mem, addr, data);
+
+  return pgm->write_byte(pgm, p, mem, addr, data);
+}
+
 // Write a byte of data at the specified address
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
@@ -888,13 +944,12 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
     str_ccaddress(addr, mem->size), data);
 
-  if(mem_is_readonly(mem)) {
-    unsigned char is;
-
-    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+  if(mem_is_readonly(mem) || (pgm->readonly && pgm->readonly(pgm, p, mem, addr))) {
+    if(avr_can_skip_write_byte(pgm, p, mem, addr, data, NULL))
       return 0;
 
-    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    pmsg_error("cannot write to %s memory %s of %s\n",
+      mem_is_readonly(mem)? "read-only": "write-protected", mem->desc, p->desc);
     return -1;
   }
 
@@ -1024,8 +1079,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     return i;
   }
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
-  if((pgm->paged_load && m->page_size > 1 && m->size%m->page_size == 0) ||
-    (is_spm(pgm) && avr_has_paged_access(pgm, p, m))) {
+  if((pgm->paged_write && m->page_size > 1 && m->size%m->page_size == 0) ||
+    (is_spm(pgm) && avr_has_paged_write(pgm, p, m))) {
 
     // The programmer supports a paged mode write
     int need_write, failure, nset;
@@ -1181,7 +1236,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       continue;
 
     if(do_write) {
-      if(avr_write_byte(pgm, p, m, i, data)) {
+      if(avr_update_byte(pgm, p, m, i, data)) {
         msg_error(" *** failed\n");
         led_set(pgm, LED_ERR);
         goto error;
@@ -1216,13 +1271,13 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   if(verbose > 1)
     report_progress(0, 1, "Reading");
   rc = avr_read(pgm, p, "signature", 0);
-  if(rc < LIBAVRDUDE_SUCCESS && rc != LIBAVRDUDE_EXIT) {
+  if(rc < LIBAVRDUDE_SUCCESS && rc != LIBAVRDUDE_EXIT_OK) {
     pmsg_error("unable to read signature data for part %s (rc = %d)\n", p->desc, rc);
     return rc;
   }
   report_progress(1, 1, NULL);
 
-  return rc < LIBAVRDUDE_SUCCESS? LIBAVRDUDE_EXIT: LIBAVRDUDE_SUCCESS;
+  return rc < LIBAVRDUDE_SUCCESS? LIBAVRDUDE_EXIT_OK: LIBAVRDUDE_SUCCESS;
 }
 
 // Obtain bitmask for byte in memory (classic, TPI, PDI and UPDI parts)
@@ -1253,7 +1308,7 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   return bitmask;
 }
 
-// Bitmask for ISP programming (classic parts only)
+// Bitmask for verification after ISP programming (classic parts only)
 static uint8_t get_fuse_bitmask(const AVRMEM *m) {
   int ret = 0xFF;
 

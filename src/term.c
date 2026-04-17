@@ -343,7 +343,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   }
   if(mi >= Nmems) {
     pmsg_error("(%s) cx->term_rmem[] under-dimensioned; increase and recompile\n", cmd);
-    return NULL;;
+    return NULL;
   }
   cx->term_mi = mi;
 
@@ -2761,6 +2761,9 @@ static char *tokenize(char *s, int *argcp, const char ***argvp) {
 static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int hold, matches;
   size_t len;
+
+  if(pgm->cmdhook)
+    pgm->cmdhook(pgm, p, argc, argv);
 
   len = strlen(argv[0]);
   matches = 0;

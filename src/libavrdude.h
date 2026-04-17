@@ -61,9 +61,15 @@ typedef uint32_t Pinmask;
  */
 #define LIBAVRDUDE_SUCCESS 0
 #define LIBAVRDUDE_GENERAL_FAILURE (-1)
-#define LIBAVRDUDE_NOTSUPPORTED (-2) // Operation not supported
-#define LIBAVRDUDE_SOFTFAIL (-3)     // Returned, eg, if caller might proceed with a plan B
-#define LIBAVRDUDE_EXIT (-4)         // End all operations in this session
+#define LIBAVRDUDE_NOTSUPPORTED (-2)  // Operation not supported
+#define LIBAVRDUDE_SOFTFAIL (-3)      // Returned, eg, if caller might proceed with a plan B
+#define LIBAVRDUDE_EXIT_OK (-4)       // End all operations in this session and exit(0) in main
+#define LIBAVRDUDE_EXIT_FAIL (-5)     // End all operations in this session and exit(1) in main
+#ifndef TO_BE_DEPRECATED_IN_2027
+#define LIBAVRDUDE_EXIT (-4)          // Deprecated: this is now LIBAVRDUDE_EXIT_OK
+#endif
+#define LIBAVRDUDE_DEVICE_LOCKED (-6) // Returned if the programmer determined that the device is locked
+#define LIBAVRDUDE_BEYOND_ERRS (-7)   // This error and lower not normally used by libavrdude functions
 
 // Message system
 
@@ -772,8 +778,8 @@ int pgm_fill_old_pins(PROGRAMMER *const pgm);
  * @li any mandatory pin is not set all.
  *
  * In case of any error it report the wrong function and the pin numbers
- * For verbose >= MSG_NOTICE2 it also reports the possible correct value
- * For verbose >= MSG_DEBUG it shows also which pins were ok
+ * For verblevel >= MSG_NOTICE2 it also reports the possible correct value
+ * For verblevel >= MSG_DEBUG it shows also which pins were ok
  *
  * @param[in] pgm the programmer to check
  * @param[in] checklist the constraint for the pins
@@ -828,8 +834,8 @@ const char *pinmask_to_str(const Pinmask *const pinmask);
  * The target file will be selected at configure time.
  */
 
-extern long serial_recv_timeout;        // ms
-extern long serial_drain_timeout;       // ms
+extern long serial_recv_timeout;        // Milliseconds
+extern long serial_drain_timeout;       // Milliseconds
 
 union filedescriptor {
   int ifd;
@@ -975,6 +981,8 @@ typedef struct {
   unsigned long ms[LED_N];      // Time in ms after last physical change
 } Leds;
 
+typedef struct update UPDATE;
+
 /*
  * Any changes in PROGRAMMER, please also ensure changes are made in
  *  - lexer.l
@@ -1045,7 +1053,7 @@ typedef struct programmer {
   int (*write_byte)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     unsigned long addr, unsigned char value);
   int (*read_byte)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-    unsigned long addr, unsigned char *value);
+    unsigned long addr, unsigned char *valp);
   int (*read_sig_bytes)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int (*read_sib)(const PROGRAMMER *pgm, const AVRPART *p, char *sib);
   int (*read_chip_rev)(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev);
@@ -1071,6 +1079,8 @@ typedef struct programmer {
   void (*teardown)(PROGRAMMER *pgm);
   int (*flash_readhook)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
     const char *fname, int size);
+  int (*updatehook)(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, int flags);
+  int (*cmdhook)(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
@@ -1162,13 +1172,17 @@ extern "C" {
   uint64_t avr_mstimestamp(void);
   double avr_timestamp(void);
   void init_cx(PROGRAMMER *pgm);
-  int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-    unsigned long addr, unsigned char data);
   int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char *datap);
   int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char data);
+  int avr_can_skip_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+    unsigned long addr, uint8_t wanted, int *readrc);
   int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+    unsigned long addr, unsigned char data);
+  int avr_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+    unsigned long addr, unsigned char data);
+  int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char data);
   int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
   int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase);
@@ -1196,6 +1210,8 @@ extern "C" {
   void report_progress(int completed, int total, const char *hdr);
   void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
   int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
+  int avr_has_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
+  int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     int addr, unsigned char *buf);
   int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
@@ -1678,6 +1694,7 @@ extern "C" {
   int str_casematched_by(const char *string, const char *pattern);
   int str_is_pattern(const char *str);
   int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char *));
+  int str_busdev_eq(const char *s, const char *t);
   char *str_sprintf(const char *fmt, ...)
 #if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
     __attribute__((format(printf, 1, 2)))
@@ -1734,10 +1751,12 @@ extern "C" {
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
   int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+  int led_update_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+    unsigned long addr, unsigned char value);
   int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     unsigned long addr, unsigned char value);
   int led_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-    unsigned long addr, unsigned char *value);
+    unsigned long addr, unsigned char *valp);
   int led_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     unsigned int page_size, unsigned int addr, unsigned int n);
   int led_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
@@ -1751,6 +1770,9 @@ extern "C" {
   void terminal_setup_update_progress(void);
 
   char *avr_cc_buffer(size_t n);
+
+// Shortcut for testing whether a 16-bit opcode is a certain mnemonic (rjmp, ret, ...)
+#define isop(op16, code) op16_is_mnemo(op16, MNEMO_ ## code)
 
   int op16_is_mnemo(int op16, AVR_mnemo mnemo);
   int is_opcode32(int op16);
@@ -1782,6 +1804,9 @@ extern "C" {
   uint16_t buf2uint16(const unsigned char *buf);
   void uint32tobuf(unsigned char *buf, uint32_t opcode32);
   void uint16tobuf(unsigned char *buf, uint16_t opcode16);
+  int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp);
+  int set_resetvector(int blstart, int flsize, uint8_t *reset, int vecsz, int isur);
+  void urbootPutVersion(char *buf, uint16_t *top6table);
 
   const Uart_conf *getuartsigs(const Avrintel *up, int uart, int alt);
   int urbootfuses(const PROGRAMMER *pgm, const AVRPART *part, const char *filename);

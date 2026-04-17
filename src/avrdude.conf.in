@@ -1723,7 +1723,7 @@ programmer # stk600
     id                     = "stk600";
     desc                   = "Atmel STK600";
     type                   = "stk600";
-    prog_modes             = PM_TPI | PM_ISP | PM_PDI;
+    prog_modes             = PM_ISP | PM_PDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x03eb;
@@ -3255,7 +3255,7 @@ programmer # pickit_basic
     desc                   = "MPLAB(R) PICkit Basic in JTAG mode";
     type                   = "pickit5";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
-    extra_features         = HAS_BITCLOCK_ADJ; # HAS_VTARG_READ was not working yet
+    extra_features         = HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     usbvid                 = 0x04d8;
     usbpid                 = 0x9055;    # PK Basic
@@ -17080,31 +17080,8 @@ part parent ".xmega-ab" # x64a4
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "sram"
@@ -17609,8 +17586,9 @@ part parent ".xmega-ab" # x128a4
     ;
 
     memory "apptable"
+        size               = 8192;
         page_size          = 512;
-        offset             = 0x81f000;
+        offset             = 0x81e000;
     ;
 
     memory "boot"
@@ -17619,31 +17597,8 @@ part parent ".xmega-ab" # x128a4
         offset             = 0x820000;
     ;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "prodsig"
@@ -17693,7 +17648,8 @@ part parent ".xmega-ab" # x128a4u
     ;
 
     memory "apptable"
-        offset             = 0x81f000;
+        size               = 8192;
+        offset             = 0x81e000;
     ;
 
     memory "boot"
@@ -17965,31 +17921,8 @@ part parent ".xmega-ab" # x192a1
         offset             = 0x830000;
     ;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "prodsig"
@@ -18283,31 +18216,8 @@ part parent ".xmega-ab" # x256a1
         offset             = 0x840000;
     ;
 
-    memory "fuse0"
-        initval            = -1;
-    ;
-
-    memory "fuse1"
-        initval            = -1;
-    ;
-
     memory "fuse2"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse4"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "fuse5"
-        initval            = -1;
-        bitmask            = -1;
-    ;
-
-    memory "lock"
-        initval            = -1;
+        bitmask            = 0x43;
     ;
 
     memory "prodsig"
@@ -21340,6 +21250,66 @@ part parent ".avr8x_mega" # m4809
         size               = 6144;
         offset             = 0x2800;
     ;
+;
+
+#------------------------------------------------------------
+# Classic parts with a defined degree of radiation tolerance
+#------------------------------------------------------------
+
+#------------------------------------------------------------
+# ATmegaS64M1
+#------------------------------------------------------------
+
+part parent "m64m1" # ms64m1
+    desc                   = "ATmegaS64M1";
+    id                     = "ms64m1";
+    variants               =
+        "ATmegaS64M1-KH-E:  CQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS64M1-KH-MQ: CQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS64M1-KH-SV: CQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS64M1-MA-HP: TQFP32, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]";
+    mcuid                  = 412;
+    chip_erase_delay       = 10500;
+
+    memory "flash"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+
+    memory "lock"
+        min_write_delay    = 2600;
+        max_write_delay    = 2600;
+    ;
+;
+
+#------------------------------------------------------------
+# ATmegaS128
+#------------------------------------------------------------
+
+part parent "m128" # ms128
+    desc                   = "ATmegaS128";
+    id                     = "ms128";
+    variants               =
+        "ATmegaS128-MD-HP: TQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS128-ZC-E:  CQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS128-ZC-MQ: CQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]",
+        "ATmegaS128-ZC-SV: CQFP64, Fmax=8 MHz, T=[-55 C, 125 C], Vcc=[3.0 V, 3.6 V]";
+    mcuid                  = 413;
 ;
 
 #------------------------------------------------------------

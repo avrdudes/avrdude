@@ -241,6 +241,33 @@ int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char
   return 0;
 }
 
+// Is the string a decimal bus/device number that ends in a colon or nul?
+static int is_busdev_num(const char *s) {
+  const char *t = s;
+
+  while(*t >= '0' && *t <= '9')
+    t++;
+
+  return t > s && (*t == ':' || *t == 0);
+}
+
+// Do the two strings represent the same decimal number or are they the same up to a limiting colon?
+int str_busdev_eq(const char *s, const char *t) {
+  if(is_busdev_num(s) && is_busdev_num(t))
+    if(strtoull(s, NULL, 10) == strtoull(t, NULL, 10))
+      return 1;
+
+  int len = 0;                  // Length of strings up to optional colon
+  while(s[len] && s[len] != ':' && t[len] && t[len] != ':')
+    len++;
+
+  // Different length means strings are not the same
+  if((s[len] && s[len] != ':') || (t[len] && t[len] != ':'))
+    return 0;
+
+  return !strncmp(s, t, len);
+}
+
 // Return a mmt_malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {
   int size = 0;

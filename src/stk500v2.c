@@ -1187,7 +1187,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
       if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
@@ -1205,7 +1205,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(my.varef_get)
         msg_info("Analog reference voltage value read as %.2f V\n", (varef_read/10.0));
       // STK500: Write analog reference voltage
-      else {
+      if(my.varef_set) {
         msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
           varef_read/10.0, my.varef_data);
         if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
@@ -1221,7 +1221,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         msg_info("Analog reference channel %d voltage read as %.2f V\n",
           my.varef_channel, (varef_read/100.0));
       // STK600: Write target voltage value for channel n
-      else {
+      if(my.varef_set) {
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
           my.varef_channel, (varef_read/100.0), my.varef_data);
         if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
@@ -1241,7 +1241,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
       // Write new osc freq
-      else {
+      if(my.fosc_set) {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
@@ -1340,10 +1340,10 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
       return -1;
     }
-    if(!my.suffer_set)
+    if(my.suffer_get)
       imsg_info("SUFFER register value read as 0x%02x\n", my.suffer_data[0]);
     // Write new SUFFER value
-    else {
+    if(my.suffer_set) {
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
         MEDBG_REG_SUFFER_OFFSET, my.suffer_data + 1, 1) < 0) {
 
@@ -1362,13 +1362,14 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
       return -1;
     }
-    if(!my.vtarg_switch_set) {
+    if(my.vtarg_switch_get) {
       pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n",
         my.vtarg_switch_data[0], my.vtarg_switch_data[0]? "on": "off");
-    } else {                    // Write Vtarg switch value
+    } 
+    // Write Vtarg switch value
+    if(my.vtarg_switch_set) {
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL,
         EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data + 1, 1) < 0) {
-
         return -1;
       }
       pmsg_info("Vtarg switch setting changed from %u to %u\n", my.vtarg_switch_data[0],
@@ -1386,14 +1387,14 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
     if(my.vtarg_get)
-      msg_info("Target voltage value read as %.2f V\n", vtarg_read);
+      msg_info("Target voltage value read as %.2f V\n", b2_to_u16(buf)/1000.0);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f V to %.2f V\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
@@ -1468,7 +1469,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
       if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
@@ -1483,9 +1484,10 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
 
       if(stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read) < 0)
         return -1;
-      if(my.varef_get) {
+      if(my.varef_get)
         msg_info("Analog reference voltage value read as %.2f V\n", varef_read/10.0);
-      } else {                  // STK500: Write analog reference voltage
+      // STK500: Write analog reference voltage
+      if(my.varef_set) {
         msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
           varef_read/10.0, my.varef_data);
         if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
@@ -1500,7 +1502,9 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       if(my.varef_get) {
         msg_info("Analog reference channel %d voltage read as %.2f V\n",
           my.varef_channel, (varef_read/100.0));
-      } else {                  // STK600: Write target voltage value for channel n
+      }
+      // STK600: Write target voltage value for channel n
+      if(my.varef_set) {                  
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
           my.varef_channel, (varef_read/100.0), my.varef_data);
         if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
@@ -1553,8 +1557,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       }
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      // Write target voltage value
-      else {
+      if(my.fosc_set) {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
@@ -1575,8 +1578,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       f_get = f_to_kHz_MHz(f_get, &unit_get);
       if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      // Write target voltage value
-      else {
+      if(my.fosc_set) {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
@@ -1728,26 +1730,32 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     const char *extended_param = ldata(ln);
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
           double vtarg_set_val = -1;    // Default = invalid value
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           my.vtarg_set = true;
           continue;
         }
-        // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
@@ -1878,7 +1886,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -1886,10 +1894,10 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
-      msg_error("  -x vtarg          Read target supply voltage\n");
-      msg_error("  -x vtarg=<dbl>    Set target supply voltage to <dbl> V\n");
-    }
+    if(pgm->extra_features & HAS_VTARG_READ)
+      msg_error("  -x vtarg          Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
+      msg_error("  -x vtarg=<dbl>    Set on-board target supply voltage to <dbl> V\n");
     if(pgm->extra_features & HAS_VAREF_ADJ) {
       if(str_contains(pgm->type, "STK500")) {
         msg_error("  -x varef          Read analog reference voltage\n");
@@ -1981,27 +1989,30 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     }
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           my.vtarg_set = true;
           continue;
         }
-        // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
-        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -2025,7 +2036,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {
@@ -2041,10 +2052,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
       msg_error("  -x vtarg_switch=<0..1> Set on-board target voltage switch state\n");
     }
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
+    if(pgm->extra_features & HAS_VTARG_READ)
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
       msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
-    }
     if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
       msg_error("  -x mode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
     msg_error("  -x help                Show this help menu and exit\n");
@@ -3566,14 +3577,14 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     msg_info("%sHW version            : %d\n", p, hdw);
     if(pgm->usbsn && *pgm->usbsn)
       msg_info("%sSerial number         : %s\n", p, pgm->usbsn);
-    msg_info("%sFW Version Controller : %d.%02d\n", p, maj, min);
+    msg_info("%sFW version controller : %d.%02d\n", p, maj, min);
     if(my.pgmtype == PGMTYPE_STK600) {
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY1, &maj_s1);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY1, &min_s1);
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY2, &maj_s2);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY2, &min_s2);
-      msg_info("%sFW Version Periphery 1: %d.%02d\n", p, maj_s1, min_s1);
-      msg_info("%sFW Version Periphery 2: %d.%02d\n", p, maj_s2, min_s2);
+      msg_info("%sFW version periphery 1: %d.%02d\n", p, maj_s1, min_s1);
+      msg_info("%sFW version periphery 2: %d.%02d\n", p, maj_s2, min_s2);
     }
   }
 
@@ -3773,7 +3784,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   int decimals;
   const char *unit;
 
-  if(pgm->extra_features & HAS_VTARG_READ) {
+  if(pgm->extra_features & HAS_VTARG_READ && my.pgmtype != PGMTYPE_JTAGICE3) {
     fmsg_out(fp, "%sVtarget               : %.1f V\n", p, stk500v2_vtarget_value(pgm));
   }
 

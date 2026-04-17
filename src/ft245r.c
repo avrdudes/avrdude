@@ -782,7 +782,7 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
   for(i = 0; i < res_len; ++i)
     if((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
       break;
-  if(verbose >= MSG_DEBUG) {
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("%s: [ ", __func__);
     for(i = 0; i < cmd_len; i++)
       msg_debug("%02X ", cmd[i]);
@@ -810,6 +810,8 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
   int rv;
   int devnum = -1;
   char device[9] = "";
+
+  pmsg_debug("%s(\"%s\")\n", __func__, port);
 
   rv = pins_check(pgm, pin_checklist, sizeof(pin_checklist)/sizeof(pin_checklist[0]), true);
 

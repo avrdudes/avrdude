@@ -705,12 +705,12 @@ int avr_get_archlevel(const AVRPART *p) {
 
   AVRMEM *mem = avr_locate_flash(p);
 
-  if(mem) {                     // Add opcodes needed for large parts in any case
+  if(mem) {                     // Add opcodes needed for large parts (XMEGAs count as large)
     if(mem->size > 8192)
       ret |= OP_AVR_M;          // JMP, CALL
-    if(mem->size > 65536)
+    if(mem->size > 65536 || is_pdi(p))
       ret |= OP_AVR_L;          // ELPM
-    if(mem->size > 128*1024)
+    if(mem->size > 128*1024 || is_pdi(p))
       ret |= OP_AVR_XL;         // EIJMP, EICALL
   }
 

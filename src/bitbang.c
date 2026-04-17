@@ -295,7 +295,7 @@ int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *
     res[i] = bitbang_txrx(pgm, cmd[i]);
   }
 
-  if(verbose >= MSG_DEBUG) {
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("%s(): [ ", __func__);
     for(i = 0; i < 4; i++)
       msg_debug("%02X ", cmd[i]);
@@ -324,7 +324,7 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd, int cmd_len
     res[i] = r;
   }
 
-  if(verbose >= MSG_DEBUG) {
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("%s(): [ ", __func__);
     for(i = 0; i < cmd_len; i++)
       msg_debug("%02X ", cmd[i]);
@@ -352,7 +352,7 @@ int bitbang_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *
 
   pgm->setpin(pgm, PIN_LED_PGM, 1);
 
-  if(verbose >= MSG_DEBUG) {
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("%s(): [ ", __func__);
     for(i = 0; i < count; i++)
       msg_debug("%02X ", cmd[i]);

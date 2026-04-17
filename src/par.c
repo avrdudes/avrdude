@@ -346,7 +346,7 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     }
     if(str_eq(cp, "help")) {
       help = true;
-      rv = LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT_OK;
     }
 
     if(!help) {

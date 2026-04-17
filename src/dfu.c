@@ -92,25 +92,26 @@ static char *get_usb_string(usb_dev_handle *dev_handle, int index);
 
 struct dfu_dev *dfu_open(const char *port_spec) {
   struct dfu_dev *dfu;
-  char *bus_name = NULL;
-  char *dev_name = NULL;
+  char *bus_name = NULL, *dev_name = NULL;
 
-  /* The following USB device spec parsing code was copied from usbtiny.c. The
-   * expected format is "usb:BUS:DEV" where BUS and DEV are the bus and device
-   * names. We stash these away in the dfu_dev structure for the dfu_init()
-   * function, where we actually open the device.
+  /*
+   * The following USB device spec parsing code was copied from usbtiny.c.
+   * The expected format is "usb:<busdir>:<devicefile>". We stash these
+   * away in the dfu_dev structure for the dfu_init() function, where we
+   * actually open the device.
    */
 
-  if(!str_starts(port_spec, "usb")) {
-    pmsg_error("invalid port specification %s for USB device\n", port_spec);
+  pmsg_debug("%s(\"%s\")\n", __func__, port_spec);
+
+  if(!str_starts(port_spec, "usb:") && !str_eq(port_spec, "usb")) {
+    pmsg_error("invalid -P %s; drop this option or use -P usb:<busdir>:<devicefile>\n", port_spec);
     return NULL;
   }
 
   if(':' == port_spec[3]) {
     bus_name = mmt_strdup(port_spec + 3 + 1);
 
-    dev_name = strchr(bus_name, ':');
-    if(NULL != dev_name)
+    if((dev_name = strchr(bus_name, ':')))
       *dev_name++ = '\0';
   }
 
@@ -138,17 +139,19 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
   struct usb_device *dev;
   struct usb_bus *bus;
 
-  /* At last, we reach out through the USB bus to the part. There are three
-   * ways to specify the part: by USB address, by USB vendor and product id,
-   * and by part name. To specify the part by USB address, the user specifies
-   * a port parameter in the form "usb:BUS:DEV" (see dfu_open()). To specify
-   * the part by vendor and product, the user must specify a usbvid and usbpid
-   * in the configuration file. Finally, if the user specifies the part only,
-   * we use the default vendor and product id.
+  /*
+   * At last, we reach out through the USB bus to the part. There are
+   * three ways to specify the part: by USB address, by USB vendor and
+   * product id, and by part name. To specify the part by USB address, the
+   * user specifies a port parameter in the form usb:<busdir>:<devicefile>
+   * (see dfu_open()). To specify the part by vendor and product, the user
+   * must specify a usbvid and usbpid in the configuration file. Finally,
+   * if the user specifies the part only, we use the default vendor and
+   * product id.
    */
 
   if(pid == 0 && dfu->dev_name == NULL) {
-    pmsg_error("no DFU support for part; specify PID in config or USB address (via -P) to override\n");
+    pmsg_error("no DFU support for part; specify <pid> in config or USB address via -P usb:<busdir>:<devicefile>\n");
     return -1;
   }
 
@@ -164,10 +167,14 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
 
   for(bus = usb_busses; !found && bus != NULL; bus = bus->next) {
     for(dev = bus->devices; !found && dev != NULL; dev = dev->next) {
-      if(dfu->bus_name != NULL && !str_eq(bus->dirname, dfu->bus_name))
+       if(vid == dev->descriptor.idVendor && pid == dev->descriptor.idProduct)
+          pmsg_notice("found device with vendorID=0x%04x and productID=0x%04x, busdir:devicefile = %s:%s\n",
+            vid, pid, bus->dirname, dev->filename);
+
+      if(dfu->bus_name && !str_busdev_eq(bus->dirname, dfu->bus_name))
         continue;
-      if(dfu->dev_name != NULL) {
-        if(!str_eq(dev->filename, dfu->dev_name))
+      if(dfu->dev_name) {
+        if(!str_busdev_eq(dev->filename, dfu->dev_name))
           continue;
       } else if(vid != dev->descriptor.idVendor)
         continue;
@@ -187,7 +194,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
     return -1;
   }
 
-  pmsg_notice2("found VID=0x%04x PID=0x%04x at %s:%s\n",
+  pmsg_notice2("using VID=0x%04x PID=0x%04x at %s:%s\n",
     found->descriptor.idVendor, found->descriptor.idProduct, found->bus->dirname, found->filename);
 
   dfu->dev_handle = usb_open(found);
@@ -223,14 +230,10 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid) {
 void dfu_close(struct dfu_dev *dfu) {
   if(dfu->dev_handle != NULL)
     usb_close(dfu->dev_handle);
-  if(dfu->bus_name != NULL)
-    mmt_free(dfu->bus_name);
-  if(dfu->manf_str != NULL)
-    mmt_free(dfu->manf_str);
-  if(dfu->prod_str != NULL)
-    mmt_free(dfu->prod_str);
-  if(dfu->serno_str != NULL)
-    mmt_free(dfu->serno_str);
+  mmt_free(dfu->bus_name);
+  mmt_free(dfu->manf_str);
+  mmt_free(dfu->prod_str);
+  mmt_free(dfu->serno_str);
 }
 
 int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status) {
