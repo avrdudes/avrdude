@@ -20,6 +20,8 @@ Changes since version 8.1:
     - GitHub deploy action fails #2038
     - Pickit5 HVUPDI seems unable to unlock devices #2049
     - Unify -P usb behaviour #2058
+    - Target voltage read -x vtarg not working for jtagice3 #2082
+    - Vtarget appears twice in terminal #2093
 
   * Pull requests:
 
@@ -44,6 +46,10 @@ Changes since version 8.1:
     - Simplify buspirate_expect_bin_byte() function #2087
     - Make -c dryboot emulate -c urclock -x nometadata #2090
     - Remove PM_TPI from -c stk600 prog modes #2092
+    - Read target voltage using -x vtarg #2094
+    - Fix USART .adf errors of some XMEGAS #2096
+    - Rectify pin names for RSTDISBL and CLKOUT config #2096
+    - Only print the entire list of valid parts requested #2098
 
   * Internals:
 
