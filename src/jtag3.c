@@ -1097,10 +1097,10 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       MEDBG_REG_SUFFER_OFFSET, my.suffer_data, 1) < 0) {
       return -1;
     }
-    if(!my.suffer_set)
+    if(my.suffer_get)
       msg_info("SUFFER register value read as 0x%02x\n", my.suffer_data[0]);
     // Write new SUFFER value
-    else {
+    if(my.suffer_set) {
       if(jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
         MEDBG_REG_SUFFER_OFFSET, my.suffer_data + 1, 1) < 0) {
         return -1;
@@ -1116,11 +1116,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data, 1) < 0) {
       return -1;
     }
-    if(!my.vtarg_switch_set)
+    if(my.vtarg_switch_get)
       msg_info("Vtarg switch setting read as %u: target power is switched %s\n", my.vtarg_switch_data[0],
         my.vtarg_switch_data[0]? "on": "off");
     // Write Vtarg switch value
-    else {
+    if(my.vtarg_switch_set) {
       if(jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL,
         EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data + 1, 1) < 0) {
         return -1;
@@ -1139,14 +1139,14 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2fV\n", vtarg_read);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
@@ -1552,27 +1552,30 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
+        // Get target voltage
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
       if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
         if(str_starts(extended_param, "vtarg=")) {
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           my.vtarg_set = true;
           continue;
         }
-        // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
-          my.vtarg_get = true;
-          continue;
-        }
-        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1618,10 +1621,10 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
       msg_error("  -x vtarg_switch=<0|1>  Set on-board target voltage switch state\n");
     }
-    if(pgm->extra_features & HAS_VTARG_ADJ) {
+    if(pgm->extra_features & HAS_VTARG_READ)
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
+    if(pgm->extra_features & HAS_VTARG_ADJ)
       msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
-    }
     if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
       msg_error("  -x mode=avr            Set programmer to AVR mode and exit if it was not\n");
       msg_error("  -x mode=<mplab|pic>    Set programmer to MPLAB aka PIC mode and exit\n");
@@ -2919,14 +2922,14 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     // Read current target voltage set value
     unsigned char buf[2];
 
-    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+    if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2fV\n", vtarg_read);
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
       msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {

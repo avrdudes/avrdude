@@ -1658,13 +1658,12 @@ High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use
 .Ar -x hvupdi
 to enable high-voltage UPDI initialization for targets that supports this.
-.It Ar vtarg=VALUE, vtarg
+.It Ar vtarg
+Read the target voltage.
+.It Ar vtarg=VALUE
 .Nm Power Debugger only
 .sp 0.5
 The voltage generator can be enabled by setting a target voltage.
-The current set-voltage can be read by
-.Ar -x vtarg
-alone.
 .It Ar help
 Show help menu and exit.
 .El
@@ -1683,12 +1682,16 @@ when in AVR mode. Use
 for switching to AVR mode, or
 .Ar -x mode=mplab
 for switching (back) to MPLAB mode.
+.It Ar vtarg
+Read the target voltage.
 .It Ar help
 Show help menu and exit.
 .El
 .It Ar PICkit 5
 .It Ar PICkit 4 (PIC mode)
 .Bl -tag -offset indent -width indent
+.It Ar vtarg
+Read the target voltage.
 .It Ar vtarg=<voltage>
 Specify a voltage between 1.8 and 5.5 V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,

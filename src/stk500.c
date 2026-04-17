@@ -528,7 +528,7 @@ retry:
     if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
-    else {
+    if(my.vtarg_set) {
       msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
       if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
@@ -546,7 +546,7 @@ retry:
     if(my.varef_get)
       msg_info("Analog reference voltage value read as %.2f V\n", (varef_read/10.0));
     // Write analog reference voltage
-    else {
+    if(my.varef_set) {
       msg_info("Changing analog reference voltage from %.2f V to %.2f V\n", (varef_read/10.0), my.varef_data);
       if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
         return -1;
@@ -596,7 +596,7 @@ retry:
     if(my.fosc_get)
       msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
     // Write target voltage value
-    else {
+    if(my.fosc_set) {
       const char *unit_set;
       double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
@@ -624,23 +624,32 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(str_starts(extended_param, "vtarg")) {
-      if((pgm->extra_features & HAS_VTARG_ADJ) && (str_starts(extended_param, "vtarg="))) {
-        // Set target voltage
-        double vtarg_set_val = -1;      // Default = invlid value
-        int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
-
-        my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
-        if(sscanf_success < 1 || vtarg_set_val < 0) {
-          pmsg_error("invalid target voltage in -x %s\n", extended_param);
-          rv = -1;
-          break;
-        }
-        my.vtarg_set = true;
-        continue;
-      } else if((pgm->extra_features & HAS_VTARG_READ) && str_eq(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_READ) {
         // Get target voltage
-        my.vtarg_get = true;
-        continue;
+        if(str_eq(extended_param, "vtarg")) {
+          my.vtarg_get = true;
+          continue;
+        }
+      }
+
+      if(pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if(str_starts(extended_param, "vtarg=")) {
+          double vtarg_set_val = -1;    // Default = invalid value
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+
+          if(sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid value in -x %s\n", extended_param);
+            rv = -1;
+            break;
+          }
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
+          my.vtarg_set = true;
+          continue;
+        }
+        pmsg_error("invalid setting in -x %s; use -x vtarg=<dbl>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
