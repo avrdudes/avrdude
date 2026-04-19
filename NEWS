@@ -22,6 +22,7 @@ Changes since version 8.1:
     - Unify -P usb behaviour #2058
     - Target voltage read -x vtarg not working for jtagice3 #2082
     - Vtarget appears twice in terminal #2093
+    - Build warnings under macOS #2088
 
   * Pull requests:
 
@@ -50,6 +51,7 @@ Changes since version 8.1:
     - Fix USART .adf errors of some XMEGAS #2096
     - Rectify pin names for RSTDISBL and CLKOUT config #2096
     - Only print the entire list of valid parts requested #2098
+    - Update build.yml to fix warnings during macOS CI build #2100
 
   * Internals:
 
