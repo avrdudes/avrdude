@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.50
- * 17.04.2026
+ * v 1.51
+ * 20.04.2026
  *
  */
 
@@ -148,7 +148,7 @@ typedef enum {
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
-extern const Avrintel uP_table[422];
+extern const Avrintel uP_table[431];
 
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
@@ -461,15 +461,24 @@ extern const Avrintel uP_table[422];
 #define id_attiny416       289u
 #define id_attiny416auto   290u
 #define id_attiny417       291u
+#define id_attiny417auto   422u
 #define id_attiny814       298u
+#define id_attiny814auto   423u
 #define id_attiny816       299u
+#define id_attiny816auto   424u
 #define id_attiny817       300u
+#define id_attiny817auto   425u
 #define id_attiny1614      307u
+#define id_attiny1614auto  426u
 #define id_attiny1616      308u
+#define id_attiny1616auto  427u
 #define id_attiny1617      309u
+#define id_attiny1617auto  428u
 #define id_attiny3214      313u
 #define id_attiny3216      314u
+#define id_attiny3216auto  429u
 #define id_attiny3217      315u
+#define id_attiny3217auto  430u
 #define id_attiny424       292u
 #define id_attiny426       293u
 #define id_attiny427       294u
@@ -871,15 +880,24 @@ extern const Avrintel uP_table[422];
 #define vts_attiny416        26
 #define vts_attiny416auto    26
 #define vts_attiny417        26
+#define vts_attiny417auto    26
 #define vts_attiny814        26
+#define vts_attiny814auto    26
 #define vts_attiny816        26
+#define vts_attiny816auto    26
 #define vts_attiny817        26
+#define vts_attiny817auto    26
 #define vts_attiny1614       31
+#define vts_attiny1614auto   31
 #define vts_attiny1616       31
+#define vts_attiny1616auto   31
 #define vts_attiny1617       31
+#define vts_attiny1617auto   31
 #define vts_attiny3214       31
 #define vts_attiny3216       31
+#define vts_attiny3216auto   31
 #define vts_attiny3217       31
+#define vts_attiny3217auto   31
 #define vts_attiny424        30
 #define vts_attiny426        30
 #define vts_attiny427        30
@@ -1279,15 +1297,24 @@ extern const Avrintel uP_table[422];
 #define vbu_attiny416        26
 #define vbu_attiny416auto    26
 #define vbu_attiny417        26
+#define vbu_attiny417auto    26
 #define vbu_attiny814         5
+#define vbu_attiny814auto     5
 #define vbu_attiny816        26
+#define vbu_attiny816auto    26
 #define vbu_attiny817        26
+#define vbu_attiny817auto    26
 #define vbu_attiny1614        5
+#define vbu_attiny1614auto    5
 #define vbu_attiny1616       31
+#define vbu_attiny1616auto   31
 #define vbu_attiny1617       31
+#define vbu_attiny1617auto   31
 #define vbu_attiny3214       31
 #define vbu_attiny3216       31
+#define vbu_attiny3216auto   31
 #define vbu_attiny3217       31
+#define vbu_attiny3217auto   31
 #define vbu_attiny424        30
 #define vbu_attiny426        30
 #define vbu_attiny427        30
@@ -1786,19 +1813,28 @@ extern const char * const    vtab_attiny212[26];
 extern const char * const    vtab_attiny214[26];
 #define vtab_attiny414       vtab_attiny214
 #define vtab_attiny814       vtab_attiny214
+#define vtab_attiny814auto   vtab_attiny214
 
 extern const char * const    vtab_attiny416[26];
 #define vtab_attiny416auto   vtab_attiny416
 #define vtab_attiny417       vtab_attiny416
+#define vtab_attiny417auto   vtab_attiny416
 #define vtab_attiny816       vtab_attiny416
+#define vtab_attiny816auto   vtab_attiny416
 #define vtab_attiny817       vtab_attiny416
+#define vtab_attiny817auto   vtab_attiny416
 
 extern const char * const    vtab_attiny1614[31];
+#define vtab_attiny1614auto  vtab_attiny1614
 
 extern const char * const    vtab_attiny1616[31];
+#define vtab_attiny1616auto  vtab_attiny1616
 #define vtab_attiny1617      vtab_attiny1616
+#define vtab_attiny1617auto  vtab_attiny1616
 #define vtab_attiny3216      vtab_attiny1616
+#define vtab_attiny3216auto  vtab_attiny1616
 #define vtab_attiny3217      vtab_attiny1616
+#define vtab_attiny3217auto  vtab_attiny1616
 
 extern const char * const    vtab_attiny3214[31];
 
@@ -2350,6 +2386,15 @@ extern const Configitem      cfgtab_attiny804[15];
 #define cfgtab_attiny1607    cfgtab_attiny804
 
 extern const Configitem      cfgtab_attiny416auto[23];
+#define cfgtab_attiny417auto cfgtab_attiny416auto
+#define cfgtab_attiny814auto cfgtab_attiny416auto
+#define cfgtab_attiny816auto cfgtab_attiny416auto
+#define cfgtab_attiny817auto cfgtab_attiny416auto
+#define cfgtab_attiny1614auto cfgtab_attiny416auto
+#define cfgtab_attiny1616auto cfgtab_attiny416auto
+#define cfgtab_attiny1617auto cfgtab_attiny416auto
+#define cfgtab_attiny3216auto cfgtab_attiny416auto
+#define cfgtab_attiny3217auto cfgtab_attiny416auto
 
 extern const Configitem      cfgtab_attiny424[16];
 #define cfgtab_attiny426     cfgtab_attiny424
@@ -3741,14 +3786,23 @@ extern const Uart_conf       uarts_attiny204[2];
 #define uarts_attiny416      uarts_attiny204
 #define uarts_attiny416auto  uarts_attiny204
 #define uarts_attiny417      uarts_attiny204
+#define uarts_attiny417auto  uarts_attiny204
 #define uarts_attiny814      uarts_attiny204
+#define uarts_attiny814auto  uarts_attiny204
 #define uarts_attiny816      uarts_attiny204
+#define uarts_attiny816auto  uarts_attiny204
 #define uarts_attiny817      uarts_attiny204
+#define uarts_attiny817auto  uarts_attiny204
 #define uarts_attiny1614     uarts_attiny204
+#define uarts_attiny1614auto uarts_attiny204
 #define uarts_attiny1616     uarts_attiny204
+#define uarts_attiny1616auto uarts_attiny204
 #define uarts_attiny1617     uarts_attiny204
+#define uarts_attiny1617auto uarts_attiny204
 #define uarts_attiny3216     uarts_attiny204
+#define uarts_attiny3216auto uarts_attiny204
 #define uarts_attiny3217     uarts_attiny204
+#define uarts_attiny3217auto uarts_attiny204
 
 extern const Uart_conf       uarts_attiny424[3];
 #define uarts_attiny824      uarts_attiny424
