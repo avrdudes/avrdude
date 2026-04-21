@@ -10,6 +10,10 @@ Changes since version 8.1:
   * New devices supported:
 
     - ATmegaS128, ATmegaS64M1
+    - ATtiny417auto
+    - ATtiny814auto, ATtiny816auto, ATtiny817auto
+    - ATtiny1614auto, ATtiny1616auto, ATtiny1617auto
+    - ATtiny3216auto, ATtiny3217auto
 
   * New programmers supported:
 
@@ -52,6 +56,7 @@ Changes since version 8.1:
     - Rectify pin names for RSTDISBL and CLKOUT config #2096
     - Only print the entire list of valid parts requested #2098
     - Update build.yml to fix warnings during macOS CI build #2100
+    - Add tinyAVR 1-series automotive parts #2102
 
   * Internals:
 
