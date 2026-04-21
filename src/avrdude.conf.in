@@ -19786,8 +19786,10 @@ part parent "t416" # t416auto
     desc                   = "ATtiny416auto";
     id                     = "t416auto";
     variants               =
-        "ATtiny416-MBT: VQFN20, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "ATtiny416-MZT: VQFN20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+        "ATtiny416-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny416-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny416-SBT: SOIC, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny416-SZT: SOIC, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 290;
     signature              = 0x1e 0x92 0x28;
     factory_fcpu           = 16000000;
@@ -19850,6 +19852,24 @@ part parent ".avr8x_tiny" # t417
 ;
 
 #------------------------------------------------------------
+# ATtiny417auto
+#------------------------------------------------------------
+
+part parent "t417" # t417auto
+    desc                   = "ATtiny417auto";
+    id                     = "t417auto";
+    variants               =
+        "ATtiny417-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny417-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 422;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
+;
+
+#------------------------------------------------------------
 # ATtiny814
 #------------------------------------------------------------
 
@@ -19899,6 +19919,24 @@ part parent ".avr8x_tiny" # t814
     memory "sram"
         size               = 512;
         offset             = 0x3e00;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny814auto
+#------------------------------------------------------------
+
+part parent "t814" # t814auto
+    desc                   = "ATtiny814auto";
+    id                     = "t814auto";
+    variants               =
+        "ATtiny814-SSBT: SOIC, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny814-SSZT: SOIC, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 423;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
     ;
 ;
 
@@ -19960,6 +19998,26 @@ part parent ".avr8x_tiny" # t816
 ;
 
 #------------------------------------------------------------
+# ATtiny816auto
+#------------------------------------------------------------
+
+part parent "t816" # t816auto
+    desc                   = "ATtiny816auto";
+    id                     = "t816auto";
+    variants               =
+        "ATtiny816-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny816-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny816-SBT: SOIC, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny816-SZT: SOIC, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 424;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
+;
+
+#------------------------------------------------------------
 # ATtiny817
 #------------------------------------------------------------
 
@@ -20013,6 +20071,25 @@ part parent ".avr8x_tiny" # t817
 ;
 
 #------------------------------------------------------------
+# ATtiny817auto
+#------------------------------------------------------------
+
+part parent "t817" # t817auto
+    desc                   = "ATtiny817auto";
+    id                     = "t817auto";
+    variants               =
+        "ATtiny817-MB:  VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny817-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny817-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 425;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
+;
+
+#------------------------------------------------------------
 # ATtiny1614
 #------------------------------------------------------------
 
@@ -20061,6 +20138,24 @@ part parent ".avr8x_tiny" # t1614
     memory "sram"
         size               = 2048;
         offset             = 0x3800;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1614auto
+#------------------------------------------------------------
+
+part parent "t1614" # t1614auto
+    desc                   = "ATtiny1614auto";
+    id                     = "t1614auto";
+    variants               =
+        "ATtiny1614-SSBT: SOIC, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny1614-SSZT: SOIC, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 426;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
     ;
 ;
 
@@ -20119,6 +20214,26 @@ part parent ".avr8x_tiny" # t1616
 ;
 
 #------------------------------------------------------------
+# ATtiny1616auto
+#------------------------------------------------------------
+
+part parent "t1616" # t1616auto
+    desc                   = "ATtiny1616auto";
+    id                     = "t1616auto";
+    variants               =
+        "ATtiny1616-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny1616-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny1616-SBT: SOIC, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny1616-SZT: SOIC, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 427;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
+;
+
+#------------------------------------------------------------
 # ATtiny1617
 #------------------------------------------------------------
 
@@ -20167,6 +20282,24 @@ part parent ".avr8x_tiny" # t1617
     memory "sram"
         size               = 2048;
         offset             = 0x3800;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1617auto
+#------------------------------------------------------------
+
+part parent "t1617" # t1617auto
+    desc                   = "ATtiny1617auto";
+    id                     = "t1617auto";
+    variants               =
+        "ATtiny1617-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny1617-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 428;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
     ;
 ;
 
@@ -20228,6 +20361,24 @@ part parent ".avr8x_tiny" # t3216
 ;
 
 #------------------------------------------------------------
+# ATtiny3216auto
+#------------------------------------------------------------
+
+part parent "t3216" # t3216auto
+    desc                   = "ATtiny3216auto";
+    id                     = "t3216auto";
+    variants               =
+        "ATtiny3216-SBT: SOIC, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny3216-SZT: SOIC, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 429;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
+;
+
+#------------------------------------------------------------
 # ATtiny3217
 #------------------------------------------------------------
 
@@ -20241,6 +20392,24 @@ part parent "t3216" # t3217
         "ATtiny3217-MNR: VQFN24, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 315;
     signature              = 0x1e 0x95 0x22;
+;
+
+#------------------------------------------------------------
+# ATtiny3217auto
+#------------------------------------------------------------
+
+part parent "t3217" # t3217auto
+    desc                   = "ATtiny3217auto";
+    id                     = "t3217auto";
+    variants               =
+        "ATtiny3217-MBT: VQFN, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny3217-MZT: VQFN, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
+    mcuid                  = 430;
+    factory_fcpu           = 16000000;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
 ;
 
 #------------------------------------------------------------
