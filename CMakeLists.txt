@@ -283,16 +283,24 @@ endif()
 
 # -------------------------------------
 # Find SWIG/Python3 if needed
-if(ENABLE_PYTHON_SUPPORT)
+option(FORCE_DISABLE_PYTHON_SUPPORT "Option to explicitly disable Python support" OFF)
+
+if(NOT FORCE_DISABLE_PYTHON_SUPPORT)
+  if(SWIG_FOUND)
   find_package(SWIG 4.0 COMPONENTS python)
   if(SWIG_FOUND)
     find_package(Python3 COMPONENTS Interpreter Development)
     if(PYTHON3_FOUND)
       set(HAVE_SWIG 1)
+      message(STATUS "Python support enabled")
     else()
       message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")
     endif()
+  else()
+    message(STATUS "SWIG not found, Python support disabled")
   endif()
+else()
+  message(STATUS "Python support explicitly disabled via FORCE_DISABLE_PYTHON_SUPPORT")
 endif()
 
 # =====================================
