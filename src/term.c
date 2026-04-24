@@ -95,6 +95,7 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
 // List of commands; don't add a command starting with e: main.c relies on e expanding to erase
 static const struct command cmd[] = {
   {"dump", cmd_dump, _fo(read_byte_cached), "display a memory section as hex dump"},
+  {"d", cmd_dump, _fo(read_byte_cached), "abbreviation for dump"},
   {"read", cmd_dump, _fo(read_byte_cached), "alias for dump"},
   {"disasm", cmd_disasm, _fo(read_byte_cached), "disassemble a memory section"},
   {"write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached"},
