@@ -34,6 +34,7 @@ option(USE_EXTERNAL_LIBS "Use external libraries from AVRDUDE GitHub repositorie
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(FORCE_DISABLE_PYTHON_SUPPORT "Option to explicitly disable Python support" OFF)
 
 if(WIN32)
     # Prefer static libraries over DLLs on Windows
@@ -281,15 +282,37 @@ if(HAVE_LINUXGPIO)
 endif()
 
 # -------------------------------------
-# Find SWIG
-find_package(SWIG 4.0 COMPONENTS python)
-if(SWIG_FOUND)
-  find_package(Python3 COMPONENTS Interpreter Development)
-  if(PYTHON3_FOUND)
-    set(HAVE_SWIG 1)
-  else()
-    message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")
-  endif()
+# Find SWIG/Python3 if needed
+
+if(NOT FORCE_DISABLE_PYTHON_SUPPORT)
+    # Search for SWIG first
+    find_package(SWIG 4.0 COMPONENTS python)
+    
+    if(SWIG_FOUND)
+        # Apply the PR #2099 strategy fixes here to ensure correct Python detection
+        set(Python3_FIND_STRATEGY LOCATION)
+        set(Python3_FIND_UNVERSIONED_NAMES FIRST)
+        
+        find_package(Python3 COMPONENTS Interpreter Development)
+        
+        if(Python3_FOUND)
+            set(HAVE_SWIG 1)
+            message(STATUS "Python support enabled")
+            
+            # Helper to find site-packages (from your PR #2099 snippet)
+            execute_process(
+                COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])" 
+                OUTPUT_VARIABLE PYTHON_SITE_PACKAGES 
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+        else()
+            message(STATUS "SWIG found, but Python3 headers/library missing; Python support disabled")
+        endif()
+    else()
+        message(STATUS "SWIG not found; Python support disabled")
+    endif()
+else()
+    message(STATUS "Python support explicitly disabled via FORCE_DISABLE_PYTHON_SUPPORT")
 endif()
 
 # =====================================
