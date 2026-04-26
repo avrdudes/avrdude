@@ -2128,7 +2128,7 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
@@ -2196,7 +2196,7 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
@@ -3909,7 +3909,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -4007,7 +4007,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -4080,7 +4080,7 @@ static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;

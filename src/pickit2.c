@@ -173,7 +173,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(!str_eq(port, "usb"))
+  if(!str_caseeq(port, "usb"))
     pmsg_warning("option -P %s ignored\n", port);
 
 #ifdef WIN32

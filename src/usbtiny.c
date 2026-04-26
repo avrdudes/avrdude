@@ -287,13 +287,13 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *port) {
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
 
-  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+  if(!str_casestarts(port, "usb:") && !str_caseeq(port, "usb")) {
     pmsg_error("invalid -P %s; drop this option or use -P usb:<busdir>:<devicefile>\n", port);
     return -1;
   }
 
   // Calculate bus and device names from -P usb:<busdir>:<devicefile> option if present
-  if(str_starts(port, "usb:")) {
+  if(str_casestarts(port, "usb:")) {
     bus_name = port + 4;
     if((dev_name = strchr(bus_name, ':')))
       dev_name++;

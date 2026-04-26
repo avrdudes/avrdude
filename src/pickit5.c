@@ -657,7 +657,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   return LIBAVRDUDE_GENERAL_FAILURE;
 #endif
 
-  if(!str_starts(port, "usb:") && !str_eq(port, "usb")) {
+  if(!str_casestarts(port, "usb:") && !str_caseeq(port, "usb")) {
     pmsg_error("invalid -P %s; drop -P option or else use -P usb:<vid>:<pid> or -P usb:<serialno>\n", port);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
