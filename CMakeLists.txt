@@ -285,21 +285,15 @@ endif()
 # Find SWIG/Python3 if needed
 
 if(NOT FORCE_DISABLE_PYTHON_SUPPORT)
-    # Search for SWIG first
     find_package(SWIG 4.0 COMPONENTS python)
     
     if(SWIG_FOUND)
-        # Apply the PR #2099 strategy fixes here to ensure correct Python detection
         set(Python3_FIND_STRATEGY LOCATION)
         set(Python3_FIND_UNVERSIONED_NAMES FIRST)
-        
         find_package(Python3 COMPONENTS Interpreter Development)
-        
         if(Python3_FOUND)
             set(HAVE_SWIG 1)
             message(STATUS "Python support enabled")
-            
-            # Helper to find site-packages (from your PR #2099 snippet)
             execute_process(
                 COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])" 
                 OUTPUT_VARIABLE PYTHON_SITE_PACKAGES 
