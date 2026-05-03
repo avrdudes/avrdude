@@ -57,6 +57,7 @@ Changes since version 8.1:
     - Only print the entire list of valid parts requested #2098
     - Update build.yml to fix warnings during macOS CI build #2100
     - Add tinyAVR 1-series automotive parts #2102
+    - CMakeLists.txt: allow disabling Python support #2051
 
   * Internals:
 
