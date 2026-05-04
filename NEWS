@@ -27,6 +27,7 @@ Changes since version 8.1:
     - Target voltage read -x vtarg not working for jtagice3 #2082
     - Vtarget appears twice in terminal #2093
     - Build warnings under macOS #2088
+    - github avrdude_packing_release action failed #2039
 
   * Pull requests:
 
@@ -58,6 +59,7 @@ Changes since version 8.1:
     - Update build.yml to fix warnings during macOS CI build #2100
     - Add tinyAVR 1-series automotive parts #2102
     - CMakeLists.txt: allow disabling Python support #2051
+    - Update artifact upload name and path in arduino_packing_release workflow #2101
 
   * Internals:
 
