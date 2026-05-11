@@ -423,7 +423,8 @@ typedef struct {
 #define MEM_FUSE0             0 // fuse lfuse fuse0 wdtcfg
 #define MEM_FUSE1             1 // hfuse fuse1 bodcfg
 #define MEM_FUSE2             2 // efuse fuse2 osccfg
-#define MEM_FUSE4             4 // fuse4 tcd0cfg
+#define MEM_FUSE3             3 // fuse3 pincfg
+#define MEM_FUSE4             4 // fuse4 tcd0cfg hwmoncfg
 #define MEM_FUSE5             5 // fuse5 syscfg0
 #define MEM_FUSE6             6 // fuse6 syscfg1
 #define MEM_FUSE7             7 // fuse7 append codesize

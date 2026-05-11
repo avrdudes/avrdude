@@ -24534,6 +24534,233 @@ part parent "16eb32" # 32eb32
 ;
 
 #------------------------------------------------------------
+# AVR-Lx family common values
+#------------------------------------------------------------
+
+part # .avr-lx
+    desc                   = "AVR-Lx family common values";
+    id                     = ".avr-lx";
+    family_id              = "AVR    ";
+    prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
+    boot_section_size      = 256;
+    # Shared UPDI pin, HV on _RESET
+    hvupdi_variant         = 2;
+    nvm_base               = 0x1000;
+    ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
+    factory_fcpu           = 20000000;
+
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "fuse0"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "wdtcfg"
+        alias "fuse0";
+    ;
+
+    memory "fuse1"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1051;
+        readsize           = 1;
+    ;
+
+    memory "bodcfg"
+        alias "fuse1";
+    ;
+
+    memory "fuse2"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0x08;
+        offset             = 0x1052;
+        readsize           = 1;
+    ;
+
+    memory "osccfg"
+        alias "fuse2";
+    ;
+
+    memory "fuse3"
+        size               = 1;
+        initval            = 0x02;
+        bitmask            = 0x03;
+        offset             = 0x1053;
+        readsize           = 1;
+    ;
+
+    memory "pincfg"
+        alias "fuse3";
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0x01;
+        offset             = 0x1054;
+        readsize           = 1;
+    ;
+
+    memory "hwmoncfg"
+        alias "fuse4";
+    ;
+
+    memory "fuse5"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0xc3;
+        offset             = 0x1055;
+        readsize           = 1;
+    ;
+
+    memory "syscfg0"
+        alias "fuse5";
+    ;
+
+    memory "fuse6"
+        size               = 1;
+        initval            = 0x07;
+        bitmask            = 0x07;
+        offset             = 0x1056;
+        readsize           = 1;
+    ;
+
+    memory "syscfg1"
+        alias "fuse6";
+    ;
+
+    memory "fuse7"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1057;
+        readsize           = 1;
+    ;
+
+    memory "codesize"
+        alias "fuse7";
+    ;
+
+    memory "append"
+        alias "fuse7";
+    ;
+
+    memory "fuse8"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1058;
+        readsize           = 1;
+    ;
+
+    memory "bootsize"
+        alias "fuse8";
+    ;
+
+    memory "bootend"
+        alias "fuse8";
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+
+    memory "lock"
+        size               = 4;
+        offset             = 0x1040;
+        readsize           = 4;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1100;
+        readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1100;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 4;
+        offset             = 0x1104;
+        readsize           = 1;
+    ;
+
+    memory "sernum"
+        size               = 16;
+        offset             = 0x1110;
+        readsize           = 1;
+    ;
+
+    memory "userrow"
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1080;
+        readsize           = 64;
+    ;
+
+    memory "usersig"
+        alias "userrow";
+    ;
+
+    memory "io"
+        size               = 4160;
+        readsize           = 1;
+    ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32LA32
+#------------------------------------------------------------
+
+part parent ".avr-lx" # 32la32
+    desc                   = "AVR32LA32";
+    id                     = "32la32";
+    variants               =
+        "AVR32LA32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 431;
+    signature              = 0x1e 0x95 0x58;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
+;
+
+#------------------------------------------------------------
 # AVR-Sx family common values
 #------------------------------------------------------------
 
