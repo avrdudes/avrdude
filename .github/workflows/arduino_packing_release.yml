@@ -80,5 +80,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         if-no-files-found: error
-        name: ${{ env.ARTIFACT_NAME }}
-        path: avrdude_*
+        name: ${{ env.ARTIFACT_NAME }}-${{ matrix.config.os }}-${{ matrix.config.arch }}
+        path: ${{ env.PROJECT_NAME }}_*.tar.gz
