@@ -24824,9 +24824,6 @@ part parent "16la14" # 32la14
 
     memory "flash"
         size               = 0x8000;
-        page_size          = 64;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 ;
 
