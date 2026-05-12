@@ -24683,6 +24683,7 @@ part # .avr-lx
 
     memory "lock"
         size               = 4;
+        initval            = 0x5cc5c55c;
         offset             = 0x1040;
         readsize           = 4;
     ;
@@ -24690,7 +24691,7 @@ part # .avr-lx
     memory "prodsig"
         size               = 128;
         page_size          = 128;
-        offset             = 0x1100;
+        offset             = 0x1080;
         readsize           = 128;
     ;
 
@@ -24700,26 +24701,26 @@ part # .avr-lx
 
     memory "signature"
         size               = 3;
-        offset             = 0x1100;
+        offset             = 0x1080;
         readsize           = 3;
     ;
 
     memory "tempsense"
         size               = 4;
-        offset             = 0x1104;
+        offset             = 0x1084;
         readsize           = 1;
     ;
 
     memory "sernum"
         size               = 16;
-        offset             = 0x1110;
+        offset             = 0x1090;
         readsize           = 1;
     ;
 
     memory "userrow"
         size               = 64;
         page_size          = 64;
-        offset             = 0x1080;
+        offset             = 0x1200;
         readsize           = 64;
     ;
 
@@ -24750,8 +24751,18 @@ part parent ".avr-lx" # 32la32
     mcuid                  = 431;
     signature              = 0x1e 0x95 0x58;
 
+    memory "eeprom"
+        size               = 512;
+        page_size          = 8;
+        offset             = 0x1400;
+        readsize           = 256;
+    ;
+
     memory "flash"
         size               = 0x8000;
+        page_size          = 64;
+        offset             = 0x800000;
+        readsize           = 256;
     ;
 
     memory "sram"
