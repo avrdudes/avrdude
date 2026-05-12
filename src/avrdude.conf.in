@@ -24748,7 +24748,7 @@ part parent ".avr-lx" # 32la32
     id                     = "32la32";
     variants               =
         "AVR32LA32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
-    mcuid                  = 431;
+    mcuid                  = 421;
     signature              = 0x1e 0x95 0x58;
 
     memory "eeprom"
