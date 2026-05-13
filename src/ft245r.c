@@ -823,7 +823,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
   pgm->port = port;
 
   // Read device string cut after 8 chars (max. length of serial number)
-  if(!str_casestarts(port, "usb:") || (port+4, "%8s", device) != 1) {
+  if(!str_casestarts(port, "usb:") || sscanf(port+4, "%8s", device) != 1) {
     pmsg_notice("%s(): no device identifier in portname, using default\n", __func__);
     pgm->usbsn = cache_string("");
     devnum = 0;
