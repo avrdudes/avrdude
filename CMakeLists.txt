@@ -250,21 +250,27 @@ if(USE_EXTERNAL_LIBS)
     fetch_avrdude_fork(LIBFTDI "https://github.com/avrdudes/libftdi.git" "f9fe6e96b97c3a08efd081632c1859cb83aa14e3")
 
     # Force states to the Global Cache table so they cross safely into src/ subdirectory scope
+# Force states to the Global Cache table so they cross safely into src/ subdirectory scope
     set(HAVE_LIBELF TRUE CACHE INTERNAL "")
     set(HAVE_LIBELF_H TRUE CACHE INTERNAL "")
-    set(HAVE_LIBUSB_1_0 TRUE CACHE INTERNAL "")
-    set(HAVE_LIBUSB_H TRUE CACHE INTERNAL "")
+    
+    # Enable legacy libusb-0.1 and disable modern libusb-1.0 tracking
+    set(HAVE_LIBUSB TRUE CACHE INTERNAL "")
+    set(HAVE_USB_H TRUE CACHE INTERNAL "")
+    set(HAVE_LIBUSB_1_0 FALSE CACHE INTERNAL "")   # <-- Flipped to FALSE
+    set(HAVE_LIBUSB_H FALSE CACHE INTERNAL "")     # <-- Flipped to FALSE
+    
     set(HAVE_LIBHIDAPI TRUE CACHE INTERNAL "")
     set(HAVE_LIBFTDI1 TRUE CACHE INTERNAL "")
 
     # Map the compiler target link handles globally 
     set(TARGET_LIBELF libelf CACHE INTERNAL "")
-    set(TARGET_LIBUSB_1_0 libusb CACHE INTERNAL "")
+    set(TARGET_LIBUSB libusb CACHE INTERNAL "")     # <-- Route legacy libusb links directly to his target
+    set(TARGET_LIBUSB_1_0 "" CACHE INTERNAL "")     # <-- Clear out 1.0 link references
     set(TARGET_LIBHIDAPI libhidapi CACHE INTERNAL "")
     set(TARGET_LIBFTDI1 libftdi CACHE INTERNAL "")
 
-    # Uniform structured configuration map matching Marius Greuel's /include pattern
-    # Pushed to CACHE INTERNAL so src/CMakeLists.txt can evaluate them cleanly!
+    # Pass the unified include directory path definitions cleanly down to src/
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
     set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}/include"  CACHE INTERNAL "")
     set(FETCHED_HIDAPI_DIR  "${FETCHED_LIBHIDAPI_BASE}/include" CACHE INTERNAL "")
