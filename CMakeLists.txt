@@ -238,36 +238,21 @@ if(USE_EXTERNAL_LIBS)
     macro(fetch_avrdude_fork name repo tag)
         FetchContent_Declare(${name} GIT_REPOSITORY ${repo} GIT_TAG ${tag})
         FetchContent_MakeAvailable(${name})
+        
+        string(TOLOWER "${name}" lc_name)
+        set(FETCHED_${name}_BASE "${${lc_name}_SOURCE_DIR}" CACHE INTERNAL "Fetched source path for ${name}")
     endmacro()
 
-    fetch_avrdude_fork(libelf "https://github.com/avrdudes/libelf.git" "e5a39bf19bd6598c42e09172be5a78ceec2a065c")
-    set(TARGET_LIBELF libelf)
-    set(HAVE_LIBELF TRUE)
-    set(HAVE_LIBELF_H TRUE)
+    fetch_avrdude_fork(LIBELF "https://github.com/avrdudes/libelf.git" "e5a39bf19bd6598c42e09172be5a78ceec2a065c")
+    fetch_avrdude_fork(LIBUSB "https://github.com/avrdudes/libusb.git" "632bc25d04eff563cc00de29435b9a7ed6f4654c")
+    fetch_avrdude_fork(LIBHIDAPI "https://github.com/avrdudes/libhidapi.git" "d1307487973c857bc158e27ecc99644b2f5e68ea")
+    fetch_avrdude_fork(LIBFTDI "https://github.com/avrdudes/libftdi.git" "f9fe6e96b97c3a08efd081632c1859cb83aa14e3")
 
-    fetch_avrdude_fork(libusb "https://github.com/avrdudes/libusb.git" "632bc25d04eff563cc00de29435b9a7ed6f4654c")
-    set(TARGET_LIBUSB_1_0 libusb)
-    set(HAVE_LIBUSB_1_0 TRUE)
-    set(HAVE_LIBUSB_H TRUE)
-
-    fetch_avrdude_fork(libhidapi "https://github.com/avrdudes/libhidapi.git" "d1307487973c857bc158e27ecc99644b2f5e68ea")
-    set(TARGET_LIBHIDAPI libhidapi)
-    set(HAVE_LIBHIDAPI TRUE)
-
-    fetch_avrdude_fork(libftdi "https://github.com/avrdudes/libftdi.git" "f9fe6e96b97c3a08efd081632c1859cb83aa14e3")
-    set(TARGET_LIBFTDI1 libftdi)
-    set(HAVE_LIBFTDI1 TRUE)
-
-    # Force query target SOURCE_DIR properties to survive MSVC Cross-Compiling isolation bounds
-    get_target_property(FETCHED_LIBELF_DIR libelf SOURCE_DIR)
-    get_target_property(FETCHED_LIBUSB_BASE libusb SOURCE_DIR)
-    get_target_property(FETCHED_HIDAPI_BASE libhidapi SOURCE_DIR)
-    get_target_property(FETCHED_LIBFTDI_BASE libftdi SOURCE_DIR)
-
-    # Resolve deep sub-structures inside forks
-    set(FETCHED_LIBUSB_DIR "${FETCHED_LIBUSB_BASE}/libusb")
-    set(FETCHED_HIDAPI_DIR "${FETCHED_HIDAPI_BASE}/hidapi")
-    set(FETCHED_LIBFTDI_DIR "${FETCHED_LIBFTDI_BASE}/src")
+    # Map variables uniformly based on the /include design pattern across Marius's forks
+    set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
+    set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}/include"  CACHE INTERNAL "")
+    set(FETCHED_HIDAPI_DIR  "${FETCHED_LIBHIDAPI_BASE}/include" CACHE INTERNAL "")
+    set(FETCHED_LIBFTDI_DIR "${FETCHED_LIBFTDI_BASE}/include" CACHE INTERNAL "")
 endif()
 
 add_subdirectory(src)
