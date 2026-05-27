@@ -239,8 +239,8 @@ if(USE_EXTERNAL_LIBS)
         FetchContent_Declare(${name} GIT_REPOSITORY ${repo} GIT_TAG ${tag})
         FetchContent_MakeAvailable(${name})
         
-        string(TOLOWER "${name}" lc_name)
-        set(FETCHED_${name}_BASE "${${lc_name}_SOURCE_DIR}" CACHE INTERNAL "Fetched source path for ${name}")
+        # Match the exact casing passed to the macro (e.g., ${LIBUSB_SOURCE_DIR})
+        set(FETCHED_${name}_BASE "${${name}_SOURCE_DIR}" CACHE INTERNAL "Fetched source path for ${name}")
     endmacro()
 
     fetch_avrdude_fork(LIBELF "https://github.com/avrdudes/libelf.git" "e5a39bf19bd6598c42e09172be5a78ceec2a065c")
@@ -251,7 +251,7 @@ if(USE_EXTERNAL_LIBS)
     # Map variables uniformly based on the /include design pattern across Marius's forks
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
     set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}/include"  CACHE INTERNAL "")
-    set(FETCHED_HIDAPI_DIR  "${FETCHED_LIBHIDAPI_BASE}/include" CACHE INTERNAL "")
+    set(FETCHED_HIDAPI_DIR  "${FETCHED_LIBHIDAPI_BASE}/include" CA INTERNAL "")
     set(FETCHED_LIBFTDI_DIR "${FETCHED_LIBFTDI_BASE}/include" CACHE INTERNAL "")
 endif()
 
