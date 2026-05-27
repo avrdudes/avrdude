@@ -195,15 +195,14 @@ target_include_directories(libavrdude
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    PRIVATE
+    PRIVATE BEFORE # <-- Added BEFORE keyword here to shadow Windows SDK headers
         ${CMAKE_CURRENT_BINARY_DIR}
         ${PROJECT_BINARY_DIR}
         ${EXTRA_WINDOWS_INCLUDES}
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
-        # Injected direct targets values extracted cleanly via root target properties
         ${FETCHED_LIBELF_DIR}
-        ${FETCHED_LIBUSB_DIR}
+        ${FETCHED_LIBUSB_DIR}  # This path containing the correct usb.h now comes first!
         ${FETCHED_HIDAPI_DIR}
         ${FETCHED_LIBFTDI_DIR}
 )
