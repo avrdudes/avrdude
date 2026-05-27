@@ -51,7 +51,7 @@ jobs:
     steps:
 
     - name: Checkout avrdude repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
       with:
         repository: avrdudes/avrdude
         path: ${{ env.PROJECT_NAME }}
@@ -85,7 +85,7 @@ jobs:
         tar -czv ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }} -f ${{ env.PROJECT_NAME }}_${GITHUB_REF##*/}_${{ matrix.config.os }}_${{ matrix.config.arch }}.tar.gz
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         if-no-files-found: error
         name: ${{ env.ARTIFACT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}
