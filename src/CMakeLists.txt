@@ -191,18 +191,25 @@ else()
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
 endif()
 
+# Force Marius's include directories to take absolute priority BEFORE standard rules.
+# On MSVC, we wrap FETCHED_LIBUSB_DIR as a forced system inclusion path parameter 
+# to knock down the precedence of the Windows SDK's driver usb.h.
+target_include_directories(libavrdude
+    PRIVATE BEFORE
+        ${FETCHED_LIBUSB_DIR}
+)
+
 target_include_directories(libavrdude
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    PRIVATE BEFORE # <-- Added BEFORE keyword here to shadow Windows SDK headers
+    PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}
         ${PROJECT_BINARY_DIR}
         ${EXTRA_WINDOWS_INCLUDES}
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
         ${FETCHED_LIBELF_DIR}
-        ${FETCHED_LIBUSB_DIR}  # This path containing the correct usb.h now comes first!
         ${FETCHED_HIDAPI_DIR}
         ${FETCHED_LIBFTDI_DIR}
 )
