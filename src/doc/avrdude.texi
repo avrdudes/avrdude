@@ -5915,10 +5915,15 @@ A.k.a. @code{wdtcfg}: watchdog configuration
 A.k.a. @code{bodcfg}: brownout detection configuration
 @cindex @code{osccfg}
 @item fuse2
+A.k.a. @code{pincfg}: (not all devices): UPDI and reset pin configuration
+@cindex @code{pincfg}
+@item fuse3
 A.k.a. @code{osccfg}: oscillator configuration
 @cindex @code{tcd0cfg}
+@cindex @code{hwmoncfg}
 @item fuse4
-A.k.a. @code{tcd0cfg} (not all devices): timer counter type D configuration
+A.k.a. @code{tcd0cfg} (not all devices): timer counter type D configuration@*
+A.k.a. @code{hwmoncfg} (not all devices): CPU safety function checks for illegal opcodes
 @cindex @code{syscfg0}
 @item fuse5
 A.k.a. @code{syscfg0}: system configuration 0

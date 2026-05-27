@@ -24534,6 +24534,339 @@ part parent "16eb32" # 32eb32
 ;
 
 #------------------------------------------------------------
+# AVR-Lx family common values
+#------------------------------------------------------------
+
+part # .avr-lx
+    desc                   = "AVR-Lx family common values";
+    id                     = ".avr-lx";
+    family_id              = "AVR    ";
+    prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
+    boot_section_size      = 256;
+    # Shared UPDI pin, HV on _RESET
+    hvupdi_variant         = 2;
+    nvm_base               = 0x1000;
+    ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
+    factory_fcpu           = 20000000;
+
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "fuse0"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
+    memory "wdtcfg"
+        alias "fuse0";
+    ;
+
+    memory "fuse1"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1051;
+        readsize           = 1;
+    ;
+
+    memory "bodcfg"
+        alias "fuse1";
+    ;
+
+    memory "fuse2"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0x08;
+        offset             = 0x1052;
+        readsize           = 1;
+    ;
+
+    memory "osccfg"
+        alias "fuse2";
+    ;
+
+    memory "fuse3"
+        size               = 1;
+        initval            = 0x02;
+        bitmask            = 0x03;
+        offset             = 0x1053;
+        readsize           = 1;
+    ;
+
+    memory "pincfg"
+        alias "fuse3";
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0x01;
+        offset             = 0x1054;
+        readsize           = 1;
+    ;
+
+    memory "hwmoncfg"
+        alias "fuse4";
+    ;
+
+    memory "fuse5"
+        size               = 1;
+        initval            = 0x00;
+        bitmask            = 0xc3;
+        offset             = 0x1055;
+        readsize           = 1;
+    ;
+
+    memory "syscfg0"
+        alias "fuse5";
+    ;
+
+    memory "fuse6"
+        size               = 1;
+        initval            = 0x07;
+        bitmask            = 0x07;
+        offset             = 0x1056;
+        readsize           = 1;
+    ;
+
+    memory "syscfg1"
+        alias "fuse6";
+    ;
+
+    memory "fuse7"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1057;
+        readsize           = 1;
+    ;
+
+    memory "codesize"
+        alias "fuse7";
+    ;
+
+    memory "append"
+        alias "fuse7";
+    ;
+
+    memory "fuse8"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1058;
+        readsize           = 1;
+    ;
+
+    memory "bootsize"
+        alias "fuse8";
+    ;
+
+    memory "bootend"
+        alias "fuse8";
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+
+    memory "lock"
+        size               = 4;
+        initval            = 0x5cc5c55c;
+        offset             = 0x1040;
+        readsize           = 4;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1080;
+        readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1080;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 4;
+        offset             = 0x1084;
+        readsize           = 1;
+    ;
+
+    memory "sernum"
+        size               = 16;
+        offset             = 0x1090;
+        readsize           = 1;
+    ;
+
+    memory "userrow"
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1200;
+        readsize           = 64;
+    ;
+
+    memory "usersig"
+        alias "userrow";
+    ;
+
+    memory "io"
+        size               = 4160;
+        readsize           = 1;
+    ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16LA14
+#------------------------------------------------------------
+
+part parent ".avr-lx" # 16la14
+    desc                   = "AVR16LA14";
+    id                     = "16la14";
+    variants               =
+        "AVR16LA14-SOIC/TSSOP: DIP14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 414;
+    signature              = 0x1e 0x95 0x54;
+
+    memory "eeprom"
+        size               = 512;
+        page_size          = 8;
+        offset             = 0x1400;
+        readsize           = 256;
+    ;
+
+    memory "flash"
+        size               = 0x4000;
+        page_size          = 64;
+        offset             = 0x800000;
+        readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16LA20
+#------------------------------------------------------------
+
+part parent "16la14" # 16la20
+    desc                   = "AVR16LA20";
+    id                     = "16la20";
+    variants               =
+        "AVR16LA20-SOIC/TSSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 415;
+    signature              = 0x1e 0x95 0x53;
+;
+
+#------------------------------------------------------------
+# AVR16LA28
+#------------------------------------------------------------
+
+part parent "16la14" # 16la28
+    desc                   = "AVR16LA28";
+    id                     = "16la28";
+    variants               =
+        "AVR16LA28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 416;
+    signature              = 0x1e 0x95 0x52;
+;
+
+#------------------------------------------------------------
+# AVR16LA32
+#------------------------------------------------------------
+
+part parent "16la14" # 16la32
+    desc                   = "AVR16LA32";
+    id                     = "16la32";
+    variants               =
+        "AVR16LA32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 417;
+    signature              = 0x1e 0x95 0x51;
+;
+
+#------------------------------------------------------------
+# AVR32LA14
+#------------------------------------------------------------
+
+part parent "16la14" # 32la14
+    desc                   = "AVR32LA14";
+    id                     = "32la14";
+    variants               =
+        "AVR32LA14-SOIC/TSSOP: DIP14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 418;
+    signature              = 0x1e 0x95 0x29;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32LA20
+#------------------------------------------------------------
+
+part parent "32la14" # 32la20
+    desc                   = "AVR32LA20";
+    id                     = "32la20";
+    variants               =
+        "AVR32LA20-SOIC/TSSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 419;
+    signature              = 0x1e 0x95 0x60;
+;
+
+#------------------------------------------------------------
+# AVR32LA28
+#------------------------------------------------------------
+
+part parent "32la14" # 32la28
+    desc                   = "AVR32LA28";
+    id                     = "32la28";
+    variants               =
+        "AVR32LA28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 420;
+    signature              = 0x1e 0x95 0x59;
+;
+
+#------------------------------------------------------------
+# AVR32LA32
+#------------------------------------------------------------
+
+part parent "32la14" # 32la32
+    desc                   = "AVR32LA32";
+    id                     = "32la32";
+    variants               =
+        "AVR32LA32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 421;
+    signature              = 0x1e 0x95 0x58;
+;
+
+#------------------------------------------------------------
 # AVR-Sx family common values
 #------------------------------------------------------------
 
