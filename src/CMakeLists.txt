@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 # src/CMakeLists.txt - Modernized Inner-Source Targets
 
 # =====================================
@@ -189,15 +190,13 @@ if(NOT MSVC)
 else()
     target_compile_definitions(libavrdude PRIVATE _CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1 _WINSOCK_DEPRECATED_NO_WARNINGS=1)
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
+    
+    # CRITICAL MSVC FIX: Force inject Marius's user-space usb.h right at the absolute top of every source 
+    # compilation unit. This completely short-circuits the Windows SDK include fallback resolution path.
+    if(USE_EXTERNAL_LIBS AND FETCHED_LIBUSB_DIR)
+        target_compile_options(libavrdude PRIVATE "/FI${FETCHED_LIBUSB_DIR}/usb.h")
+    endif()
 endif()
-
-# Force Marius's include directories to take absolute priority BEFORE standard rules.
-# On MSVC, we wrap FETCHED_LIBUSB_DIR as a forced system inclusion path parameter 
-# to knock down the precedence of the Windows SDK's driver usb.h.
-target_include_directories(libavrdude
-    PRIVATE BEFORE
-        ${FETCHED_LIBUSB_DIR}
-)
 
 target_include_directories(libavrdude
     PUBLIC
@@ -210,6 +209,7 @@ target_include_directories(libavrdude
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
         ${FETCHED_LIBELF_DIR}
+        ${FETCHED_LIBUSB_DIR}
         ${FETCHED_HIDAPI_DIR}
         ${FETCHED_LIBFTDI_DIR}
 )
