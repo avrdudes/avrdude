@@ -151,6 +151,7 @@ set_target_properties(libavrdude PROPERTIES
     PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
     VERSION 4.0.0
     SOVERSION 4
+    POSITION_INDEPENDENT_CODE ON
 )
 
 # Forwarding libelf context identifiers safely
