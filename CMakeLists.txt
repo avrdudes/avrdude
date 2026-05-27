@@ -20,7 +20,6 @@
 #     cmake -B build
 #     cmake --build build
 
-# CMakeLists.txt - Modernized Configuration for AVRDUDE Dual-USB Stack
 cmake_minimum_required(VERSION 3.14)
 project(avrdude VERSION 8.1 LANGUAGES C)
 
@@ -51,6 +50,9 @@ include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}${EXTRA_VERSION_SUFFIX}")
+
+# Global configuration directory preprocessor macro definition
+add_compile_definitions(CONFIG_DIR="${CONFIG_DIR}")
 
 # =====================================
 # Get Git commit info Safely
@@ -241,23 +243,24 @@ if(USE_EXTERNAL_LIBS)
     set(TARGET_LIBELF libelf)
     set(HAVE_LIBELF TRUE)
     set(HAVE_LIBELF_H TRUE)
-    set(FETCHED_LIBELF_DIR "${libelf_SOURCE_DIR}")
+    set(FETCHED_LIBELF_DIR "${libelf_SOURCE_DIR}" CACHE INTERNAL "")
 
     fetch_avrdude_fork(libusb "https://github.com/avrdudes/libusb.git" "632bc25d04eff563cc00de29435b9a7ed6f4654c")
     set(TARGET_LIBUSB_1_0 libusb)
     set(HAVE_LIBUSB_1_0 TRUE)
     set(HAVE_LIBUSB_H TRUE)
-    set(FETCHED_LIBUSB_DIR "${libusb_SOURCE_DIR}/libusb")
+    # Direct binding to the actual root directory where libusb.h is stored inside the dependency
+    set(FETCHED_LIBUSB_DIR "${libusb_SOURCE_DIR}/libusb" CACHE INTERNAL "")
 
     fetch_avrdude_fork(libhidapi "https://github.com/avrdudes/libhidapi.git" "d1307487973c857bc158e27ecc99644b2f5e68ea")
     set(TARGET_LIBHIDAPI libhidapi)
     set(HAVE_LIBHIDAPI TRUE)
-    set(FETCHED_HIDAPI_DIR "${libhidapi_SOURCE_DIR}/hidapi")
+    set(FETCHED_HIDAPI_DIR "${libhidapi_SOURCE_DIR}/hidapi" CACHE INTERNAL "")
 
     fetch_avrdude_fork(libftdi "https://github.com/avrdudes/libftdi.git" "f9fe6e96b97c3a08efd081632c1859cb83aa14e3")
     set(TARGET_LIBFTDI1 libftdi)
     set(HAVE_LIBFTDI1 TRUE)
-    set(FETCHED_LIBFTDI_DIR "${libftdi_SOURCE_DIR}/src")
+    set(FETCHED_LIBFTDI_DIR "${libftdi_SOURCE_DIR}/src" CACHE INTERNAL "")
 endif()
 
 add_subdirectory(src)
