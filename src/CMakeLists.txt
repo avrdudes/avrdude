@@ -191,9 +191,10 @@ else()
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
     
     # CRITICAL MSVC FIX: Force inject Marius's user-space usb.h right at the absolute top of every source 
-    # compilation unit. This completely short-circuits the Windows SDK include fallback resolution path.
+    # compilation unit. We convert it to NATIVE Windows backslashes so MSVC's command-line parser doesn't break.
     if(USE_EXTERNAL_LIBS AND FETCHED_LIBUSB_DIR)
-        target_compile_options(libavrdude PRIVATE "/FI${FETCHED_LIBUSB_DIR}/usb.h")
+        file(TO_NATIVE_PATH "${FETCHED_LIBUSB_DIR}/usb.h" NATIVE_LIBUSB_H_PATH)
+        target_compile_options(libavrdude PRIVATE "/FI${NATIVE_LIBUSB_H_PATH}")
     endif()
 endif()
 
