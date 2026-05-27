@@ -306,7 +306,7 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(!str_eq(port, "usb"))
+  if(!str_caseeq(port, "usb"))
     pmsg_warning("option -P %s ignored\n", port);
 
   if(pgm->bitclock)

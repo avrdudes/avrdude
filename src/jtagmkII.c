@@ -1399,7 +1399,7 @@ static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -1449,7 +1449,7 @@ static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -1499,7 +1499,7 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -1555,7 +1555,7 @@ static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -1605,7 +1605,7 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -1655,7 +1655,7 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
@@ -3237,7 +3237,7 @@ static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
    * ones.  The serial_open() function for USB overrides the meaning of the
    * "baud" parameter to be the USB device ID to search for.
    */
-  if(str_starts(port, "usb")) {
+  if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;

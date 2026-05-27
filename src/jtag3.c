@@ -1646,7 +1646,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   return -1;
 #endif
 
-  if(!str_starts(port, "usb")) {
+  if(!str_casestarts(port, "usb")) {
     pmsg_error("JTAGICE3/EDBG port names must start with usb\n");
     return -1;
   }

@@ -202,7 +202,7 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   libusb_device_handle *handle = NULL;
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(!str_eq(port, "usb"))
+  if(!str_caseeq(port, "usb"))
     pmsg_warning("option -P %s ignored\n", port);
 
   if(!my.USB_init) {
