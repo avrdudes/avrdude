@@ -1,5 +1,5 @@
 #
-# CMakeLists.txt - CMake project for AVRDUDE
+# src/CMakeLists.txt - CMake project for AVRDUDE
 # Copyright (C) 2021 Marius Greuel
 #
 # This program is free software; you can redistribute it and/or modify
@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
-# src/CMakeLists.txt - Modernized Inner-Source Targets
 
 # =====================================
 # Parser Rules (Flex & Bison/Yacc)
@@ -155,8 +153,6 @@ set_target_properties(libavrdude PROPERTIES
     SOVERSION 4
 )
 
-target_compile_definitions(libavrdude PRIVATE CONFIG_DIR="${CONFIG_DIR}")
-
 # Forwarding libelf context identifiers safely
 if(HAVE_LIBELF)
     target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF=1)
@@ -202,7 +198,7 @@ target_include_directories(libavrdude
         ${EXTRA_WINDOWS_INCLUDES}
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
-        # Explicit injection maps for external FetchContent builds
+        # Explicit clean injection fallback fields for FetchContent maps
         ${FETCHED_LIBELF_DIR}
         ${FETCHED_LIBUSB_DIR}
         ${FETCHED_HIDAPI_DIR}
