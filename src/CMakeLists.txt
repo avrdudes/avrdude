@@ -16,6 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+# src/CMakeLists.txt - Modernized Inner-Source Targets
+
 # =====================================
 # Parser Rules (Flex & Bison/Yacc)
 # =====================================
@@ -199,7 +201,7 @@ target_include_directories(libavrdude
         ${EXTRA_WINDOWS_INCLUDES}
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
-        # Explicit clean injection fallback fields for FetchContent maps
+        # Injected direct targets values extracted cleanly via root target properties
         ${FETCHED_LIBELF_DIR}
         ${FETCHED_LIBUSB_DIR}
         ${FETCHED_HIDAPI_DIR}
