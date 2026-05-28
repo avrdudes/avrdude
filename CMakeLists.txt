@@ -20,7 +20,7 @@
 #     cmake -B build
 #     cmake --build build
 
-# CMakeLists.txt - Modernized Configuration for AVRDUDE Dual-USB Stack
+# CMakeLists.txt - Modernized Configuration for AVRDUDE
 cmake_minimum_required(VERSION 3.14)
 project(avrdude VERSION 8.1 LANGUAGES C)
 
@@ -239,7 +239,6 @@ if(USE_EXTERNAL_LIBS)
         FetchContent_Declare(${name} GIT_REPOSITORY ${repo} GIT_TAG ${tag})
         FetchContent_MakeAvailable(${name})
         
-        # FetchContent normalizes local source flags natively using lowercase namespaces
         string(TOLOWER "${name}" lc_name)
         set(FETCHED_${name}_BASE "${${lc_name}_SOURCE_DIR}" CACHE INTERNAL "Fetched source path for ${name}")
     endmacro()
@@ -249,11 +248,11 @@ if(USE_EXTERNAL_LIBS)
     fetch_avrdude_fork(LIBHIDAPI "https://github.com/avrdudes/libhidapi.git" "d1307487973c857bc158e27ecc99644b2f5e68ea")
     fetch_avrdude_fork(LIBFTDI "https://github.com/avrdudes/libftdi.git" "f9fe6e96b97c3a08efd081632c1859cb83aa14e3")
 
-    # Force states to the Global Cache table so they cross safely into src/ subdirectory scope
+    # Force states globally
     set(HAVE_LIBELF TRUE CACHE INTERNAL "")
     set(HAVE_LIBELF_H TRUE CACHE INTERNAL "")
     
-    # Enable legacy libusb-0.1 mode matching Marius's fork layout 
+    # Configure Marius's legacy engine states cleanly
     set(HAVE_LIBUSB TRUE CACHE INTERNAL "")
     set(HAVE_USB_H TRUE CACHE INTERNAL "")
     set(HAVE_LIBUSB_1_0 FALSE CACHE INTERNAL "")
@@ -262,16 +261,15 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBHIDAPI TRUE CACHE INTERNAL "")
     set(HAVE_LIBFTDI1 TRUE CACHE INTERNAL "")
 
-    # Map the compiler target link handles globally 
     set(TARGET_LIBELF libelf CACHE INTERNAL "")
     set(TARGET_LIBUSB libusb CACHE INTERNAL "")
     set(TARGET_LIBUSB_1_0 "" CACHE INTERNAL "")
     set(TARGET_LIBHIDAPI libhidapi CACHE INTERNAL "")
     set(TARGET_LIBFTDI1 libftdi CACHE INTERNAL "")
 
-    # Uniform structured configuration map matching Marius Greuel's /include pattern
+    # Set real, verified target directory path profiles
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
-    set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}/include"  CACHE INTERNAL "")
+    set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}"          CACHE INTERNAL "") # Core root contains usb.h
     set(FETCHED_HIDAPI_DIR  "${FETCHED_LIBHIDAPI_BASE}/include" CACHE INTERNAL "")
     set(FETCHED_LIBFTDI_DIR "${FETCHED_LIBFTDI_BASE}/include" CACHE INTERNAL "")
 endif()
