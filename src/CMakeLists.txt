@@ -156,7 +156,7 @@ set_target_properties(libavrdude PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# Forwarding libelf context identifiers safely
+# Apply global feature macro overrides directly to target compilation definitions
 if(HAVE_LIBELF)
     target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF=1)
 endif()
@@ -170,18 +170,15 @@ if(HAVE_LIBELF_LIBELF_H)
     target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF_LIBELF_H=1)
 endif()
 
-# USB tracking macros
-if(HAVE_LIBUSB_1_0)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB_1_0=1)
+# Force macro assignments down to files like avrftdi.c
+if(HAVE_LIBUSB)
+    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB=1)
 endif()
 if(HAVE_USB_H)
     target_compile_definitions(libavrdude PRIVATE HAVE_USB_H=1)
 endif()
-if(HAVE_LIBUSB_H)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB_H=1)
-endif()
-if(HAVE_LIBUSB_1_0_LIBUSB_H)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB_1_0_LIBUSB_H=1)
+if(HAVE_LIBUSB_1_0)
+    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB_1_0=1)
 endif()
 
 if(NOT MSVC)
@@ -189,23 +186,13 @@ if(NOT MSVC)
 else()
     target_compile_definitions(libavrdude PRIVATE _CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1 _WINSOCK_DEPRECATED_NO_WARNINGS=1)
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
-    
-    # CRITICAL MSVC FIX: Dynamically locate Marius's real user-space usb.h inside the fetched source tree
-    if(USE_EXTERNAL_LIBS)
-        # Search for the file locally in the fetched dependency directory tree
-        find_file(ACTUAL_M_USB_H NAMES usb.h PATHS "${FETCHED_LIBUSB_BASE}" PATH_SUFFIXES include src . NO_DEFAULT_PATH)
-        
-        if(ACTUAL_M_USB_H)
-            # Convert to native Windows backslashes for the MSVC command line parser
-            file(TO_NATIVE_PATH "${ACTUAL_M_USB_H}" NATIVE_LIBUSB_H_PATH)
-            target_compile_options(libavrdude PRIVATE "/FI${NATIVE_LIBUSB_H_PATH}")
-            
-            # Extract the directory containing his header and force it into the private include path
-            get_filename_component(ACTUAL_M_USB_DIR "${ACTUAL_M_USB_H}" DIRECTORY)
-            target_include_directories(libavrdude PRIVATE BEFORE "${ACTUAL_M_USB_DIR}")
-        endif()
-        unset(ACTUAL_M_USB_H CACHE) # Clear cache marker to keep configuration steps fresh
-    endif()
+endif()
+
+# THE ULTIMATE MSVC FIX: Inject Marius's paths into the compiler's implicit SYSTEM search ledger. 
+# This instructs MSVC to treat his path with the exact same weight as the Windows SDK folders, 
+# and by placing it BEFORE, we pull it to the absolute front of the include lookup chain.
+if(USE_EXTERNAL_LIBS AND FETCHED_LIBUSB_DIR)
+    target_include_directories(libavrdude BEFORE SYSTEM PRIVATE "${FETCHED_LIBUSB_DIR}")
 endif()
 
 target_include_directories(libavrdude
@@ -219,7 +206,6 @@ target_include_directories(libavrdude
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
         ${FETCHED_LIBELF_DIR}
-        ${FETCHED_LIBUSB_DIR}
         ${FETCHED_HIDAPI_DIR}
         ${FETCHED_LIBFTDI_DIR}
 )
