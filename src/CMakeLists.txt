@@ -188,11 +188,8 @@ else()
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
 endif()
 
-# THE ULTIMATE MSVC FIX: Inject Marius's paths into the compiler's implicit SYSTEM search ledger. 
-# This instructs MSVC to treat his path with the exact same weight as the Windows SDK folders, 
-# and by placing it BEFORE, we pull it to the absolute front of the include lookup chain.
 if(USE_EXTERNAL_LIBS AND FETCHED_LIBUSB_DIR)
-    target_include_directories(libavrdude BEFORE SYSTEM PRIVATE "${FETCHED_LIBUSB_DIR}")
+    target_include_directories(libavrdude SYSTEM PRIVATE "${FETCHED_LIBUSB_DIR}")
 endif()
 
 target_include_directories(libavrdude
