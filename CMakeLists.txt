@@ -334,12 +334,18 @@ if(USE_EXTERNAL_LIBS)
         GIT_TAG f9fe6e96b97c3a08efd081632c1859cb83aa14e3
         )
 
+    FetchContent_Declare(libserialport
+        GIT_REPOSITORY https://github.com/avrdudes/libserialport.git
+        GIT_TAG 9b3a9624b84a5f68b9798462189b5aed765349a6
+        )
+
     message(STATUS "Fetching external libraries, please wait...")
     FetchContent_MakeAvailable(
         libelf
         libusb
         libhidapi
         libftdi
+        libserialport
         )
 
     message(STATUS "Using external library 'libelf'")
@@ -361,6 +367,10 @@ if(USE_EXTERNAL_LIBS)
     set(LIB_LIBFTDI libftdi)
     set(HAVE_LIBFTDI 1)
     set(HAVE_LIBFTDI_TYPE_232H 1)
+
+    message(STATUS "Using external library 'libserialport'")
+    set(LIB_LIBSERIALPORT libserialport)
+    set(HAVE_LIBSERIALPORT 1)
 endif()
 
 add_subdirectory(src)
