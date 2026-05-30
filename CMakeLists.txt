@@ -336,7 +336,7 @@ if(USE_EXTERNAL_LIBS)
 
     FetchContent_Declare(libserialport
         GIT_REPOSITORY https://github.com/mcuee/avrdude-libserialport.git
-        GIT_TAG 2a7ffdb050d13e112c6a4385900fd7a0ad15757c
+        GIT_TAG 2b2fa65e35916bad1549c30e4ab92f3d4a14433e
         )
 
     message(STATUS "Fetching external libraries, please wait...")
