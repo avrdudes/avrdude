@@ -336,7 +336,7 @@ if(USE_EXTERNAL_LIBS)
 
     FetchContent_Declare(libserialport
         GIT_REPOSITORY https://github.com/mcuee/avrdude-libserialport.git
-        GIT_TAG 7333754ae82f8d65468c0d176d27b5810e0c2581
+        GIT_TAG 7b5d781054defefd2cb29475f1bd47765ea52156
         )
 
     message(STATUS "Fetching external libraries, please wait...")
@@ -371,12 +371,6 @@ if(USE_EXTERNAL_LIBS)
     message(STATUS "Using external library 'libserialport'")
     set(LIB_LIBSERIALPORT libserialport)
     set(HAVE_LIBSERIALPORT 1)
-
-    if(MSVC)
-        # Link the internal Windows system dependency that libserialport requires
-        target_link_libraries(libserialport PRIVATE setupapi cfgmgr32)
-        target_compile_definitions(libserialport PUBLIC LIBSERIALPORT_MSBUILD=1 SP_API=)
-    endif()
 endif()
 
 add_subdirectory(src)
