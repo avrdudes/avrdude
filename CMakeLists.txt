@@ -373,14 +373,13 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBSERIALPORT 1)
 
     if(MSVC)
-        # 1. Force the swig binding to treat libserialport as an inline static header dependency
-        target_compile_definitions(swig_avrdude PRIVATE SP_API=)
-        
-        # 2. Force libavrdude core to treat it as an inline static header dependency
-        target_compile_definitions(libavrdude PRIVATE SP_API=)
-        
-        # 3. Force libserialport itself to clear any DLL tracking markers during its own build
+        # Force libserialport itself to clear any DLL tracking markers during its own build
         target_compile_definitions(libserialport PRIVATE SP_API=)
+        
+        # Globally define SP_API as empty for everything downstream (libavrdude & swig_avrdude)
+        # Because libserialport is compiled BEFORE this file finishes parsing its directory,
+        # it is isolated, while subsequent subdirectories inherit it perfectly.
+        add_compile_definitions(SP_API=)
     endif()
 endif()
 
