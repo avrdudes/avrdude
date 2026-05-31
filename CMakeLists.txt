@@ -371,6 +371,12 @@ if(USE_EXTERNAL_LIBS)
     message(STATUS "Using external library 'libserialport'")
     set(LIB_LIBSERIALPORT libserialport)
     set(HAVE_LIBSERIALPORT 1)
+
+    if(MSVC)
+        # Link the internal Windows system dependency that libserialport requires
+        target_link_libraries(libserialport PRIVATE setupapi cfgmgr32)
+        target_compile_definitions(libserialport PUBLIC LIBSERIALPORT_MSBUILD=1 SP_API=)
+    endif()
 endif()
 
 add_subdirectory(src)
