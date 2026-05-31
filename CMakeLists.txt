@@ -368,18 +368,15 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBFTDI 1)
     set(HAVE_LIBFTDI_TYPE_232H 1)
 
-    message(STATUS "Using external library 'libserialport'")
+message(STATUS "Using external library 'libserialport'")
     set(LIB_LIBSERIALPORT libserialport)
     set(HAVE_LIBSERIALPORT 1)
 
     if(MSVC)
-        # Force libserialport itself to clear any DLL tracking markers during its own build
-        target_compile_definitions(libserialport PRIVATE SP_API=)
-        
-        # Globally define SP_API as empty for everything downstream (libavrdude & swig_avrdude)
-        # Because libserialport is compiled BEFORE this file finishes parsing its directory,
-        # it is isolated, while subsequent subdirectories inherit it perfectly.
-        add_compile_definitions(SP_API=)
+        # Append SP_API= to the current directory properties instead of using a global command.
+        # This guarantees that libserialport (which was just generated above) does not see it,
+        # but all subdirectories added later (like 'src') inherit it flawlessly.
+        set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "SP_API=")
     endif()
 endif()
 
