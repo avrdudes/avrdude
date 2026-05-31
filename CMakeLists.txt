@@ -336,7 +336,7 @@ if(USE_EXTERNAL_LIBS)
 
     FetchContent_Declare(libserialport
         GIT_REPOSITORY https://github.com/mcuee/avrdude-libserialport.git
-        GIT_TAG 7134b61df039de0124929b9711ceea52799bbb65
+        GIT_TAG 7333754ae82f8d65468c0d176d27b5810e0c2581
         )
 
     message(STATUS "Fetching external libraries, please wait...")
@@ -371,15 +371,6 @@ if(USE_EXTERNAL_LIBS)
     message(STATUS "Using external library 'libserialport'")
     set(LIB_LIBSERIALPORT libserialport)
     set(HAVE_LIBSERIALPORT 1)
-
-    if(MSVC)
-        # Force libserialport to export plain static symbols when compiling itself
-        target_compile_definitions(libserialport PRIVATE SP_API=)
-        
-        # Force anyone linking against libserialport (libavrdude, swig_avrdude) 
-        # to also treat its header symbols as completely plain static functions.
-        target_compile_definitions(libserialport INTERFACE SP_API=)
-    endif()
 endif()
 
 add_subdirectory(src)
