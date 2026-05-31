@@ -106,6 +106,19 @@ else()
     configure_file("python/adgui.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui")
 endif()
 
+# AUTOMATED HEADER COEXISTENCE SHIM GENERATOR:
+# Generates a local 'usb.h' proxy in the build tree that smoothly redirects downstream
+# files (#include <usb.h>) straight to Marius's real "lusb0_usb.h" emulation header.
+if(USE_EXTERNAL_LIBS)
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/usb.h" 
+        "/* Automated AVRDUDE MSVC Include Conflict Shim */\n"
+        "#ifndef AVRDUDE_MSVC_USB_SHIM_H\n"
+        "#define AVRDUDE_MSVC_USB_SHIM_H\n"
+        "#include \"lusb0_usb.h\"\n"
+        "#endif\n"
+    )
+endif()
+
 add_custom_command(
     OUTPUT avrdude.conf
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
@@ -186,13 +199,6 @@ if(NOT MSVC)
 else()
     target_compile_definitions(libavrdude PRIVATE _CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1 _WINSOCK_DEPRECATED_NO_WARNINGS=1)
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
-
-    # REMAP LEGACY NAME COLLISION FOR MARIUS'S EMULATION STACK:
-    # Instead of fighting MSVC system include priorities, this intercepts `<usb.h>` 
-    # at the preprocessor stage and converts it into Marius's real header name: "lusb0_usb.h"
-    if(USE_EXTERNAL_LIBS)
-        target_compile_definitions(libavrdude PRIVATE "usb.h=\"lusb0_usb.h\"")
-    endif()
 endif()
 
 target_include_directories(libavrdude
