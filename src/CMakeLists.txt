@@ -186,10 +186,13 @@ if(NOT MSVC)
 else()
     target_compile_definitions(libavrdude PRIVATE _CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1 _WINSOCK_DEPRECATED_NO_WARNINGS=1)
     target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
-endif()
 
-if(USE_EXTERNAL_LIBS AND FETCHED_LIBUSB_DIR)
-    target_include_directories(libavrdude SYSTEM PRIVATE "${FETCHED_LIBUSB_DIR}")
+    # REMAP LEGACY NAME COLLISION FOR MARIUS'S EMULATION STACK:
+    # Instead of fighting MSVC system include priorities, this intercepts `<usb.h>` 
+    # at the preprocessor stage and converts it into Marius's real header name: "lusb0_usb.h"
+    if(USE_EXTERNAL_LIBS)
+        target_compile_definitions(libavrdude PRIVATE "usb.h=\"lusb0_usb.h\"")
+    endif()
 endif()
 
 target_include_directories(libavrdude
@@ -203,6 +206,7 @@ target_include_directories(libavrdude
         ${LIBUSB_COMPAT_DIR}
         ${LIBELF_CUSTOM_DIR}
         ${FETCHED_LIBELF_DIR}
+        ${FETCHED_LIBUSB_DIR}
         ${FETCHED_HIDAPI_DIR}
         ${FETCHED_LIBFTDI_DIR}
 )
