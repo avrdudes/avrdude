@@ -269,7 +269,7 @@ if(USE_EXTERNAL_LIBS)
 
     # Set real, verified target directory path profiles
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
-    set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}"          CACHE INTERNAL "") # Core root contains usb.h
+    set(FETCHED_LIBUSB_DIR  "${FETCHED_LIBUSB_BASE}/include"  CACHE INTERNAL "") # Core root contains usb.h
     set(FETCHED_HIDAPI_DIR  "${FETCHED_LIBHIDAPI_BASE}/include" CACHE INTERNAL "")
     set(FETCHED_LIBFTDI_DIR "${FETCHED_LIBFTDI_BASE}/include" CACHE INTERNAL "")
 endif()
