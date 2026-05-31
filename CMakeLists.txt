@@ -371,9 +371,16 @@ if(USE_EXTERNAL_LIBS)
     message(STATUS "Using external library 'libserialport'")
     set(LIB_LIBSERIALPORT libserialport)
     set(HAVE_LIBSERIALPORT 1)
-    # ADD THIS LINE:
+
     if(MSVC)
-        add_compile_definitions(LIBSERIALPORT_STATIC)
+        # 1. Force the swig binding to treat libserialport as an inline static header dependency
+        target_compile_definitions(swig_avrdude PRIVATE SP_API=)
+        
+        # 2. Force libavrdude core to treat it as an inline static header dependency
+        target_compile_definitions(libavrdude PRIVATE SP_API=)
+        
+        # 3. Force libserialport itself to clear any DLL tracking markers during its own build
+        target_compile_definitions(libserialport PRIVATE SP_API=)
     endif()
 endif()
 
