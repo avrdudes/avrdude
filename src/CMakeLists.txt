@@ -205,6 +205,7 @@ target_include_directories(libavrdude
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        ${EXTRA_WINDOWS_INCLUDES}
     PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}
         ${PROJECT_BINARY_DIR}
