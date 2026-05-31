@@ -368,15 +368,17 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBFTDI 1)
     set(HAVE_LIBFTDI_TYPE_232H 1)
 
-message(STATUS "Using external library 'libserialport'")
+    message(STATUS "Using external library 'libserialport'")
     set(LIB_LIBSERIALPORT libserialport)
     set(HAVE_LIBSERIALPORT 1)
 
     if(MSVC)
-        # Append SP_API= to the current directory properties instead of using a global command.
-        # This guarantees that libserialport (which was just generated above) does not see it,
-        # but all subdirectories added later (like 'src') inherit it flawlessly.
-        set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "SP_API=")
+        # Force libserialport to export plain static symbols when compiling itself
+        target_compile_definitions(libserialport PRIVATE SP_API=)
+        
+        # Force anyone linking against libserialport (libavrdude, swig_avrdude) 
+        # to also treat its header symbols as completely plain static functions.
+        target_compile_definitions(libserialport INTERFACE SP_API=)
     endif()
 endif()
 
