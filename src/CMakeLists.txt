@@ -183,7 +183,7 @@ if(HAVE_LIBELF_LIBELF_H)
     target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF_LIBELF_H=1)
 endif()
 
-# Force macro assignments down to files like avrftdi.c
+# Force macro assignments down to files like dfu.c and avrftdi.c
 if(HAVE_LIBUSB)
     target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB=1)
 endif()
@@ -192,6 +192,14 @@ if(HAVE_USB_H)
 endif()
 if(HAVE_LIBUSB_1_0)
     target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB_1_0=1)
+endif()
+
+# Add this macro block:
+if(HAVE_LIBFTDI)
+    target_compile_definitions(libavrdude PRIVATE HAVE_LIBFTDI=1)
+endif()
+if(HAVE_LIBFTDI1)
+    target_compile_definitions(libavrdude PRIVATE HAVE_LIBFTDI1=1)
 endif()
 
 if(NOT MSVC)
@@ -226,6 +234,7 @@ target_link_libraries(libavrdude
         ${TARGET_LIBUSB}
         ${TARGET_LIBHIDAPI}
         ${TARGET_LIBFTDI1}
+        ${TARGET_LIBFTDI} # <-- Add this variable here to link Marius's compiled engine
         ${TARGET_LIBSERIALPORT}
         ${TARGET_LIBREADLINE}
         ${LIB_NCURSES}
