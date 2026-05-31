@@ -252,20 +252,25 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBELF TRUE CACHE INTERNAL "")
     set(HAVE_LIBELF_H TRUE CACHE INTERNAL "")
     
-    # Configure Marius's legacy engine states cleanly
+# Configure Marius's legacy engine states cleanly
     set(HAVE_LIBUSB TRUE CACHE INTERNAL "")
     set(HAVE_USB_H TRUE CACHE INTERNAL "")
     set(HAVE_LIBUSB_1_0 FALSE CACHE INTERNAL "")
     set(HAVE_LIBUSB_H FALSE CACHE INTERNAL "")
     
     set(HAVE_LIBHIDAPI TRUE CACHE INTERNAL "")
-    set(HAVE_LIBFTDI1 TRUE CACHE INTERNAL "")
+    
+    # MARIUS LIBFTDI EMULATION FIX:
+    # Flip HAVE_LIBFTDI to TRUE and disable the v1.0 variant so avrftdi.c compiles the correct blocks.
+    set(HAVE_LIBFTDI TRUE CACHE INTERNAL "")
+    set(HAVE_LIBFTDI1 FALSE CACHE INTERNAL "")
 
     set(TARGET_LIBELF libelf CACHE INTERNAL "")
     set(TARGET_LIBUSB libusb CACHE INTERNAL "")
     set(TARGET_LIBUSB_1_0 "" CACHE INTERNAL "")
     set(TARGET_LIBHIDAPI libhidapi CACHE INTERNAL "")
-    set(TARGET_LIBFTDI1 libftdi CACHE INTERNAL "")
+    set(TARGET_LIBFTDI1 "" CACHE INTERNAL "")
+    set(TARGET_LIBFTDI libftdi CACHE INTERNAL "") # Point to the legacy target definition
 
     # Set real, verified target directory path profiles
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
