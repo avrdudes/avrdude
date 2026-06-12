@@ -1665,7 +1665,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   serdev = &usbhid_serdev;
   for(usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
-    pinfo.usbinfo.pid = *(int *) (ldata(usbpid));
+    pinfo.usbinfo.pid = *(int *) ldata(usbpid);
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
@@ -1681,7 +1681,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     serdev = &usb_serdev_frame;
     for(usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
       pinfo.usbinfo.flags = PINFO_FL_SILENT;
-      pinfo.usbinfo.pid = *(int *) (ldata(usbpid));
+      pinfo.usbinfo.pid = *(int *) ldata(usbpid);
       pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
       pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
       pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
@@ -1769,7 +1769,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     for(usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
       if(notfirst)
         msg_error(", ");
-      msg_error("0x%04x", (unsigned int) (*(int *) (ldata(usbpid))));
+      msg_error("0x%04x", (unsigned int) *(int *) ldata(usbpid));
       notfirst = 1;
     }
 
