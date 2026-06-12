@@ -669,12 +669,12 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
     if(pdata->usb_handle == NULL && pdata->wait_until_device_present) {
       if(show_retry_message) {
         if(pdata->wait_timout < 0) {
-          msg_info("No device found, waiting for device to be plugged in ...\n");
+          pmsg_info("no device found, waiting for device to be plugged in ...\n");
         } else {
-          msg_info("No device found, waiting %d seconds for device to be plugged in ...\n", pdata->wait_timout);
+          pmsg_info("no device found, waiting %d seconds for device to be plugged in ...\n", pdata->wait_timout);
         }
 
-        msg_info("Press CTRL-C to terminate\n\n");
+        pmsg_info("press CTRL-C to terminate\n\n");
         show_retry_message = false;
       }
 
