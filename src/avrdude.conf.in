@@ -24542,6 +24542,7 @@ part # .avr-lx
     id                     = ".avr-lx";
     family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
+    n_interrupts           = 29;
     n_boot_sections        = 1;
     boot_section_size      = 256;
     # Shared UPDI pin, HV on _RESET
@@ -24718,9 +24719,9 @@ part # .avr-lx
         readsize           = 1;
     ;
 
-    memory "osccal20"
-        size               = 1;
-        offset             = 0x108c;
+    memory "sernum"
+        size               = 16;
+        offset             = 0x1090;
         readsize           = 1;
     ;
 
@@ -24730,9 +24731,9 @@ part # .avr-lx
         readsize           = 1;
     ;
 
-    memory "sernum"
-        size               = 16;
-        offset             = 0x1090;
+    memory "osccal20"
+        size               = 1;
+        offset             = 0x108c;
         readsize           = 1;
     ;
 
