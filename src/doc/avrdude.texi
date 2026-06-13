@@ -5946,18 +5946,18 @@ A.k.a. @code{pdicfg}: configures/locks updi access; it is the only fuse that con
 A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
 @cindex @code{osc16err}
 @item osc16err
-Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively (not all devices)
 @cindex @code{osc20err}
 @item osc20err
-Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively (not all devices)
 @cindex @code{osccal16}
 @item osccal16
 @cindex @code{calibration}
-Two oscillator calibration bytes for 16 MHz
+One or two oscillator calibration bytes for 16 MHz (not all devices)
 @cindex @code{osccal20}
 @item osccal20
 @cindex @code{calibration}
-Two oscillator calibration bytes for 20 MHz
+One or two oscillator calibration bytes for 20 MHz (not all devices)
 @cindex @code{prodsig}
 @item prodsig
 @cindex @code{signature}
