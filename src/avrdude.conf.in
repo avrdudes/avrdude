@@ -24551,6 +24551,13 @@ part # .avr-lx
     syscfg_base            = 0x0f00;
     factory_fcpu           = 20000000;
 
+    memory "eeprom"
+        size               = 512;
+        page_size          = 8;
+        offset             = 0x1400;
+        readsize           = 256;
+    ;
+
     memory "fuses"
         size               = 16;
         offset             = 0x1050;
@@ -24733,6 +24740,11 @@ part # .avr-lx
         readsize           = 1;
     ;
 
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
+
     memory "sib"
         size               = 32;
         readsize           = 1;
@@ -24751,23 +24763,11 @@ part parent ".avr-lx" # 16la14
     mcuid                  = 414;
     signature              = 0x1e 0x94 0x54;
 
-    memory "eeprom"
-        size               = 512;
-        page_size          = 8;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
-
     memory "flash"
         size               = 0x4000;
         page_size          = 64;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "sram"
-        size               = 2048;
-        offset             = 0x7800;
     ;
 ;
 
