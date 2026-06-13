@@ -5915,10 +5915,10 @@ A.k.a. @code{wdtcfg}: watchdog configuration
 A.k.a. @code{bodcfg}: brownout detection configuration
 @cindex @code{osccfg}
 @item fuse2
-A.k.a. @code{pincfg}: (not all devices): UPDI and reset pin configuration
+A.k.a. @code{osccfg}: oscillator configuration
 @cindex @code{pincfg}
 @item fuse3
-A.k.a. @code{osccfg}: oscillator configuration
+A.k.a. @code{pincfg} (not all devices): UPDI and reset pin configuration
 @cindex @code{tcd0cfg}
 @cindex @code{hwmoncfg}
 @item fuse4
