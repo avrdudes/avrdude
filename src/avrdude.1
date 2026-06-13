@@ -987,10 +987,8 @@ Show a short help message and exit
 .Ss Terminal mode
 In this mode,
 .Nm
-only initializes communication with the MCU, and then awaits user
-commands on standard input.  Commands and parameters may be
-abbreviated to the shortest unambiguous form.  Terminal mode provides
-a command history using
+only initializes communication with the MCU, and then awaits user commands
+on standard input. Terminal mode provides a command history using
 .Xr readline 3 ,
 so previously entered command lines can be recalled and edited.
 .Pp
@@ -1441,14 +1439,11 @@ is provided), or display the quell level. 1 is used to suppress progress reports
 The initial quell level is controlled by the number of
 .Fl q
 options given on the commandline.
-.It Ar \&?
 .It Ar help
 Give a short on-line summary of the available commands.
 .It Ar quit
 Leave terminal mode and thus
 .Nm avrdude .
-.It Ar q
-Can be used as an alias for quit.
 .It Ar !<line>
 Run the shell <line> in a subshell, e.g., !ls *.hex. Subshell commands take the
 rest of the line as their command. For security reasons, they must
@@ -1463,7 +1458,11 @@ file.
 Place comments onto the terminal line (useful for scripts).
 .El
 .Pp
-The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
+d, r, w, q and ? abbreviate dump, read, write, quit and help. Other than
+that any unique abbreviation of a command works, too. cmd -? gives more
+details about a command cmd.
+.Pp
+The terminal commands below may only be implemented on some specific programmers:
 .Bl -tag -offset indent -width indent
 .It Ar pgerase memory addr
 Erase one page of the memory specified.

@@ -2303,15 +2303,14 @@ Valid commands:
   verbose : display or set -v verbosity level
   quell   : display or set -q quell level for progress bars
   help    : show help message
-  ?       : same as help
   quit    : synchronise flash/EEPROM cache with device and quit
-  q       : abbreviation for quit
 
-For more details about a terminal command cmd type cmd -?
-
-Other:
-  !@var{line}   : run the shell @var{line} in a subshell, eg, !ls *.hex
+  !<line> : run the shell <line> in a subshell, eg, !ls *.hex
   # ...   : ignore rest of line (eg, used as comments in scripts)
+
+d, r, w, q and ? abbreviate dump, read, write, quit and help.
+Other than that any unique abbreviation of a command works, too.
+cmd -? gives more details about a command cmd.
 
 Note that not all programmer derivatives support all commands. Flash and
 EEPROM type memories are normally read and written using a cache via paged
@@ -2582,14 +2581,14 @@ Avrdude done.  Thank you.
 @chapter Terminal Mode Operation
 @cindex Terminal mode operation
 
-AVRDUDE has an interactive mode called @var{terminal mode} that is
-enabled by the @option{-t} option.  This mode allows one to enter
-interactive commands to display and modify the various device memories,
-perform a chip erase, display the device signature bytes and part
-parameters, and to send raw programming commands.  Commands and
-parameters may be abbreviated to their shortest unambiguous form.
-Terminal mode also supports a command history so that previously entered
-commands can be recalled and edited.
+AVRDUDE has an interactive mode called @var{terminal mode} that is enabled
+by the @option{-t} option.   In this mode, AVRDUDE only initializes
+communication with the MCU, and then awaits user commands on standard
+input. These commands allow, for example, to display and modify the
+various device memories, perform a chip erase, display the device
+signature bytes and part parameters, and to send raw programming commands.
+Terminal mode provides a command history using readline(3), so previously
+entered command lines can be recalled and edited.
 
 @menu
 * Terminal Mode Commands::
@@ -2600,16 +2599,12 @@ commands can be recalled and edited.
 @section Terminal Mode Commands
 @cindex Terminal mode commands
 
-In this mode, AVRDUDE only initializes communication with the MCU, and then
-awaits user commands on standard input.  Commands and parameters may be
-abbreviated to the shortest unambiguous form.  Terminal mode provides a
-command history using readline(3), so previously entered command lines can be
-recalled and edited.
-
-The @var{addr} and @var{len} parameters of the dump, read, disasm, write,
-save and erase commands can be negative with the same syntax as substring
-computations in perl or python. The table below defines the effective
-memory interval [@var{start}, @var{end}], given the memory size @var{sz}:
+The @var{addr} and @var{len} parameters of the @code{dump}, @code{read},
+@code{disasm}, @code{write}, @code{save} and @code{erase} commands
+discribe a memory interval. They can be negative with the same syntax as
+substring computations in perl or python. The table below defines the
+effective memory interval [@var{start}, @var{end}], given the memory size
+@var{sz}:
 
 @multitable {0/positive}{negative}{[@var{sz}+@var{addr}, @var{sz}+@var{addr}+@var{len}-1]}{End is |@var{len}| bytes below mem size @var{sz}}
 @headitem @code{@var{addr}}
@@ -3185,26 +3180,21 @@ and @code{-v} to only print the variants table.
 @cindex @code{verbose} @var{[level]}
 Change (when @var{level} is provided), or display the verbosity
 level.
-The initial verbosity level is controlled by the number of @code{-v} options
-given on the command line.
+The initial verbosity level is the number of @code{-v} options on the command line.
 
 @item quell @var{[level]}
 @cindex @code{quell} @var{[level]}
-Change (when @var{level} is provided), or display the quell
-level. 1 is used to suppress progress reports. 2 or higher yields
-progressively quieter operations. The initial quell level is controlled
-by the number of @code{-q} options given on the command line.
+Change (when @var{level} is provided), or display the quell level. 1 is
+used to suppress progress reports. 2 or higher yields progressively
+quieter operations. The initial quell level is the number of @code{-q}
+options on the command line.
 
-@item ?
-@itemx help
+@item help
 Give a short on-line summary of the available commands.
 
 @item quit
 @cindex @code{quit}
 Leave terminal mode and thus AVRDUDE.
-
-@item q
-Can be used as an alias for @code{quit}.
 
 @item !@var{line}
 @cindex @code{!} (subshell)
@@ -3218,6 +3208,16 @@ into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
 Place comments onto the terminal line (useful for scripts).
 
 @end table
+
+@noindent
+@cindex @code{d} (dump)
+@cindex @code{r} (read)
+@cindex @code{w} (write)
+@cindex @code{q} (quit)
+@cindex @code{?} (help)
+@code{d}, @code{r}, @code{w}, @code{q} and @code{?} abbreviate @code{dump}, @code{read},
+@code{write}, @code{quit} and @code{help}. Other than that any unique abbreviation of a command
+works, too. @code{@var{cmd} -?} gives more details about a command @code{@var{cmd}}.
 
 @noindent
 In addition, the following commands are supported on some programmers:
@@ -3264,7 +3264,7 @@ selected by the optional parameter @var{channel} (either
 @cindex @code{fosc} @var{freq}[@code{M}|@code{k}]
 Set the programming oscillator to @var{freq} Hz.
 An optional trailing letter @code{M}
-multiplies by 1E6, a trailing letter @code{k} by 1E3.
+multiplies by 1,000,000, a trailing letter @code{k} by 1000.
 
 @item fosc off
 @cindex @code{fosc off}
