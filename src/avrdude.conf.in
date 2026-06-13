@@ -24826,7 +24826,7 @@ part parent "16la14" # 16la32
 # AVR32LA14
 #------------------------------------------------------------
 
-part parent "16la14" # 32la14
+part parent ".avr-lx" # 32la14
     desc                   = "AVR32LA14";
     id                     = "32la14";
     variants               =
@@ -24836,6 +24836,9 @@ part parent "16la14" # 32la14
 
     memory "flash"
         size               = 0x8000;
+        page_size          = 64;
+        offset             = 0x800000;
+        readsize           = 256;
     ;
 ;
 
