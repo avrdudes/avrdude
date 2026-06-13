@@ -31,6 +31,7 @@ Changes since version 8.1:
     - github avrdude_packing_release action failed #2039
     - -P USB not working since Avrdude 7.3 #2103
     - Github action Windows Python binding issue under Windows 11 ARM64 #2117
+    - Micronucleus messages need some work  #2109
 
   * Pull requests:
 
@@ -67,6 +68,9 @@ Changes since version 8.1:
     - Add consistent support for -P USB (#2104)
     - Add support for the AVR-LA chip family (#2105)
     - Update build.yml to disable Python binding under Windows 11 ARM64 #2119
+    - Improve Micronucleus info/warning/error messages #2110
+    - Suppress gcc compiler warning #2116
+    - Inprove AVR-LA support #2118
 
   * Internals:
 
