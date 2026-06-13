@@ -54,7 +54,8 @@ static int sa_setport(char **portp, const char *sp_port) {
 
 // Is the actual serial number sn matched by the query q?
 static int sa_snmatch(const char *sn, const char *q) {
-  return sn && (str_starts(sn, q) || (str_starts(q, "...") && str_ends(sn, q + 3)));
+  return sn && (str_starts(sn, q) ||
+    (str_starts(q, "...") && strlen(q) >= 3 /* suppress gcc warning */ && str_ends(sn, q + 3)));
 }
 
 #define null_len(s) ((s)? strlen(s): 0)
