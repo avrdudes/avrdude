@@ -14,7 +14,7 @@ Changes since version 8.1:
     - ATtiny814auto, ATtiny816auto, ATtiny817auto
     - ATtiny1614auto, ATtiny1616auto, ATtiny1617auto
     - ATtiny3216auto, ATtiny3217auto
-    - AVR16LA14,  AVR16LA20, AVR16LA28, AVR16LA32
+    - AVR16LA14, AVR16LA20, AVR16LA28, AVR16LA32
 
   * New programmers supported:
 
@@ -29,7 +29,8 @@ Changes since version 8.1:
     - Vtarget appears twice in terminal #2093
     - Build warnings under macOS #2088
     - github avrdude_packing_release action failed #2039
-    - `-P USB` not working since Avrdude 7.3 #2103
+    - -P USB not working since Avrdude 7.3 #2103
+    - Github action Windows Python binding issue under Windows 11 ARM64 #2117
 
   * Pull requests:
 
@@ -65,6 +66,7 @@ Changes since version 8.1:
     - Upgrade github action to be compatibel with node.js 24 (#2108)
     - Add consistent support for -P USB (#2104)
     - Add support for the AVR-LA chip family (#2105)
+    - Update build.yml to disable Python binding under Windows 11 ARM64 #2119
 
   * Internals:
 
