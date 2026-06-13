@@ -1158,12 +1158,14 @@ void dev_output_part_defs(char *partdesc) {
 
         dev_info
           ("%s '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, "
-           "0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'], # %s %d\n",
+           "0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'],",
           tsv || all? ".desc": "   ",
           p->desc, len > 0? len: 0, "",
-          p->signature[0], p->signature[1], p->signature[2],
-          flashoffset, flashsize, flashpagesize, eepromoffset, eepromsize, eeprompagesize, nfuses, ok, p->flags,
-          dev_prog_modes(p->prog_modes), p->config_file, p->lineno);
+          p->signature[0], p->signature[1], p->signature[2], flashoffset, flashsize, flashpagesize,
+          eepromoffset, eepromsize, eeprompagesize, nfuses, ok, p->flags, dev_prog_modes(p->prog_modes));
+        if(verbose > 0)
+          dev_info(" # %s %d", p->config_file, p->lineno);
+        dev_info("\n");
       }
 
       if(vtabs && (up = silent_locate_uP(p)) && up->isrtable)

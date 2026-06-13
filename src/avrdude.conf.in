@@ -24542,6 +24542,7 @@ part # .avr-lx
     id                     = ".avr-lx";
     family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
+    n_interrupts           = 29;
     n_boot_sections        = 1;
     boot_section_size      = 256;
     # Shared UPDI pin, HV on _RESET
@@ -24550,6 +24551,13 @@ part # .avr-lx
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
     factory_fcpu           = 20000000;
+
+    memory "eeprom"
+        size               = 512;
+        page_size          = 8;
+        offset             = 0x1400;
+        readsize           = 256;
+    ;
 
     memory "fuses"
         size               = 16;
@@ -24717,6 +24725,18 @@ part # .avr-lx
         readsize           = 1;
     ;
 
+    memory "osccal16"
+        size               = 1;
+        offset             = 0x108d;
+        readsize           = 1;
+    ;
+
+    memory "osccal20"
+        size               = 1;
+        offset             = 0x108c;
+        readsize           = 1;
+    ;
+
     memory "userrow"
         size               = 64;
         page_size          = 64;
@@ -24731,6 +24751,11 @@ part # .avr-lx
     memory "io"
         size               = 4160;
         readsize           = 1;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
     ;
 
     memory "sib"
@@ -24749,25 +24774,13 @@ part parent ".avr-lx" # 16la14
     variants               =
         "AVR16LA14-SOIC/TSSOP: DIP14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 414;
-    signature              = 0x1e 0x95 0x54;
-
-    memory "eeprom"
-        size               = 512;
-        page_size          = 8;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
+    signature              = 0x1e 0x94 0x54;
 
     memory "flash"
         size               = 0x4000;
         page_size          = 64;
         offset             = 0x800000;
         readsize           = 256;
-    ;
-
-    memory "sram"
-        size               = 2048;
-        offset             = 0x7800;
     ;
 ;
 
@@ -24781,7 +24794,7 @@ part parent "16la14" # 16la20
     variants               =
         "AVR16LA20-SOIC/TSSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 415;
-    signature              = 0x1e 0x95 0x53;
+    signature              = 0x1e 0x94 0x53;
 ;
 
 #------------------------------------------------------------
@@ -24794,7 +24807,7 @@ part parent "16la14" # 16la28
     variants               =
         "AVR16LA28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 416;
-    signature              = 0x1e 0x95 0x52;
+    signature              = 0x1e 0x94 0x52;
 ;
 
 #------------------------------------------------------------
@@ -24807,14 +24820,14 @@ part parent "16la14" # 16la32
     variants               =
         "AVR16LA32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 417;
-    signature              = 0x1e 0x95 0x51;
+    signature              = 0x1e 0x94 0x51;
 ;
 
 #------------------------------------------------------------
 # AVR32LA14
 #------------------------------------------------------------
 
-part parent "16la14" # 32la14
+part parent ".avr-lx" # 32la14
     desc                   = "AVR32LA14";
     id                     = "32la14";
     variants               =
@@ -24824,6 +24837,9 @@ part parent "16la14" # 32la14
 
     memory "flash"
         size               = 0x8000;
+        page_size          = 64;
+        offset             = 0x800000;
+        readsize           = 256;
     ;
 ;
 
