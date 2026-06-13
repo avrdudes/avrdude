@@ -24749,7 +24749,7 @@ part parent ".avr-lx" # 16la14
     variants               =
         "AVR16LA14-SOIC/TSSOP: DIP14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 414;
-    signature              = 0x1e 0x95 0x54;
+    signature              = 0x1e 0x94 0x54;
 
     memory "eeprom"
         size               = 512;
@@ -24781,7 +24781,7 @@ part parent "16la14" # 16la20
     variants               =
         "AVR16LA20-SOIC/TSSOP: DIP20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 415;
-    signature              = 0x1e 0x95 0x53;
+    signature              = 0x1e 0x94 0x53;
 ;
 
 #------------------------------------------------------------
@@ -24794,7 +24794,7 @@ part parent "16la14" # 16la28
     variants               =
         "AVR16LA28-SSOP/SPDIP: DIP28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 416;
-    signature              = 0x1e 0x95 0x52;
+    signature              = 0x1e 0x94 0x52;
 ;
 
 #------------------------------------------------------------
@@ -24807,7 +24807,7 @@ part parent "16la14" # 16la32
     variants               =
         "AVR16LA32-VQFN/TQFP: QFP32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 417;
-    signature              = 0x1e 0x95 0x51;
+    signature              = 0x1e 0x94 0x51;
 ;
 
 #------------------------------------------------------------
