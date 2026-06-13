@@ -24718,6 +24718,18 @@ part # .avr-lx
         readsize           = 1;
     ;
 
+    memory "osccal20"
+        size               = 1;
+        offset             = 0x108c;
+        readsize           = 1;
+    ;
+
+    memory "osccal16"
+        size               = 1;
+        offset             = 0x108d;
+        readsize           = 1;
+    ;
+
     memory "sernum"
         size               = 16;
         offset             = 0x1090;
