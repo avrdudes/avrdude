@@ -5337,8 +5337,16 @@ The directories that are listed in the PATH environment variable.
 @cindex Windows serial ports
 
 @noindent
-When you select a serial port (i.e. when using an STK500) use the
-Windows serial port device names such as: com1, com2, etc.
+
+When you select a serial port (i.e. when using an STK500) use the Windows
+serial port device names such as: COM1, COM2, etc. If the board in
+question uses an USB-serial adapter, or is connected via one, there
+are several ways to identify the correct port name:
+@itemize @bullet{}
+@item In the Windows Device Manager under Ports, then COM & LPT
+@item Enquiring @code{avrdude -P "?s"} if compiled with libserialport
+@item Use the serial adapter name instead of COMx, e.g., @code{-P ft232r}
+@end itemize
 
 @c
 @c Node
