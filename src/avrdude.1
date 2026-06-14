@@ -63,8 +63,8 @@ supports Atmel's STK500 programmer,
 Atmel's AVRISP and AVRISP mkII devices,
 Atmel's STK600,
 Atmel's JTAG ICE (mkI, mkII and 3, the latter two also in ISP mode),
-programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
-as well as a simple hard-wired
+programmers complying to AppNote AVR910 and AVR109 (including the Butterfly)
+as well as, on Linux or BSD systems, a simple hard-wired
 programmer connected directly to a
 .Xr ppi 4
 or
@@ -112,8 +112,7 @@ be taken about voltage level compatibility. Also, although not strictly
 required, it is strongly advisable to protect the GPIO pins from
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
-the 74HC244. Have a look at https://kolev.info/blog/2013/01/06/avrdude-linuxgpio/ for a more
-detailed tutorial about using this programmer type.
+the 74HC244.
 .Pp
 Under a Linux installation with direct access to the SPI bus and GPIO
 pins, such as would be found on a Raspberry Pi, the ``linuxspi''
@@ -521,7 +520,7 @@ auto-erased at the beginning. If
 detects a
 .Fl U
 command that writes to flash then auto-erase will be carried out before
-any other programming unless a -T erase commad has been detected
+any other programming unless a -T erase command has been detected
 beforehand and unless flash is read before writing to it. For the purpose
 of this analysis any terminal command is considered to possibly read
 flash.
@@ -598,14 +597,14 @@ Note that the result will be stored in the EEPROM cell at address 0.
 Use
 .Ar port
 to identify the connection through which the programmer is attached. This
-can be a parallel, serial, spi or linuxgpio connection. The programmer
-normally specifies the connection type; in absence of a -P specification,
+can be a serial, spi, linuxgpio or, on Linux or BSD systems, a parallel connection.
+The programmer normally specifies the connection type; in absence of -P,
 system-dependent default values
-.Pa default_parallel ,
 .Pa default_serial ,
 .Pa default_spi ,
-or
 .Pa default_linuxgpio
+or
+.Pa default_parallel
 from the configuration file are used. If you need to use a different port,
 use this option to specify the alternate port name.
 .Pp
