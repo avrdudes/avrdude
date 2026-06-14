@@ -206,7 +206,7 @@ programmer type can be used to directly connect to and program a chip
 using the built in interfaces on the computer. The requirements to use
 this type are that an SPI interface is exposed along with one GPIO
 pin. The GPIO serves as the reset output since the Linux SPI drivers
-do not hold chip select down when a transfer is not occuring and thus
+do not hold chip select down when a transfer is not occurring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer's SPI controller in the
@@ -383,7 +383,7 @@ below for details.
 @cindex CH341A programmer
 The USBasp ISP, USBtinyISP and CH341A adapters are also supported, provided
 AVRDUDE has been compiled with libusb support.
-They former two feature simple firmware-only USB implementations, running on
+The former two feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 CH341A programmers connect directly to the AVR target. Their SPI bit clock
 is approximately 1.7@w{ }MHz and cannot be changed. As a consequence, the
@@ -727,7 +727,7 @@ In absence of an explicit @code{-e} or @code{-D} option avrdude tries to
 augur from the command line whether or not the chip should be auto-erased
 at the  beginning. If avrdude detects a @code{-U} command that writes to
 flash then auto-erase will be carried out before any other programming
-unless a @code{-T} erase commad has been detected beforehand and unless
+unless a @code{-T} erase command has been detected beforehand and unless
 flash is read before writing to it. For the purpose of this analysis any
 terminal command is considered to possibly read flash.
 
@@ -5349,7 +5349,7 @@ Windows serial port device names such as: com1, com2, etc.
 
 @noindent
 AVRDUDE does not support parallel port programming in Windows.
-If you need to run AVRDUDE using programmer on a parallel port,
+If you need to run AVRDUDE using a programmer on a parallel port,
 you might want to try one of the BSDs or Linux.
 
 @ignore
