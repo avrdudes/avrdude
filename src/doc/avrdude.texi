@@ -456,7 +456,7 @@ name did not conflict with AVRPROG.EXE which is the name of Atmel's
 Windows programming software.
 
 For many years, the AVRDUDE source resided in public repositories on
-savannah.nongnu.org,
+the now read-only savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
 addition to FreeBSD, AVRDUDE now runs on Linux, macOS and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
