@@ -95,9 +95,12 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
 // List of commands; don't add a command starting with e: main.c relies on e expanding to erase
 static const struct command cmd[] = {
   {"dump", cmd_dump, _fo(read_byte_cached), "display a memory section as hex dump"},
+  {"d", cmd_dump, _fo(read_byte_cached), NULL},
   {"read", cmd_dump, _fo(read_byte_cached), "alias for dump"},
+  {"r", cmd_dump, _fo(read_byte_cached), NULL},
   {"disasm", cmd_disasm, _fo(read_byte_cached), "disassemble a memory section"},
   {"write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached"},
+  {"w", cmd_write, _fo(write_byte_cached), NULL},
   {"save", cmd_save, _fo(write_byte_cached), "save memory segments to file"},
   {"backup", cmd_backup, _fo(write_byte_cached), "backup memories to file"},
   {"restore", cmd_restore, _fo(write_byte_cached), "restore memories from file"},
@@ -123,9 +126,9 @@ static const struct command cmd[] = {
   {"verbose", cmd_verbose, _fo(open), "display or set -v verbosity level"},
   {"quell", cmd_quell, _fo(open), "display or set -q quell level for progress bars"},
   {"help", cmd_help, _fo(open), "show help message"},
-  {"?", cmd_help, _fo(open), "same as help"},
+  {"?", cmd_help, _fo(open), NULL},
   {"quit", cmd_quit, _fo(open), "synchronise flash/EEPROM cache with device and quit"},
-  {"q", cmd_quit, _fo(open), "abbreviation for quit"},
+  {"q", cmd_quit, _fo(open), NULL},
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
@@ -2591,16 +2594,16 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   term_out("Valid commands:\n");
   for(int i = 0; i < NCMDS; i++) {
-    if(!is_available(pgm, p, i))
+    if(!is_available(pgm, p, i) || !cmd[i].desc)
       continue;
-    term_out("  %-7s : ", cmd[i].name);
-    term_out(cmd[i].desc, cmd[i].name);
-    term_out("\n");
+    term_out("  %-7s : %s\n", cmd[i].name, cmd[i].desc);
   }
-  term_out("\nFor more details about a terminal command cmd type cmd -?\n\n"
-    "Other:\n"
+  term_out( "\n"
     "  !<line> : run the shell <line> in a subshell, eg, !ls *.hex\n"
     "  # ...   : ignore rest of line (eg, used as comments in scripts)\n\n"
+    "d, r, w, q and ? abbreviate dump, read, write, quit and help.\n"
+    "Other than that any unique abbreviation of a command works, too.\n"
+    "cmd -? gives more details about a command cmd.\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
