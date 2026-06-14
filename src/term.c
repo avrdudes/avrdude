@@ -2267,14 +2267,15 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     if(show_size)
       term_out("(%d) ", r->size);
     if(do_read && io) {
-      uint32_t value = 0;
+      unsigned char regmem[4] = { 0 };
 
       for(int i = 0; i < r->size; i++)
-        if(do_read && led_read_byte(pgm, p, io, r->addr + i, (unsigned char *) &value + i) < 0) {
+        if(do_read && led_read_byte(pgm, p, io, r->addr + i, regmem + i) < 0) {
           do_read = 0;
           pmsg_warning("(reg_file) cannot read %s\n", r->reg);
         }
       if(do_read) {
+        uint32_t value = buf2uint32(regmem);
         if(r->mask != -1)
           value &= r->mask;
         term_out("%*s0x%0*x ", 2*(maxsize - r->size), "", 2*r->size, value);
