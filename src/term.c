@@ -1376,11 +1376,6 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
 static const int MAX_PAD = 10;  // Align value labels if their length difference is less than this
 
-typedef union {                 // Lock memory can be 1 or 4 bytes
-  uint8_t b[4];
-  uint32_t i;
-} Intbytes;
-
 typedef struct {                // Fuses and lock bits
   uint16_t fuses[16];           // pdicfg fuse has two bytes
   uint32_t lock;
@@ -1438,26 +1433,23 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Part_FL *fl, const 
     goto back;
   }
 
-  Intbytes m = {.i = 0 };
+  unsigned char fuselmem[4] = { 0 };
   for(int i = 0; i < mem->size; i++)
-    if(led_read_byte(pgm, p, mem, i, m.b + i) < 0) {
+    if(led_read_byte(pgm, p, mem, i, fuselmem + i) < 0) {
       err = cache_string(str_ccprintf("cannot read %s's %s memory", p->desc, mem->desc));
       goto back;
     }
+  uint32_t fuselval = buf2uint32(fuselmem);
 
   if(islock) {
-    fl->lock = m.i;
+    fl->lock = fuselval;
     fl->lread = 1;
   } else {
     fl->fread[cci->t->memoffset] = 1;
-    int result = 0;
-
-    for(int i = mem->size - 1; i >= 0; i--)
-      result <<= 8, result |= m.b[i];
-    fl->fuses[cci->t->memoffset] = result;
+    fl->fuses[cci->t->memoffset] = fuselval;
   }
   fl->islock = islock;
-  fl->current = m.i;
+  fl->current = fuselval;
 
 back:
   if(err && errpp)
@@ -1971,9 +1963,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     goto finished;
   }
 
-  Intbytes towrite;
-
-  towrite.i = (fusel.current & ~ct[ci].mask) | (toassign << ct[ci].lsh);
+  uint32_t towrite = (fusel.current & ~ct[ci].mask) | (toassign << ct[ci].lsh);
   const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
 
   if(!mem) {
@@ -1989,10 +1979,10 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   int confirm = 0;
-  if(towrite.i != fusel.current) {
+  if(towrite != fusel.current) {
     confirm = o.confirm;
     for(int i = 0; i < mem->size; i++)
-      if(led_write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
+      if(led_write_byte(pgm, p, mem, i, (towrite >> i*8) & 0xff) < 0) {
         pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
         ret = -1;
         goto finished;
@@ -2270,14 +2260,15 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     if(show_size)
       term_out("(%d) ", r->size);
     if(do_read && io) {
-      uint32_t value = 0;
+      unsigned char regmem[4] = { 0 };
 
       for(int i = 0; i < r->size; i++)
-        if(do_read && led_read_byte(pgm, p, io, r->addr + i, (unsigned char *) &value + i) < 0) {
+        if(do_read && led_read_byte(pgm, p, io, r->addr + i, regmem + i) < 0) {
           do_read = 0;
           pmsg_warning("(reg_file) cannot read %s\n", r->reg);
         }
       if(do_read) {
+        uint32_t value = buf2uint32(regmem);
         if(r->mask != -1)
           value &= r->mask;
         term_out("%*s0x%0*x ", 2*(maxsize - r->size), "", 2*r->size, value);

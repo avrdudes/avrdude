@@ -335,7 +335,8 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
   if((mem = avr_locate_lock(dry.dp)))
     if(mem->initval != -1 && mem->size > 0 && mem->size <= (int) sizeof(mem->initval))
-      memcpy(mem->buf, &mem->initval, mem->size);       // FIXME: relying on little endian here
+      for(int i = 0; i < mem->size; i++)
+        mem->buf[i] = mem->initval >> 8*i;
 
   return 0;
 }
@@ -749,7 +750,8 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     } else if(mem_is_a_fuse(m) || mem_is_lock(m)) {
       // Lock, eg, can have 4 bytes: still allow initialisation from initval
       if(m->initval != -1 && m->size >= 1 && m->size <= (int) sizeof(m->initval)) {
-        memcpy(m->buf, &m->initval, m->size);   // FIXME: relying on little endian here
+        for(int i = 0; i < m->size; i++)
+          m->buf[i] = m->initval >> 8*i;
         if(mem_is_a_fuse(m)) {
           int fno = mem_fuse_offset(m);
 
@@ -795,8 +797,8 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         for(int i = 0; i < nr; i++)
           if(rf[i].initval != -1 && rf[i].size > 0 && rf[i].size < 5)
             if(rf[i].addr >= 0 && rf[i].addr + rf[i].size <= m->size)
-              for(int k = 0; k < rf[i].size; k++)       // FIXME: Assume little endian compiler
-                m->buf[rf[i].addr + k] = ((unsigned char *) &rf[i].initval)[k];
+              for(int k = 0; k < rf[i].size; k++)
+                m->buf[rf[i].addr + k] = rf[i].initval >> 8*k;
     }
   }
   if(prodsigm) {
