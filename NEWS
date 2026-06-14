@@ -15,6 +15,7 @@ Changes since version 8.1:
     - ATtiny1614auto, ATtiny1616auto, ATtiny1617auto
     - ATtiny3216auto, ATtiny3217auto
     - AVR16LA14, AVR16LA20, AVR16LA28, AVR16LA32
+    - AVR32LA14, AVR32LA20, AVR32LA28, AVR32LA32
 
   * New programmers supported:
 
@@ -71,6 +72,10 @@ Changes since version 8.1:
     - Improve Micronucleus info/warning/error messages #2110
     - Suppress gcc compiler warning #2116
     - Inprove AVR-LA support #2118
+    - Update avrintel and avrdude.conf from device packs #2121
+    - Introduce and future-proof d, r, w and q commands #2122
+    - Fix Endian problems #2123
+    - Improve Documentation #2124
 
   * Internals:
 
