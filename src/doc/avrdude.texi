@@ -164,19 +164,17 @@ needing to have, or connect, a real physical programmer. Similarly,
 without connecting an AVR part.
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
-Atmel's AVRISP and AVRISP mkII devices,
-Atmel's STK600,
-Atmel's JTAG ICE (the original one, mkII, and 3), appnote
-avr910, appnote avr109 (including the AVR Butterfly),
-serial bit-bang adapters,
-and the PPI (parallel port interface). PPI represents a class
-of simple programmers where the programming lines are directly
-connected to the PC parallel port. Several pin configurations exist
-for several variations of the PPI programmers, and AVRDUDE can be
-configured to work with them by either specifying the appropriate
-programmer on the command line or by creating a new entry in its
-configuration file. All that's usually required for a new entry is to
-tell AVRDUDE which pins to use for each programming function.
+Atmel's AVRISP and AVRISP mkII devices, Atmel's STK600, Atmel's JTAG ICE
+(the original one, mkII, and 3), appnote avr910, appnote avr109 (including
+the AVR Butterfly), serial bit-bang adapters, and, on Linux and BSD
+systems, the PPI (parallel port interface). PPI represents a class of
+simple programmers where the programming lines are directly connected to
+the PC parallel port. Several pin configurations exist for several
+variations of the PPI programmers, and AVRDUDE can be configured to work
+with them by either specifying the appropriate programmer on the command
+line or by creating a new entry in its configuration file. All that's
+usually required for a new entry is to tell AVRDUDE which pins to use for
+each programming function.
 
 A number of equally simple bit-bang programming adapters that connect
 to a serial port are supported as well, among them the popular
@@ -831,12 +829,13 @@ Note that the result will be stored in the EEPROM cell at address 0.
 @cindex @code{-P} @var{port}
 @cindex @code{--port} @var{port}
 Use @var{port} to identify the connection through which the programmer is
-attached. This can be a parallel, serial, spi or linuxgpio connection. The
-programmer normally specifies the connection type; in absence of a @code{-P}
-specification, system-dependent default values @code{default_parallel},
-@code{default_serial}, @code{default_spi}, or @code{default_linuxgpio} from
-the configuration file are used. If you need to use a different port, use this
-option to specify the alternate port name.
+attached. This can be a serial, spi, linuxgpio or, on a Linux or BSD
+system, parallel connection. The programmer normally specifies the
+connection type; in absence of a @code{-P} specification, system-dependent
+default values @code{default_serial}, @code{default_spi},
+@code{default_linuxgpio} or @code{default_parallel} from the configuration
+file are used. If you need to use a different port, use this option to
+specify the alternate port name.
 
 USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
