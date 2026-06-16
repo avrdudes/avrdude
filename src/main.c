@@ -54,6 +54,13 @@
 #include "config.h"
 #include "developer_opts.h"
 
+struct list_walk_cookie {
+   FILE *f;
+  const char *prefix;
+};
+ 
+libavrdude_context *cx;
+
 static LISTID updates = NULL;
 
 static LISTID extended_params = NULL;
