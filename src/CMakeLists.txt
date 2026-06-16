@@ -111,12 +111,11 @@ else()
     configure_file("python/adgui.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui")
 endif()
 
-# AUTOMATED HEADER COEXISTENCE SHIM GENERATOR:
-# Generates a local 'usb.h' proxy in the build tree that smoothly redirects downstream
-# files (#include <usb.h>) straight to Marius's real "lusb0_usb.h" emulation header.
+# When building against the bundled libusb fork, generate a <usb.h> shim in the build
+# tree that redirects #include <usb.h> to the fork's lusb0_usb.h (libusb-0.1 API) header.
 if(USE_EXTERNAL_LIBS)
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/usb.h" 
-        "/* Automated AVRDUDE MSVC Include Conflict Shim */\n"
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/usb.h"
+        "/* AVRDUDE build shim: redirect <usb.h> to the bundled libusb fork header */\n"
         "#ifndef AVRDUDE_MSVC_USB_SHIM_H\n"
         "#define AVRDUDE_MSVC_USB_SHIM_H\n"
         "#include \"lusb0_usb.h\"\n"
@@ -174,38 +173,9 @@ set_target_properties(libavrdude PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# Apply global feature macro overrides directly to target compilation definitions
-if(HAVE_LIBELF)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF=1)
-endif()
-if(HAVE_ELF_H)
-    target_compile_definitions(libavrdude PRIVATE HAVE_ELF_H=1)
-endif()
-if(HAVE_LIBELF_H)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF_H=1)
-endif()
-if(HAVE_LIBELF_LIBELF_H)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBELF_LIBELF_H=1)
-endif()
-
-# Force macro assignments down to files like dfu.c and avrftdi.c
-if(HAVE_LIBUSB)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB=1)
-endif()
-if(HAVE_USB_H)
-    target_compile_definitions(libavrdude PRIVATE HAVE_USB_H=1)
-endif()
-if(HAVE_LIBUSB_1_0)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBUSB_1_0=1)
-endif()
-
-# Add this macro block:
-if(HAVE_LIBFTDI)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBFTDI=1)
-endif()
-if(HAVE_LIBFTDI1)
-    target_compile_definitions(libavrdude PRIVATE HAVE_LIBFTDI1=1)
-endif()
+# Feature macros (HAVE_LIBELF, HAVE_LIBUSB, HAVE_LIBFTDI, ...) are supplied to the
+# sources through the generated ac_cfg.h (configure_file of cmake_config.h.in), so
+# they are not repeated as target_compile_definitions here.
 
 if(NOT MSVC)
     target_compile_options(libavrdude PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-format-zero-length)
@@ -239,7 +209,7 @@ target_link_libraries(libavrdude
         ${TARGET_LIBUSB}
         ${TARGET_LIBHIDAPI}
         ${TARGET_LIBFTDI1}
-        ${TARGET_LIBFTDI} # <-- Add this variable here to link Marius's compiled engine
+        ${TARGET_LIBFTDI} # bundled libftdi (0.x) fork, when USE_EXTERNAL_LIBS
         ${TARGET_LIBSERIALPORT}
         ${TARGET_LIBREADLINE}
         ${LIB_NCURSES}

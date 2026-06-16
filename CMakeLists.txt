@@ -281,7 +281,7 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBELF TRUE CACHE INTERNAL "")
     set(HAVE_LIBELF_H TRUE CACHE INTERNAL "")
     
-# Configure Marius's legacy engine states cleanly
+    # libusb-0.1 (compat) API state for the bundled libusb fork
     set(HAVE_LIBUSB TRUE CACHE INTERNAL "")
     set(HAVE_USB_H TRUE CACHE INTERNAL "")
     set(HAVE_LIBUSB_1_0 FALSE CACHE INTERNAL "")
@@ -289,8 +289,8 @@ if(USE_EXTERNAL_LIBS)
     
     set(HAVE_LIBHIDAPI TRUE CACHE INTERNAL "")
     
-    # MARIUS LIBFTDI EMULATION FIX:
-    # Flip HAVE_LIBFTDI to TRUE and disable the v1.0 variant so avrftdi.c compiles the correct blocks.
+    # The bundled libftdi fork provides the libftdi-0.x API: enable HAVE_LIBFTDI and
+    # disable the libftdi1 variant so avrftdi.c compiles the matching code paths.
     set(HAVE_LIBFTDI TRUE CACHE INTERNAL "")
     set(HAVE_LIBFTDI1 FALSE CACHE INTERNAL "")
 
@@ -299,7 +299,7 @@ if(USE_EXTERNAL_LIBS)
     set(TARGET_LIBUSB_1_0 "" CACHE INTERNAL "")
     set(TARGET_LIBHIDAPI libhidapi CACHE INTERNAL "")
     set(TARGET_LIBFTDI1 "" CACHE INTERNAL "")
-    set(TARGET_LIBFTDI libftdi CACHE INTERNAL "") # Point to the legacy target definition
+    set(TARGET_LIBFTDI libftdi CACHE INTERNAL "") # bundled libftdi (0.x) fork target
 
     # Set real, verified target directory path profiles
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
@@ -318,7 +318,7 @@ endif()
 # Configuration Summary
 # =====================================
 string(APPEND SUMMARY "\n------------------------------------------------------\n"
-                     " AVRDUDE Configuration Summary (Coexistence Layout):\n"
+                     " AVRDUDE Configuration Summary:\n"
                      "------------------------------------------------------\n"
                      "  Version       : ${AVRDUDE_FULL_VERSION}\n"
                      "  libelf        : ${HAVE_LIBELF} (HAVE_ELF_H: ${HAVE_ELF_H} / HAVE_LIBELF_H: ${HAVE_LIBELF_H})\n"
