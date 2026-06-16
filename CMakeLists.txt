@@ -45,6 +45,7 @@ endif()
 
 include(CheckIncludeFile)
 include(CheckSymbolExists)
+include(CMakePushCheckState)
 include(FetchContent)
 include(FindPackageMessage)
 include(GNUInstallDirs)
@@ -70,6 +71,13 @@ if(Git_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         COMMAND "${GIT_EXECUTABLE}" log -1 --format=%cd --date=format:%Y%m%d
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
         OUTPUT_VARIABLE GIT_COMMIT_DATE
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # GIT_COMMIT_YEAR is consumed by src/windows.rc.in (Windows version resource copyright)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%cd --date=format:%Y
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_COMMIT_YEAR
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     execute_process(
@@ -163,6 +171,12 @@ if(NOT HAVE_LIBUSB AND CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     endif()
 endif()
 
+# FreeBSD's 'libusb' implements both the libusb-0.1 and libusb-1.0 APIs in one
+# library, so map a found libusb to libusb-1.0 as well (it is linked via TARGET_LIBUSB).
+if(HAVE_LIBUSB AND CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    set(HAVE_LIBUSB_1_0 TRUE)
+endif()
+
 # =====================================
 # Dual-API Headers Check Layer
 # =====================================
@@ -188,8 +202,19 @@ find_avrdude_lib(LIBFTDI1 "libftdi1" "ftdi1")
 find_avrdude_lib(LIBSERIALPORT "libserialport" "serialport")
 find_avrdude_lib(LIBREADLINE "readline" "readline")
 
+# Detect whether libftdi1 provides the non-deprecated ftdi_tcioflush() (avrftdi.c)
+if(HAVE_LIBFTDI1)
+    cmake_push_check_state(RESET)
+    set(CMAKE_REQUIRED_LIBRARIES ${TARGET_LIBFTDI1} ${TARGET_LIBUSB_1_0} ${TARGET_LIBUSB})
+    check_symbol_exists(ftdi_tcioflush "libftdi1/ftdi.h" HAVE_FTDI_TCIOFLUSH)
+    cmake_pop_check_state()
+endif()
+
 if(HAVE_LIBREADLINE)
     find_library(LIB_NCURSES NAMES ncurses pdcurses)
+elseif(MSVC)
+    # MSVC builds use the bundled readline replacement (src/msvc/readline.cpp)
+    set(HAVE_LIBREADLINE TRUE)
 endif()
 
 # =====================================
@@ -206,6 +231,12 @@ if(HAVE_LINUXGPIO AND PKG_CONFIG_FOUND)
         else()
             pkg_check_modules(LIBGPIOD IMPORTED_TARGET GLOBAL QUIET libgpiod)
         endif()
+    endif()
+    # linuxgpio.c gates ALL libgpiod code on HAVE_LIBGPIOD and the link needs the
+    # imported target, so set both whenever any libgpiod version was found.
+    if(LIBGPIOD_FOUND)
+        set(HAVE_LIBGPIOD TRUE)
+        set(TARGET_LIBGPIOD PkgConfig::LIBGPIOD)
     endif()
 endif()
 
@@ -252,7 +283,7 @@ if(USE_EXTERNAL_LIBS)
     set(HAVE_LIBELF TRUE CACHE INTERNAL "")
     set(HAVE_LIBELF_H TRUE CACHE INTERNAL "")
     
-# Configure Marius's legacy engine states cleanly
+    # libusb-0.1 (compat) API state for the bundled libusb fork
     set(HAVE_LIBUSB TRUE CACHE INTERNAL "")
     set(HAVE_USB_H TRUE CACHE INTERNAL "")
     set(HAVE_LIBUSB_1_0 FALSE CACHE INTERNAL "")
@@ -260,8 +291,8 @@ if(USE_EXTERNAL_LIBS)
     
     set(HAVE_LIBHIDAPI TRUE CACHE INTERNAL "")
     
-    # MARIUS LIBFTDI EMULATION FIX:
-    # Flip HAVE_LIBFTDI to TRUE and disable the v1.0 variant so avrftdi.c compiles the correct blocks.
+    # The bundled libftdi fork provides the libftdi-0.x API: enable HAVE_LIBFTDI and
+    # disable the libftdi1 variant so avrftdi.c compiles the matching code paths.
     set(HAVE_LIBFTDI TRUE CACHE INTERNAL "")
     set(HAVE_LIBFTDI1 FALSE CACHE INTERNAL "")
 
@@ -270,7 +301,7 @@ if(USE_EXTERNAL_LIBS)
     set(TARGET_LIBUSB_1_0 "" CACHE INTERNAL "")
     set(TARGET_LIBHIDAPI libhidapi CACHE INTERNAL "")
     set(TARGET_LIBFTDI1 "" CACHE INTERNAL "")
-    set(TARGET_LIBFTDI libftdi CACHE INTERNAL "") # Point to the legacy target definition
+    set(TARGET_LIBFTDI libftdi CACHE INTERNAL "") # bundled libftdi (0.x) fork target
 
     # Set real, verified target directory path profiles
     set(FETCHED_LIBELF_DIR  "${FETCHED_LIBELF_BASE}/include"  CACHE INTERNAL "")
@@ -289,7 +320,7 @@ endif()
 # Configuration Summary
 # =====================================
 string(APPEND SUMMARY "\n------------------------------------------------------\n"
-                     " AVRDUDE Configuration Summary (Coexistence Layout):\n"
+                     " AVRDUDE Configuration Summary:\n"
                      "------------------------------------------------------\n"
                      "  Version       : ${AVRDUDE_FULL_VERSION}\n"
                      "  libelf        : ${HAVE_LIBELF} (HAVE_ELF_H: ${HAVE_ELF_H} / HAVE_LIBELF_H: ${HAVE_LIBELF_H})\n"
