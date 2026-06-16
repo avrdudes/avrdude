@@ -73,10 +73,9 @@ typedef uint32_t Pinmask;
 
 // Message system
 
-// This functions is supposed to be supplied by the application
+// Core messaging function, defined in avrdude_msg.c (compiled into libavrdude)
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func,
   int msgmode, int msglvl, const char *format, ...);
-
 enum msglvl {
   MSG_EXT_ERROR = (-3),         // OS-type error, no -v option, can be suppressed with -qqqqq
   MSG_ERROR = (-2),             // Avrdude error, no -v option, can be suppressed with -qqqq
