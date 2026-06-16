@@ -211,7 +211,7 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   }
 
   if(usbpid) {
-    pid = *(int *) (ldata(usbpid));
+    pid = *(int *) ldata(usbpid);
     if(lnext(usbpid))
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {

@@ -731,7 +731,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   } else {                      // Otherwise walk the list of config file PIDs
     for(usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
       pinfo.usbinfo.flags = PINFO_FL_SILENT;
-      pinfo.usbinfo.pid = *(int *) (ldata(usbpid));
+      pinfo.usbinfo.pid = *(int *) ldata(usbpid);
       pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
       pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;  // Command read
       pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP; // Command write
@@ -845,7 +845,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   for(usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
     if(notfirst)
       msg_error(", ");
-    msg_error("0x%04x", (unsigned int) (*(int *) (ldata(usbpid))));
+    msg_error("0x%04x", (unsigned int) *(int *) ldata(usbpid));
     notfirst = 1;
   }
   return LIBAVRDUDE_EXIT_FAIL;
