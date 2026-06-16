@@ -22,6 +22,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// DLL import/export annotation for Windows shared library builds.
+// When compiling libavrdude itself: LIBAVRDUDE_BUILD_DLL is defined by CMake
+// and symbols are exported. When compiling a consumer (main.c, external app):
+// symbols are imported. On non-Windows the macro is a no-op.
+#if defined(_WIN32) && defined(LIBAVRDUDE_BUILD_DLL)
+#  define LIBAVRDUDE_API __declspec(dllexport)
+#elif defined(_WIN32)
+#  define LIBAVRDUDE_API __declspec(dllimport)
+#else
+#  if defined(__GNUC__) && __GNUC__ >= 4
+#    define LIBAVRDUDE_API __attribute__((visibility("default")))
+#  else
+#    define LIBAVRDUDE_API
+#  endif
+#endif
+
 #define SYSTEM_CONF_FILE "avrdude.conf"
 
 #if defined(WIN32)
@@ -31,12 +47,12 @@
 #define XDG_USER_CONF_FILE "avrdude/avrdude.rc"
 #endif
 
-extern char *progname;          // Name of program, for messages
-extern int ovsigck;             // Override signature check (-F)
-extern int verbose;             // Verbosity level (-v, -vv, ...)
-extern int quell_progress;      // Quell progress report -q, reduce effective verbosity level (-qq, -qqq)
-extern const char *partdesc;    // Part -p string
-extern const char *pgmid;       // Programmer -c string
+LIBAVRDUDE_API extern char       *progname;
+LIBAVRDUDE_API extern int         ovsigck;
+LIBAVRDUDE_API extern int         verbose;
+LIBAVRDUDE_API extern int         quell_progress;
+LIBAVRDUDE_API extern const char *partdesc;
+LIBAVRDUDE_API extern const char *pgmid;
 
 // Magic memory tree: these functions succeed or exit()
 #define mmt_strdup(s) cfg_strdup(__func__, s)
@@ -45,7 +61,8 @@ extern const char *pgmid;       // Programmer -c string
 #define mmt_sprintf(...) str_sprintf(__VA_ARGS__)
 #define mmt_free(p) free(p)
 
-int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...)
+LIBAVRDUDE_API int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...)
+
 #if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
   __attribute__((format(printf, 7, 8)))
 #endif
