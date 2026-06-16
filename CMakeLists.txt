@@ -72,6 +72,13 @@ if(Git_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         OUTPUT_VARIABLE GIT_COMMIT_DATE
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    # GIT_COMMIT_YEAR is consumed by src/windows.rc.in (Windows version resource copyright)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%cd --date=format:%Y
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_COMMIT_YEAR
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
     execute_process(
         COMMAND "${GIT_EXECUTABLE}" log -1 --tags --format=%h
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -163,6 +170,12 @@ if(NOT HAVE_LIBUSB AND CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     endif()
 endif()
 
+# FreeBSD's 'libusb' implements both the libusb-0.1 and libusb-1.0 APIs in one
+# library, so map a found libusb to libusb-1.0 as well (it is linked via TARGET_LIBUSB).
+if(HAVE_LIBUSB AND CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    set(HAVE_LIBUSB_1_0 TRUE)
+endif()
+
 # =====================================
 # Dual-API Headers Check Layer
 # =====================================
@@ -188,8 +201,18 @@ find_avrdude_lib(LIBFTDI1 "libftdi1" "ftdi1")
 find_avrdude_lib(LIBSERIALPORT "libserialport" "serialport")
 find_avrdude_lib(LIBREADLINE "readline" "readline")
 
+# Detect whether libftdi1 provides the non-deprecated ftdi_tcioflush() (avrftdi.c)
+if(HAVE_LIBFTDI1)
+    set(CMAKE_REQUIRED_LIBRARIES ${TARGET_LIBFTDI1} ${TARGET_LIBUSB_1_0} ${TARGET_LIBUSB})
+    check_symbol_exists(ftdi_tcioflush "libftdi1/ftdi.h" HAVE_FTDI_TCIOFLUSH)
+    unset(CMAKE_REQUIRED_LIBRARIES)
+endif()
+
 if(HAVE_LIBREADLINE)
     find_library(LIB_NCURSES NAMES ncurses pdcurses)
+elseif(MSVC)
+    # MSVC builds use the bundled readline replacement (src/msvc/readline.cpp)
+    set(HAVE_LIBREADLINE TRUE)
 endif()
 
 # =====================================
@@ -206,6 +229,12 @@ if(HAVE_LINUXGPIO AND PKG_CONFIG_FOUND)
         else()
             pkg_check_modules(LIBGPIOD IMPORTED_TARGET GLOBAL QUIET libgpiod)
         endif()
+    endif()
+    # linuxgpio.c gates ALL libgpiod code on HAVE_LIBGPIOD and the link needs the
+    # imported target, so set both whenever any libgpiod version was found.
+    if(LIBGPIOD_FOUND)
+        set(HAVE_LIBGPIOD TRUE)
+        set(TARGET_LIBGPIOD PkgConfig::LIBGPIOD)
     endif()
 endif()
 
