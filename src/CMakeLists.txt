@@ -174,6 +174,7 @@ set(SOURCES
     avr910.h
     avrcache.c
     avrdude.h
+    avrdude_msg.c
     avrftdi.c
     avrftdi.h
     avrftdi_private.h
@@ -327,6 +328,14 @@ set_target_properties(libavrdude PROPERTIES
     VERSION 4.0.0
     SOVERSION 4
     )
+
+# Export DLL symbols on Windows when building as a shared library.
+# avrdude_message2(), progname, verbose etc. formerly lived in the
+# executable (main.c), causing undefined-reference link failures on
+# Windows DLLs. They now live in libavrdude via avrdude_msg.c.
+if(BUILD_SHARED_LIBS AND WIN32)
+    target_compile_definitions(libavrdude PRIVATE LIBAVRDUDE_BUILD_DLL)
+endif()
 
 target_include_directories(libavrdude
     PUBLIC
