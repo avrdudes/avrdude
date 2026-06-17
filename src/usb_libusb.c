@@ -110,16 +110,16 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
           }
 
           /*
-           * The CMSIS-DAP specification mandates the string "CMSIS-DAP" must
-           * be present somewhere in the product name string for a device
-           * compliant to that protocol.  Use this for the decisision whether
-           * we have to search for a HID interface below.
+           * If the product name contains the string "CMSIS-DAP" it claims to
+           * be a CMSIS-DAP spec HID device. HID interrupt packets can only be
+           * 64 byte (Full-Speed) or 512 byte (High-Speed) not any other value.
+           * Standard-Speed (8 bytes) will not work.
            */
           if(str_contains(product, "CMSIS-DAP")) {
             pinfo.usbinfo.flags |= PINFO_FL_USEHID;
-            /* The JTAGICE3 running the CMSIS-DAP firmware doesn't
-             * use a separate endpoint for event reception */
+            // JTAGICE3 doesn't use a separate endpoint for event reception
             fd->usb.eep = 0;
+            fd->usb.max_xfer = 64;
           }
 
           if(str_contains(product, "mEDBG")) {
@@ -150,6 +150,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             // goto trynext;    // Let's hope it has already been configured
           }
 
+          int usehid = !!(pinfo.usbinfo.flags & PINFO_FL_USEHID);
           for(iface = 0; iface < dev->config[0].bNumInterfaces; iface++) {
             cx->usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
 
@@ -166,8 +167,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
               pmsg_warning("(i/face %d) %s\n", cx->usb_interface, usb_strerror());
               cx->usb_access_error = 1;
             } else {
-              if(pinfo.usbinfo.flags & PINFO_FL_USEHID) {
-                // Only consider an interface that is of class HID
+              if(usehid) {      // Only consider an interface that is of class HID
                 if(dev->config[0].interface[iface].altsetting[0].bInterfaceClass != USB_CLASS_HID)
                   continue;
                 fd->usb.use_interrupt_xfer = 1;
@@ -198,20 +198,23 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             }
           }
           for(i = 0; i < dev->config[0].interface[iface].altsetting[0].bNumEndpoints; i++) {
-            if((dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.rep ||
-                dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.wep) &&
-              dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize < fd->usb.max_xfer) {
-              pmsg_notice("max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
-                fd->usb.max_xfer,
-                dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
-                dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress);
-              fd->usb.max_xfer = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
+            int mps = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
+                epa = dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress;
+
+            if(epa != fd->usb.rep && epa != fd->usb.wep)
+              continue;
+
+            // (usehid && (mps == 64 || mps == 512)) suggested by Claude free chatbot (Sonnet 4.6 Low)
+            if((usehid && (mps == 64 || mps == 512)) || mps < fd->usb.max_xfer) {
+              if(mps != fd->usb.max_xfer) {
+                pmsg_notice("CMSIS-DAP max_xfer adjusted %d -> %d owing to EP 0x%02x's wMaxPacketSize\n",
+                  fd->usb.max_xfer, mps, epa);
+                fd->usb.max_xfer = mps;
+              }
             }
           }
-          if(pinfo.usbinfo.flags & PINFO_FL_USEHID) {
-            if(usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */ , 0, 0, NULL, 0, 100) < 0)
-              pmsg_warning("SET_IDLE failed\n");
-          }
+          if(usehid && usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */ , 0, 0, NULL, 0, 100) < 0)
+            pmsg_warning("SET_IDLE failed\n");
           return 0;
 
         trynext:
