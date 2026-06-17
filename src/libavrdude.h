@@ -1736,6 +1736,8 @@ extern "C" {
   void str_freedata(Str2data *sd);
   unsigned long long int str_int(const char *str, int type, const char **errpp);
   int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
+  int str_set_vid_pid_serno(const char *port, unsigned short *vidp, unsigned short *pidp,
+    int defvid, char *serno, size_t n);
   char *str_nexttok(char *buf, const char *delim, char **next);
   const char *str_ccfrq(double f, int n);
   const char *str_cchex(const void *buf, size_t len, int add_space);

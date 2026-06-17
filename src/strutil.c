@@ -1231,6 +1231,94 @@ finished:
 }
 
 /*
+ * The syntax of the -P port string is -P usb[[:[<vid>]:<pid>]:<serno>]
+ *
+ * Set *vidp and *pidp if <vid> and <pid> are hex strings in [0, 0xffff];
+ * an empty <vid> string is allowed if defvid is given as non-negative
+ * number, in which case *vidp is set to defvid. In case there is no valid
+ * <vid>/<pid> pair, the full string after usb: is treated as serial
+ * number, as is any trailing string a after a valid usb:<vid>:<pid>:
+ * sequence. Serial numbers, if detected in the port string, are stripped
+ * of colon characters, while a maximum of n-1 serial number characters
+ * are stored in the space pointed to by serno, followed by a terminating
+ * nul character.
+ *
+ * Returns
+ *  -1 on failed parsing
+ *   0 if no paramters could be set
+ *   1 if only serno could be set
+ *   2 if only vid and pid could be set
+ *   3 if vid, pid and serno could be set
+ *
+ * *vidp and *pidp are unchanged for return values smaller than 2. The
+ * buffer serno may be set with the initial serial number if n turned out
+ * to be too small to hold the full serial number: in this case the return
+ * value is 0 or 2 indicating the serial number could not be completely
+ * copied over from the port string. On a failed parsing or on -P usb,
+ * serno is not set, otherwise it will contain a nul-terminated string
+ * within the n bytes size associated with serno.
+ */
+
+int str_set_vid_pid_serno(const char *port, unsigned short *vidp, unsigned short *pidp,
+  int defvid, char *serno, size_t n) {
+
+  unsigned long vid, pid;
+  const char *pidstr, *sn = port + 4;
+  char *endhex;
+  int ret = 0;
+
+  if(!str_casestarts(port, "usb"))
+    return -1;
+
+  if(port[3] != ':')            // -P usb returns 0, wrong character after -p usb returns -1
+    return port[3] == 0? 0: -1;
+
+  if(port[4] == ':' && defvid >= 0) { // -P usb::<pid> <vid> sets vid to defvid if given
+    vid = defvid;
+    pidstr = port + 5;
+  } else {                      // Scan hex vid and ensure it's terminated by :
+    errno = 0;
+    vid = strtoul(port + 4, &endhex, 16);
+    if(endhex == port + 4 || *endhex != ':' || errno || vid > 0xffff)
+      goto setserno;
+    pidstr = endhex + 1;
+  }
+
+  errno = 0;                    // Scan hex pid and ensure it's terminated by nul or :
+  pid = strtoul(pidstr, &endhex, 16);
+  if(endhex == pidstr || (*endhex != 0 && *endhex != ':') || errno || pid > 0xffff)
+    goto setserno;
+
+  if(vidp)
+    *vidp = (int) vid;
+  if(pidp)
+    *pidp = (int) pid;
+
+  if(*endhex == 0)              // No :<serno> after <pid>? Finished
+    return 2;
+
+  sn = endhex + 1;
+  ret = 2;
+setserno:
+
+  if(serno && !n)
+    return ret;
+
+  // Copy the serial number into given buffer but without colons
+  for(; *sn; sn++)
+    if(*sn != ':') {
+      if(!--n)
+        break;
+      if(serno)
+        *serno++ = *sn;
+     }
+  if(serno)
+    *serno = 0;
+
+  return ret + !*sn;            // Return 0 iff serno buffer was too short
+}
+
+/*
  * Returns the next space separated token in buf (terminating it) and places
  * start of next token into pointer pointed to by next. Keeps single or double
  * quoted strings together and changes backslash-space sequences to space
