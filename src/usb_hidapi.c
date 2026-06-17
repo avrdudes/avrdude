@@ -45,9 +45,9 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_3;
 
-  // Override/set pid, vid and/or serno from -P usb[[:[<vid>]:<pid>]:<serno>]
+  // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
   if(str_set_vid_pid_serno(port, &pinfo.usbinfo.vid, &pinfo.usbinfo.pid, -1, serno, sizeof serno) < 0) {
-    pmsg_error("parsing error in -P %s\n", port);
+    pmsg_error("invalid -P %s; drop -P option or else use -P usb[:<vid>:<pid>][:<serno>]\n", port);
     return -1;
   }
 
