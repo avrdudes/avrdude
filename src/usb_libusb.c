@@ -213,6 +213,10 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
               }
             }
           }
+          if(fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
+            pmsg_error("reducing too big max packet size %d to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
+           fd->usb.max_xfer = USBDEV_MAX_XFER_3;
+          }
           if(usehid && usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */ , 0, 0, NULL, 0, 100) < 0)
             pmsg_warning("SET_IDLE failed\n");
           return 0;

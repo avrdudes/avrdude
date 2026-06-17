@@ -213,7 +213,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     }
   }
   if(fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
-    pmsg_error("unexpected max size %d, reducing to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
+    pmsg_error("reducing too big max packet size %d to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
     fd->usb.max_xfer = USBDEV_MAX_XFER_3;
   }
 
