@@ -54,34 +54,21 @@
  * the desired USB device ID.
  */
 static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor *fd) {
-  char string[256];
-  char product[256];
+  char string[256], product[256];
   struct usb_bus *bus;
   struct usb_device *dev;
   usb_dev_handle *udev;
-  char *s, serno[64] = { 0 };
-  const char *serp;
+  char serno[64] = { 0 };
   int i, iface;
-
-  /*
-   * The syntax for usb devices is defined as:
-   *
-   * -P usb[:serialnumber]
-   *
-   * See if we've got a serial number passed here.  The serial number might
-   * contain colons which we remove below, and we compare it right-to-left, so
-   * only the least significant nibbles need to be specified.
-   */
-  if((serp = strchr(port, ':')) && *++serp) {
-    // First, get a copy of the serial number w/out colons
-    for(s = serno; *serp && s < serno + sizeof serno - 1; serp++)
-      if(*serp != ':')
-        *s++ = *serp;
-    *s = 0;
-  }
 
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
+
+  // Override/set pid, vid and/or serno from -P usb[[:[<vid>]:<pid>]:<serno>]
+  if(str_set_vid_pid_serno(port, &pinfo.usbinfo.vid, &pinfo.usbinfo.pid, -1, serno, sizeof serno) < 0) {
+    pmsg_error("parsing error in -P %s\n", port);
+    return -1;
+  }
 
   usb_init();
 
@@ -103,7 +90,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
              */
             cx->usb_access_error = 1;
             if(*serno)
-              goto none_matching;       // No chance of serno matches
+              goto none_matching;       // Unable to match serno
             strcpy(string, "[unknown]");
           }
           if(serdev)
@@ -115,14 +102,13 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
           if(serdev)
             serdev->usbproduct = cache_string(product);
 
-          /* We need to write to endpoint 2 to switch the PICkit4 and SNAP
-           * from PIC to AVR mode
-           */
+          // Need to write to endpoint 2 to switch the PICkit4/SNAP from PIC to AVR mode
           if(str_casestarts(product, "MPLAB") && (str_caseends(product, "Snap ICD")
               || str_caseends(product, "PICkit 4"))) {
             pinfo.usbinfo.flags = 0;
             fd->usb.wep = 2;
           }
+
           /*
            * The CMSIS-DAP specification mandates the string "CMSIS-DAP" must
            * be present somewhere in the product name string for a device
@@ -142,12 +128,9 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             fd->usb.wep = 0x02;
           }
 
-          pmsg_notice("found %s with serno = %s\n", product, string);
+          pmsg_notice2("found %s with serno = %s\n", product, string);
           if(*serno) {
-            /*
-             * See if the serial number requested by the user matches what we
-             * found, matching right-to-left.
-             */
+            // See if the serial number requested by the user matches right-to-left
             int x = strlen(string) - strlen(serno);
 
             if(x < 0 || !str_caseeq(string + x, serno)) {
