@@ -637,31 +637,30 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 }
 
 static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
-  int vid, pid, interface, err;
+  int vid, pid, interface, err, numids;
+  char serno[64] = {0};
+  unsigned short new_vid = 0, new_pid = 0;
 
   Avrftdi_data *pdata = to_pdata(pgm);
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(!str_caseeq(port, "usb"))
-    pmsg_warning("option -P %s ignored\n", port);
+
+  // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
+  if((numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno)) < 0) {
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
+    return LIBAVRDUDE_EXIT_FAIL;
+  }
 
   // Parameter validation
 
-  // Use vid/pid in following priority: config, defaults cmd-line is currently not supported
-
-  if(pgm->usbvid)
-    vid = pgm->usbvid;
-  else
-    vid = USB_VENDOR_FTDI;
-
+  // Set vid/pid in following priority: command-line, config, default
+  vid = numids >= 2? new_vid: pgm->usbvid? pgm->usbvid: USB_VENDOR_FTDI;
   LNODEID usbpid = lfirst(pgm->usbpid);
+  pid = numids >= 2? new_pid: usbpid? *(int *) ldata(usbpid): USB_DEVICE_FT2232;
+  if(numids < 2 && usbpid && lnext(usbpid))
+    pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
 
-  if(usbpid) {
-    pid = *(int *) ldata(usbpid);
-    if(lnext(usbpid))
-      pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
-  } else
-    pid = USB_DEVICE_FT2232;
+  const char *serial = *serno? serno: *pgm->usbsn? pgm->usbsn: NULL; // No SN means use first available
 
   if(pgm->usbdev[0] == 'a' || pgm->usbdev[0] == 'A')
     interface = INTERFACE_A;
@@ -675,8 +674,6 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
   // Device setup
 
   E(ftdi_set_interface(pdata->ftdic, interface) < 0, pdata->ftdic);
-
-  const char *serial = *pgm->usbsn? pgm->usbsn: NULL; // No SN means use first available
 
   // Todo: use desc and index argument, currently set to NULL and 0
   err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, NULL, serial, 0);

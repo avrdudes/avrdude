@@ -840,18 +840,18 @@ they are automatically identified via their vendor and product IDs from
 @code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
 programmers of the same type plugged into the host computer is the
 @code{-P} option needed, see below. Some @code{-c} programmers, however,
-ignore the @code{-P} option altogether, eg, pickit5, teensy, ch341a or avrftdi;
+ignore the @code{-P} option altogether, eg, pickit5, teensy or ch341a;
 these cannot distinguish multiple plugged-in programmers.
 
 Most USB programmers, however, support the command-line syntax  @code{-P
 usb[:@var{vid}:@var{pid}][:@var{serialno}]} which allows the user to
 override the vendor and product IDs with hexadecimal numbers @var{vid} and
-@var{pid} and/or request a match of the desired device's serial number with
-@var{serialno}. The match is done after stripping any existing colons from the
-given serial number on the command line, and right-to-left, so only the
-least significant bytes from the serial number need to be given. The JTAG
-ICE mkII, JTAGICE3, SNAP, and PICKit5 programmers are examples for this
-@code{-P} port syntax.
+@var{pid} and/or request a match of the desired device's serial number
+with @var{serialno}. The match is done after stripping any existing colons
+from the given serial number on the command line, and right-to-left, so
+only the least significant bytes from the serial number need to be given.
+The JTAG ICE mkII, JTAGICE3, SNAP, PICKit5 and avrftdi programmers are
+examples for this @code{-P} port syntax.
 
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
