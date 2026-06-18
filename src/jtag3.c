@@ -1775,7 +1775,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
       notfirst = 1;
     }
     char serno[64] = {0};
-    if(str_set_vid_pid_serno(port, NULL, NULL, 0, serno, sizeof serno) >= 0 && *serno)
+    if(str_set_vid_pid_serno(port, NULL, NULL, serno, sizeof serno) >= 0 && *serno)
       msg_error(" with SN %s", serno);
     msg_error("\n");
 

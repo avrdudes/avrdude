@@ -1231,41 +1231,34 @@ finished:
 }
 
 /*
- * The syntax of the -P port string is -P usb[[:[<vid>]:<pid>]:<serno>]
+ * The syntax of the -P port string is -P usb[:<vid>:<pid>]:[<serno>]
  *
- * Set *vidp and *pidp if <vid> and <pid> are hex strings in [0, 0xffff];
- * an empty <vid> string is allowed if defvid is given as non-negative
- * number, in which case *vidp is set to defvid. In case there is no valid
- * <vid>/<pid> pair, the full string after usb: is treated as serial
- * number, as is any trailing string a after a valid usb:<vid>:<pid>:
- * sequence. Serial numbers, if detected in the port string, are stripped
- * of colon characters, while a maximum of n-1 serial number characters
- * are stored in the space pointed to by serno, followed by a terminating
- * nul character.
+ * Set *vidp and *pidp iff <vid> and <pid> are hex strings in [0, 0xffff]. If
+ * there is no valid :<vid>:<pid> pair the full string after usb: is treated as
+ * serial number, as is any trailing string after a valid usb:<vid>:<pid>:
+ * sequence. Serial numbers, if detected in port, are stripped of colons, while
+ * a maximum of n-1 serial-number characters are stored in the serno buffer
+ * followed by a terminating nul character. If the serno buffer is too small
+ * serno remains unset and the port argument is considered invalid.
  *
  * Returns
- *  -1 on failed parsing
- *   0 if no paramters could be set
- *   1 if only serno could be set
- *   2 if only vid and pid could be set
- *   3 if vid, pid and serno could be set
+ *  -1 on failed parsing (-P string does not start with usb[:], n too small)
+ *   0 if no paramters was set (-P usb)
+ *   1 if only serno was set or serno could have been set but was NULL
+ *   2 if only vid and pid were or could have been set
+ *   3 if vid, pid and serno were or could have been set
  *
- * *vidp and *pidp are unchanged for return values smaller than 2. The
- * buffer serno may be set with the initial serial number if n turned out
- * to be too small to hold the full serial number: in this case the return
- * value is 0 or 2 indicating the serial number could not be completely
- * copied over from the port string. On a failed parsing or on -P usb,
- * serno is not set, otherwise it will contain a nul-terminated string
- * within the n bytes size associated with serno.
+ * *vidp and *pidp remain unchanged for return values smaller than 2. The serno
+ * buffer remains unchanged on return values other than 1 or 3.
  */
 
 int str_set_vid_pid_serno(const char *port, unsigned short *vidp, unsigned short *pidp,
-  int defvid, char *serno, size_t n) {
+  char *serno, const size_t n) {
 
   unsigned long vid, pid;
-  const char *pidstr, *sn = port + 4;
-  char *endhex;
+  const char *sn = port + 4;
   int ret = 0;
+  char *pidstr, *endhex;
 
   if(!str_casestarts(port, "usb"))
     return -1;
@@ -1273,26 +1266,21 @@ int str_set_vid_pid_serno(const char *port, unsigned short *vidp, unsigned short
   if(port[3] != ':')            // -P usb returns 0, wrong character after -p usb returns -1
     return port[3] == 0? 0: -1;
 
-  if(port[4] == ':' && defvid >= 0) { // -P usb::<pid> <vid> sets vid to defvid if given
-    vid = defvid;
-    pidstr = port + 5;
-  } else {                      // Scan hex vid and ensure it's terminated by :
-    errno = 0;
-    vid = strtoul(port + 4, &endhex, 16);
-    if(endhex == port + 4 || *endhex != ':' || errno || vid > 0xffff)
-      goto setserno;
-    pidstr = endhex + 1;
-  }
+  errno = 0;                    // Read hex vid and assert it is followed by a colon
+  vid = strtoul(port + 4, &endhex, 16);
+  if(endhex == port + 4 || *endhex != ':' || errno || vid > 0xffff)
+    goto setserno;
 
-  errno = 0;                    // Scan hex pid and ensure it's terminated by nul or :
+  errno = 0;                    // Read hex pid and assert it is followed by nul or colon
+  pidstr = endhex + 1;
   pid = strtoul(pidstr, &endhex, 16);
   if(endhex == pidstr || (*endhex != 0 && *endhex != ':') || errno || pid > 0xffff)
     goto setserno;
 
   if(vidp)
-    *vidp = (int) vid;
+    *vidp = vid;
   if(pidp)
-    *pidp = (int) pid;
+    *pidp = pid;
 
   if(*endhex == 0)              // No :<serno> after <pid>? Finished
     return 2;
@@ -1301,21 +1289,24 @@ int str_set_vid_pid_serno(const char *port, unsigned short *vidp, unsigned short
   ret = 2;
 setserno:
 
-  if(serno && !n)
-    return ret;
+  if(!n)
+    return -1;
 
+  char *serbuf = mmt_malloc(n), *bp;
   // Copy the serial number into given buffer but without colons
-  for(; *sn; sn++)
+  for(bp = serbuf; *sn; sn++)
     if(*sn != ':') {
-      if(!--n)
+      if(bp >= serbuf + n-1)
         break;
-      if(serno)
-        *serno++ = *sn;
-     }
-  if(serno)
-    *serno = 0;
+      *bp++ = *sn;
+    }
+  *bp = 0;
 
-  return ret + !*sn;            // Return 0 iff serno buffer was too short
+  if(serno && !*sn)
+    memcpy(serno, serbuf, n);
+  mmt_free(serbuf);
+
+  return *sn? -1: ret+1;
 }
 
 /*

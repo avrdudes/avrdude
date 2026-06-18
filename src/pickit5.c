@@ -658,9 +658,9 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   unsigned short new_vid = 0, new_pid = 0;
   char serno[64] = { 0 };
-  int numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, USB_VENDOR_MICROCHIP, serno, sizeof serno);
+  int numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno);
   if(numids < 0) {
-    pmsg_error("invalid -P %s; drop -P option or else use -P usb[:[<vid>]:<pid>][:<serno>]\n", port);
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
