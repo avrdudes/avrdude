@@ -681,7 +681,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;  // Command read
     pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP; // Command write
     pgm->fd.usb.eep = 0x00;
-    port = str_sprintf("usb:%s", serno); // Avoids passing on usb::<pid>:<serno>
     pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
   } else {                      // Otherwise walk the list of config file PIDs
