@@ -612,9 +612,8 @@ USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
 avrdude.conf or .avrduderc. Only when there are multiple programmers of
 the same type plugged into the host computer is the -P option needed, see
-below. Some -c programmers, however, ignore the -P option altogether, eg,
-pickit2 or teensy; these cannot distinguish multiple plugged-in
-programmers.
+below. Some -c programmers, eg, pickit2, ignore the -P option altogether;
+these cannot distinguish multiple plugged-in programmers.
 .Pp
 Most USB programmers, however, support the command-line syntax -P
 usb[:<vid>:<pid>][:<serialno>] which allows the user to override the
@@ -623,9 +622,9 @@ request a match of the desired device's serial number with <serialno>. The
 match is done after stripping any existing colons from the given serial
 number on the command line, and right-to-left, so only the least
 significant bytes from the serial number need to be given. The JTAG ICE
-mkII, JTAGICE3, SNAP, PICKit5, CH341A and avrftdi programmers are examples
-for this -P port syntax. Some of these in turn, e.g. the CH341A, are not
-capable of matching serial numbers.
+mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi programmers are
+examples for this -P port syntax. Some of these in turn, e.g. the CH341A
+and teensy are not capable of matching serial numbers.
 .Pp
 If
 .Nm
