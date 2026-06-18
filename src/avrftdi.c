@@ -645,7 +645,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
 
-  // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
+  // Set new_vid, new_pid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
   if((numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno)) < 0) {
     pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
     return LIBAVRDUDE_EXIT_FAIL;
