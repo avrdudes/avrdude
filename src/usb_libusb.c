@@ -207,7 +207,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             // (usehid && (mps == 64 || mps == 512)) suggested by Claude free chatbot (Sonnet 4.6 Low)
             if((usehid && (mps == 64 || mps == 512)) || mps < fd->usb.max_xfer) {
               if(mps != fd->usb.max_xfer) {
-                pmsg_notice("CMSIS-DAP max_xfer adjusted %d -> %d owing to EP 0x%02x's wMaxPacketSize\n",
+                pmsg_notice("max packet size adjusted %d -> %d owing to EP 0x%02x's wMaxPacketSize\n",
                   fd->usb.max_xfer, mps, epa);
                 fd->usb.max_xfer = mps;
               }
@@ -215,7 +215,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
           }
           if(fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
             pmsg_error("reducing too big max packet size %d to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
-           fd->usb.max_xfer = USBDEV_MAX_XFER_3;
+            fd->usb.max_xfer = USBDEV_MAX_XFER_3;
           }
           if(usehid && usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */ , 0, 0, NULL, 0, 100) < 0)
             pmsg_warning("SET_IDLE failed\n");
