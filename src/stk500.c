@@ -854,9 +854,9 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   stk500_drain(pgm, 0);

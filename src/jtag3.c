@@ -1673,6 +1673,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
     pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
+    if(rv == LIBAVRDUDE_EXIT_FAIL || rv == LIBAVRDUDE_EXIT_OK)
+      return rv;
   }
   if(rv < 0) {
 #endif                          // HAVE_LIBHIDAPI
@@ -1689,6 +1691,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
       pgm->port = port;
       rv = serial_open(port, pinfo, &pgm->fd);
+      if(rv == LIBAVRDUDE_EXIT_FAIL || rv == LIBAVRDUDE_EXIT_OK)
+        return rv;
     }
 #endif                          // HAVE_LIBUSB
 
@@ -1714,9 +1718,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
 
         if(pic_mode < 0) {
+          if(pic_mode == LIBAVRDUDE_EXIT_FAIL || pic_mode == LIBAVRDUDE_EXIT_OK)
+            return pic_mode;
           // Retry with bootloader USB PID
           pinfo.usbinfo.pid = bl_pid;
           pic_mode = serial_open(port, pinfo, &pgm->fd);
+          if(pic_mode == LIBAVRDUDE_EXIT_FAIL || pic_mode == LIBAVRDUDE_EXIT_OK)
+            return pic_mode;
         }
         if(pic_mode >= 0) {
           const char *partsdesc_flag = partdesc? " -p ": "";

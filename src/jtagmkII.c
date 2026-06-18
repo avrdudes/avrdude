@@ -1417,9 +1417,9 @@ static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);
@@ -1467,9 +1467,9 @@ static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);
@@ -1517,9 +1517,9 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);
@@ -1573,9 +1573,9 @@ static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);
@@ -1623,9 +1623,9 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);
@@ -1650,11 +1650,7 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
   pinfo.serialinfo.baud = 19200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
 
-  /*
-   * If the port name starts with "usb", divert the serial routines to the USB
-   * ones.  The serial_open() function for USB overrides the meaning of the
-   * "baud" parameter to be the USB device ID to search for.
-   */
+  // If the port name starts with "usb", divert the serial routines to the USB ones
   if(str_casestarts(port, "usb")) {
 
 #if defined(HAVE_LIBUSB)
@@ -1673,9 +1669,9 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);
@@ -3255,9 +3251,9 @@ static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   jtagmkII_drain(pgm, 0);

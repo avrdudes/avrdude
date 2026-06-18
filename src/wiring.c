@@ -144,7 +144,9 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  serial_open(port, pinfo, &pgm->fd);
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // If we have a snoozetime, then we wait and do NOT toggle DTR/RTS
   if(mywiring.snoozetime > 0) {

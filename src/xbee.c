@@ -1438,9 +1438,9 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
   serdev->set_dtr_rts = xbeedev_set_dtr_rts;
   serdev->flags = SERDEV_FL_NONE;
 
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   xbeedev_setresetpin(&pgm->fd, my.xbeeResetPin);
 
