@@ -67,7 +67,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
   if(str_set_vid_pid_serno(port, &pinfo.usbinfo.vid, &pinfo.usbinfo.pid, serno, sizeof serno) < 0) {
     pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
-    return -1;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
 
   usb_init();

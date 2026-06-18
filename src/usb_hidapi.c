@@ -48,7 +48,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
   // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
   if(str_set_vid_pid_serno(port, &pinfo.usbinfo.vid, &pinfo.usbinfo.pid, serno, sizeof serno) < 0) {
     pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
-    return -1;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
 
   if(*serno) {
@@ -151,7 +151,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
         // The JTAGICE3 running CMSIS-DAP doesn't use a separate endpoint for event reception
         fd->usb.eep = 0;
         fd->usb.max_xfer = 64;
-        pmsg_debug("usbhid_open(): product string: %s\n", cn);
+        pmsg_debug("%s(): product string: %s\n", __func__, cn);
       }
     }
   }

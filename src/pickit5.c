@@ -661,7 +661,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   int numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno);
   if(numids < 0) {
     pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
-    return LIBAVRDUDE_GENERAL_FAILURE;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
 
   // If the config entry did not specify a USB PID, insert the default one
