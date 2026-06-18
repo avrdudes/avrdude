@@ -64,7 +64,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 
     list = hid_enumerate(pinfo.usbinfo.vid, pinfo.usbinfo.pid);
     if(list == NULL) {
-      pmsg_error("no USB HID devices found\n");
+      if(!(pinfo.usbinfo.flags & PINFO_FL_SILENT))
+        pmsg_error("no USB HID devices found\n");
       return -1;
     }
 
@@ -82,7 +83,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       walk = walk->next;
     }
     if(walk == NULL) {
-      pmsg_error("no matching device found\n");
+      if(!(pinfo.usbinfo.flags & PINFO_FL_SILENT))
+        pmsg_error("no matching device found\n");
       hid_free_enumeration(list);
       return -1;
     }
