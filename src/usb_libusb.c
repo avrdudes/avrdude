@@ -145,11 +145,6 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             goto trynext;
           }
 
-          if(usb_set_configuration(udev, dev->config[0].bConfigurationValue)) {
-            pmsg_notice("(config %d) %s\n", dev->config[0].bConfigurationValue, usb_strerror());
-            // goto trynext;    // Let's hope it has already been configured
-          }
-
           int usehid = !!(pinfo.usbinfo.flags & PINFO_FL_USEHID);
           for(iface = 0; iface < dev->config[0].bNumInterfaces; iface++) {
             cx->usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
