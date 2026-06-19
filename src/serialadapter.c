@@ -331,9 +331,10 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
 
   pinfo.serialinfo.baud = baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  if(serial_open(*portp, pinfo, &fd) == -1) {
+  int rc;
+  if((rc = serial_open(*portp, pinfo, &fd)) < 0) {
     pmsg_error("%s() failed to open port %s at %d baud\n", __func__, *portp, baudrate);
-    return -1;
+    return rc;
   }
   serial_set_dtr_rts(&fd, 1);
   usleep(100);

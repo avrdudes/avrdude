@@ -57,10 +57,10 @@ static int updi_physical_open(PROGRAMMER *pgm, int baudrate, unsigned long cflag
 
   pmsg_debug("opening serial port ...\n");
 
-  if(serial_open(pgm->port, pinfo, &pgm->fd) == -1) {
-
+  int rc;
+  if((rc = serial_open(pgm->port, pinfo, &pgm->fd)) < 0) {
     pmsg_debug("serial port open failed!\n");
-    return -1;
+    return rc;
   }
 
   // Drain any extraneous input

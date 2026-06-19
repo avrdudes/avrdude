@@ -37,54 +37,24 @@
 
 #include "usbdevs.h"
 
-/*
- * The "baud" parameter is meaningless for USB devices, so we reuse it to pass
- * the desired USB device ID.
- */
 static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor *fd) {
   hid_device *dev = NULL;
-  char serno[64], *s;
-  const char *serp, *vidp, *pidp;
+  char serno[64] = {0};
   unsigned char usbbuf[USBDEV_MAX_XFER_3 + 1];
 
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_3;
 
-  /*
-   * The syntax for usb devices is defined as:
-   *
-   * -P usb:vid:pid
-   * -P usb:serialnumber
-   * -P usb
-   *
-   * First check for a valid vid:pid pair, then see if there is a serial number
-   * passed here. The serial number might contain colons which are removed;
-   * comparison is right-to-left, so only the least significant nibbles need to
-   * be specified.
-   */
-
-  if((vidp = strchr(port, ':')) && (pidp = strchr(vidp + 1, ':'))) {
-    int vid, pid;
-
-    if(sscanf(vidp + 1, "%x", &vid) == 1 && sscanf(pidp + 1, "%x", &pid) == 1) {
-      if((dev = hid_open(vid, pid, NULL))) {
-        pmsg_notice2("USB device with VID: 0x%04x and PID: 0x%04x\n", vid, pid);
-        pinfo.usbinfo.vid = vid;
-        pinfo.usbinfo.pid = pid;
-      }
-    }
+  // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
+  if(str_set_vid_pid_serno(port, &pinfo.usbinfo.vid, &pinfo.usbinfo.pid, serno, sizeof serno) < 0) {
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
+    return LIBAVRDUDE_EXIT_FAIL;
   }
 
-  if(!dev && (serp = vidp) && *++serp) {
-    // First, get a copy of the serial number w/out colons
-    for(s = serno; *serp && s < serno + sizeof serno - 1; serp++)
-      if(*serp != ':')
-        *s++ = *serp;
-    *s = 0;
-
+  if(*serno) {
     wchar_t wserno[sizeof serno] = { 0 };
     mbstowcs(wserno, serno, sizeof serno);
-    size_t serlen = s - serno;
+    size_t serlen = strlen(serno);
 
     /*
      * Now, try finding all devices matching VID:PID, and compare their serial
@@ -94,7 +64,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 
     list = hid_enumerate(pinfo.usbinfo.vid, pinfo.usbinfo.pid);
     if(list == NULL) {
-      pmsg_error("no USB HID devices found\n");
+      if(!(pinfo.usbinfo.flags & PINFO_FL_SILENT))
+        pmsg_error("no USB HID devices found\n");
       return -1;
     }
 
@@ -112,7 +83,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       walk = walk->next;
     }
     if(walk == NULL) {
-      pmsg_error("no matching device found\n");
+      if(!(pinfo.usbinfo.flags & PINFO_FL_SILENT))
+        pmsg_error("no matching device found\n");
       hid_free_enumeration(list);
       return -1;
     }
@@ -123,7 +95,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       pmsg_error("found device, but hid_open_path() failed\n");
       return -1;
     }
-  } else if(!dev) {
+  } else {
     dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
     if(dev == NULL) {
       pmsg_notice2("USB device with VID: 0x%04x and PID: 0x%04x not found\n", pinfo.usbinfo.vid, pinfo.usbinfo.pid);
@@ -181,7 +153,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
         // The JTAGICE3 running CMSIS-DAP doesn't use a separate endpoint for event reception
         fd->usb.eep = 0;
         fd->usb.max_xfer = 64;
-        pmsg_debug("usbhid_open(): product string: %s\n", cn);
+        pmsg_debug("%s(): product string: %s\n", __func__, cn);
       }
     }
   }
@@ -243,7 +215,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     }
   }
   if(fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
-    pmsg_error("unexpected max size %d, reducing to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
+    pmsg_error("reducing too big max packet size %d to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
     fd->usb.max_xfer = USBDEV_MAX_XFER_3;
   }
 

@@ -1365,7 +1365,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(my.vtarg_switch_get) {
       pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n",
         my.vtarg_switch_data[0], my.vtarg_switch_data[0]? "on": "off");
-    } 
+    }
     // Write Vtarg switch value
     if(my.vtarg_switch_set) {
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL,
@@ -1504,7 +1504,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
           my.varef_channel, (varef_read/100.0));
       }
       // STK600: Write target voltage value for channel n
-      if(my.varef_set) {                  
+      if(my.varef_set) {
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
           my.varef_channel, (varef_read/100.0), my.varef_data);
         if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
@@ -2148,9 +2148,9 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Make USB serial number and USB product name available to programmer
   if(serdev) {
@@ -2216,9 +2216,9 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input, synchronise and drain again
   if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)
@@ -3927,9 +3927,9 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   stk500v2_drain(pgm, 0);
@@ -4025,9 +4025,9 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   stk500v2_drain(pgm, 0);
@@ -4098,9 +4098,9 @@ static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
   }
 
   pgm->port = port;
-  if(serial_open(port, pinfo, &pgm->fd) == -1) {
-    return -1;
-  }
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   // Drain any extraneous input
   stk500v2_drain(pgm, 0);
