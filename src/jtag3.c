@@ -1673,6 +1673,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
     pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
+    if(rv == LIBAVRDUDE_EXIT_FAIL || rv == LIBAVRDUDE_EXIT_OK)
+      return rv;
   }
   if(rv < 0) {
 #endif                          // HAVE_LIBHIDAPI
@@ -1689,6 +1691,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
       pgm->port = port;
       rv = serial_open(port, pinfo, &pgm->fd);
+      if(rv == LIBAVRDUDE_EXIT_FAIL || rv == LIBAVRDUDE_EXIT_OK)
+        return rv;
     }
 #endif                          // HAVE_LIBUSB
 
@@ -1698,6 +1702,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
   if(rv < 0) {
     // Check if SNAP or PICkit4 are in PIC mode
+    unsigned short vidbak = pinfo.usbinfo.vid; // Save vid
     for(LNODEID ln = lfirst(pgm->id); ln; ln = lnext(ln)) {
       if(str_starts(ldata(ln), "snap") || str_starts(ldata(ln), "pickit4")) {
         bool is_snap_pgm = str_starts(ldata(ln), "snap");
@@ -1713,9 +1718,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
 
         if(pic_mode < 0) {
+          if(pic_mode == LIBAVRDUDE_EXIT_FAIL || pic_mode == LIBAVRDUDE_EXIT_OK)
+            return pic_mode;
           // Retry with bootloader USB PID
           pinfo.usbinfo.pid = bl_pid;
           pic_mode = serial_open(port, pinfo, &pgm->fd);
+          if(pic_mode == LIBAVRDUDE_EXIT_FAIL || pic_mode == LIBAVRDUDE_EXIT_OK)
+            return pic_mode;
         }
         if(pic_mode >= 0) {
           const char *partsdesc_flag = partdesc? " -p ": "";
@@ -1763,20 +1772,19 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
         }
       }
     }
+    pinfo.usbinfo.vid = vidbak; // Restore vid
+
     pmsg_error("no device found matching VID 0x%04x and PID list: ", (unsigned) pinfo.usbinfo.vid);
     int notfirst = 0;
-
     for(usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
       if(notfirst)
         msg_error(", ");
       msg_error("0x%04x", (unsigned int) *(int *) ldata(usbpid));
       notfirst = 1;
     }
-
-    char *serno;
-
-    if((serno = strchr(port, ':')))
-      msg_error(" with SN %s", ++serno);
+    char serno[64] = {0};
+    if(str_set_vid_pid_serno(port, NULL, NULL, serno, sizeof serno) >= 0 && *serno)
+      msg_error(" with SN %s", serno);
     msg_error("\n");
 
     return -1;

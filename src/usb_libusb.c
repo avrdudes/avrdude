@@ -54,34 +54,21 @@
  * the desired USB device ID.
  */
 static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor *fd) {
-  char string[256];
-  char product[256];
+  char string[256], product[256];
   struct usb_bus *bus;
   struct usb_device *dev;
   usb_dev_handle *udev;
-  char *s, serno[64] = { 0 };
-  const char *serp;
+  char serno[64] = { 0 };
   int i, iface;
-
-  /*
-   * The syntax for usb devices is defined as:
-   *
-   * -P usb[:serialnumber]
-   *
-   * See if we've got a serial number passed here.  The serial number might
-   * contain colons which we remove below, and we compare it right-to-left, so
-   * only the least significant nibbles need to be specified.
-   */
-  if((serp = strchr(port, ':')) && *++serp) {
-    // First, get a copy of the serial number w/out colons
-    for(s = serno; *serp && s < serno + sizeof serno - 1; serp++)
-      if(*serp != ':')
-        *s++ = *serp;
-    *s = 0;
-  }
 
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
+
+  // Override/set pid, vid and/or serno from -P usb[:<vid>:<pid>][:<serno>]
+  if(str_set_vid_pid_serno(port, &pinfo.usbinfo.vid, &pinfo.usbinfo.pid, serno, sizeof serno) < 0) {
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
+    return LIBAVRDUDE_EXIT_FAIL;
+  }
 
   usb_init();
 
@@ -103,7 +90,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
              */
             cx->usb_access_error = 1;
             if(*serno)
-              goto none_matching;       // No chance of serno matches
+              goto none_matching;       // Unable to match serno
             strcpy(string, "[unknown]");
           }
           if(serdev)
@@ -115,25 +102,24 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
           if(serdev)
             serdev->usbproduct = cache_string(product);
 
-          /* We need to write to endpoint 2 to switch the PICkit4 and SNAP
-           * from PIC to AVR mode
-           */
+          // Need to write to endpoint 2 to switch the PICkit4/SNAP from PIC to AVR mode
           if(str_casestarts(product, "MPLAB") && (str_caseends(product, "Snap ICD")
               || str_caseends(product, "PICkit 4"))) {
             pinfo.usbinfo.flags = 0;
             fd->usb.wep = 2;
           }
+
           /*
-           * The CMSIS-DAP specification mandates the string "CMSIS-DAP" must
-           * be present somewhere in the product name string for a device
-           * compliant to that protocol.  Use this for the decisision whether
-           * we have to search for a HID interface below.
+           * If the product name contains the string "CMSIS-DAP" it claims to
+           * be a CMSIS-DAP spec HID device. HID interrupt packets can only be
+           * 64 byte (Full-Speed) or 512 byte (High-Speed) not any other value.
+           * Standard-Speed (8 bytes) will not work.
            */
           if(str_contains(product, "CMSIS-DAP")) {
             pinfo.usbinfo.flags |= PINFO_FL_USEHID;
-            /* The JTAGICE3 running the CMSIS-DAP firmware doesn't
-             * use a separate endpoint for event reception */
+            // JTAGICE3 doesn't use a separate endpoint for event reception
             fd->usb.eep = 0;
+            fd->usb.max_xfer = 64;
           }
 
           if(str_contains(product, "mEDBG")) {
@@ -142,12 +128,9 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             fd->usb.wep = 0x02;
           }
 
-          pmsg_notice("found %s with serno = %s\n", product, string);
+          pmsg_notice2("found %s with serno = %s\n", product, string);
           if(*serno) {
-            /*
-             * See if the serial number requested by the user matches what we
-             * found, matching right-to-left.
-             */
+            // See if the serial number requested by the user matches right-to-left
             int x = strlen(string) - strlen(serno);
 
             if(x < 0 || !str_caseeq(string + x, serno)) {
@@ -162,11 +145,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             goto trynext;
           }
 
-          if(usb_set_configuration(udev, dev->config[0].bConfigurationValue)) {
-            pmsg_notice("(config %d) %s\n", dev->config[0].bConfigurationValue, usb_strerror());
-            // goto trynext;    // Let's hope it has already been configured
-          }
-
+          int usehid = !!(pinfo.usbinfo.flags & PINFO_FL_USEHID);
           for(iface = 0; iface < dev->config[0].bNumInterfaces; iface++) {
             cx->usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
 
@@ -183,8 +162,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
               pmsg_warning("(i/face %d) %s\n", cx->usb_interface, usb_strerror());
               cx->usb_access_error = 1;
             } else {
-              if(pinfo.usbinfo.flags & PINFO_FL_USEHID) {
-                // Only consider an interface that is of class HID
+              if(usehid) {      // Only consider an interface that is of class HID
                 if(dev->config[0].interface[iface].altsetting[0].bInterfaceClass != USB_CLASS_HID)
                   continue;
                 fd->usb.use_interrupt_xfer = 1;
@@ -215,20 +193,27 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             }
           }
           for(i = 0; i < dev->config[0].interface[iface].altsetting[0].bNumEndpoints; i++) {
-            if((dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.rep ||
-                dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.wep) &&
-              dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize < fd->usb.max_xfer) {
-              pmsg_notice("max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
-                fd->usb.max_xfer,
-                dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
-                dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress);
-              fd->usb.max_xfer = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
+            int mps = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
+                epa = dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress;
+
+            if(epa != fd->usb.rep && epa != fd->usb.wep)
+              continue;
+
+            // (usehid && (mps == 64 || mps == 512)) suggested by Claude free chatbot (Sonnet 4.6 Low)
+            if((usehid && (mps == 64 || mps == 512)) || mps < fd->usb.max_xfer) {
+              if(mps != fd->usb.max_xfer) {
+                pmsg_notice("max packet size adjusted %d -> %d owing to EP 0x%02x's wMaxPacketSize\n",
+                  fd->usb.max_xfer, mps, epa);
+                fd->usb.max_xfer = mps;
+              }
             }
           }
-          if(pinfo.usbinfo.flags & PINFO_FL_USEHID) {
-            if(usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */ , 0, 0, NULL, 0, 100) < 0)
-              pmsg_warning("SET_IDLE failed\n");
+          if(fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
+            pmsg_error("reducing too big max packet size %d to %d\n", fd->usb.max_xfer, USBDEV_MAX_XFER_3);
+            fd->usb.max_xfer = USBDEV_MAX_XFER_3;
           }
+          if(usehid && usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */ , 0, 0, NULL, 0, 100) < 0)
+            pmsg_warning("SET_IDLE failed\n");
           return 0;
 
         trynext:

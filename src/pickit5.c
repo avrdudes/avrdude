@@ -650,78 +650,33 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   LNODEID usbpid;
   int rv = LIBAVRDUDE_GENERAL_FAILURE;
-  size_t serial_num_len = 0;
 
 #if !defined(HAVE_LIBUSB)
   pmsg_error("need to be compiled with USB or HIDAPI support\n");
   return LIBAVRDUDE_GENERAL_FAILURE;
 #endif
 
-  if(!str_casestarts(port, "usb:") && !str_caseeq(port, "usb")) {
-    pmsg_error("invalid -P %s; drop -P option or else use -P usb:<vid>:<pid> or -P usb:<serialno>\n", port);
-    return LIBAVRDUDE_GENERAL_FAILURE;
+  unsigned short new_vid = 0, new_pid = 0;
+  char serno[64] = { 0 };
+  int numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno);
+  if(numids < 0) {
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
+    return LIBAVRDUDE_EXIT_FAIL;
   }
-  unsigned int new_vid = 0, new_pid = 0, setids = 0;
-  const char *vidp, *pidp;
-
-  /*
-   * The syntax for usb devices is defined as:
-   *
-   * -P usb:vid:pid
-   * -P usb::pid
-   * -P usb:serialnumber
-   * -P usb
-   *
-   * First we check if we have two colons.
-   * Then check the filed between the two colons is empty
-   * Parse VID as hex number
-   * If it is empty, assume Microchip VID
-   * The PID is handled similary but can not be empty
-   *
-   * If there are fewer than two colons nothing is changed
-   */
-
-  vidp = strchr(port, ':');
-  if(vidp != NULL) {
-    vidp += 1;
-    pidp = strchr(vidp, ':');
-    if(pidp != NULL) {
-      setids = 1;
-      if(vidp != pidp) {        // User specified an VID
-        // First: Handle VID input
-        if(sscanf(vidp, "%x", &new_vid) != 1) {
-          pmsg_error("failed to parse -P VID input %s: expected hexadecimal number\n", vidp);
-          return LIBAVRDUDE_GENERAL_FAILURE;
-        }
-      } else {                  // VID space empty: default to Microchip
-        new_vid = USB_VENDOR_MICROCHIP;
-      }
-
-      // Now handle PID input
-      if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
-        pmsg_error("failed to parse -P PID input %s: expected hexadecimal number\n", pidp+1);
-        return LIBAVRDUDE_GENERAL_FAILURE;
-      }
-
-      pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
-      port = "usb";             // Overwrite the string to avoid confusing the libusb
-    } else {                    // pidp == NULL means vidp points to serial number
-      serial_num_len = strlen(vidp);
-    }
-  }                             // vidp == NULL means dropped -P option or -P usb
 
   // If the config entry did not specify a USB PID, insert the default one
   if(lfirst(pgm->usbpid) == NULL)
     ladd(pgm->usbpid, (void *) USB_DEVICE_PICKIT5);
 
-  pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_MICROCHIP;
-
   // PICkit 5 does not have support for HID, so no need to support it
   serdev = &usb_serdev;
-  if(setids) {                  // In case a specific VID/PID was specified
+  pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_MICROCHIP;
+  pinfo.usbinfo.flags = PINFO_FL_SILENT;
+  if(numids >= 2) {             // Valid VID:PID was specified in -P port
+    if(pinfo.usbinfo.vid != new_vid || pinfo.usbinfo.pid != new_pid)
+      pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
     pinfo.usbinfo.vid = new_vid;
     pinfo.usbinfo.pid = new_pid;
-    pinfo.usbinfo.flags = PINFO_FL_SILENT;
     pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
     pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;  // Command read
     pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP; // Command write
@@ -730,13 +685,11 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     rv = serial_open(port, pinfo, &pgm->fd);
   } else {                      // Otherwise walk the list of config file PIDs
     for(usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
-      pinfo.usbinfo.flags = PINFO_FL_SILENT;
       pinfo.usbinfo.pid = *(int *) ldata(usbpid);
       pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
       pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;  // Command read
       pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP; // Command write
       pgm->fd.usb.eep = 0x00;
-
       pgm->port = port;
       rv = serial_open(port, pinfo, &pgm->fd);
     }
@@ -808,8 +761,8 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       serial_close(&pgm->fd);
       return LIBAVRDUDE_EXIT_FAIL;
     }
-    if(serial_num_len) {
-      pmsg_error("no device found matching the specified serial number %s", vidp);
+    if(*serno) {
+      pmsg_error("no device found matching the specified serial number %s", serno);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 

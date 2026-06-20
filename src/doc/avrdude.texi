@@ -839,27 +839,40 @@ USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
 @code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
 programmers of the same type plugged into the host computer is the
-@code{-P} option needed, see below. Some @code{-c} programmers, however,
-ignore the @code{-P} option altogether, eg, teensy, ch341a or avrftdi;
-these cannot distinguish multiple plugged-in programmers.
+@code{-P} option needed, see below. Some @code{-c} programmers, e.g.,
+pickit5, ignore the @code{-P} option altogether; these cannot distinguish
+multiple plugged-in programmers.
+
+Most USB programmers, however, support the command-line syntax  @code{-P
+usb[:@var{vid}:@var{pid}][:@var{serialno}]} which allows the user to
+override the vendor and product IDs with hexadecimal numbers @var{vid} and
+@var{pid} and/or request a match of the desired device's serial number
+with @var{serialno}. The match is done after stripping any existing colons
+from the given serial number on the command line, and right-to-left, so
+only the least significant bytes from the serial number need to be given.
+The JTAG ICE mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi
+programmers are examples for this @code{-P} port syntax. Some of these in
+turn, e.g. the CH341A and teensy, are not capable of matching serial
+numbers.
 
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
 @code{avrdude.conf} or @code{.avrduderc}, e.g., @code{ch340} or
 @code{ft232r}. If more than one serial adapter of the same type is
 connected, they can be distinguished by appending a serial number, e.g.,
-@code{ft232r:12345678}. Note that the USB to serial chip has to have a
-serial number for this to work. Avrdude can check for leading and trailing
-serial number matches as well. In the above example, @code{ft232r:1234}
-would also result in a match, and so would @code{ft232r:...5678}. If the
-USB to serial chip is not known to avrdude, it can be specified using the
-hexadecimal USB vendor ID, hexadecimal product ID and an optional serial
-number, following the serial number matching rules described above, e.g.,
-@code{usb:0x2341:0x0043} or @code{usb:2341:0043:12345678}. To see a list
-of currently plugged-in serial ports use @code{-P ?s}. In order to see a
-list of all possible serial adapters known to avrdude use @code{-P ?sa}.
-Depending on the used shell, @code{?} may need to be quoted as in
-@code{"?"} or @code{\?}.
+@code{ft232r:12345678}. The USB to serial chip has to have a serial number
+for this to work. Note that serial number matches for serial adapters (in
+contrast to matches for USB programmers above) ist from left-to-right. For
+matches from right-to-left, serial adapters can use the ellipses. In the
+above example, @code{ft232r:1234} would also result in a match, and so
+would @code{ft232r:...5678}. If the USB to serial chip is not known to
+avrdude, it can be specified using the hexadecimal USB vendor ID,
+hexadecimal product ID and an optional serial number, following the serial
+number matching rules described above, e.g., @code{usb:0x2341:0x0043} or
+@code{usb:2341:0043:12345678}. To see a list of currently plugged-in
+serial ports use @code{-P ?s}. In order to see a list of all possible
+serial adapters known to avrdude use @code{-P ?sa}. Depending on the used
+shell, @code{?} may need to be quoted as in @code{"?"} or @code{\?}.
 
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support, the
 port can be specified as @code{usb}[:@var{serialno}].  In that case, the
@@ -888,14 +901,6 @@ usb:@var{busdir}:@var{devicefile}} or using the serial number @code{-P
 usb:@var{serialno}}. The USBasp serial number is matched from the end, so
 only the unique least significant bytes are needed. For examples, see the
 respective entry in @ref{Troubleshooting}.
-
-The @code{-c pickit5} programmer allows overriding the product ID with a
-hexadecimal number @var{pid} using @code{-P usb::@var{pid}} and the vendor
-and product IDs with hexadecimal numbers @var{vid} and @var{pid} using
-@code{-P usb:@var{vid}:@var{pid}}. The form @code{-P usb:@var{serialno}}
-requests AVRDUDE select the PICkit5 programmer with a serial number that
-ends in @var{serialno} (and with @var{vid}/@var{pid} from the
-configuration files).
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit

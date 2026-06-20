@@ -612,9 +612,19 @@ USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
 avrdude.conf or .avrduderc. Only when there are multiple programmers of
 the same type plugged into the host computer is the -P option needed, see
-below. Some -c programmers, however, ignore the -P option altogether, eg,
-teensy, ch341a or avrftdi; these cannot distinguish multiple plugged-in
-programmers.
+below. Some -c programmers, eg, pickit2, ignore the -P option altogether;
+these cannot distinguish multiple plugged-in programmers.
+.Pp
+Most USB programmers, however, support the command-line syntax -P
+usb[:<vid>:<pid>][:<serialno>] which allows the user to override the
+vendor and product IDs with hexadecimal numbers <vid> and <pid> and/or
+request a match of the desired device's serial number with <serialno>. The
+match is done after stripping any existing colons from the given serial
+number on the command line, and right-to-left, so only the least
+significant bytes from the serial number need to be given. The JTAG ICE
+mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi programmers are
+examples for this -P port syntax. Some of these in turn, e.g. the CH341A
+and teensy are not capable of matching serial numbers.
 .Pp
 If
 .Nm
@@ -626,10 +636,10 @@ or
 If more than one serial adapter of the same type is connected, they can be
 distinguished by appending a serial number, e.g.,
 .Ar ft232r:12345678 .
-Note that the USB to serial chip has to have a serial number for this to work.
-.Nm Avrdude
-can check for leading and trailing serial number matches as well.
-In the above example,
+The USB to serial chip has to have a serial number for this to work. Note
+that serial number matches for serial adapters (in contrast to matches for
+USB programmers above) ist from left-to-right. For matches from
+right-to-left, serial adapters can use the ellipses. In the above example,
 .Ar ft232r:1234
 would also result in a match, and so would
 .Ar ft232r:...5678 .
@@ -697,13 +707,6 @@ usb:<busdir>:<devicefile> or using the serial number -P usb:<serialno>.
 For examples, see the respective
 .Em Troubleshooting
 entry in the detailed pdf documentation.
-.Pp
-The -c pickit5 programmer allows overriding the product ID with a
-hexadecimal number <pid> using -P usb::<pid> and the vendor and product
-IDs with hexadecimal numbers <vid> and <pid> using -P usb:<vid>:<pid>. The
-form -P usb:<serialno> requests AVRDUDE select the PICkit5 programmer with
-a serial number that ends in <serialno> (and with vid/pid from the
-configuration files).
 .Pp
 For the XBee programmer the target MCU is to be programmed wirelessly over a
 ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit address for the
