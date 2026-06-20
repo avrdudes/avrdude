@@ -164,19 +164,17 @@ needing to have, or connect, a real physical programmer. Similarly,
 without connecting an AVR part.
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
-Atmel's AVRISP and AVRISP mkII devices,
-Atmel's STK600,
-Atmel's JTAG ICE (the original one, mkII, and 3), appnote
-avr910, appnote avr109 (including the AVR Butterfly),
-serial bit-bang adapters,
-and the PPI (parallel port interface). PPI represents a class
-of simple programmers where the programming lines are directly
-connected to the PC parallel port. Several pin configurations exist
-for several variations of the PPI programmers, and AVRDUDE can be
-configured to work with them by either specifying the appropriate
-programmer on the command line or by creating a new entry in its
-configuration file. All that's usually required for a new entry is to
-tell AVRDUDE which pins to use for each programming function.
+Atmel's AVRISP and AVRISP mkII devices, Atmel's STK600, Atmel's JTAG ICE
+(the original one, mkII, and 3), appnote avr910, appnote avr109 (including
+the AVR Butterfly), serial bit-bang adapters, and, on Linux and BSD
+systems, the PPI (parallel port interface). PPI represents a class of
+simple programmers where the programming lines are directly connected to
+the PC parallel port. Several pin configurations exist for several
+variations of the PPI programmers, and AVRDUDE can be configured to work
+with them by either specifying the appropriate programmer on the command
+line or by creating a new entry in its configuration file. All that's
+usually required for a new entry is to tell AVRDUDE which pins to use for
+each programming function.
 
 A number of equally simple bit-bang programming adapters that connect
 to a serial port are supported as well, among them the popular
@@ -196,9 +194,7 @@ be taken about voltage level compatibility. Also, although not strictly
 required, it is strongly advisable to protect the GPIO pins from
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
-the 74HC244. Have a look at
-@url{https://kolev.info/blog/2013/01/06/avrdude-linuxgpio/} for a more
-detailed tutorial about using this programmer type.
+the 74HC244.
 
 Under a Linux installation with direct access to the SPI bus and GPIO
 pins, such as would be found on a Raspberry Pi, the ``linuxspi''
@@ -206,7 +202,7 @@ programmer type can be used to directly connect to and program a chip
 using the built in interfaces on the computer. The requirements to use
 this type are that an SPI interface is exposed along with one GPIO
 pin. The GPIO serves as the reset output since the Linux SPI drivers
-do not hold chip select down when a transfer is not occuring and thus
+do not hold chip select down when a transfer is not occurring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer's SPI controller in the
@@ -383,7 +379,7 @@ below for details.
 @cindex CH341A programmer
 The USBasp ISP, USBtinyISP and CH341A adapters are also supported, provided
 AVRDUDE has been compiled with libusb support.
-They former two feature simple firmware-only USB implementations, running on
+The former two feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 CH341A programmers connect directly to the AVR target. Their SPI bit clock
 is approximately 1.7@w{ }MHz and cannot be changed. As a consequence, the
@@ -460,7 +456,7 @@ name did not conflict with AVRPROG.EXE which is the name of Atmel's
 Windows programming software.
 
 For many years, the AVRDUDE source resided in public repositories on
-savannah.nongnu.org,
+the now read-only savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
 addition to FreeBSD, AVRDUDE now runs on Linux, macOS and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
@@ -727,7 +723,7 @@ In absence of an explicit @code{-e} or @code{-D} option avrdude tries to
 augur from the command line whether or not the chip should be auto-erased
 at the  beginning. If avrdude detects a @code{-U} command that writes to
 flash then auto-erase will be carried out before any other programming
-unless a @code{-T} erase commad has been detected beforehand and unless
+unless a @code{-T} erase command has been detected beforehand and unless
 flash is read before writing to it. For the purpose of this analysis any
 terminal command is considered to possibly read flash.
 
@@ -831,38 +827,52 @@ Note that the result will be stored in the EEPROM cell at address 0.
 @cindex @code{-P} @var{port}
 @cindex @code{--port} @var{port}
 Use @var{port} to identify the connection through which the programmer is
-attached. This can be a parallel, serial, spi or linuxgpio connection. The
-programmer normally specifies the connection type; in absence of a @code{-P}
-specification, system-dependent default values @code{default_parallel},
-@code{default_serial}, @code{default_spi}, or @code{default_linuxgpio} from
-the configuration file are used. If you need to use a different port, use this
-option to specify the alternate port name.
+attached. This can be a serial, spi, linuxgpio or, on a Linux or BSD
+system, parallel connection. The programmer normally specifies the
+connection type; in absence of a @code{-P} specification, system-dependent
+default values @code{default_serial}, @code{default_spi},
+@code{default_linuxgpio} or @code{default_parallel} from the configuration
+file are used. If you need to use a different port, use this option to
+specify the alternate port name.
 
 USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
 @code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
 programmers of the same type plugged into the host computer is the
-@code{-P} option needed, see below. Some @code{-c} programmers, however,
-ignore the @code{-P} option altogether, eg, teensy, ch341a or avrftdi;
-these cannot distinguish multiple plugged-in programmers.
+@code{-P} option needed, see below. Some @code{-c} programmers, e.g.,
+pickit5, ignore the @code{-P} option altogether; these cannot distinguish
+multiple plugged-in programmers.
+
+Most USB programmers, however, support the command-line syntax  @code{-P
+usb[:@var{vid}:@var{pid}][:@var{serialno}]} which allows the user to
+override the vendor and product IDs with hexadecimal numbers @var{vid} and
+@var{pid} and/or request a match of the desired device's serial number
+with @var{serialno}. The match is done after stripping any existing colons
+from the given serial number on the command line, and right-to-left, so
+only the least significant bytes from the serial number need to be given.
+The JTAG ICE mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi
+programmers are examples for this @code{-P} port syntax. Some of these in
+turn, e.g. the CH341A and teensy, are not capable of matching serial
+numbers.
 
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
 @code{avrdude.conf} or @code{.avrduderc}, e.g., @code{ch340} or
 @code{ft232r}. If more than one serial adapter of the same type is
 connected, they can be distinguished by appending a serial number, e.g.,
-@code{ft232r:12345678}. Note that the USB to serial chip has to have a
-serial number for this to work. Avrdude can check for leading and trailing
-serial number matches as well. In the above example, @code{ft232r:1234}
-would also result in a match, and so would @code{ft232r:...5678}. If the
-USB to serial chip is not known to avrdude, it can be specified using the
-hexadecimal USB vendor ID, hexadecimal product ID and an optional serial
-number, following the serial number matching rules described above, e.g.,
-@code{usb:0x2341:0x0043} or @code{usb:2341:0043:12345678}. To see a list
-of currently plugged-in serial ports use @code{-P ?s}. In order to see a
-list of all possible serial adapters known to avrdude use @code{-P ?sa}.
-Depending on the used shell, @code{?} may need to be quoted as in
-@code{"?"} or @code{\?}.
+@code{ft232r:12345678}. The USB to serial chip has to have a serial number
+for this to work. Note that serial number matches for serial adapters (in
+contrast to matches for USB programmers above) ist from left-to-right. For
+matches from right-to-left, serial adapters can use the ellipses. In the
+above example, @code{ft232r:1234} would also result in a match, and so
+would @code{ft232r:...5678}. If the USB to serial chip is not known to
+avrdude, it can be specified using the hexadecimal USB vendor ID,
+hexadecimal product ID and an optional serial number, following the serial
+number matching rules described above, e.g., @code{usb:0x2341:0x0043} or
+@code{usb:2341:0043:12345678}. To see a list of currently plugged-in
+serial ports use @code{-P ?s}. In order to see a list of all possible
+serial adapters known to avrdude use @code{-P ?sa}. Depending on the used
+shell, @code{?} may need to be quoted as in @code{"?"} or @code{\?}.
 
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support, the
 port can be specified as @code{usb}[:@var{serialno}].  In that case, the
@@ -891,14 +901,6 @@ usb:@var{busdir}:@var{devicefile}} or using the serial number @code{-P
 usb:@var{serialno}}. The USBasp serial number is matched from the end, so
 only the unique least significant bytes are needed. For examples, see the
 respective entry in @ref{Troubleshooting}.
-
-The @code{-c pickit5} programmer allows overriding the product ID with a
-hexadecimal number @var{pid} using @code{-P usb::@var{pid}} and the vendor
-and product IDs with hexadecimal numbers @var{vid} and @var{pid} using
-@code{-P usb:@var{vid}:@var{pid}}. The form @code{-P usb:@var{serialno}}
-requests AVRDUDE select the PICkit5 programmer with a serial number that
-ends in @var{serialno} (and with @var{vid}/@var{pid} from the
-configuration files).
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -2303,15 +2305,14 @@ Valid commands:
   verbose : display or set -v verbosity level
   quell   : display or set -q quell level for progress bars
   help    : show help message
-  ?       : same as help
   quit    : synchronise flash/EEPROM cache with device and quit
-  q       : abbreviation for quit
 
-For more details about a terminal command cmd type cmd -?
-
-Other:
-  !@var{line}   : run the shell @var{line} in a subshell, eg, !ls *.hex
+  !<line> : run the shell <line> in a subshell, eg, !ls *.hex
   # ...   : ignore rest of line (eg, used as comments in scripts)
+
+d, r, w, q and ? abbreviate dump, read, write, quit and help.
+Other than that any unique abbreviation of a command works, too.
+cmd -? gives more details about a command cmd.
 
 Note that not all programmer derivatives support all commands. Flash and
 EEPROM type memories are normally read and written using a cache via paged
@@ -2582,14 +2583,14 @@ Avrdude done.  Thank you.
 @chapter Terminal Mode Operation
 @cindex Terminal mode operation
 
-AVRDUDE has an interactive mode called @var{terminal mode} that is
-enabled by the @option{-t} option.  This mode allows one to enter
-interactive commands to display and modify the various device memories,
-perform a chip erase, display the device signature bytes and part
-parameters, and to send raw programming commands.  Commands and
-parameters may be abbreviated to their shortest unambiguous form.
-Terminal mode also supports a command history so that previously entered
-commands can be recalled and edited.
+AVRDUDE has an interactive mode called @var{terminal mode} that is enabled
+by the @option{-t} option.   In this mode, AVRDUDE only initializes
+communication with the MCU, and then awaits user commands on standard
+input. These commands allow, for example, to display and modify the
+various device memories, perform a chip erase, display the device
+signature bytes and part parameters, and to send raw programming commands.
+Terminal mode provides a command history using readline(3), so previously
+entered command lines can be recalled and edited.
 
 @menu
 * Terminal Mode Commands::
@@ -2600,16 +2601,12 @@ commands can be recalled and edited.
 @section Terminal Mode Commands
 @cindex Terminal mode commands
 
-In this mode, AVRDUDE only initializes communication with the MCU, and then
-awaits user commands on standard input.  Commands and parameters may be
-abbreviated to the shortest unambiguous form.  Terminal mode provides a
-command history using readline(3), so previously entered command lines can be
-recalled and edited.
-
-The @var{addr} and @var{len} parameters of the dump, read, disasm, write,
-save and erase commands can be negative with the same syntax as substring
-computations in perl or python. The table below defines the effective
-memory interval [@var{start}, @var{end}], given the memory size @var{sz}:
+The @var{addr} and @var{len} parameters of the @code{dump}, @code{read},
+@code{disasm}, @code{write}, @code{save} and @code{erase} commands
+discribe a memory interval. They can be negative with the same syntax as
+substring computations in perl or python. The table below defines the
+effective memory interval [@var{start}, @var{end}], given the memory size
+@var{sz}:
 
 @multitable {0/positive}{negative}{[@var{sz}+@var{addr}, @var{sz}+@var{addr}+@var{len}-1]}{End is |@var{len}| bytes below mem size @var{sz}}
 @headitem @code{@var{addr}}
@@ -3185,26 +3182,21 @@ and @code{-v} to only print the variants table.
 @cindex @code{verbose} @var{[level]}
 Change (when @var{level} is provided), or display the verbosity
 level.
-The initial verbosity level is controlled by the number of @code{-v} options
-given on the command line.
+The initial verbosity level is the number of @code{-v} options on the command line.
 
 @item quell @var{[level]}
 @cindex @code{quell} @var{[level]}
-Change (when @var{level} is provided), or display the quell
-level. 1 is used to suppress progress reports. 2 or higher yields
-progressively quieter operations. The initial quell level is controlled
-by the number of @code{-q} options given on the command line.
+Change (when @var{level} is provided), or display the quell level. 1 is
+used to suppress progress reports. 2 or higher yields progressively
+quieter operations. The initial quell level is the number of @code{-q}
+options on the command line.
 
-@item ?
-@itemx help
+@item help
 Give a short on-line summary of the available commands.
 
 @item quit
 @cindex @code{quit}
 Leave terminal mode and thus AVRDUDE.
-
-@item q
-Can be used as an alias for @code{quit}.
 
 @item !@var{line}
 @cindex @code{!} (subshell)
@@ -3218,6 +3210,16 @@ into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
 Place comments onto the terminal line (useful for scripts).
 
 @end table
+
+@noindent
+@cindex @code{d} (dump)
+@cindex @code{r} (read)
+@cindex @code{w} (write)
+@cindex @code{q} (quit)
+@cindex @code{?} (help)
+@code{d}, @code{r}, @code{w}, @code{q} and @code{?} abbreviate @code{dump}, @code{read},
+@code{write}, @code{quit} and @code{help}. Other than that any unique abbreviation of a command
+works, too. @code{@var{cmd} -?} gives more details about a command @code{@var{cmd}}.
 
 @noindent
 In addition, the following commands are supported on some programmers:
@@ -3264,7 +3266,7 @@ selected by the optional parameter @var{channel} (either
 @cindex @code{fosc} @var{freq}[@code{M}|@code{k}]
 Set the programming oscillator to @var{freq} Hz.
 An optional trailing letter @code{M}
-multiplies by 1E6, a trailing letter @code{k} by 1E3.
+multiplies by 1,000,000, a trailing letter @code{k} by 1000.
 
 @item fosc off
 @cindex @code{fosc off}
@@ -5337,8 +5339,16 @@ The directories that are listed in the PATH environment variable.
 @cindex Windows serial ports
 
 @noindent
-When you select a serial port (i.e. when using an STK500) use the
-Windows serial port device names such as: com1, com2, etc.
+
+When you select a serial port (i.e. when using an STK500) use the Windows
+serial port device names such as: COM1, COM2, etc. If the board in
+question uses an USB-serial adapter, or is connected via one, there
+are several ways to identify the correct port name:
+@itemize @bullet{}
+@item In the Windows Device Manager under Ports, then COM & LPT
+@item Enquiring @code{avrdude -P "?s"} if compiled with libserialport
+@item Use the serial adapter name instead of COMx, e.g., @code{-P ft232r}
+@end itemize
 
 @c
 @c Node
@@ -5349,7 +5359,7 @@ Windows serial port device names such as: com1, com2, etc.
 
 @noindent
 AVRDUDE does not support parallel port programming in Windows.
-If you need to run AVRDUDE using programmer on a parallel port,
+If you need to run AVRDUDE using a programmer on a parallel port,
 you might want to try one of the BSDs or Linux.
 
 @ignore
@@ -5664,23 +5674,10 @@ Problem: My ATxmega@dots{}A1/A2/A3 cannot be programmed through PDI with
 my AVR Dragon.  Programming through a JTAG ICE mkII works though, as does
 programming through JTAG.
 
-Solution: None by this time (2010 Q1).
+Solution: None (may be a firmware issue of the AVR Dragon).
 
 It is said that the AVR Dragon can only program devices from the A4
 Xmega sub-family.
-
-@item
-Problem: when programming with an AVRISPmkII or STK600, AVRDUDE hangs
-when programming files of a certain size (e.g. 246 bytes).  Other
-(larger or smaller) sizes work though.
-
-Solution: This is a bug caused by an incorrect handling of zero-length
-packets (ZLPs) in some versions of the libusb 0.1 API wrapper that ships
-with libusb 1.x in certain Linux distributions.  All Linux systems with
-kernel versions < 2.6.31 and libusb >= 1.0.0 < 1.0.3 are reported to be
-affected by this.
-
-See also: @url{http://www.libusb.org/ticket/6}
 
 @item
 Problem: after flashing a firmware that reduces the target's clock
@@ -5915,10 +5912,10 @@ A.k.a. @code{wdtcfg}: watchdog configuration
 A.k.a. @code{bodcfg}: brownout detection configuration
 @cindex @code{osccfg}
 @item fuse2
-A.k.a. @code{pincfg}: (not all devices): UPDI and reset pin configuration
+A.k.a. @code{osccfg}: oscillator configuration
 @cindex @code{pincfg}
 @item fuse3
-A.k.a. @code{osccfg}: oscillator configuration
+A.k.a. @code{pincfg} (not all devices): UPDI and reset pin configuration
 @cindex @code{tcd0cfg}
 @cindex @code{hwmoncfg}
 @item fuse4
@@ -5946,18 +5943,18 @@ A.k.a. @code{pdicfg}: configures/locks updi access; it is the only fuse that con
 A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
 @cindex @code{osc16err}
 @item osc16err
-Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively (not all devices)
 @cindex @code{osc20err}
 @item osc20err
-Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively (not all devices)
 @cindex @code{osccal16}
 @item osccal16
 @cindex @code{calibration}
-Two oscillator calibration bytes for 16 MHz
+One or two oscillator calibration bytes for 16 MHz (not all devices)
 @cindex @code{osccal20}
 @item osccal20
 @cindex @code{calibration}
-Two oscillator calibration bytes for 20 MHz
+One or two oscillator calibration bytes for 20 MHz (not all devices)
 @cindex @code{prodsig}
 @item prodsig
 @cindex @code{signature}

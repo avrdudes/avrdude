@@ -54,7 +54,8 @@ static int sa_setport(char **portp, const char *sp_port) {
 
 // Is the actual serial number sn matched by the query q?
 static int sa_snmatch(const char *sn, const char *q) {
-  return sn && (str_starts(sn, q) || (str_starts(q, "...") && str_ends(sn, q + 3)));
+  return sn && (str_starts(sn, q) ||
+    (str_starts(q, "...") && strlen(q) >= 3 /* suppress gcc warning */ && str_ends(sn, q + 3)));
 }
 
 #define null_len(s) ((s)? strlen(s): 0)
@@ -330,9 +331,10 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
 
   pinfo.serialinfo.baud = baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  if(serial_open(*portp, pinfo, &fd) == -1) {
+  int rc;
+  if((rc = serial_open(*portp, pinfo, &fd)) < 0) {
     pmsg_error("%s() failed to open port %s at %d baud\n", __func__, *portp, baudrate);
-    return -1;
+    return rc;
   }
   serial_set_dtr_rts(&fd, 1);
   usleep(100);

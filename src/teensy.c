@@ -305,27 +305,31 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
+  char serno[64] = {0};
+  unsigned short new_vid = 0, new_pid = 0;
+  int vid, pid, numids;
+
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(!str_caseeq(port, "usb"))
-    pmsg_warning("option -P %s ignored\n", port);
+
+  // Set new_vid, new_pid and/or serno from -P usb[:<vid>:<pid>]
+  if((numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno)) < 0) {
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>]\n", port);
+    return LIBAVRDUDE_EXIT_FAIL;
+  }
+  if(*serno)
+    pmsg_warning("ignoring serial number %s given in -P %s\n", serno, port);
+
+  // Set vid/pid in following priority: command-line, config, default
+  vid = numids >= 2? new_vid: pgm->usbvid? pgm->usbvid: TEENSY_VID;
+  LNODEID usbpid = lfirst(pgm->usbpid);
+  pid = numids >= 2? new_pid: usbpid? *(int *) ldata(usbpid): TEENSY_PID;
+  if(numids < 2 && usbpid && lnext(usbpid))
+    pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
 
   if(pgm->bitclock)
     pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   struct pdata *pdata = &my;
-
-  // Determine VID/PID
-  int vid = pgm->usbvid? pgm->usbvid: TEENSY_VID;
-  int pid = TEENSY_PID;
-
-  LNODEID usbpid = lfirst(pgm->usbpid);
-
-  if(usbpid != NULL) {
-    pid = *(int *) (ldata(usbpid));
-    if(lnext(usbpid)) {
-      pmsg_error("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
-    }
-  }
 
   bool show_retry_message = true;
 

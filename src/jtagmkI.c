@@ -522,9 +522,9 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
     pinfo.serialinfo.baud = baudtab[i].baud;
     pinfo.serialinfo.cflags = SERIAL_8N1;
     pmsg_notice2("%s(): trying to sync at baud rate %ld:\n", __func__, pinfo.serialinfo.baud);
-    if(serial_open(port, pinfo, &pgm->fd) == -1) {
-      return -1;
-    }
+    int rc;
+    if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+      return rc;
 
     // Drain any extraneous input
     jtagmkI_drain(pgm, 0);

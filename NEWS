@@ -14,7 +14,8 @@ Changes since version 8.1:
     - ATtiny814auto, ATtiny816auto, ATtiny817auto
     - ATtiny1614auto, ATtiny1616auto, ATtiny1617auto
     - ATtiny3216auto, ATtiny3217auto
-    - AVR16LA14,  AVR16LA20, AVR16LA28, AVR16LA32
+    - AVR16LA14, AVR16LA20, AVR16LA28, AVR16LA32
+    - AVR32LA14, AVR32LA20, AVR32LA28, AVR32LA32
 
   * New programmers supported:
 
@@ -29,7 +30,11 @@ Changes since version 8.1:
     - Vtarget appears twice in terminal #2093
     - Build warnings under macOS #2088
     - github avrdude_packing_release action failed #2039
-    - `-P USB` not working since Avrdude 7.3 #2103
+    - -P USB not working since Avrdude 7.3 #2103
+    - Github action Windows Python binding: Windows 11 ARM64 #2117
+    - Micronucleus messages need some work  #2109
+    - Misleading messaging with -P usb:<vid>:<pid> #2127
+    - PICKit 4, SNAP etc only work with hidapi but not libusb #1221
 
   * Pull requests:
 
@@ -61,10 +66,19 @@ Changes since version 8.1:
     - Update build.yml to fix warnings during macOS CI build #2100
     - Add tinyAVR 1-series automotive parts #2102
     - CMakeLists.txt: allow disabling Python support #2051
-    - Update artifact upload name and path in arduino_packing_release workflow #2101
+    - Update artifact upload in arduino_packing_release workflow #2101
     - Upgrade github action to be compatibel with node.js 24 (#2108)
     - Add consistent support for -P USB (#2104)
     - Add support for the AVR-LA chip family (#2105)
+    - Disable Python binding under Windows 11 ARM64 in build.yml #2119
+    - Improve Micronucleus info/warning/error messages #2110
+    - Suppress gcc compiler warning #2116
+    - Inprove AVR-LA support #2118
+    - Update avrintel and avrdude.conf from device packs #2121
+    - Introduce and future-proof d, r, w and q commands #2122
+    - Fix Endian problems #2123
+    - Improve Documentation #2124
+    - Fix subtle usb issues including inconsistent parsing #2128
 
   * Internals:
 

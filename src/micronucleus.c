@@ -272,14 +272,14 @@ static int micronucleus_get_bootloader_info(struct pdata *pdata) {
 }
 
 static void micronucleus_dump_device_info(struct pdata *pdata) {
-  pmsg_notice("Bootloader version: %d.%d\n", pdata->major_version, pdata->minor_version);
-  imsg_notice("Available flash size: %u\n", pdata->flash_size);
-  imsg_notice("Page size: %u\n", pdata->page_size);
-  imsg_notice("Bootloader start: 0x%04X\n", pdata->bootloader_start);
-  imsg_notice("Write sleep: %ums\n", pdata->write_sleep);
-  imsg_notice("Erase sleep: %ums\n", pdata->erase_sleep);
-  imsg_notice("Signature1: 0x%02X\n", pdata->signature1);
-  imsg_notice("Signature2: 0x%02X\n", pdata->signature2);
+  pmsg_notice("Bootloader version    : %d.%d\n", pdata->major_version, pdata->minor_version);
+  imsg_notice("Available flash size  : %u\n", pdata->flash_size);
+  imsg_notice("Page size             : %u\n", pdata->page_size);
+  imsg_notice("Bootloader start addr : 0x%04X\n", pdata->bootloader_start);
+  imsg_notice("Write sleep           : %ums\n", pdata->write_sleep);
+  imsg_notice("Erase sleep           : %ums\n", pdata->erase_sleep);
+  imsg_notice("Signature1            : 0x%02X\n", pdata->signature1);
+  imsg_notice("Signature2            : 0x%02X\n", pdata->signature2);
 }
 
 static int micronucleus_erase_device(struct pdata *pdata) {
@@ -604,7 +604,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   LNODEID usbpid = lfirst(pgm->usbpid);
 
   if(usbpid != NULL) {
-    pid = *(int *) (ldata(usbpid));
+    pid = *(int *) ldata(usbpid);
     if(lnext(usbpid)) {
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
     }
@@ -636,7 +636,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
 
           if(!micronucleus_is_device_responsive(pdata, device)) {
             if(show_unresponsive_device_message) {
-              pmsg_warning("unresponsive Micronucleus device detected, please reconnect ...\n");
+              msg_warning("\nUnresponsive Micronucleus device detected, please reconnect ...\n");
 
               show_unresponsive_device_message = false;
             }
@@ -669,12 +669,12 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
     if(pdata->usb_handle == NULL && pdata->wait_until_device_present) {
       if(show_retry_message) {
         if(pdata->wait_timout < 0) {
-          pmsg_error("no device found, waiting for device to be plugged in ...\n");
+          pmsg_info("no device found, waiting for device to be plugged in ...\n");
         } else {
-          pmsg_error("no device found, waiting %d seconds for device to be plugged in ...\n", pdata->wait_timout);
+          pmsg_info("no device found, waiting %d seconds for device to be plugged in ...\n", pdata->wait_timout);
         }
 
-        pmsg_error("press CTRL-C to terminate\n");
+        pmsg_info("press CTRL-C to terminate\n\n");
         show_retry_message = false;
       }
 
@@ -719,7 +719,7 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
     *value = 0xFF;
     return 0;
   } else {
-    pmsg_notice("reading not supported for %s memory\n", mem->desc);
+    pmsg_notice2("reading not supported for %s memory\n", mem->desc);
     return -1;
   }
 }

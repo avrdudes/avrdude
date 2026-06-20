@@ -621,7 +621,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   if(!str_casestarts(port, "usb:") && !str_caseeq(port, "usb")) {
-    pmsg_error("invalid -P %s; drop -P option or else use -P usb:<busdir>:<devicefile> or -P usb:<serialno>\n", port);
+    pmsg_error("invalid -P %s; drop -P option or use -P usb:<busdir>:<devicefile> or -P usb:<serialno>\n", port);
     return -1;
   }
 
@@ -630,7 +630,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   int pid, vid;
 
   if(usbpid) {
-    pid = *(int *) (ldata(usbpid));
+    pid = *(int *) ldata(usbpid);
     if(lnext(usbpid))
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {

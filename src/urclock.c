@@ -406,19 +406,19 @@ int addr_jmp(uint32_t jmp) {
 }
 
 
-// Assemble little endian 32-bit word from buffer
+// Assemble 32-bit word from little-endian byte buffer
 uint32_t buf2uint32(const unsigned char *buf) {
   return buf[0] | buf[1]<<8 | buf[2]<<16 | buf[3]<<24;
 }
 
 
-// Assemble little endian 16-bit word from buffer
+// Assemble 16-bit word from little-endian byte buffer
 uint16_t buf2uint16(const unsigned char *buf) {
   return buf[0] | buf[1]<<8;
 }
 
 
-// Write little endian 32-bit word into buffer
+// Write 32-bit word into little-endian 4-byte buffer
 void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
   buf[0] = opcode32;
   buf[1] = opcode32>>8;
@@ -427,7 +427,7 @@ void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
 }
 
 
-// Write little endian 16-bit word into buffer
+// Write 16-bit word into little-endian 2-byte buffer
 void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
   buf[0] = opcode16;
   buf[1] = opcode16>>8;
@@ -2249,8 +2249,9 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   pinfo.serialinfo.cflags = SERIAL_8N1;
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(serial_open(port, pinfo, &pgm->fd) == -1)
-    return -1;
+  int rc;
+  if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
+    return rc;
 
   if(!ur.noautoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter

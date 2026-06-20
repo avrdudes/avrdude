@@ -63,8 +63,8 @@ supports Atmel's STK500 programmer,
 Atmel's AVRISP and AVRISP mkII devices,
 Atmel's STK600,
 Atmel's JTAG ICE (mkI, mkII and 3, the latter two also in ISP mode),
-programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
-as well as a simple hard-wired
+programmers complying to AppNote AVR910 and AVR109 (including the Butterfly)
+as well as, on Linux or BSD systems, a simple hard-wired
 programmer connected directly to a
 .Xr ppi 4
 or
@@ -112,8 +112,7 @@ be taken about voltage level compatibility. Also, although not strictly
 required, it is strongly advisable to protect the GPIO pins from
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
-the 74HC244. Have a look at https://kolev.info/blog/2013/01/06/avrdude-linuxgpio/ for a more
-detailed tutorial about using this programmer type.
+the 74HC244.
 .Pp
 Under a Linux installation with direct access to the SPI bus and GPIO
 pins, such as would be found on a Raspberry Pi, the ``linuxspi''
@@ -521,7 +520,7 @@ auto-erased at the beginning. If
 detects a
 .Fl U
 command that writes to flash then auto-erase will be carried out before
-any other programming unless a -T erase commad has been detected
+any other programming unless a -T erase command has been detected
 beforehand and unless flash is read before writing to it. For the purpose
 of this analysis any terminal command is considered to possibly read
 flash.
@@ -598,14 +597,14 @@ Note that the result will be stored in the EEPROM cell at address 0.
 Use
 .Ar port
 to identify the connection through which the programmer is attached. This
-can be a parallel, serial, spi or linuxgpio connection. The programmer
-normally specifies the connection type; in absence of a -P specification,
+can be a serial, spi, linuxgpio or, on Linux or BSD systems, a parallel connection.
+The programmer normally specifies the connection type; in absence of -P,
 system-dependent default values
-.Pa default_parallel ,
 .Pa default_serial ,
 .Pa default_spi ,
-or
 .Pa default_linuxgpio
+or
+.Pa default_parallel
 from the configuration file are used. If you need to use a different port,
 use this option to specify the alternate port name.
 .Pp
@@ -613,9 +612,19 @@ USB-only programmers normally do not need the port option be specified as
 they are automatically identified via their vendor and product IDs from
 avrdude.conf or .avrduderc. Only when there are multiple programmers of
 the same type plugged into the host computer is the -P option needed, see
-below. Some -c programmers, however, ignore the -P option altogether, eg,
-teensy, ch341a or avrftdi; these cannot distinguish multiple plugged-in
-programmers.
+below. Some -c programmers, eg, pickit2, ignore the -P option altogether;
+these cannot distinguish multiple plugged-in programmers.
+.Pp
+Most USB programmers, however, support the command-line syntax -P
+usb[:<vid>:<pid>][:<serialno>] which allows the user to override the
+vendor and product IDs with hexadecimal numbers <vid> and <pid> and/or
+request a match of the desired device's serial number with <serialno>. The
+match is done after stripping any existing colons from the given serial
+number on the command line, and right-to-left, so only the least
+significant bytes from the serial number need to be given. The JTAG ICE
+mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi programmers are
+examples for this -P port syntax. Some of these in turn, e.g. the CH341A
+and teensy are not capable of matching serial numbers.
 .Pp
 If
 .Nm
@@ -627,10 +636,10 @@ or
 If more than one serial adapter of the same type is connected, they can be
 distinguished by appending a serial number, e.g.,
 .Ar ft232r:12345678 .
-Note that the USB to serial chip has to have a serial number for this to work.
-.Nm Avrdude
-can check for leading and trailing serial number matches as well.
-In the above example,
+The USB to serial chip has to have a serial number for this to work. Note
+that serial number matches for serial adapters (in contrast to matches for
+USB programmers above) ist from left-to-right. For matches from
+right-to-left, serial adapters can use the ellipses. In the above example,
 .Ar ft232r:1234
 would also result in a match, and so would
 .Ar ft232r:...5678 .
@@ -698,13 +707,6 @@ usb:<busdir>:<devicefile> or using the serial number -P usb:<serialno>.
 For examples, see the respective
 .Em Troubleshooting
 entry in the detailed pdf documentation.
-.Pp
-The -c pickit5 programmer allows overriding the product ID with a
-hexadecimal number <pid> using -P usb::<pid> and the vendor and product
-IDs with hexadecimal numbers <vid> and <pid> using -P usb:<vid>:<pid>. The
-form -P usb:<serialno> requests AVRDUDE select the PICkit5 programmer with
-a serial number that ends in <serialno> (and with vid/pid from the
-configuration files).
 .Pp
 For the XBee programmer the target MCU is to be programmed wirelessly over a
 ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit address for the
@@ -987,10 +989,8 @@ Show a short help message and exit
 .Ss Terminal mode
 In this mode,
 .Nm
-only initializes communication with the MCU, and then awaits user
-commands on standard input.  Commands and parameters may be
-abbreviated to the shortest unambiguous form.  Terminal mode provides
-a command history using
+only initializes communication with the MCU, and then awaits user commands
+on standard input. Terminal mode provides a command history using
 .Xr readline 3 ,
 so previously entered command lines can be recalled and edited.
 .Pp
@@ -1441,14 +1441,11 @@ is provided), or display the quell level. 1 is used to suppress progress reports
 The initial quell level is controlled by the number of
 .Fl q
 options given on the commandline.
-.It Ar \&?
 .It Ar help
 Give a short on-line summary of the available commands.
 .It Ar quit
 Leave terminal mode and thus
 .Nm avrdude .
-.It Ar q
-Can be used as an alias for quit.
 .It Ar !<line>
 Run the shell <line> in a subshell, e.g., !ls *.hex. Subshell commands take the
 rest of the line as their command. For security reasons, they must
@@ -1463,7 +1460,11 @@ file.
 Place comments onto the terminal line (useful for scripts).
 .El
 .Pp
-The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
+d, r, w, q and ? abbreviate dump, read, write, quit and help. Other than
+that any unique abbreviation of a command works, too. cmd -? gives more
+details about a command cmd.
+.Pp
+The terminal commands below may only be implemented on some specific programmers:
 .Bl -tag -offset indent -width indent
 .It Ar pgerase memory addr
 Erase one page of the memory specified.

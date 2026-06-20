@@ -213,7 +213,7 @@ static int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   LNODEID usbpid = lfirst(pgm->usbpid);
 
   if(usbpid) {
-    pid = *(int *) (ldata(usbpid));
+    pid = *(int *) ldata(usbpid);
     if(lnext(usbpid))
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {

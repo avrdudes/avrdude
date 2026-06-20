@@ -1027,7 +1027,6 @@ const char *cfg_comp_type(int type) {
 // Used by config_gram.y to assign a component in one of the relevant structures with a value
 void cfg_assign(char *sp, int strct, Component *cp, VALUE *v) {
   const char *str;
-  int num;
 
   switch(cp->type) {
   case COMP_BOOL:
@@ -1039,10 +1038,18 @@ void cfg_assign(char *sp, int strct, Component *cp, VALUE *v) {
         cp->name, cfg_strct_name(strct), cfg_comp_type(cp->type), cfg_v_type(v->type));
       return;
     }
-    // TODO: consider endianness (code currently assumes little endian)
-    num = v->number;
-    memcpy(sp + cp->offset, &num, cp->size);
-    break;
+    int num = v->number, cpwidth = cp->size;
+    if(cpwidth > (int) sizeof num) { // Initialise component if too wide (should not happen)
+      memset(sp + cp->offset, 0, cpwidth);
+      cpwidth = sizeof num;
+    }
+    // Copy least significant bytes from num into structure component
+    if(is_bigendian()) {
+      memcpy(sp + cp->offset, (char *) &num + sizeof num - cpwidth, cpwidth);
+    } else {
+      memcpy(sp + cp->offset, &num, cpwidth);
+    }
+  break;
   case COMP_STRING:
     if(v->type != V_STR) {
       yywarning("%s in %s expects a string but is assigned a %s",

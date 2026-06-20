@@ -196,29 +196,33 @@ bool CH341ChipSelect(const PROGRAMMER *pgm, unsigned int cs, bool enable) {
 }
 
 static int ch341a_open(PROGRAMMER *pgm, const char *port) {
-  LNODEID usbpid = lfirst(pgm->usbpid);
-  int pid, vid, j, r;
+  int pid, vid, j, r, numids;
   int errorCode = USB_ERROR_NOTFOUND;
   libusb_device_handle *handle = NULL;
+  char serno[64] = {0};
+  unsigned short new_vid = 0, new_pid = 0;
 
   pmsg_debug("%s(\"%s\")\n", __func__, port);
-  if(!str_caseeq(port, "usb"))
-    pmsg_warning("option -P %s ignored\n", port);
+
+  // Set new_vid, new_pid and/or serno from -P usb[:<vid>:<pid>]
+  if((numids = str_set_vid_pid_serno(port, &new_vid, &new_pid, serno, sizeof serno)) < 0) {
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>]\n", port);
+    return LIBAVRDUDE_EXIT_FAIL;
+  }
+  if(*serno)
+    pmsg_warning("ignoring serial number %s given in -P %s\n", serno, port);
+
+  // Set vid/pid in following priority: command-line, config, default
+  vid = numids >= 2? new_vid: pgm->usbvid? pgm->usbvid: CH341A_VID;
+  LNODEID usbpid = lfirst(pgm->usbpid);
+  pid = numids >= 2? new_pid: usbpid? *(int *) ldata(usbpid): CH341A_PID;
+  if(numids < 2 && usbpid && lnext(usbpid))
+    pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
 
   if(!my.USB_init) {
     my.USB_init = 1;
     libusb_init(&my.ctx);
   }
-
-  if(usbpid) {
-    pid = *(int *) (ldata(usbpid));
-    if(lnext(usbpid))
-      pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
-  } else {
-    pid = CH341A_PID;
-  }
-  vid = pgm->usbvid? pgm->usbvid: CH341A_VID;
-
   libusb_device **dev_list;
   int dev_list_len = libusb_get_device_list(my.ctx, &dev_list);
 
