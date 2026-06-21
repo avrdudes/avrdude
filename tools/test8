@@ -18,9 +18,9 @@ Function: test AVRDUDE v 8.0 or later with -c programmer -p part;
 Options:
   -i <n>     Write human-readable contents seeded by <n> to part and exit
   -r <n>     Write random contents seeded by <n> to part and exit
-  -e <exe>   path of the avrdude executable
-  -a <opt>   pass option <opt> to avrdude; no space in <opt>, eg, -Pch340
-  -m <mlist> use memory list <mlist> instead of ALL
+  -e <exe>   Path of the avrdude executable
+  -a <opt>   Pass option <opt> to avrdude; no space in <opt>, eg, -Pch340
+  -m <mlist> Use memory list <mlist> instead of ALL
 
 Examples:
   - Prepare a part with non-trivial random content
@@ -84,7 +84,7 @@ fi
 ######
 # Actual test
 
-if ! $avrdude_bin "${adopts[@]}" -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f -U$mem:v:$f; then
+if ! $avrdude_bin "${adopts[@]}" -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f; then
   echo -------------------------------
   echo Re-running to create error logs
   $avrdude_bin "${adopts[@]}" -vvv -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f -U$mem:v:$f -llog-$1-$2.txt

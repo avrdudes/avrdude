@@ -9,7 +9,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 void add_history(const char* string);
 
 #ifdef __cplusplus
