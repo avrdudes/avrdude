@@ -35,6 +35,7 @@ Changes since version 8.1:
     - Micronucleus messages need some work  #2109
     - Misleading messaging with -P usb:<vid>:<pid> #2127
     - PICKit 4, SNAP etc only work with hidapi but not libusb #1221
+    - Minor warning for MSVC build #2131
 
   * Pull requests:
 
@@ -79,6 +80,8 @@ Changes since version 8.1:
     - Fix Endian problems #2123
     - Improve Documentation #2124
     - Fix subtle usb issues including inconsistent parsing #2128
+    - Fix compiler warnings #2133
+    - Improve error message for usbdev_send() #2132
 
   * Internals:
 
