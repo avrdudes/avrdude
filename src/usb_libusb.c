@@ -59,7 +59,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   struct usb_device *dev;
   usb_dev_handle *udev;
   char serno[64] = { 0 };
-  int i, iface;
+  int i, iface, rc;
 
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
@@ -155,7 +155,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
              * HID-class device.  On those, the driver needs to be detached
              * before we can claim the interface.
              */
-            (void) usb_detach_kernel_driver_np(udev, cx->usb_interface);
+            if((rc = usb_detach_kernel_driver_np(udev, cx->usb_interface)))
+              pmsg_notice("usb_detach_kernel_driver_np() unexpectedly returns %d: %s\n", rc, usb_strerror());
 #endif
 
             if(usb_claim_interface(udev, cx->usb_interface)) {
@@ -270,12 +271,12 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
    */
   do {
     tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
-    if(fd->usb.use_interrupt_xfer)
-      rv = usb_interrupt_write(udev, fd->usb.wep, (char *) bp, tx_size, 10000);
-    else
-      rv = usb_bulk_write(udev, fd->usb.wep, (char *) bp, tx_size, 10000);
+    rv = (fd->usb.use_interrupt_xfer?usb_interrupt_write: usb_bulk_write)(udev, fd->usb.wep, (char *) bp, tx_size, 10000);
     if(rv != tx_size) {
-      pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
+      pmsg_error(str_ccprintf("%s() %s %%d bytes, err = %%s\n",
+        fd->usb.use_interrupt_xfer? "usb_interrupt_write": "usb_bulk_write",
+        rv > 0? "only wrote %d out of": "returns %d and fails writing"),
+        rv, tx_size, usb_strerror());
       return -1;
     }
     bp += tx_size;
