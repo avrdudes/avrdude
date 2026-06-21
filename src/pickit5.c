@@ -673,7 +673,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_MICROCHIP;
   pinfo.usbinfo.flags = PINFO_FL_SILENT;
   if(numids >= 2) {             // Valid VID:PID was specified in -P port
-    if(pinfo.usbinfo.vid != new_vid || pinfo.usbinfo.pid != new_pid)
+    if(pinfo.usbinfo.vid != new_vid || *(int *) ldata(lfirst(pgm->usbpid)) != new_pid)
       pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
     pinfo.usbinfo.vid = new_vid;
     pinfo.usbinfo.pid = new_pid;
