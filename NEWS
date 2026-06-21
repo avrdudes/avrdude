@@ -82,6 +82,7 @@ Changes since version 8.1:
     - Fix subtle usb issues including inconsistent parsing #2128
     - Fix compiler warnings #2133
     - Improve error message for usbdev_send() #2132
+    - Remove -Uall:v:file.hex test in test8 #2134
 
   * Internals:
 
