@@ -91,5 +91,5 @@ fi
 if ! $avrdude_bin "${adopts[@]}" -c $1 -p $2 -D -U$mem:r:$f -T "$reset" -U$mem:w:$f; then
   echo -------------------------------
   echo Re-running to create error logs
-  $avrdude_bin "${adopts[@]}" -vvv -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f -U$mem:v:$f -llog-$1-$2.txt
+  $avrdude_bin "${adopts[@]}" -vv -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f -U$mem:v:$f -llog-$1-$2.txt
 fi
