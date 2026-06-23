@@ -2450,7 +2450,7 @@ programmer # dragon_isp
     id                     = "dragon_isp";
     desc                   = "Atmel AVR Dragon in ISP mode";
     type                   = "dragon_isp";
-    prog_modes             = PM_TPI | PM_ISP;
+    prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ | HAS_BITCLOCK_ADJ;
     connection_type        = usb;
     baudrate               = 115200;
