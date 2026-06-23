@@ -83,6 +83,7 @@ Changes since version 8.1:
     - Fix compiler warnings #2133
     - Improve error message for usbdev_send() #2132
     - Remove -Uall:v:file.hex test in test8 #2134
+    - Remove wrongly given PM_TPI mode from AVR dragon #2137
 
   * Internals:
 
