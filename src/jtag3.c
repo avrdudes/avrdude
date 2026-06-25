@@ -1068,16 +1068,34 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       my.set_sck = jtag3_set_sck_mega_jtag;
   }
 
-  if(pgm->bitclock && my.set_sck) {
-    unsigned int clock = 1E-3/pgm->bitclock;  // kHz
+  if(my.set_sck) {
+    unsigned int xmega_default_jtag_bitclock = 0;
 
-    if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
-      pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
-    pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
-    parm[0] = clock & 0xff;
-    parm[1] = (clock >> 8) & 0xff;
-    if(my.set_sck(pgm, parm) < 0)
-      return -1;
+    if(!pgm->bitclock) {
+      // PICkit 4 and SNAP requires the bitclock to be explicitly set when programming Xmegas using JTAG
+      // However, we will not set a new bit clock value if it already has a valid clock speed
+      if(my.set_sck == jtag3_set_sck_xmega_jtag && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+        double bclk = 0;
+        if(pgm->get_sck_period)
+          pgm->get_sck_period(pgm, &bclk);
+        if(1/bclk < 32e3 || 1/bclk > 7500e3) {// Invalid clock speed. Should be between 32kHz - 7.5MHz
+          xmega_default_jtag_bitclock = 7500; // Use a default Xmega JTAG bitclock of 7500 kHz
+          pmsg_notice2("%s(): programmer has an invalid JTAG clock speed. Setting default speed\n", __func__);
+        }
+      }
+    }
+
+    if(pgm->bitclock || xmega_default_jtag_bitclock) {
+      unsigned int clock = pgm->bitclock? 1E-3/pgm->bitclock: xmega_default_jtag_bitclock;  // kHz
+
+      if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
+        pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
+      pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
+      parm[0] = clock & 0xff;
+      parm[1] = (clock >> 8) & 0xff;
+      if(my.set_sck(pgm, parm) < 0)
+        return -1;
+    }
   }
 
   if(conn == PARM3_CONN_JTAG) {
