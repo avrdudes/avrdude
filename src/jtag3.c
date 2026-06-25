@@ -1076,7 +1076,8 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       // However, we will not set a new bit clock value if it already has a valid clock speed
       if(my.set_sck == jtag3_set_sck_xmega_jtag && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
         double bclk = 0;
-        pgm->get_sck_period(pgm, &bclk);
+        if(pgm->get_sck_period)
+          pgm->get_sck_period(pgm, &bclk);
         if(1/bclk < 32e3 || 1/bclk > 7500e3) {// Invalid clock speed. Should be between 32kHz - 7.5MHz
           xmega_default_jtag_bitclock = 7500; // Use a default Xmega JTAG bitclock of 7500 kHz
           pmsg_notice2("%s(): programmer has an invalid JTAG clock speed. Setting default speed\n", __func__);
