@@ -1072,7 +1072,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned int xmega_default_jtag_bitclock = 0;
 
     if(!pgm->bitclock) {
-      // ICkit 4 and SNAP requires the bitclock to be explicity set when programming Xmegas using JTAG
+      // PICkit 4 and SNAP requires the bitclock to be explicitly set when programming Xmegas using JTAG
       if(my.set_sck == jtag3_set_sck_xmega_jtag && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
         xmega_default_jtag_bitclock = 7500; // Use a default Xmega JTAG bitclock of 7500 kHz
         pmsg_notice2("%s(): programmer requires a JTAG clock speed to be specified\n", __func__);
