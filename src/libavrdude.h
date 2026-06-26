@@ -1750,6 +1750,7 @@ extern "C" {
   char *str_quote_bash(const char *s);
   const char *str_ccsharg(const char *str);
   char *str_vectorname(const Avrintel *up, int vn);
+  int pgmid_is(const char *str);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
