@@ -1077,16 +1077,18 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(my.set_sck == jtag3_set_sck_xmega_jtag && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
         double bclk = 0;
         if(pgm->get_sck_period)
-          pgm->get_sck_period(pgm, &bclk);
+          if(pgm->get_sck_period(pgm, &bclk) < 0)
+            bclk = 0;
         if(1/bclk < 32e3 || 1/bclk > 7500e3) {// Invalid clock speed. Should be between 32kHz - 7.5MHz
           xmega_default_jtag_bitclock = 7500; // Use a default Xmega JTAG bitclock of 7500 kHz
-          pmsg_notice2("%s(): programmer has an invalid JTAG clock speed. Setting default speed\n", __func__);
+          if(bclk)
+            pmsg_notice2("%s(): programmer has an invalid JTAG clock speed, setting default speed\n", __func__);
         }
       }
     }
 
     if(pgm->bitclock || xmega_default_jtag_bitclock) {
-      unsigned int clock = pgm->bitclock? 1E-3/pgm->bitclock: xmega_default_jtag_bitclock;  // kHz
+      unsigned int clock = pgm->bitclock? 1e-3/pgm->bitclock: xmega_default_jtag_bitclock;  // kHz
 
       if(!(pgm->extra_features & HAS_BITCLOCK_ADJ))
         pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
