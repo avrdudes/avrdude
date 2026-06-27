@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.52
- * 13.06.2026
+ * v 1.53
+ * 27.06.2026
  *
  */
 
