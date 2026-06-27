@@ -24608,7 +24608,11 @@ part # .avr-lx
         readsize           = 1;
     ;
 
-    memory "hwmoncfg"
+    memory "hwmoncfg"           # datasheet name for this fuse
+        alias "fuse4";
+    ;
+
+    memory "hvmoncfg"           # .atdf name for this fuse
         alias "fuse4";
     ;
 
