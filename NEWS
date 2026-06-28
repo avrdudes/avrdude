@@ -92,6 +92,7 @@ Changes since version 8.1:
     - Update avrintel #2143
     - Alias hvmoncfg to hwmoncfg #2144
     - Fix programmer type usage #2147
+    - Updating device pack for pickit5_lut_* files #2150
 
   * Internals:
 
