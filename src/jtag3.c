@@ -861,7 +861,7 @@ int jtag3_getsync(const PROGRAMMER *pgm, int mode) {
   pmsg_debug("jtag3_getsync()\n");
 
   // XplainedMini boards do not need this, and early revisions had a FW bug that complained about it
-  if((pgm->flag & PGM_FL_IS_EDBG) && !str_starts(pgmid, "xplainedmini")) {
+  if((pgm->flag & PGM_FL_IS_EDBG) && !pgmid_is("xplainedmini")) {
     if(jtag3_edbg_prepare(pgm) < 0) {
       return -1;
     }
@@ -1074,7 +1074,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(!pgm->bitclock) {
       // PICkit 4 and SNAP requires the bitclock to be explicitly set when programming Xmegas using JTAG
       // However, we will not set a new bit clock value if it already has a valid clock speed
-      if(my.set_sck == jtag3_set_sck_xmega_jtag && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+      if(my.set_sck == jtag3_set_sck_xmega_jtag && (pgmid_is("pickit4") || pgmid_is("snap"))) {
         double bclk = 0;
         if(pgm->get_sck_period)
           if(pgm->get_sck_period(pgm, &bclk) < 0)
@@ -1601,7 +1601,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       }
     }
 
-    if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+    if(str_starts(extended_param, "mode") && (pgmid_is("pickit4") || pgmid_is("snap"))) {
       // Flag a switch to AVR mode
       if(str_caseeq(extended_param, "mode=avr")) {
         my.pk4_snap_mode = PK4_SNAP_MODE_AVR;
@@ -1645,7 +1645,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
     if(pgm->extra_features & HAS_VTARG_ADJ)
       msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
-    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
+    if(pgmid_is("pickit4") || pgmid_is("snap")) {
       msg_error("  -x mode=avr            Set programmer to AVR mode and exit if it was not\n");
       msg_error("  -x mode=<mplab|pic>    Set programmer to MPLAB aka PIC mode and exit\n");
     }
@@ -1913,7 +1913,7 @@ void jtag3_close(PROGRAMMER *pgm) {
     mmt_free(resp);
 
   // XplainedMini boards do not need this, and early revisions had a FW bug that complained about it
-  if((pgm->flag & PGM_FL_IS_EDBG) && !str_starts(pgmid, "xplainedmini")) {
+  if((pgm->flag & PGM_FL_IS_EDBG) && !pgmid_is("xplainedmini")) {
     jtag3_edbg_signoff(pgm);
   }
 

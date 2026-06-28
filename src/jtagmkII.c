@@ -1161,8 +1161,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // Abort and print error if programmer does not support the target microcontroller
-  if((str_starts(pgm->type, "JTAGMKII_UPDI") && !is_updi(p)) ||
-    (str_starts(pgmid, "jtagmkII") && is_updi(p))) {
+  if((str_eq(pgm->type, "JTAGMKII_UPDI") && !is_updi(p)) || (pgmid_is("jtagmkII") && is_updi(p))) {
     msg_error("programmer %s does not support target %s\n\n", pgmid, p->desc);
     return -1;
   }
@@ -1235,7 +1234,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *flashmem = avr_locate_flash(p);
 
     if(bootmem == NULL || flashmem == NULL) {
-      if(str_starts(pgmid, "jtagmkII"))
+      if(pgmid_is("jtagmkII"))
         pmsg_error("cannot locate flash or boot memories in description\n");
     } else {
       if(my.fwver < 0x700) {
@@ -1745,9 +1744,9 @@ void jtagmkII_close(PROGRAMMER *pgm) {
    * after a programming session has ended before Avrdude can
    * communicate with the programmer again.
    */
-  if(str_casestarts(pgmid, "dragon"))
+  if(pgmid_is("dragon"))
     usleep(1000*1000*1.5);
-  else if(str_caseeq(pgmid, "nanoevery"))
+  else if(pgmid_is("nanoevery"))
     usleep(1000*1000*0.5);
 }
 

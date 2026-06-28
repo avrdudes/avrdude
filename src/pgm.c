@@ -323,6 +323,7 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
           }
           if(id[l] == 0) {      // Exact match; return straight away
             matches = 1;
+            matchid = id;
             goto done;
           }
         }
