@@ -1550,7 +1550,7 @@ void xbee_initpgm(PROGRAMMER *pgm) {
    */
   stk500_initpgm(pgm);
 
-  pgm->type = "XBee";
+  pgm->ptyp = "XBee";
   pgm->read_sig_bytes = xbee_read_sig_bytes;
   pgm->open = xbee_open;
   pgm->close = xbee_close;

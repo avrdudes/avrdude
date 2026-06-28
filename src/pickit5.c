@@ -2157,7 +2157,7 @@ static int pickit5_software_reset(const PROGRAMMER *pgm) {
 */
 
 void pickit5_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "pickit5";
+  pgm->ptyp = "pickit5";
 
   // Mandatory functions
   pgm->initialize = pickit5_initialize;
@@ -2317,7 +2317,7 @@ static int pickit5_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void pickit5_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "pickit5";
+  pgm->ptyp = "pickit5";
 
   pgm->open = pickit5_nousb_open;
 }

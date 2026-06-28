@@ -132,7 +132,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->usbpid = lcreat(NULL, 0);
   pgm->hvupdi_support = lcreat(NULL, 0);
   pgm->desc = nulp;
-  pgm->type = "not set";
+  pgm->ptyp = "not set";
   pgm->parent_id = nulp;
   pgm->usbdev = nulp;
   pgm->usbsn = nulp;
@@ -273,7 +273,7 @@ static void pgm_default_setup_teardown(PROGRAMMER *pgm) {
 }
 
 void programmer_display(PROGRAMMER *pgm, const char *p) {
-  msg_info("%sProgrammer type       : %s\n", p, pgm->type);
+  msg_info("%sProgrammer type       : %s\n", p, pgm->ptyp);
   msg_info("%sDescription           : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);

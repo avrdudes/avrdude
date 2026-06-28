@@ -1011,7 +1011,7 @@ typedef struct programmer {
 
   // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
-  const char *type;
+  const char *ptyp;
   const char *port;
   unsigned int pinno[N_PINS];   // TODO: to be removed if old pin data no longer needed
   Exit_vcc exit_vcc;            // Should these be set in avrdude.conf?

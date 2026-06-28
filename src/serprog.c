@@ -497,7 +497,7 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
 }
 
 void serprog_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "serprog";
+  pgm->ptyp = "serprog";
 
   // Required fields
   pgm->initialize = serprog_initialize;

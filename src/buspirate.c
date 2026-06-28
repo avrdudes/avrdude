@@ -436,7 +436,7 @@ static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 // ====== Programmer methods =======
 static int buspirate_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock) {
-    if(str_caseeq(pgm->type, "BusPirate_BB"))
+    if(str_caseeq(pgm->ptyp, "BusPirate_BB"))
       pmsg_warning("-c %s does not support adjustable bitclock speed using -B; use -i instead\n", pgmid);
     else {
       pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
@@ -1120,7 +1120,7 @@ static void buspirate_teardown(PROGRAMMER *pgm) {
 const char buspirate_desc[] = "Bus Pirate's SPI interface";
 
 void buspirate_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "BusPirate";
+  pgm->ptyp = "BusPirate";
 
   pgm->display = buspirate_dummy_6;
 
@@ -1307,7 +1307,7 @@ static void buspirate_bb_powerdown(const PROGRAMMER *pgm) {
 const char buspirate_bb_desc[] = "Bus Pirate's bitbang interface";
 
 void buspirate_bb_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "BusPirate_BB";
+  pgm->ptyp = "BusPirate_BB";
 
   pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 

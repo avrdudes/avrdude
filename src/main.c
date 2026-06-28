@@ -1378,7 +1378,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  int is_dryrun = str_eq(pgm->type, "Dryrun") || (dry && pgm->initpgm == dry->initpgm);
+  int is_dryrun = str_eq(pgm->ptyp, "Dryrun") || (dry && pgm->initpgm == dry->initpgm);
 
   if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
@@ -1544,7 +1544,7 @@ int main(int argc, char *argv[]) {
   }
 
   if(verbose > 0) {
-    if((str_eq(pgm->type, "avr910"))) {
+    if((str_eq(pgm->ptyp, "avr910"))) {
       imsg_notice("avr910_devcode (avrdude.conf) : ");
       if(p->avr910_devcode)
         msg_notice("0x%02x\n", (uint8_t) p->avr910_devcode);
@@ -1651,17 +1651,17 @@ init_again:
     else
       imsg_error(" - double check the connections and try again\n");
 
-    if(str_eq(pgm->type, "serialupdi"))
+    if(str_eq(pgm->ptyp, "serialupdi"))
       imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
-    else if(str_eq(pgm->type, "BusPirate_BB") || str_eq(pgm->type, "linuxgpio") ||
-      str_eq(pgm->type, "PPI") || str_eq(pgm->type, "SERBB")) {
+    else if(str_eq(pgm->ptyp, "BusPirate_BB") || str_eq(pgm->ptyp, "linuxgpio") ||
+      str_eq(pgm->ptyp, "PPI") || str_eq(pgm->ptyp, "SERBB")) {
       imsg_error(" - use -i %sto set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
         bitclock? "instead of -B ": "");
     }
     else
       imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 
-    if(str_starts(pgm->type, "pickit5"))
+    if(str_starts(pgm->ptyp, "pickit5"))
       imsg_error(" - reset the programmer by unplugging it");
 
     if(!ovsigck) {

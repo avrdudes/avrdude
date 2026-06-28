@@ -301,7 +301,7 @@ static void serbb_teardown(PROGRAMMER *pgm) {
 const char serbb_desc[] = "Serial port bitbanging";
 
 void serbb_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "SERBB";
+  pgm->ptyp = "SERBB";
 
   pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 

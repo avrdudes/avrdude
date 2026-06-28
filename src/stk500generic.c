@@ -69,7 +69,7 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
 const char stk500generic_desc[] = "Atmel STK500, autodetect firmware version";
 
 void stk500generic_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "STK500GENERIC";
+  pgm->ptyp = "STK500GENERIC";
 
   pgm->open = stk500generic_open;
 }

@@ -107,7 +107,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   for(attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if(str_eq(pgm->type, "Arduino") && my.autoreset && attempt > 0) {
+    if(str_eq(pgm->ptyp, "Arduino") && my.autoreset && attempt > 0) {
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
@@ -186,7 +186,7 @@ static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
 
   if(pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->ptyp, __func__);
     return -1;
   }
 
@@ -1461,7 +1461,7 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
     }
     msg_info("%sTopcard               : %s\n", p, n);
   }
-  if(!str_eq(pgm->type, "Arduino"))
+  if(!str_eq(pgm->ptyp, "Arduino"))
     stk500_print_parms1(pgm, p, stderr);
 
   return;
@@ -1545,7 +1545,7 @@ static void stk500_setup(PROGRAMMER *pgm) {
   else
     my.xtal = STK500_XTAL;
   // The -c arduino programmer has auto-reset enabled be default
-  if(str_eq(pgm->type, "Arduino"))
+  if(str_eq(pgm->ptyp, "Arduino"))
     my.autoreset = true;
 }
 
@@ -1557,7 +1557,7 @@ static void stk500_teardown(PROGRAMMER *pgm) {
 const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";
 
 void stk500_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "STK500";
+  pgm->ptyp = "STK500";
 
   // Mandatory functions
   pgm->initialize = stk500_initialize;

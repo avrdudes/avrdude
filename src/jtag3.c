@@ -1390,7 +1390,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if(use_ext_reset > 1) {
-    if(str_eq(pgm->type, "JTAGICE3") && (p->prog_modes & (PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG)))
+    if(str_eq(pgm->ptyp, "JTAGICE3") && (p->prog_modes & (PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG)))
       pmsg_error("JTAGEN fuse disabled?\n");
     return -1;
   }
@@ -1627,7 +1627,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    if(str_eq(pgm->type, "JTAGICE3")) {
+    if(str_eq(pgm->ptyp, "JTAGICE3")) {
       msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
       msg_error("                         UB/UA = units before/after, BB/BA = bits before/after\n");
     }
@@ -2712,7 +2712,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   }
 
   // Print clocks if programmer type is not TPI
-  if(!str_eq(pgm->type, "JTAGICE3_TPI")) {
+  if(!str_eq(pgm->ptyp, "JTAGICE3_TPI")) {
     // Get current programming mode and target type from to determine what data to print
     if(jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)
       return;
@@ -3275,7 +3275,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 const char jtag3_desc[] = "Atmel JTAGICE3";
 
 void jtag3_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "JTAGICE3";
+  pgm->ptyp = "JTAGICE3";
 
   // Mandatory functions
   pgm->initialize = jtag3_initialize;
@@ -3313,7 +3313,7 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
 const char jtag3_dw_desc[] = "Atmel JTAGICE3 in debugWire mode";
 
 void jtag3_dw_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "JTAGICE3_DW";
+  pgm->ptyp = "JTAGICE3_DW";
 
   // Mandatory functions
   pgm->initialize = jtag3_initialize;
@@ -3348,7 +3348,7 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
 const char jtag3_pdi_desc[] = "Atmel JTAGICE3 in PDI mode";
 
 void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "JTAGICE3_PDI";
+  pgm->ptyp = "JTAGICE3_PDI";
 
   // Mandatory functions
   pgm->initialize = jtag3_initialize;
@@ -3386,7 +3386,7 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
 const char jtag3_updi_desc[] = "Atmel JTAGICE3 in UPDI mode";
 
 void jtag3_updi_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "JTAGICE3_UPDI";
+  pgm->ptyp = "JTAGICE3_UPDI";
 
   // Mandatory functions
   pgm->initialize = jtag3_initialize;
@@ -3426,7 +3426,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
 const char jtag3_tpi_desc[] = "Atmel JTAGICE3 in TPI mode";
 
 void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "JTAGICE3_TPI";
+  pgm->ptyp = "JTAGICE3_TPI";
 
   // Mandatory functions
   pgm->initialize = jtag3_initialize_tpi;

@@ -538,7 +538,7 @@ typedef struct programmer {
   LISTID usbpid;
   int ispdelay;                 // ISP clock delay
   double bitclock;              // JTAG ICE clock period in microseconds
-  const char *type;
+  const char *ptyp;
 
   // methods; they must *not* be declares as pointers
   void initpgm        (struct programmer *pgm); // Sets up the AVRDUDE programmer

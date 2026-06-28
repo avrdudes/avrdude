@@ -2140,7 +2140,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_notice2("chip erase via universal STK500v1 command\n");
 
     if(pgm->cmd == NULL) {      // Should not happen
-      pmsg_error("%s programmer does not provide a cmd() method\n", pgm->type);
+      pmsg_error("%s programmer does not provide a cmd() method\n", pgm->ptyp);
       serial_recv_timeout = bak_timeout;
       return -1;
     }
@@ -2572,7 +2572,7 @@ static void urclock_teardown(PROGRAMMER *pgm) {
 const char urclock_desc[] = "Urclock programmer for urboot bootloaders (arduino compatible)";
 
 void urclock_initpgm(PROGRAMMER *pgm) {
-  pgm->type = "Urclock";
+  pgm->ptyp = "Urclock";
 
   pgm->read_sig_bytes = urclock_read_sig_bytes;
 
