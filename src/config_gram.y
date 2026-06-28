@@ -160,7 +160,7 @@ static int parse_cmdbits(OPCODE *op, int opnum);
 
 %%
 
-number_real : 
+number_real :
  numexpr {
     $$ = $1;
     /* convert value to real */
@@ -317,8 +317,8 @@ prog_decl :
 
 
 part_def :
-  part_decl part_parms 
-    { 
+  part_decl part_parms
+    {
       LNODEID ln;
       AVRMEM *m;
       AVRPART *existing_part;
@@ -392,8 +392,8 @@ part_def :
       }
 
       current_part->comments = cfg_move_comments();
-      LISTADD(part_list, current_part); 
-      current_part = NULL; 
+      LISTADD(part_list, current_part);
+      current_part = NULL;
       current_strct = COMP_CONFIG_MAIN;
     }
 ;
@@ -405,7 +405,7 @@ part_decl :
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
-  K_PART K_PARENT TKN_STRING 
+  K_PART K_PARENT TKN_STRING
     {
       AVRPART *parent_part = locate_part(part_list, $3->value.string);
       if(parent_part == NULL) {
@@ -474,11 +474,11 @@ prog_parm_type_id:
   const PROGRAMMER_TYPE *pgm_type = locate_programmer_type($1->value.string);
     if(pgm_type == NULL) {
         yyerror("programmer type %s not found", $1->value.string);
-        free_token($1); 
+        free_token($1);
         YYABORT;
     }
     current_prog->initpgm = pgm_type->initpgm;
-    free_token($1); 
+    free_token($1);
 }
   | error
 {
@@ -642,7 +642,7 @@ part_parm :
     cfg_assign((char *) current_part, COMP_AVRPART, $1->value.comp, &$3->value);
     free_token($1);
   } |
-  K_ID TKN_EQUAL TKN_STRING 
+  K_ID TKN_EQUAL TKN_STRING
     {
       current_part->id = cache_string($3->value.string);
       free_token($3);
@@ -928,7 +928,7 @@ part_parm :
     } |
 
 
-  K_MEMORY TKN_STRING 
+  K_MEMORY TKN_STRING
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if(!mem) {
@@ -940,7 +940,7 @@ part_parm :
       current_mem = mem;
       free_token($2);
     }
-    mem_specs 
+    mem_specs
     {
       if(is_alias) {            // alias mem has been already entered
         lrmv_d(current_part->mem, current_mem);
@@ -959,7 +959,7 @@ part_parm :
         current_mem->comments = cfg_move_comments();
       }
       cfg_pop_comms();
-      current_mem = NULL; 
+      current_mem = NULL;
       current_strct = COMP_AVRPART;
     } |
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
@@ -975,7 +975,7 @@ part_parm :
       current_strct = COMP_AVRPART;
     } |
   opcode TKN_EQUAL string_list {
-    { 
+    {
       int opnum;
       OPCODE *op;
 
@@ -1042,7 +1042,7 @@ mem_spec :
     } |
 
   opcode TKN_EQUAL string_list {
-    { 
+    {
       int opnum;
       OPCODE *op;
 
@@ -1190,7 +1190,7 @@ static int which_opcode(TOKEN *opcode) {
   case K_WRITEPAGE:     return AVR_OP_WRITEPAGE;
   case K_CHIP_ERASE:    return AVR_OP_CHIP_ERASE;
   case K_PGM_ENABLE:    return AVR_OP_PGM_ENABLE;
-  default: 
+  default:
     yyerror("invalid opcode");
     return -1;
   }

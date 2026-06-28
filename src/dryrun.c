@@ -133,7 +133,7 @@ static int dryrun_init_ur(const PROGRAMMER *pgm, const AVRPART *p) {
   if(ur.urversion) {
     char buf[20];
     urbootPutVersion(buf, (uint16_t *) top);
-    pmsg_info("detected urboot bootloader %s in [0x%04x, 0x%04x] with vector=%d\n", 
+    pmsg_info("detected urboot bootloader %s in [0x%04x, 0x%04x] with vector=%d\n",
       buf, ur.blstart, ur.blend, ur.vectornum);
   }
 

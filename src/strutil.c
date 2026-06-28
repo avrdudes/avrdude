@@ -1693,3 +1693,29 @@ char *str_vectorname(const Avrintel *up, int vn) {
 
   return ret;
 }
+
+// Return whether pgmid matches str or any of str's programming mode variants
+int pgmid_is(const char *str) {
+  const char *sufx[] = {"_tpi", "_isp", "_hvsp", "_pp", "_dw", "_jtag", "_pdi", "_updi", "_avr32"};
+
+  if(!str_starts(pgmid, str))   // Pgmid doesn't start with str: no match
+    return 0;
+
+  // Now that pgmid starts with str, is its remainder one of known suffixes?
+  const char *pend = pgmid + strlen(str);
+  if(!*pend)                    // Yes (empty suffix): str is same as pgmid
+    return 1;
+
+  // Lex arduino_as_isp (misleading suffix): arduino_as is not the programmer
+  if(str_eq(str, "arduino_as") && str_eq(pgmid, "arduino_as_isp"))
+    return 0;
+
+  // Lex jtag2isp/stk500pp: if the programmer name ends in a digit also skip the _
+  int digitend = pend > pgmid && pend[-1] >= '0' && pend[-1] <= '9';
+
+  for(size_t i = 0; i < sizeof sufx/sizeof*sufx; i++)
+    if(str_eq(pend, sufx[i]) || (digitend && str_eq(pend, sufx[i] + 1)))
+      return 1;
+
+  return 0;
+}

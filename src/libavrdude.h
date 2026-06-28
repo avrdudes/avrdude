@@ -424,7 +424,7 @@ typedef struct {
 #define MEM_FUSE1             1 // hfuse fuse1 bodcfg
 #define MEM_FUSE2             2 // efuse fuse2 osccfg
 #define MEM_FUSE3             3 // fuse3 pincfg
-#define MEM_FUSE4             4 // fuse4 tcd0cfg hwmoncfg
+#define MEM_FUSE4             4 // fuse4 tcd0cfg hwmoncfg hvmoncfg
 #define MEM_FUSE5             5 // fuse5 syscfg0
 #define MEM_FUSE6             6 // fuse6 syscfg1
 #define MEM_FUSE7             7 // fuse7 append codesize
@@ -1750,6 +1750,7 @@ extern "C" {
   char *str_quote_bash(const char *s);
   const char *str_ccsharg(const char *str);
   char *str_vectorname(const Avrintel *up, int vn);
+  int pgmid_is(const char *str);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
