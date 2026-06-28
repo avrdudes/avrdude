@@ -1378,7 +1378,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  int is_dryrun = str_eq(pgm->type, "dryrun") || (dry && pgm->initpgm == dry->initpgm);
+  int is_dryrun = str_eq(pgm->type, "Dryrun") || (dry && pgm->initpgm == dry->initpgm);
 
   if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
@@ -1653,8 +1653,8 @@ init_again:
 
     if(str_eq(pgm->type, "serialupdi"))
       imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
-    else if(str_eq(pgm->type, "buspirate_bb") || str_eq(pgm->type, "linuxgpio") ||
-      str_eq(pgm->type, "par") || str_eq(pgm->type, "SERBB")) {
+    else if(str_eq(pgm->type, "BusPirate_BB") || str_eq(pgm->type, "linuxgpio") ||
+      str_eq(pgm->type, "PPI") || str_eq(pgm->type, "SERBB")) {
       imsg_error(" - use -i %sto set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
         bitclock? "instead of -B ": "");
     }
