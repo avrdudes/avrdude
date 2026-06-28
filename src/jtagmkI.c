@@ -1162,7 +1162,7 @@ static void jtagmkI_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 const char jtagmkI_desc[] = "Atmel JTAG ICE mkI";
 
 void jtagmkI_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKI");
+  pgm->type = "JTAGMKI";
 
   // Mandatory functions
   pgm->initialize = jtagmkI_initialize;

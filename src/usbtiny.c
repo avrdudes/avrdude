@@ -730,7 +730,7 @@ static int usbtiny_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 void usbtiny_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "USBtiny");
+  pgm->type = "USBtiny";
 
   // Mandatory Functions
   pgm->initialize = usbtiny_initialize;
@@ -769,7 +769,7 @@ static int usbtiny_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void usbtiny_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "usbtiny");
+  pgm->type = "usbtiny";
 
   pgm->open = usbtiny_nousb_open;
 }

@@ -729,7 +729,7 @@ static int linuxgpio_libgpiod_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
 #endif                          // HAVE_LIBGPIOD
 
 void linuxgpio_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "linuxgpio");
+  pgm->type = "linuxgpio";
 
   pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 

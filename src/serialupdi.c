@@ -1057,7 +1057,7 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
 }
 
 void serialupdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "serialupdi");
+  pgm->type = "serialupdi";
 
   // Mandatory functions
   pgm->initialize = serialupdi_initialize;

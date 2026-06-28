@@ -55,12 +55,12 @@ static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void avrftdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi");
+  pgm->type = "avrftdi";
   pgm->open = avrftdi_noftdi_open;
 }
 
 void avrftdi_jtag_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi_jtag");
+  pgm->type = "avrftdi_jtag";
   pgm->open = avrftdi_noftdi_open;
 }
 
@@ -1686,7 +1686,7 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
 }
 
 void avrftdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi");
+  pgm->type = "avrftdi";
 
   // Mandatory functions
   pgm->initialize = avrftdi_initialize;
@@ -1716,7 +1716,7 @@ void avrftdi_initpgm(PROGRAMMER *pgm) {
 }
 
 void avrftdi_jtag_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi_jtag");
+  pgm->type = "avrftdi_jtag";
 
   // Mandatory functions
   pgm->initialize = avrftdi_jtag_initialize;

@@ -1120,7 +1120,7 @@ static void buspirate_teardown(PROGRAMMER *pgm) {
 const char buspirate_desc[] = "Bus Pirate's SPI interface";
 
 void buspirate_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "BusPirate");
+  pgm->type = "BusPirate";
 
   pgm->display = buspirate_dummy_6;
 
@@ -1307,7 +1307,7 @@ static void buspirate_bb_powerdown(const PROGRAMMER *pgm) {
 const char buspirate_bb_desc[] = "Bus Pirate's bitbang interface";
 
 void buspirate_bb_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "BusPirate_BB");
+  pgm->type = "BusPirate_BB";
 
   pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 

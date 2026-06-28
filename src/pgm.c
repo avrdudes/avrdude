@@ -132,6 +132,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->usbpid = lcreat(NULL, 0);
   pgm->hvupdi_support = lcreat(NULL, 0);
   pgm->desc = nulp;
+  pgm->type = "not set";
   pgm->parent_id = nulp;
   pgm->usbdev = nulp;
   pgm->usbsn = nulp;

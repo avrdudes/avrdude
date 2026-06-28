@@ -1304,7 +1304,7 @@ const char dryrun_desc[] = "Dryrun programmer for testing avrdude";
 void dryrun_initpgm(PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
 
-  strcpy(pgm->type, "Dryrun");
+  pgm->type = "Dryrun";
 
   pgm->read_sig_bytes = dryrun_read_sig_bytes;
 

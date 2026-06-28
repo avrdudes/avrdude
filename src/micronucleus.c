@@ -824,7 +824,7 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
 }
 
 void micronucleus_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "Micronucleus V2.0");
+  pgm->type = "Micronucleus V2.0";
 
   pgm->setup = micronucleus_setup;
   pgm->teardown = micronucleus_teardown;
@@ -856,7 +856,7 @@ static int micronucleus_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void micronucleus_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "micronucleus");
+  pgm->type = "micronucleus";
   pgm->open = micronucleus_nousb_open;
 }
 #endif                          // HAVE_LIBUSB

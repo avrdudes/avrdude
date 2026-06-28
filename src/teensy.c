@@ -510,7 +510,7 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
 }
 
 void teensy_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "teensy");
+  pgm->type = "teensy";
 
   pgm->setup = teensy_setup;
   pgm->teardown = teensy_teardown;
@@ -542,7 +542,7 @@ static int teensy_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void teensy_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "teensy");
+  pgm->type = "teensy";
   pgm->open = teensy_nousb_open;
 }
 #endif                          // HAVE_LIBHIDAPI

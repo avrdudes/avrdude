@@ -1557,7 +1557,7 @@ static void stk500_teardown(PROGRAMMER *pgm) {
 const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";
 
 void stk500_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK500");
+  pgm->type = "STK500";
 
   // Mandatory functions
   pgm->initialize = stk500_initialize;

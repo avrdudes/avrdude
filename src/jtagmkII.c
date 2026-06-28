@@ -3705,7 +3705,7 @@ static int jtagmkII_updi_end_programming(const PROGRAMMER *pgm, const AVRPART *p
 const char jtagmkII_desc[] = "Atmel JTAG ICE mkII";
 
 void jtagmkII_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKII");
+  pgm->type = "JTAGMKII";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;
@@ -3737,7 +3737,7 @@ void jtagmkII_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_dw_desc[] = "Atmel JTAG ICE mkII in debugWire mode";
 
 void jtagmkII_dw_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKII_DW");
+  pgm->type = "JTAGMKII_DW";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;
@@ -3764,7 +3764,7 @@ void jtagmkII_dw_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_pdi_desc[] = "Atmel JTAG ICE mkII in PDI mode";
 
 void jtagmkII_pdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKII_PDI");
+  pgm->type = "JTAGMKII_PDI";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;
@@ -3793,7 +3793,7 @@ void jtagmkII_pdi_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_updi_desc[] = "Atmel JTAG ICE mkII in UPDI mode";
 
 void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKII_UPDI");
+  pgm->type = "JTAGMKII_UPDI";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;
@@ -3825,7 +3825,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_dragon_desc[] = "Atmel AVR Dragon in JTAG mode";
 
 void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "DRAGON_JTAG");
+  pgm->type = "DRAGON_JTAG";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;
@@ -3857,7 +3857,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_dragon_dw_desc[] = "Atmel AVR Dragon in debugWire mode";
 
 void jtagmkII_dragon_dw_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "DRAGON_DW");
+  pgm->type = "DRAGON_DW";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;
@@ -3884,7 +3884,7 @@ void jtagmkII_dragon_dw_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_avr32_desc[] = "Atmel JTAG ICE mkII in AVR32 mode";
 
 void jtagmkII_avr32_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKII_AVR32");
+  pgm->type = "JTAGMKII_AVR32";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize32;
@@ -3913,7 +3913,7 @@ void jtagmkII_avr32_initpgm(PROGRAMMER *pgm) {
 const char jtagmkII_dragon_pdi_desc[] = "Atmel AVR Dragon in PDI mode";
 
 void jtagmkII_dragon_pdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "DRAGON_PDI");
+  pgm->type = "DRAGON_PDI";
 
   // Mandatory functions
   pgm->initialize = jtagmkII_initialize;

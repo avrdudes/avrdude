@@ -940,7 +940,7 @@ void urbootPutVersion(char *buf, uint16_t *top6table) {
 static const char *vblvecname(const PROGRAMMER *pgm, int num) {
   // This should never happen
   if(num < -1 || num > ur.uP.ninterrupts || !ur.uP.isrtable)
-    return("unknown");
+    return "unknown";
   if(num == -1)
     return "none";
   if(num == ur.uP.ninterrupts)
@@ -2572,7 +2572,7 @@ static void urclock_teardown(PROGRAMMER *pgm) {
 const char urclock_desc[] = "Urclock programmer for urboot bootloaders (arduino compatible)";
 
 void urclock_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "Urclock");
+  pgm->type = "Urclock";
 
   pgm->read_sig_bytes = urclock_read_sig_bytes;
 

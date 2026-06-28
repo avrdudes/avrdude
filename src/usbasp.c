@@ -1344,7 +1344,7 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
 }
 
 void usbasp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "usbasp");
+  pgm->type = "usbasp";
 
   // Mandatory functions
   pgm->initialize = usbasp_initialize;
@@ -1378,7 +1378,7 @@ static int usbasp_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void usbasp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "usbasp");
+  pgm->type = "usbasp";
 
   pgm->open = usbasp_nousb_open;
 }

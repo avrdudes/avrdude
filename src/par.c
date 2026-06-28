@@ -370,7 +370,7 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
 }
 
 void par_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "PPI");
+  pgm->type = "PPI";
 
   pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 
