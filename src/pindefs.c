@@ -207,7 +207,7 @@ const char *pinmask_to_str(const Pinmask *const pinmask) {
  * @li any pins are used by more than one function
  * @li any mandatory pin is not set all.
  *
- * In case of any error it report the wrong function and the pin numbers
+ * In case of any error it reports the wrong function and the pin numbers
  * For verblevel >= MSG_NOTICE2 it also reports the possible correct values
  * For verblevel >= MSG_DEBUG it shows also which pins were ok
  *

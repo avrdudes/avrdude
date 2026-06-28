@@ -284,7 +284,7 @@ void stk500v2_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
   my.command_sequence = 1;
   my.boot_start = ULONG_MAX;
-  my.xtal = str_starts(pgmid, "scratchmonkey")? SCRATCHMONKEY_XTAL: STK500V2_XTAL;
+  my.xtal = pgmid_is("scratchmonkey")? SCRATCHMONKEY_XTAL: STK500V2_XTAL;
 }
 
 static void stk500v2_jtagmkII_setup(PROGRAMMER *pgm) {
@@ -2018,7 +2018,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       }
     }
 
-    if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+    if(str_starts(extended_param, "mode") && (pgmid_is("pickit4") || pgmid_is("snap"))) {
       // Flag a switch to AVR mode
       if(str_caseeq(extended_param, "mode=avr")) {
         my.pk4_snap_mode = PK4_SNAP_MODE_AVR;
@@ -2056,7 +2056,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       msg_error("  -x vtarg               Read on-board target supply voltage\n");
     if(pgm->extra_features & HAS_VTARG_ADJ)
       msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
-    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+    if(pgmid_is("pickit4") || pgmid_is("snap"))
       msg_error("  -x mode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
     msg_error("  -x help                Show this help menu and exit\n");
     return rv;

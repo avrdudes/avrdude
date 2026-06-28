@@ -122,7 +122,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 "/*" {  /* The following eats multiline C style comments, they are not captured */
         int c;
         int comment_start;
-        
+
         comment_start = cfg_lineno;
         while (1) {
           while (((c = input()) != '*') && (c != EOF)) {
@@ -130,14 +130,14 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
             if (c == '\n')
               cfg_lineno++;
           }
-          
+
           if (c == '*') {
             while ((c = input()) == '*')
               ;
             if (c == '/')
               break;    /* found the end */
           }
-          
+
           if (c == EOF) {
             yyerror("EOF in comment (started on line %d)", comment_start);
             return YYERRCODE;
@@ -268,7 +268,7 @@ writepage        { yylval=new_token(K_WRITEPAGE); ccap(); return K_WRITEPAGE; }
 [ \r\t]+  { /* ignore whitespace */ }
 
 c: { yyerror("possible old-style config file entry\n"
-             "  Update your config file (see " CONFIG_DIR 
+             "  Update your config file (see " CONFIG_DIR
                "/avrdude.conf.sample for a sample)");
      return YYERRCODE; }
 

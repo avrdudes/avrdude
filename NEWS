@@ -35,6 +35,9 @@ Changes since version 8.1:
     - Micronucleus messages need some work  #2109
     - Misleading messaging with -P usb:<vid>:<pid> #2127
     - PICKit 4, SNAP etc only work with hidapi but not libusb #1221
+    - Minor warning for MSVC build #2131
+    - Programmer identification code is not future-proof #2140
+    - Inconsistent Hardware Monitor Configuration mnemonic #2142
 
   * Pull requests:
 
@@ -79,6 +82,14 @@ Changes since version 8.1:
     - Fix Endian problems #2123
     - Improve Documentation #2124
     - Fix subtle usb issues including inconsistent parsing #2128
+    - Fix compiler warnings #2133
+    - Improve error message for usbdev_send() #2132
+    - Remove -Uall:v:file.hex test in test8 #2134
+    - Remove wrongly given PM_TPI mode from AVR dragon #2137
+    - Initialise PICKit4 and Snap JTAG clock speed #2139
+    - Future-proof programmer identification #2141
+    - Update avrintel #2143
+    - Alias hvmoncfg to hwmoncfg #2144
 
   * Internals:
 

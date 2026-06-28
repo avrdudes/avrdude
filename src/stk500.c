@@ -376,7 +376,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // MIB510 does not need extparams
-  if(str_eq(pgmid, "mib510"))
+  if(pgmid_is("mib510"))
     n_extparms = 0;
   else if((maj > 1) || ((maj == 1) && (min > 10)))
     n_extparms = 4;
@@ -862,7 +862,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
   stk500_drain(pgm, 0);
 
   // MIB510 init
-  if(str_eq(pgmid, "mib510") && mib510_isp(pgm, 1) != 0)
+  if(pgmid_is("mib510") && mib510_isp(pgm, 1) != 0)
     return -1;
 
   if(stk500_getsync(pgm) < 0)
@@ -881,7 +881,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
 
 static void stk500_close(PROGRAMMER *pgm) {
   // MIB510 close
-  if(str_eq(pgmid, "mib510"))
+  if(pgmid_is("mib510"))
     (void) mib510_isp(pgm, 0);
 
   serial_close(&pgm->fd);
@@ -991,7 +991,7 @@ static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   if(mem_is_eeprom(m)) {
     *memchrp = 'E';
     // Word addr for bootloaders or Arduino as ISP if part is a classic part; byte addr otherwise
-    *a_divp = (is_spm(pgm) || str_caseeq(pgmid, "arduino_as_isp"))
+    *a_divp = (is_spm(pgm) || pgmid_is("arduino_as_isp"))
       && is_classic(p)? 2: 1;
     return 0;
   }
@@ -1020,7 +1020,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   for(; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if(str_eq(pgmid, "mib510")) {
+    if(pgmid_is("mib510")) {
       block_size = 256;
     } else {
       if(n - addr < page_size)
@@ -1089,7 +1089,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   n = addr + n_bytes;
   for(; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if(str_eq(pgmid, "mib510")) {
+    if(pgmid_is("mib510")) {
       block_size = 256;
     } else {
       if(n - addr < page_size)
@@ -1132,7 +1132,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     if(stk500_recv(pgm, buf, 1) < 0)
       return -1;
 
-    if(str_eq(pgmid, "mib510")) {
+    if(pgmid_is("mib510")) {
       if(buf[0] != Resp_STK_INSYNC) {
         msg_error("\n");
         pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
@@ -1540,7 +1540,7 @@ static void stk500_setup(PROGRAMMER *pgm) {
   my.ext_addr_byte = 0xff;
   my.xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
   // nanoSTK (Arduino Nano HW) uses 16 MHz
-  if(str_starts(pgmid, "nanoSTK"))
+  if(pgmid_is("nanoSTK"))
     my.xtal = 16000000U;
   else
     my.xtal = STK500_XTAL;

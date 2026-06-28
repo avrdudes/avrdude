@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <io.h>
-#include <malloc.h> 
+#include <malloc.h>
 
 #define strerror_r(errno,buf,len) strerror_s(buf,len,errno)
 

@@ -638,7 +638,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
   if(usbOpenDevice(pgm, &my.usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
-    if(str_eq(pgmid, "usbasp")) {
+    if(pgmid_is("usbasp")) {
       // Check if device with old VID/PID is available
       if(usbOpenDevice(pgm, &my.usbhandle, USBASP_OLD_VID, "www.fischl.de",
         USBASP_OLD_PID, "USBasp", port) == 0) {

@@ -83,7 +83,9 @@ extern "C" {
 #if (_MSC_VER >= 1900)
 #include <stdbool.h>
 #else
+#ifndef bool
 #define bool int
+#endif
 #define false 0
 #define true 1
 #endif
