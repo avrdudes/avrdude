@@ -1182,7 +1182,7 @@ static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   }
 
   if(spi_mode && (pgm->spi == NULL)) {
-    pmsg_error("(send) the %s programmer does not support direct SPI transfers\n", pgm->type);
+    pmsg_error("(send) the %s programmer does not support direct SPI transfers\n", pgm->ptyp);
     return -1;
   }
 

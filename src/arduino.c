@@ -165,7 +165,7 @@ void arduino_initpgm(PROGRAMMER *pgm) {
      and the DTR signal is set when opening the serial port
      for the Auto-Reset feature */
   stk500_initpgm(pgm);
-  strcpy(pgm->type, "Arduino");
+  pgm->ptyp = "Arduino";
   pgm->read_sig_bytes = arduino_read_sig_bytes;
   pgm->open = arduino_open;
   pgm->close = arduino_close;

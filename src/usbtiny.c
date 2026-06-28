@@ -544,7 +544,7 @@ static int usbtiny_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   memset(res, 0, count);
 
   if(count%4) {
-    pmsg_error("direct SPI write must be a multiple of 4 bytes for %s\n", pgm->type);
+    pmsg_error("direct SPI write must be a multiple of 4 bytes for %s\n", pgm->ptyp);
     return -1;
   }
 
@@ -730,7 +730,7 @@ static int usbtiny_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 void usbtiny_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "USBtiny");
+  pgm->ptyp = "USBtiny";
 
   // Mandatory Functions
   pgm->initialize = usbtiny_initialize;
@@ -769,7 +769,7 @@ static int usbtiny_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void usbtiny_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "usbtiny");
+  pgm->ptyp = "usbtiny";
 
   pgm->open = usbtiny_nousb_open;
 }

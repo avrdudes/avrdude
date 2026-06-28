@@ -199,7 +199,7 @@ void wiring_initpgm(PROGRAMMER *pgm) {
   // The Wiring bootloader uses a near-complete STK500v2 protocol
   stk500v2_initpgm(pgm);
 
-  strcpy(pgm->type, "Wiring");
+  pgm->ptyp = "Wiring";
 
   pgm->open = wiring_open;
   pgm->close = wiring_close;

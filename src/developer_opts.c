@@ -1231,7 +1231,7 @@ void dev_output_part_defs(char *partdesc) {
 
 static void dev_pgm_raw(const PROGRAMMER *pgm) {
   PROGRAMMER dp;
-  int len, idx;
+  int idx;
   char *id = ldata(lfirst(pgm->id));
   LNODEID ln;
 
@@ -1256,10 +1256,6 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
     dev_raw_dump(dp.usbvendor, strlen(dp.usbvendor) + 1, id, "usbvend", 0);
   if(dp.usbproduct && *dp.usbproduct)
     dev_raw_dump(dp.usbproduct, strlen(dp.usbproduct) + 1, id, "usbprod", 0);
-
-  // Zap all bytes beyond terminating nul of type array
-  if((len = (int) strlen(dp.type) + 1) < (int) sizeof dp.type)
-    memset(dp.type + len, 0, sizeof dp.type - len);
 
   // Zap address values
   dp.desc = NULL;

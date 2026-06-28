@@ -157,7 +157,7 @@ static enum flip1_mem_unit flip1_mem_unit(const char *name);
 #endif                          // HAVE_LIBUSB
 
 void flip1_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "flip1");
+  pgm->ptyp = "flip1";
 
   // Mandatory functions
   pgm->initialize = flip1_initialize;

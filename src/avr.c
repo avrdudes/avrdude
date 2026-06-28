@@ -239,7 +239,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     str_ccaddress(addr, mem->size));
 
   if(pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->ptyp, __func__);
     return -1;
   }
 
@@ -248,7 +248,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if(is_tpi(p)) {
     if(pgm->cmd_tpi == NULL) {
-      pmsg_error("%s programmer does not support TPI\n", pgm->type);
+      pmsg_error("%s programmer does not support TPI\n", pgm->ptyp);
       goto error;
     }
 
@@ -519,7 +519,7 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, u
   led_set(pgm, LED_PGM);
 
   if(pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->ptyp, __func__);
     goto error;
   }
 
@@ -702,7 +702,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   led_set(pgm, LED_PGM);
 
   if(pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->ptyp, __func__);
     goto error;
   }
 
@@ -720,7 +720,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if(is_tpi(p)) {
     if(pgm->cmd_tpi == NULL) {
-      pmsg_error("%s programmer does not support TPI\n", pgm->type);
+      pmsg_error("%s programmer does not support TPI\n", pgm->ptyp);
       goto error;
     }
 

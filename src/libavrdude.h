@@ -936,8 +936,6 @@ typedef struct {                // Memory cache for a subset of cached pages
 #define OFF                   0 // Many contexts: reset, power, LEDs, ...
 #define ON                    1 // Many contexts
 
-#define PGM_TYPELEN 32
-
 typedef enum {
   EXIT_VCC_UNSPEC,
   EXIT_VCC_ENABLED,
@@ -1013,7 +1011,7 @@ typedef struct programmer {
 
   // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
-  char type[PGM_TYPELEN];
+  const char *ptyp;
   const char *port;
   unsigned int pinno[N_PINS];   // TODO: to be removed if old pin data no longer needed
   Exit_vcc exit_vcc;            // Should these be set in avrdude.conf?
