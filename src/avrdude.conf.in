@@ -5610,7 +5610,6 @@ part parent "t44" # t44a
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21
-
 ;
 
 #------------------------------------------------------------
@@ -24608,11 +24607,11 @@ part # .avr-lx
         readsize           = 1;
     ;
 
-    memory "hwmoncfg"           # datasheet name for this fuse
+    memory "hwmoncfg"
         alias "fuse4";
     ;
 
-    memory "hvmoncfg"           # .atdf name for this fuse
+    memory "hvmoncfg"
         alias "fuse4";
     ;
 
