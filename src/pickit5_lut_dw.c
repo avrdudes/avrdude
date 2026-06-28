@@ -4109,10 +4109,11 @@ const char * const pickit5_dw_chip_lut[] = {
       "ATmega16HVB","ATmega16HVBrevB",     "ATmega16M1",     "ATmega16U2",      "ATmega328",     "ATmega328P",    "ATmega328PB",     "ATmega32C1",
       "ATmega32HVB","ATmega32HVBrevB",     "ATmega32M1",     "ATmega32U2",       "ATmega48",      "ATmega48A",      "ATmega48P",     "ATmega48PA",
        "ATmega48PB",     "ATmega64C1",   "ATmega64HVE2",     "ATmega64M1",       "ATmega88",      "ATmega88A",      "ATmega88P",     "ATmega88PA",
-       "ATmega88PB",     "ATmega8HVA",      "ATmega8U2",       "ATtiny13",      "ATtiny13A",     "ATtiny1634",      "ATtiny167",     "ATtiny2313",
-      "ATtiny2313A",       "ATtiny24",      "ATtiny24A",       "ATtiny25",      "ATtiny261",     "ATtiny261A",     "ATtiny4313",      "ATtiny43U",
-         "ATtiny44",      "ATtiny441",      "ATtiny44A",       "ATtiny45",      "ATtiny461",     "ATtiny461A",       "ATtiny48",      "ATtiny828",
-         "ATtiny84",      "ATtiny841",      "ATtiny84A",       "ATtiny85",      "ATtiny861",     "ATtiny861A",       "ATtiny87",       "ATtiny88",
+       "ATmega88PB",     "ATmega8HVA",      "ATmega8U2",    "ATmegaS64M1",       "ATtiny13",      "ATtiny13A",     "ATtiny1634",      "ATtiny167",
+       "ATtiny2313",    "ATtiny2313A",       "ATtiny24",      "ATtiny24A",       "ATtiny25",      "ATtiny261",     "ATtiny261A",     "ATtiny4313",
+        "ATtiny43U",       "ATtiny44",      "ATtiny441",      "ATtiny44A",       "ATtiny45",      "ATtiny461",     "ATtiny461A",       "ATtiny48",
+        "ATtiny828",       "ATtiny84",      "ATtiny841",      "ATtiny84A",       "ATtiny85",      "ATtiny861",     "ATtiny861A",       "ATtiny87",
+         "ATtiny88",
 };
 
 int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
@@ -4120,7 +4121,7 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
     return -1;
   }
   int namepos = -1;
-  for(int i = 0; i < 72; i++) {
+  for(int i = 0; i < 73; i++) {
     if(strcmp(pickit5_dw_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
@@ -4142,7 +4143,7 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
     case 38:  /* ATmega88P */
     case 39:  /* ATmega88PA */
     case 40:  /* ATmega88PB */
-    case 63:  /* ATtiny828 */
+    case 64:  /* ATtiny828 */
       scr->WriteProgmem = WriteProgmem_dw_0;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_0);
       scr->ReadProgmem = ReadProgmem_dw_0;
@@ -4215,8 +4216,8 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       break;
     case 15:  /* ATmega16HVA */
     case 41:  /* ATmega8HVA */
-    case 46:  /* ATtiny167 */
-    case 70:  /* ATtiny87 */
+    case 47:  /* ATtiny167 */
+    case 71:  /* ATtiny87 */
       scr->WriteProgmem = WriteProgmem_dw_4;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_4);
       scr->ReadProgmem = ReadProgmem_dw_1;
@@ -4252,8 +4253,8 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
     case 30:  /* ATmega48P */
     case 31:  /* ATmega48PA */
     case 32:  /* ATmega48PB */
-    case 62:  /* ATtiny48 */
-    case 71:  /* ATtiny88 */
+    case 63:  /* ATtiny48 */
+    case 72:  /* ATtiny88 */
       scr->WriteProgmem = WriteProgmem_dw_6;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_6);
       scr->ReadProgmem = ReadProgmem_dw_0;
@@ -4267,6 +4268,7 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       break;
     case 33:  /* ATmega64C1 */
     case 35:  /* ATmega64M1 */
+    case 43:  /* ATmegaS64M1 */
       scr->WriteProgmem = WriteProgmem_dw_7;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_7);
       scr->ReadProgmem = ReadProgmem_dw_2;
@@ -4302,8 +4304,8 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_0;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_0);
       break;
-    case 43:  /* ATtiny13 */
-    case 44:  /* ATtiny13A */
+    case 44:  /* ATtiny13 */
+    case 45:  /* ATtiny13A */
       scr->WriteProgmem = WriteProgmem_dw_10;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_10);
       scr->ReadProgmem = ReadProgmem_dw_3;
@@ -4315,7 +4317,7 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_1;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_1);
       break;
-    case 45:  /* ATtiny1634 */
+    case 46:  /* ATtiny1634 */
       scr->WriteProgmem = WriteProgmem_dw_11;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_11);
       scr->ReadProgmem = ReadProgmem_dw_3;
@@ -4327,7 +4329,7 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_1;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_1);
       break;
-    case 47:  /* ATtiny2313 */
+    case 48:  /* ATtiny2313 */
       scr->WriteProgmem = WriteProgmem_dw_12;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_12);
       scr->ReadProgmem = ReadProgmem_dw_3;
@@ -4339,9 +4341,9 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_2;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_2);
       break;
-    case 48:  /* ATtiny2313A */
-    case 49:  /* ATtiny24 */
-    case 50:  /* ATtiny24A */
+    case 49:  /* ATtiny2313A */
+    case 50:  /* ATtiny24 */
+    case 51:  /* ATtiny24A */
       scr->WriteProgmem = WriteProgmem_dw_13;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_13);
       scr->ReadProgmem = ReadProgmem_dw_3;
@@ -4353,7 +4355,7 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_3;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_3);
       break;
-    case 51:  /* ATtiny25 */
+    case 52:  /* ATtiny25 */
       scr->WriteProgmem = WriteProgmem_dw_14;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_14);
       scr->ReadProgmem = ReadProgmem_dw_3;
@@ -4365,8 +4367,8 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_4;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_4);
       break;
-    case 52:  /* ATtiny261 */
-    case 53:  /* ATtiny261A */
+    case 53:  /* ATtiny261 */
+    case 54:  /* ATtiny261A */
       scr->WriteProgmem = WriteProgmem_dw_15;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_15);
       scr->ReadProgmem = ReadProgmem_dw_3;
@@ -4378,12 +4380,12 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_5;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_5);
       break;
-    case 54:  /* ATtiny4313 */
-    case 55:  /* ATtiny43U */
-    case 56:  /* ATtiny44 */
-    case 58:  /* ATtiny44A */
-    case 64:  /* ATtiny84 */
-    case 66:  /* ATtiny84A */
+    case 55:  /* ATtiny4313 */
+    case 56:  /* ATtiny43U */
+    case 57:  /* ATtiny44 */
+    case 59:  /* ATtiny44A */
+    case 65:  /* ATtiny84 */
+    case 67:  /* ATtiny84A */
       scr->WriteProgmem = WriteProgmem_dw_16;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_16);
       scr->ReadProgmem = ReadProgmem_dw_0;
@@ -4395,8 +4397,8 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_3;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_3);
       break;
-    case 57:  /* ATtiny441 */
-    case 65:  /* ATtiny841 */
+    case 58:  /* ATtiny441 */
+    case 66:  /* ATtiny841 */
       scr->WriteProgmem = WriteProgmem_dw_17;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_17);
       scr->ReadProgmem = ReadProgmem_dw_4;
@@ -4408,8 +4410,8 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_3;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_3);
       break;
-    case 59:  /* ATtiny45 */
-    case 67:  /* ATtiny85 */
+    case 60:  /* ATtiny45 */
+    case 68:  /* ATtiny85 */
       scr->WriteProgmem = WriteProgmem_dw_18;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_18);
       scr->ReadProgmem = ReadProgmem_dw_0;
@@ -4421,10 +4423,10 @@ int get_pickit_dw_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_dw_4;
       scr->ReadMem8_len = sizeof(ReadMem8_dw_4);
       break;
-    case 60:  /* ATtiny461 */
-    case 61:  /* ATtiny461A */
-    case 68:  /* ATtiny861 */
-    case 69:  /* ATtiny861A */
+    case 61:  /* ATtiny461 */
+    case 62:  /* ATtiny461A */
+    case 69:  /* ATtiny861 */
+    case 70:  /* ATtiny861A */
       scr->WriteProgmem = WriteProgmem_dw_19;
       scr->WriteProgmem_len = sizeof(WriteProgmem_dw_19);
       scr->ReadProgmem = ReadProgmem_dw_0;

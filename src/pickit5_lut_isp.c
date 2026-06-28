@@ -2539,11 +2539,11 @@ const char * const pickit5_isp_chip_lut[] = {
         "ATmega645",     "ATmega6450",    "ATmega6450A",    "ATmega6450P",     "ATmega645A",     "ATmega645P",      "ATmega649",     "ATmega6490",
       "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",     "ATmega64C1",   "ATmega64HVE2",     "ATmega64M1",
      "ATmega64RFR2",        "ATmega8",     "ATmega8515",     "ATmega8535",       "ATmega88",      "ATmega88A",      "ATmega88P",     "ATmega88PA",
-       "ATmega88PB",       "ATmega8A",     "ATmega8HVA",      "ATmega8U2",       "ATtiny12",       "ATtiny13",      "ATtiny13A",       "ATtiny15",
-       "ATtiny1634",      "ATtiny167",     "ATtiny2313",    "ATtiny2313A",       "ATtiny24",      "ATtiny24A",       "ATtiny25",       "ATtiny26",
-        "ATtiny261",     "ATtiny261A",     "ATtiny4313",      "ATtiny43U",       "ATtiny44",      "ATtiny441",      "ATtiny44A",       "ATtiny45",
-        "ATtiny461",     "ATtiny461A",       "ATtiny48",      "ATtiny828",       "ATtiny84",      "ATtiny841",      "ATtiny84A",       "ATtiny85",
-        "ATtiny861",     "ATtiny861A",       "ATtiny87",       "ATtiny88",
+       "ATmega88PB",       "ATmega8A",     "ATmega8HVA",      "ATmega8U2",     "ATmegaS128",    "ATmegaS64M1",       "ATtiny12",       "ATtiny13",
+        "ATtiny13A",       "ATtiny15",     "ATtiny1634",      "ATtiny167",     "ATtiny2313",    "ATtiny2313A",       "ATtiny24",      "ATtiny24A",
+         "ATtiny25",       "ATtiny26",      "ATtiny261",     "ATtiny261A",     "ATtiny4313",      "ATtiny43U",       "ATtiny44",      "ATtiny441",
+        "ATtiny44A",       "ATtiny45",      "ATtiny461",     "ATtiny461A",       "ATtiny48",      "ATtiny828",       "ATtiny84",      "ATtiny841",
+        "ATtiny84A",       "ATtiny85",      "ATtiny861",     "ATtiny861A",       "ATtiny87",       "ATtiny88",
 };
 
 int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
@@ -2551,7 +2551,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
     return -1;
   }
   int namepos = -1;
-  for(int i = 0; i < 156; i++) {
+  for(int i = 0; i < 158; i++) {
     if(strcmp(pickit5_isp_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
@@ -2617,7 +2617,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
     case 7:  /* AT90PWM3 */
     case 9:  /* AT90PWM3B */
     case 10:  /* AT90PWM81 */
-    case 151:  /* ATtiny85 */
+    case 153:  /* ATtiny85 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_3;
@@ -2722,6 +2722,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       break;
     case 17:  /* ATmega128 */
     case 23:  /* ATmega128A */
+    case 124:  /* ATmegaS128 */
       scr->EraseChip = EraseChip_isp_2;
       scr->EraseChip_len = sizeof(EraseChip_isp_2);
       scr->WriteProgmem = WriteProgmem_isp_9;
@@ -3098,6 +3099,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
     case 107:  /* ATmega649P */
     case 109:  /* ATmega64C1 */
     case 111:  /* ATmega64M1 */
+    case 125:  /* ATmegaS64M1 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_2;
@@ -3184,8 +3186,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 124:  /* ATtiny12 */
-    case 127:  /* ATtiny15 */
+    case 126:  /* ATtiny12 */
+    case 129:  /* ATtiny15 */
       scr->EraseChip = EraseChip_isp_4;
       scr->EraseChip_len = sizeof(EraseChip_isp_4);
       scr->WriteProgmem = WriteProgmem_isp_23;
@@ -3201,8 +3203,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 125:  /* ATtiny13 */
-    case 126:  /* ATtiny13A */
+    case 127:  /* ATtiny13 */
+    case 128:  /* ATtiny13A */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_24;
@@ -3218,7 +3220,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 128:  /* ATtiny1634 */
+    case 130:  /* ATtiny1634 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_25;
@@ -3234,7 +3236,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 129:  /* ATtiny167 */
+    case 131:  /* ATtiny167 */
       scr->EraseChip = EraseChip_isp_5;
       scr->EraseChip_len = sizeof(EraseChip_isp_5);
       scr->WriteProgmem = WriteProgmem_isp_4;
@@ -3250,8 +3252,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 130:  /* ATtiny2313 */
-    case 131:  /* ATtiny2313A */
+    case 132:  /* ATtiny2313 */
+    case 133:  /* ATtiny2313A */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_26;
@@ -3267,8 +3269,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 132:  /* ATtiny24 */
-    case 133:  /* ATtiny24A */
+    case 134:  /* ATtiny24 */
+    case 135:  /* ATtiny24A */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_26;
@@ -3284,7 +3286,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 134:  /* ATtiny25 */
+    case 136:  /* ATtiny25 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_26;
@@ -3300,7 +3302,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 135:  /* ATtiny26 */
+    case 137:  /* ATtiny26 */
       scr->EraseChip = EraseChip_isp_2;
       scr->EraseChip_len = sizeof(EraseChip_isp_2);
       scr->WriteProgmem = WriteProgmem_isp_27;
@@ -3316,8 +3318,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 136:  /* ATtiny261 */
-    case 137:  /* ATtiny261A */
+    case 138:  /* ATtiny261 */
+    case 139:  /* ATtiny261A */
       scr->EraseChip = EraseChip_isp_5;
       scr->EraseChip_len = sizeof(EraseChip_isp_5);
       scr->WriteProgmem = WriteProgmem_isp_26;
@@ -3333,7 +3335,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 138:  /* ATtiny4313 */
+    case 140:  /* ATtiny4313 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_17;
@@ -3349,7 +3351,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 139:  /* ATtiny43U */
+    case 141:  /* ATtiny43U */
       scr->EraseChip = EraseChip_isp_5;
       scr->EraseChip_len = sizeof(EraseChip_isp_5);
       scr->WriteProgmem = WriteProgmem_isp_17;
@@ -3365,8 +3367,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 140:  /* ATtiny44 */
-    case 142:  /* ATtiny44A */
+    case 142:  /* ATtiny44 */
+    case 144:  /* ATtiny44A */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_17;
@@ -3382,7 +3384,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 141:  /* ATtiny441 */
+    case 143:  /* ATtiny441 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_28;
@@ -3398,7 +3400,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 143:  /* ATtiny45 */
+    case 145:  /* ATtiny45 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_17;
@@ -3414,8 +3416,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 144:  /* ATtiny461 */
-    case 145:  /* ATtiny461A */
+    case 146:  /* ATtiny461 */
+    case 147:  /* ATtiny461A */
       scr->EraseChip = EraseChip_isp_5;
       scr->EraseChip_len = sizeof(EraseChip_isp_5);
       scr->WriteProgmem = WriteProgmem_isp_17;
@@ -3431,7 +3433,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 146:  /* ATtiny48 */
+    case 148:  /* ATtiny48 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_17;
@@ -3447,7 +3449,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 147:  /* ATtiny828 */
+    case 149:  /* ATtiny828 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_3;
@@ -3463,8 +3465,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 148:  /* ATtiny84 */
-    case 150:  /* ATtiny84A */
+    case 150:  /* ATtiny84 */
+    case 152:  /* ATtiny84A */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_3;
@@ -3480,7 +3482,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 149:  /* ATtiny841 */
+    case 151:  /* ATtiny841 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_29;
@@ -3496,8 +3498,8 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 152:  /* ATtiny861 */
-    case 153:  /* ATtiny861A */
+    case 154:  /* ATtiny861 */
+    case 155:  /* ATtiny861A */
       scr->EraseChip = EraseChip_isp_5;
       scr->EraseChip_len = sizeof(EraseChip_isp_5);
       scr->WriteProgmem = WriteProgmem_isp_3;
@@ -3513,7 +3515,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 154:  /* ATtiny87 */
+    case 156:  /* ATtiny87 */
       scr->EraseChip = EraseChip_isp_5;
       scr->EraseChip_len = sizeof(EraseChip_isp_5);
       scr->WriteProgmem = WriteProgmem_isp_22;
@@ -3529,7 +3531,7 @@ int get_pickit_isp_script(SCRIPT *scr, const char *partdesc) {
       scr->WriteConfigmemLock = WriteConfigmemLock_isp_0;
       scr->WriteConfigmemLock_len = sizeof(WriteConfigmemLock_isp_0);
       break;
-    case 155:  /* ATtiny88 */
+    case 157:  /* ATtiny88 */
       scr->EraseChip = EraseChip_isp_0;
       scr->EraseChip_len = sizeof(EraseChip_isp_0);
       scr->WriteProgmem = WriteProgmem_isp_3;

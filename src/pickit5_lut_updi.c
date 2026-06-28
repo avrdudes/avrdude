@@ -1102,7 +1102,7 @@ const char * const pickit5_updi_chip_lut[] = {
         "AVR32EA28",      "AVR32EA32",      "AVR32EA48",       "AVR8EA28",       "AVR8EA32",      "AVR16EB14",      "AVR16EB20",      "AVR16EB28",
         "AVR16EB32",      "AVR32EB28",      "AVR32EB32",      "AVR32EB14",      "AVR32EB20",      "AVR32SD20",      "AVR32SD28",      "AVR32SD32",
         "AVR64SD28",      "AVR64SD32",      "AVR64SD48",      "AVR64EC28",      "AVR64EC32",      "AVR64EC48",      "AVR32LA14",      "AVR32LA20",
-        "AVR32LA28",      "AVR32LA32",
+        "AVR32LA28",      "AVR32LA32",      "AVR16LA14",      "AVR16LA20",      "AVR16LA28",      "AVR16LA32",
 };
 
 const unsigned char *get_devid_script_by_nvm_ver(unsigned char version) {
@@ -1119,7 +1119,7 @@ int get_pickit_updi_script(SCRIPT *scr, const char *partdesc) {
     return -1;
   }
   int namepos = -1;
-  for(int i = 0; i < 138; i++) {
+  for(int i = 0; i < 142; i++) {
     if(strcmp(pickit5_updi_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
@@ -1436,6 +1436,10 @@ int get_pickit_updi_script(SCRIPT *scr, const char *partdesc) {
     case 135:  /* AVR32LA20 */
     case 136:  /* AVR32LA28 */
     case 137:  /* AVR32LA32 */
+    case 138:  /* AVR16LA14 */
+    case 139:  /* AVR16LA20 */
+    case 140:  /* AVR16LA28 */
+    case 141:  /* AVR16LA32 */
       scr->EnterProgMode = EnterProgMode_updi_0;
       scr->EnterProgMode_len = sizeof(EnterProgMode_updi_0);
       scr->GetDeviceID = GetDeviceID_updi_1;
