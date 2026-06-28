@@ -38,6 +38,7 @@ Changes since version 8.1:
     - Minor warning for MSVC build #2131
     - Programmer identification code is not future-proof #2140
     - Inconsistent Hardware Monitor Configuration mnemonic #2142
+    - Wrong programmer type usage #2146
 
   * Pull requests:
 
@@ -90,6 +91,7 @@ Changes since version 8.1:
     - Future-proof programmer identification #2141
     - Update avrintel #2143
     - Alias hvmoncfg to hwmoncfg #2144
+    - Fix programmer type usage #2147
 
   * Internals:
 
