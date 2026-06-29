@@ -1,5 +1,5 @@
 #
-# CMakeLists.txt - CMake project for AVRDUDE
+# src/CMakeLists.txt - CMake project for AVRDUDE
 # Copyright (C) 2021 Marius Greuel
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,40 +16,35 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# =====================================
-# Set up flex target
-# =====================================
+# src/CMakeLists.txt - Modernized Inner-Source Targets
 
+# =====================================
+# Parser Rules (Flex & Bison/Yacc)
+# =====================================
 FLEX_TARGET(Parser "lexer.l" "${PROJECT_BINARY_DIR}/lexer.c")
-
 if (FLEX_VERSION VERSION_GREATER_EQUAL 2.5.9)
     set(HAVE_YYLEX_DESTROY 1)
 endif()
 
-# =====================================
-# Set up yacc/bison target
-# =====================================
-
 if(BISON_FOUND)
     BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.c" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
+    set(PARSER_SOURCES ${BISON_Parser_OUTPUTS})
 else()
-    set(YACC_TARGET_outputs "${PROJECT_BINARY_DIR}/config_gram.c")
-    add_custom_command(OUTPUT ${YACC_TARGET_outputs}
-        COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_TARGET_outputs} config_gram.y
-        VERBATIM
-        COMMENT "[YACC][Parser] Building parser with yacc"
+    set(YACC_OUT "${PROJECT_BINARY_DIR}/config_gram.c")
+    add_custom_command(
+        OUTPUT ${YACC_OUT}
+        COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_OUT} config_gram.y
+        DEPENDS config_gram.y
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        )
-    set(BISON_Parser_OUTPUTS ${YACC_TARGET_outputs})
+        COMMENT "[YACC] Building parser with legacy yacc replacement"
+        VERBATIM
+    )
+    set(PARSER_SOURCES ${YACC_OUT})
 endif()
 
 # =====================================
-# Setup target specific options
+# Target Windows Platforms Properties
 # =====================================
-
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
-
 set(EXTRA_WINDOWS_SOURCES)
 set(EXTRA_WINDOWS_INCLUDES)
 set(EXTRA_WINDOWS_RESOURCES)
@@ -62,31 +57,20 @@ endif()
 
 if(MSVC)
     enable_language(CXX)
-
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
-    add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
-    add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS=1)
-    add_compile_options(/W3)
-    add_compile_options(/wd4018) # warning C4018: signed/unsigned mismatch
-    add_compile_options(/wd4244) # warning C4244: conversion from '...' to '...', possible loss of data
-    add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
-
     list(APPEND EXTRA_WINDOWS_SOURCES
         "msvc/getopt.c"
         "msvc/gettimeofday.c"
         "msvc/usleep.cpp"
         "msvc/readline.cpp"
-        )
-    list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
+    )
+    list(APPEND EXTRA_WINDOWS_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/msvc")
 else()
     set(LIB_MATH m)
-    add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-format-zero-length)
 endif()
 
 # =====================================
-# Setup default port names
+# Define OS Default Target Ports
 # =====================================
-
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(DEFAULT_PAR_PORT "/dev/parport0")
     set(DEFAULT_SER_PORT "/dev/ttyS0")
@@ -115,31 +99,28 @@ else()
 endif()
 
 # =====================================
-# Configure files
+# Generate Configuration Files
 # =====================================
+configure_file("cmake_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h")
+configure_file("avrdude.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/avrdude.spec")
 
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h"
-)
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.spec.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/avrdude.spec"
-)
 if(WIN32 OR MINGW)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/windows.rc.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/windows.rc"
-  )
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.bat.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui.bat"
-  )
+    configure_file("windows.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windows.rc")
+    configure_file("python/adgui.bat.in" "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui.bat")
 else()
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.sh.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui"
-  )
+    configure_file("python/adgui.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui")
+endif()
+
+# When building against the bundled libusb fork, generate a <usb.h> shim in the build
+# tree that redirects #include <usb.h> to the fork's lusb0_usb.h (libusb-0.1 API) header.
+if(USE_EXTERNAL_LIBS)
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/usb.h"
+        "/* AVRDUDE build shim: redirect <usb.h> to the bundled libusb fork header */\n"
+        "#ifndef AVRDUDE_MSVC_USB_SHIM_H\n"
+        "#define AVRDUDE_MSVC_USB_SHIM_H\n"
+        "#include \"lusb0_usb.h\"\n"
+        "#endif\n"
+    )
 endif()
 
 add_custom_command(
@@ -157,275 +138,130 @@ add_custom_command(
         -P "${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake"
     DEPENDS avrdude.conf.in
     VERBATIM
-    )
-
+)
 add_custom_target(conf ALL DEPENDS avrdude.conf)
 
 # =====================================
-# Project
+# Build Targets: libavrdude Core
 # =====================================
-
 set(SOURCES
-    ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
-    arduino.h
-    arduino.c
-    avr.c
-    avr910.c
-    avr910.h
-    avrcache.c
-    avrdude.h
-    avrftdi.c
-    avrftdi.h
-    avrftdi_private.h
-    avrftdi_tpi.c
-    avrftdi_tpi.h
-    avrintel.c
-    libavrdude-avrintel.h
-    avr_opcodes.c
-    avrpart.c
-    bitbang.c
-    bitbang.h
-    buspirate.c
-    buspirate.h
-    butterfly.c
-    butterfly.h
-    ch341a.c
-    ch341a.h
-    config.c
-    config.h
-    confwin.c
-    crc16.c
-    crc16.h
-    disasm.c
-    dfu.c
-    dfu.h
-    dryrun.c
-    dryrun.h
-    dryrun_private.h
-    fileio.c
-    flip1.c
-    flip1.h
-    flip2.c
-    flip2.h
-    freebsd_ppi.h
-    ft245r.c
-    ft245r.h
-    jtagmkI.c
-    jtagmkI.h
-    jtagmkI_private.h
-    jtagmkII.c
-    jtagmkII.h
-    jtagmkII_private.h
-    jtag3.c
-    jtag3.h
-    jtag3_private.h
-    leds.c
-    libavrdude.h
-    linuxgpio.c
-    linuxgpio.h
-    linuxspi.c
-    linuxspi.h
-    linux_ppdev.h
-    lists.c
-    micronucleus.c
-    micronucleus.h
-    par.c
-    par.h
-    pgm.c
-    pgm_type.c
-    pickit2.c
-    pickit2.h
-    pickit5_lut_dw.c
-    pickit5_lut_isp.c
-    pickit5_lut_jtag.c
-    pickit5_lut_pdi.c
-    pickit5_lut_tpi.c
-    pickit5_lut_updi.c
-    pickit5_lut.h
-    pickit5.c
-    pickit5.h
-    pindefs.c
-    ppi.c
-    ppi.h
-    serbb.h
-    serbb_posix.c
-    serbb_win32.c
-    ser_avrdoper.c
-    ser_posix.c
-    ser_win32.c
-    serialadapter.c
-    serialupdi.c
-    serialupdi.h
-    serprog.c
-    serprog.h
-    solaris_ecpp.h
-    stk500.c
-    stk500.h
-    stk500_private.h
-    stk500v2.c
-    stk500v2.h
-    stk500v2_private.h
-    stk500generic.c
-    stk500generic.h
-    strutil.c
-    teensy.c
-    teensy.h
-    term.c
-    tpi.h
-    updi_constants.h
-    updi_link.c
-    updi_link.h
-    updi_nvm.c
-    updi_nvm.h
-    updi_nvm_v0.c
-    updi_nvm_v0.h
-    updi_nvm_v2.c
-    updi_nvm_v2.h
-    updi_nvm_v3.c
-    updi_nvm_v3.h
-    updi_nvm_v4.c
-    updi_nvm_v4.h
-    updi_nvm_v5.c
-    updi_nvm_v5.h
-    updi_nvm_v6.c
-    updi_nvm_v6.h
-    updi_readwrite.c
-    updi_readwrite.h
-    updi_state.c
-    updi_state.h
-    urbootlist.c
-    urbootlist.h
-    urbootautogen.c
-    urclock.c
-    urclock.h
-    urclock_hash.h
-    urclock_private.h
-    usbasp.c
-    usbasp.h
-    usbdevs.h
-    usb_hidapi.c
-    usb_libusb.c
-    usbtiny.h
-    usbtiny.c
-    update.c
-    wiring.h
-    wiring.c
-    xbee.h
-    xbee.c
+    arduino.c avr.c avr910.c avrcache.c avrftdi.c avrftdi_tpi.c avrintel.c
+    avr_opcodes.c avrpart.c bitbang.c buspirate.c butterfly.c ch341a.c
+    config.c confwin.c crc16.c disasm.c dfu.c dryrun.c fileio.c flip1.c
+    flip2.c ft245r.c jtagmkI.c jtagmkII.c jtag3.c leds.c linuxgpio.c
+    linuxspi.c lists.c micronucleus.c par.c pgm.c pgm_type.c pickit2.c
+    pickit5_lut_dw.c pickit5_lut_isp.c pickit5_lut_jtag.c pickit5_lut_pdi.c
+    pickit5_lut_tpi.c pickit5_lut_updi.c pickit5.c pindefs.c ppi.c
+    serbb_posix.c serbb_win32.c ser_avrdoper.c ser_posix.c ser_win32.c
+    serialadapter.c serialupdi.c serprog.c stk500.c stk500v2.c stk500generic.c
+    strutil.c teensy.c term.c updi_link.c updi_nvm.c updi_nvm_v0.c updi_nvm_v2.c
+    updi_nvm_v3.c updi_nvm_v4.c updi_nvm_v5.c updi_nvm_v6.c updi_readwrite.c
+    updi_state.c urbootlist.c urbootautogen.c urclock.c usbasp.c usb_hidapi.c
+    usb_libusb.c usbtiny.c update.c wiring.c xbee.c
     ${FLEX_Parser_OUTPUTS}
-    ${BISON_Parser_OUTPUTS}
+    ${PARSER_SOURCES}
     ${EXTRA_WINDOWS_SOURCES}
-    )
+)
 
-add_library(libavrdude
-    ${SOURCES}
-    )
+add_library(libavrdude ${SOURCES})
 
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
     VERSION 4.0.0
     SOVERSION 4
-    )
+    POSITION_INDEPENDENT_CODE ON
+)
+
+# Feature macros (HAVE_LIBELF, HAVE_LIBUSB, HAVE_LIBFTDI, ...) are supplied to the
+# sources through the generated ac_cfg.h (configure_file of cmake_config.h.in), so
+# they are not repeated as target_compile_definitions here.
+
+if(NOT MSVC)
+    target_compile_options(libavrdude PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-format-zero-length)
+else()
+    target_compile_definitions(libavrdude PRIVATE _CRT_SECURE_NO_WARNINGS=1 _CRT_NONSTDC_NO_WARNINGS=1 _WINSOCK_DEPRECATED_NO_WARNINGS=1)
+    target_compile_options(libavrdude PRIVATE /W3 /wd4018 /wd4244 /wd4267)
+endif()
 
 target_include_directories(libavrdude
     PUBLIC
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_BINARY_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${LIBUSB_COMPAT_DIR}"
-    ${EXTRA_WINDOWS_INCLUDES}
-    )
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        ${EXTRA_WINDOWS_INCLUDES}
+    PRIVATE
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${PROJECT_BINARY_DIR}
+        ${EXTRA_WINDOWS_INCLUDES}
+        ${LIBUSB_COMPAT_DIR}
+        ${LIBELF_CUSTOM_DIR}
+        ${FETCHED_LIBELF_DIR}
+        ${FETCHED_LIBUSB_DIR}
+        ${FETCHED_HIDAPI_DIR}
+        ${FETCHED_LIBFTDI_DIR}
+)
 
 target_link_libraries(libavrdude
-    PUBLIC
-    ${LIB_MATH}
-    ${LIB_LIBELF}
-    ${LIB_LIBUSB}
-    ${LIB_LIBUSB_1_0}
-    ${LIB_LIBHID}
-    ${LIB_LIBHIDAPI}
-    ${LIB_LIBFTDI}
-    ${LIB_LIBFTDI1}
-    ${LIB_LIBREADLINE}
-    ${LIB_LIBSERIALPORT}
-    ${LIB_NCURSES}
-    ${LIB_LIBGPIOD}
-    ${EXTRA_WINDOWS_LIBRARIES}
-    )
+    PRIVATE
+        ${LIB_MATH}
+        ${TARGET_LIBELF}
+        ${TARGET_LIBUSB_1_0}
+        ${TARGET_LIBUSB}
+        ${TARGET_LIBHIDAPI}
+        ${TARGET_LIBFTDI1}
+        ${TARGET_LIBFTDI} # bundled libftdi (0.x) fork, when USE_EXTERNAL_LIBS
+        ${TARGET_LIBSERIALPORT}
+        ${TARGET_LIBREADLINE}
+        ${LIB_NCURSES}
+        ${TARGET_LIBGPIOD}
+        ${EXTRA_WINDOWS_LIBRARIES}
+)
 
-add_executable(avrdude
-    main.c
-    developer_opts.c
-    developer_opts.h
-    developer_opts_private.h
-    whereami.c
-    whereami.h
-    ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
-    ${EXTRA_WINDOWS_RESOURCES}
-    )
-
-target_link_libraries(avrdude PUBLIC libavrdude)
+# =====================================
+# Build Targets: Main Binary Executable
+# =====================================
+add_executable(avrdude main.c developer_opts.c whereami.c ${EXTRA_WINDOWS_RESOURCES})
+target_link_libraries(avrdude PRIVATE libavrdude)
+target_include_directories(avrdude PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(MINGW)
     target_link_options(avrdude PRIVATE -static)
 endif()
 
+# =====================================
+# Clean SWIG Integration Target
+# =====================================
 if(HAVE_SWIG)
-  include (UseSWIG)
-  swig_add_library(swig_avrdude LANGUAGE Python SOURCES libavrdude.i ${SOURCES})
-  target_include_directories(swig_avrdude
-    PUBLIC
-    "${Python3_INCLUDE_DIRS}"
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_BINARY_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${LIBUSB_COMPAT_DIR}"
-    ${EXTRA_WINDOWS_INCLUDES}
-  )
-  target_link_libraries(swig_avrdude
-    PRIVATE
-    ${LIB_MATH}
-    ${LIB_LIBELF}
-    ${LIB_LIBUSB}
-    ${LIB_LIBUSB_1_0}
-    ${LIB_LIBHID}
-    ${LIB_LIBHIDAPI}
-    ${LIB_LIBFTDI}
-    ${LIB_LIBFTDI1}
-    ${LIB_LIBREADLINE}
-    ${LIB_LIBSERIALPORT}
-    ${LIB_NCURSES}
-    ${LIB_LIBGPIOD}
-    ${Python3_LIBRARIES}
-    ${EXTRA_WINDOWS_LIBRARIES}
-    )
+    include(UseSWIG)
+    set_property(SOURCE libavrdude.i PROPERTY CPLUSPLUS OFF)
+    
+    swig_add_library(swig_avrdude LANGUAGE Python SOURCES libavrdude.i)
+    
+    target_link_libraries(swig_avrdude PRIVATE libavrdude Python3::Python)
+    target_include_directories(swig_avrdude PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${LIBUSB_COMPAT_DIR})
 endif()
 
 # =====================================
-# Install
+# Installation Specifications
 # =====================================
-
-install(TARGETS avrdude DESTINATION bin)
-install(PROGRAMS "elf2tag" DESTINATION bin)
+install(TARGETS avrdude DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(PROGRAMS "elf2tag" DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS libavrdude
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include COMPONENT dev
-    )
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
-install(FILES "avrdude.1"
-	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
-	)
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
+install(FILES "avrdude.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
 
 if(HAVE_SWIG)
     install(TARGETS swig_avrdude DESTINATION ${PYTHON_SITE_PACKAGES})
-    install(FILES ${CMAKE_BINARY_DIR}/src/swig_avrdude.py DESTINATION ${PYTHON_SITE_PACKAGES})
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/swig_avrdude.py DESTINATION ${PYTHON_SITE_PACKAGES})
     install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.ui")
     install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.py")
-  if(WIN32 OR MINGW)
-    install(PROGRAMS ${CMAKE_BINARY_DIR}/src/avrdude-gui.bat TYPE BIN)
-  else()
-    install(PROGRAMS ${CMAKE_BINARY_DIR}/src/avrdude-gui TYPE BIN)
-  endif()
+    if(WIN32 OR MINGW)
+        install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui.bat DESTINATION ${CMAKE_INSTALL_BINDIR})
+    else()
+        install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
 endif()
