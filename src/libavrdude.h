@@ -458,10 +458,13 @@ typedef struct {
 
 // Attributes
 #define MEM_IN_FLASH    (1<<27) // flash application apptable boot
-#define MEM_IS_A_FUSE   (1<<28) // fuse [elh]fuse fuseN wdtcfg bodcfg osccfg tcd0cfg syscfg0 syscfg1 append codesize bootend bootsize pdicfg
+#define MEM_IS_A_FUSE   (1<<28) // fuse [elh]fuse fuseN wdtcfg bodcfg osccfg pincfg tcd0cfg hwmoncfg hvmoncfg
+                                // syscfg0 syscfg1 append codesize bootend bootsize pdicfg
 #define MEM_USER_TYPE   (1<<29) // userrow usersig bootrow
-#define MEM_IN_SIGROW   (1<<30) // prodsig sigrow signature calibration sernum tempsense osccal16 osccal20 osc16err osc20err
-#define MEM_READONLY   (1U<<31) // sib prodsig sigrow signature sernum tempsense calibration osccal16 osccal20 osc16err osc20err
+#define MEM_IN_SIGROW   (1<<30) // prodsig sigrow signature calibration sernum tempsense
+                                // osccal16 osccal20 osc16err osc20err
+#define MEM_READONLY   (1U<<31) // sib prodsig sigrow signature sernum tempsense calibration
+                                // osccal16 osccal20 osc16err osc20err
 
 // Marcos to locate a memory type or a fuse
 #define avr_locate_eeprom(p) avr_locate_mem_by_type((p), MEM_EEPROM)
@@ -499,8 +502,12 @@ typedef struct {
 #define avr_locate_bodcfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
 #define avr_locate_fuse2(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
 #define avr_locate_osccfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_fuse3(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE3)
+#define avr_locate_pincfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE3)
 #define avr_locate_fuse4(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
 #define avr_locate_tcd0cfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
+#define avr_locate_hwmoncfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
+#define avr_locate_hvmoncfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
 #define avr_locate_fuse5(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
 #define avr_locate_syscfg0(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
 #define avr_locate_fuse6(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE6)
@@ -522,6 +529,7 @@ typedef struct {
 #define mem_is_boot(mem) (!!((mem)->type & MEM_BOOT))
 #define mem_is_fuses(mem) (!!((mem)->type & MEM_FUSES))
 #define mem_is_lock(mem) (!!((mem)->type & MEM_LOCK))
+#define mem_is_lockbits(mem) (!!((mem)->type & MEM_LOCK))
 #define mem_is_prodsig(mem) (!!((mem)->type & MEM_PRODSIG))
 #define mem_is_sigrow(mem) (!!((mem)->type & MEM_SIGROW))
 #define mem_is_signature(mem) (!!((mem)->type & MEM_SIGNATURE))
@@ -546,20 +554,39 @@ typedef struct {
 #define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
 #define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
 #define mem_is_paged_type(mem) (!!((mem)->type & (MEM_IN_FLASH | MEM_EEPROM | MEM_USER_TYPE)))
-#define mem_is_lfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0))
-#define mem_is_hfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1))
-#define mem_is_efuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2))
-#define mem_is_fuse0(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0))
-#define mem_is_fuse1(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1))
-#define mem_is_fuse2(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2))
-#define mem_is_fuse4(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4))
-#define mem_is_fuse5(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5))
-#define mem_is_fuse6(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE6))
-#define mem_is_fuse7(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE7))
-#define mem_is_fuse8(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE8))
-#define mem_is_fusea(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSEA))
 
 #define mem_fuse_offset(mem) ((mem)->type & MEM_FUSEOFF_MASK)   // Valid if mem_is_a_fuse(mem)
+
+// Do not define mem_is_fuse() as it's easy to confuse with mem_is_a_fuse() or mem_is_fuses()
+// #define mem_is_fuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0)) // Classic
+#define mem_is_lfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0)) // Classic
+#define mem_is_hfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1)) // Classic
+#define mem_is_efuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2)) // Classic
+
+#define mem_is_fuse0(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0)) // PDI/UPDI
+#define mem_is_wdtcfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0)) // UPDI
+#define mem_is_fuse1(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1)) // PDI/UPDI
+#define mem_is_bodcfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1)) // UPDI
+#define mem_is_fuse2(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2)) // PDI/UPDI
+#define mem_is_osccfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2)) // UPDI
+#define mem_is_fuse3(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE3)) // UPDI (some, eg, AVR-Lx)
+#define mem_is_pincfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE3)) // UPDI
+#define mem_is_fuse4(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // PDI/UPDI
+#define mem_is_tcd0cfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // UPDI
+#define mem_is_hvmoncfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // UPDI
+#define mem_is_hwmoncfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // UPDI
+#define mem_is_fuse5(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5)) // PDI/UPDI
+#define mem_is_syscfg0(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5)) // UPDI
+#define mem_is_fuse6(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE6)) // PDI/UPDI
+#define mem_is_syscfg1(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE6)) // UPDI
+#define mem_is_fuse7(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE7)) // UPDI
+#define mem_is_append(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE7)) // UPDI
+#define mem_is_codesize(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE7)) // UPDI
+#define mem_is_fuse8(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE8)) // UPDI
+#define mem_is_bootend(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE8)) // UPDI
+#define mem_is_bootsize(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE8)) // UPDI
+#define mem_is_fusea(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSEA)) // UPDI
+#define mem_is_pdicfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSEA)) // UPDI
 
 typedef struct avrmem {
   const char *desc;             // Memory description ("flash", "eeprom", etc)
