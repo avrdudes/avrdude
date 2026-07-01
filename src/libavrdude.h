@@ -424,7 +424,7 @@ typedef struct {
 #define MEM_FUSE1             1 // hfuse fuse1 bodcfg
 #define MEM_FUSE2             2 // efuse fuse2 osccfg
 #define MEM_FUSE3             3 // fuse3 pincfg
-#define MEM_FUSE4             4 // fuse4 tcd0cfg hwmoncfg hvmoncfg
+#define MEM_FUSE4             4 // fuse4 tcd0cfg hwmoncfg
 #define MEM_FUSE5             5 // fuse5 syscfg0
 #define MEM_FUSE6             6 // fuse6 syscfg1
 #define MEM_FUSE7             7 // fuse7 append codesize
@@ -458,7 +458,7 @@ typedef struct {
 
 // Attributes
 #define MEM_IN_FLASH    (1<<27) // flash application apptable boot
-#define MEM_IS_A_FUSE   (1<<28) // fuse [elh]fuse fuseN wdtcfg bodcfg osccfg pincfg tcd0cfg hwmoncfg hvmoncfg
+#define MEM_IS_A_FUSE   (1<<28) // fuse [elh]fuse fuseN wdtcfg bodcfg osccfg pincfg tcd0cfg hwmoncfg
                                 // syscfg0 syscfg1 append codesize bootend bootsize pdicfg
 #define MEM_USER_TYPE   (1<<29) // userrow usersig bootrow
 #define MEM_IN_SIGROW   (1<<30) // prodsig sigrow signature calibration sernum tempsense
@@ -507,7 +507,6 @@ typedef struct {
 #define avr_locate_fuse4(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
 #define avr_locate_tcd0cfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
 #define avr_locate_hwmoncfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
-#define avr_locate_hvmoncfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
 #define avr_locate_fuse5(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
 #define avr_locate_syscfg0(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
 #define avr_locate_fuse6(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE6)
@@ -573,7 +572,6 @@ typedef struct {
 #define mem_is_pincfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE3)) // UPDI
 #define mem_is_fuse4(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // PDI/UPDI
 #define mem_is_tcd0cfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // UPDI
-#define mem_is_hvmoncfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // UPDI
 #define mem_is_hwmoncfg(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4)) // UPDI
 #define mem_is_fuse5(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5)) // PDI/UPDI
 #define mem_is_syscfg0(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5)) // UPDI

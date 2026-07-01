@@ -1599,7 +1599,6 @@ Memtable avr_mem_order[100] = {
   {"fuse4", MEM_FUSE4 | MEM_IS_A_FUSE},
   {"tcd0cfg", MEM_FUSE4 | MEM_IS_A_FUSE},
   {"hwmoncfg", MEM_FUSE4 | MEM_IS_A_FUSE},
-  {"hvmoncfg", MEM_FUSE4 | MEM_IS_A_FUSE},
   {"fuse5", MEM_FUSE5 | MEM_IS_A_FUSE},
   {"syscfg0", MEM_FUSE5 | MEM_IS_A_FUSE},
   {"fuse6", MEM_FUSE6 | MEM_IS_A_FUSE},
