@@ -37,7 +37,6 @@ Changes since version 8.1:
     - PICKit 4, SNAP etc only work with hidapi but not libusb #1221
     - Minor warning for MSVC build #2131
     - Programmer identification code is not future-proof #2140
-    - Inconsistent Hardware Monitor Configuration mnemonic #2142
     - Wrong programmer type usage #2146
 
   * Pull requests:
@@ -90,7 +89,6 @@ Changes since version 8.1:
     - Initialise PICKit4 and Snap JTAG clock speed #2139
     - Future-proof programmer identification #2141
     - Update avrintel #2143
-    - Alias hvmoncfg to hwmoncfg #2144
     - Fix programmer type usage #2147
     - Updating device pack for pickit5_lut_* files #2150
     - Add macros for new memories #2151

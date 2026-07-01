@@ -24611,10 +24611,6 @@ part # .avr-lx
         alias "fuse4";
     ;
 
-    memory "hvmoncfg"
-        alias "fuse4";
-    ;
-
     memory "fuse5"
         size               = 1;
         initval            = 0x00;
