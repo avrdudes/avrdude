@@ -1098,7 +1098,7 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
   pgm->teardown = pickit2_teardown;
   // pgm->page_size = 256;      // Not sure what this does ... maybe the max page size that paged read/write can handle
 
-  strncpy(pgm->type, "pickit2", sizeof(pgm->type));
+  pgm->ptyp = "pickit2";
 }
 #else
 static int pickit2_nousb_open(PROGRAMMER *pgm, const char *name) {
@@ -1117,7 +1117,7 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
   // Mandatory function
   pgm->open = pickit2_nousb_open;
 
-  strncpy(pgm->type, "pickit2", sizeof(pgm->type));
+  pgm->ptyp = "pickit2";
 }
 #endif                          // defined(HAVE_LIBUSB) || defined(WIN32)
 

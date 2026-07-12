@@ -1293,9 +1293,10 @@ const char * const pickit5_jtag_chip_lut[] = {
       "ATmega3290A",    "ATmega3290P",   "ATmega3290PA",     "ATmega329A",     "ATmega329P",    "ATmega329PA",      "ATmega32A",     "ATmega32U4",
         "ATmega406",       "ATmega64",      "ATmega640",      "ATmega644",     "ATmega644A",     "ATmega644P",    "ATmega644PA",  "ATmega644RFR2",
         "ATmega645",     "ATmega6450",    "ATmega6450A",    "ATmega6450P",     "ATmega645A",     "ATmega645P",      "ATmega649",     "ATmega6490",
-      "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",   "ATmega64RFR2",   "ATxmega128A1",  "ATxmega128A1U",
-     "ATxmega128A3",  "ATxmega128A3U",   "ATxmega192A3",  "ATxmega192A3U",   "ATxmega256A3",  "ATxmega256A3B", "ATxmega256A3BU",  "ATxmega256A3U",
-      "ATxmega64A1",   "ATxmega64A1U",    "ATxmega64A3",   "ATxmega64A3U",   "ATxmega128B1",   "ATxmega128B3",    "ATxmega64B1",    "ATxmega64B3",
+      "ATmega6490A",    "ATmega6490P",     "ATmega649A",     "ATmega649P",      "ATmega64A",   "ATmega64RFR2",     "ATmegaS128",   "ATxmega128A1",
+    "ATxmega128A1U",   "ATxmega128A3",  "ATxmega128A3U",   "ATxmega192A3",  "ATxmega192A3U",   "ATxmega256A3",  "ATxmega256A3B", "ATxmega256A3BU",
+    "ATxmega256A3U",    "ATxmega64A1",   "ATxmega64A1U",    "ATxmega64A3",   "ATxmega64A3U",   "ATxmega128B1",   "ATxmega128B3",    "ATxmega64B1",
+      "ATxmega64B3",
 };
 
 int get_pickit_jtag_script(SCRIPT *scr, const char *partdesc) {
@@ -1303,7 +1304,7 @@ int get_pickit_jtag_script(SCRIPT *scr, const char *partdesc) {
     return -1;
   }
   int namepos = -1;
-  for(int i = 0; i < 96; i++) {
+  for(int i = 0; i < 97; i++) {
     if(strcmp(pickit5_jtag_chip_lut[i], partdesc) == 0) {
       namepos = i;
       break;
@@ -1452,6 +1453,7 @@ int get_pickit_jtag_script(SCRIPT *scr, const char *partdesc) {
       break;
     case 7:  /* ATmega128 */
     case 13:  /* ATmega128A */
+    case 78:  /* ATmegaS128 */
       scr->EnterProgMode = EnterProgMode_jtag_0;
       scr->EnterProgMode_len = sizeof(EnterProgMode_jtag_0);
       scr->ExitProgMode = ExitProgMode_jtag_0;
@@ -1919,16 +1921,16 @@ int get_pickit_jtag_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_jtag_0;
       scr->ReadMem8_len = sizeof(ReadMem8_jtag_0);
       break;
-    case 78:  /* ATxmega128A1 */
-    case 79:  /* ATxmega128A1U */
-    case 80:  /* ATxmega128A3 */
-    case 81:  /* ATxmega128A3U */
-    case 82:  /* ATxmega192A3 */
-    case 83:  /* ATxmega192A3U */
-    case 84:  /* ATxmega256A3 */
-    case 85:  /* ATxmega256A3B */
-    case 86:  /* ATxmega256A3BU */
-    case 87:  /* ATxmega256A3U */
+    case 79:  /* ATxmega128A1 */
+    case 80:  /* ATxmega128A1U */
+    case 81:  /* ATxmega128A3 */
+    case 82:  /* ATxmega128A3U */
+    case 83:  /* ATxmega192A3 */
+    case 84:  /* ATxmega192A3U */
+    case 85:  /* ATxmega256A3 */
+    case 86:  /* ATxmega256A3B */
+    case 87:  /* ATxmega256A3BU */
+    case 88:  /* ATxmega256A3U */
       scr->EnterProgMode = EnterProgMode_jtag_1;
       scr->EnterProgMode_len = sizeof(EnterProgMode_jtag_1);
       scr->ExitProgMode = ExitProgMode_jtag_1;
@@ -1972,14 +1974,14 @@ int get_pickit_jtag_script(SCRIPT *scr, const char *partdesc) {
       scr->ReadMem8 = ReadMem8_jtag_6;
       scr->ReadMem8_len = sizeof(ReadMem8_jtag_6);
       break;
-    case 88:  /* ATxmega64A1 */
-    case 89:  /* ATxmega64A1U */
-    case 90:  /* ATxmega64A3 */
-    case 91:  /* ATxmega64A3U */
-    case 92:  /* ATxmega128B1 */
-    case 93:  /* ATxmega128B3 */
-    case 94:  /* ATxmega64B1 */
-    case 95:  /* ATxmega64B3 */
+    case 89:  /* ATxmega64A1 */
+    case 90:  /* ATxmega64A1U */
+    case 91:  /* ATxmega64A3 */
+    case 92:  /* ATxmega64A3U */
+    case 93:  /* ATxmega128B1 */
+    case 94:  /* ATxmega128B3 */
+    case 95:  /* ATxmega64B1 */
+    case 96:  /* ATxmega64B3 */
       scr->EnterProgMode = EnterProgMode_jtag_1;
       scr->EnterProgMode_len = sizeof(EnterProgMode_jtag_1);
       scr->ExitProgMode = ExitProgMode_jtag_1;

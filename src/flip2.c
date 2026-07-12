@@ -156,7 +156,7 @@ static const char *flip2_mem_unit_str(enum flip2_mem_unit mem_unit);
 static enum flip2_mem_unit flip2_mem_unit(const char *name);
 
 void flip2_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "flip2");
+  pgm->ptyp = "flip2";
 
   // Mandatory functions
   pgm->initialize = flip2_initialize;
@@ -912,7 +912,7 @@ static int flip2_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void flip2_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "flip2");
+  pgm->ptyp = "flip2";
   pgm->open = flip2_nousb_open;
 }
 #endif                          // HAVE_LIBUSB

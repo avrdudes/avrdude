@@ -660,7 +660,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 const char butterfly_desc[] = "Atmel Butterfly evaluation board (AVR109, AVR911)";
 
 void butterfly_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "butterfly");
+  pgm->ptyp = "butterfly";
 
   // Mandatory functions
   pgm->rdy_led = butterfly_default_led;
@@ -695,6 +695,6 @@ const char butterfly_mk_desc[] = "Mikrokopter.de Butterfly";
 
 void butterfly_mk_initpgm(PROGRAMMER *pgm) {
   butterfly_initpgm(pgm);
-  strcpy(pgm->type, "butterfly_mk");
+  pgm->ptyp = "butterfly_mk";
   pgm->flag = IS_BUTTERFLY_MK;
 }

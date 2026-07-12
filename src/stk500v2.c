@@ -1777,7 +1777,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           my.varef_set = true;
         }
         // Get new analog reference voltage for channel 1
-        else if(str_starts(extended_param, "varef1=") && str_contains(pgm->type, "STK600")) {
+        else if(str_starts(extended_param, "varef1=") && str_contains(pgm->ptyp, "STK600")) {
           sscanf_success = sscanf(extended_param, "varef1=%lf", &varef_set_val);
           my.varef_channel = 1;
           my.varef_set = true;
@@ -1789,7 +1789,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           continue;
         }
         // Get current analog reference voltage for channel 1
-        else if(str_eq(extended_param, "varef1") && str_contains(pgm->type, "STK600")) {
+        else if(str_eq(extended_param, "varef1") && str_contains(pgm->ptyp, "STK600")) {
           my.varef_get = true;
           my.varef_channel = 1;
           continue;
@@ -1899,10 +1899,10 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     if(pgm->extra_features & HAS_VTARG_ADJ)
       msg_error("  -x vtarg=<dbl>    Set on-board target supply voltage to <dbl> V\n");
     if(pgm->extra_features & HAS_VAREF_ADJ) {
-      if(str_contains(pgm->type, "STK500")) {
+      if(str_contains(pgm->ptyp, "STK500")) {
         msg_error("  -x varef          Read analog reference voltage\n");
         msg_error("  -x varef=<dbl>    Set analog reference voltage to <dbl> V\n");
-      } else if(str_contains(pgm->type, "STK600")) {
+      } else if(str_contains(pgm->ptyp, "STK600")) {
         msg_error("  -x varef          Read channel 0 analog reference voltage\n");
         msg_error("  -x varef0         Alias for -x varef\n");
         msg_error("  -x varef1         Read channel 1 analog reference voltage\n");
@@ -4760,7 +4760,7 @@ static void stk600_setup_isp(PROGRAMMER *pgm) {
 const char stk500v2_desc[] = "Atmel STK500 Version 2.x firmware";
 
 void stk500v2_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK500V2");
+  pgm->ptyp = "STK500V2";
 
   // Mandatory functions
   pgm->initialize = stk500v2_initialize;
@@ -4806,7 +4806,7 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
 const char stk500pp_desc[] = "Atmel STK500 V2 in parallel programming mode";
 
 void stk500pp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK500PP");
+  pgm->ptyp = "STK500PP";
 
   // Mandatory functions
   pgm->initialize = stk500pp_initialize;
@@ -4842,7 +4842,7 @@ void stk500pp_initpgm(PROGRAMMER *pgm) {
 const char stk500hvsp_desc[] = "Atmel STK500 V2 in high-voltage serial programming mode";
 
 void stk500hvsp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK500HVSP");
+  pgm->ptyp = "STK500HVSP";
 
   // Mandatory functions
   pgm->initialize = stk500hvsp_initialize;
@@ -4878,7 +4878,7 @@ void stk500hvsp_initpgm(PROGRAMMER *pgm) {
 const char stk500v2_jtagmkII_desc[] = "Atmel JTAG ICE mkII in ISP mode";
 
 void stk500v2_jtagmkII_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAGMKII_ISP");
+  pgm->ptyp = "JTAGMKII_ISP";
 
   // Mandatory functions
   pgm->initialize = stk500v2_initialize;
@@ -4909,7 +4909,7 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER *pgm) {
 const char stk500v2_dragon_isp_desc[] = "Atmel AVR Dragon in ISP mode";
 
 void stk500v2_dragon_isp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "DRAGON_ISP");
+  pgm->ptyp = "DRAGON_ISP";
 
   // Mandatory functions
   pgm->initialize = stk500v2_initialize;
@@ -4940,7 +4940,7 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER *pgm) {
 const char stk500v2_dragon_pp_desc[] = "Atmel AVR Dragon in PP mode";
 
 void stk500v2_dragon_pp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "DRAGON_PP");
+  pgm->ptyp = "DRAGON_PP";
 
   // Mandatory functions
   pgm->initialize = stk500pp_initialize;
@@ -4968,7 +4968,7 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER *pgm) {
 const char stk500v2_dragon_hvsp_desc[] = "Atmel AVR Dragon in HVSP mode";
 
 void stk500v2_dragon_hvsp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "DRAGON_HVSP");
+  pgm->ptyp = "DRAGON_HVSP";
 
   // Mandatory functions
   pgm->initialize = stk500hvsp_initialize;
@@ -4996,7 +4996,7 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER *pgm) {
 const char stk600_desc[] = "Atmel STK600";
 
 void stk600_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK600");
+  pgm->ptyp = "STK600";
 
   // Mandatory functions
   pgm->initialize = stk500v2_initialize;
@@ -5034,7 +5034,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
 const char stk600pp_desc[] = "Atmel STK600 in parallel programming mode";
 
 void stk600pp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK600PP");
+  pgm->ptyp = "STK600PP";
 
   // Mandatory functions
   pgm->initialize = stk500pp_initialize;
@@ -5069,7 +5069,7 @@ void stk600pp_initpgm(PROGRAMMER *pgm) {
 const char stk600hvsp_desc[] = "Atmel STK600 in high-voltage serial programming mode";
 
 void stk600hvsp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "STK600HVSP");
+  pgm->ptyp = "STK600HVSP";
 
   // Mandatory functions
   pgm->initialize = stk500hvsp_initialize;
@@ -5104,7 +5104,7 @@ void stk600hvsp_initpgm(PROGRAMMER *pgm) {
 const char stk500v2_jtag3_desc[] = "Atmel JTAGICE3 in ISP mode";
 
 void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "JTAG3_ISP");
+  pgm->ptyp = "JTAG3_ISP";
 
   // Mandatory functions
   pgm->initialize = stk500v2_jtag3_initialize;

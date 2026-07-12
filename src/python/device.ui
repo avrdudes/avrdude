@@ -127,7 +127,7 @@
       <item>
        <widget class="QCheckBox" name="avr_de">
         <property name="text">
-         <string>AVR…D/E…</string>
+         <string>AVR…D/E/L…</string>
         </property>
         <property name="checked">
          <bool>true</bool>

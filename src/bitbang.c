@@ -463,7 +463,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(is_tpi(p)) {
     // Make sure cmd_tpi() is defined
     if(pgm->cmd_tpi == NULL) {
-      pmsg_error("%s programmer does not support TPI\n", pgm->type);
+      pmsg_error("%s programmer does not support TPI\n", pgm->ptyp);
       return -1;
     }
 

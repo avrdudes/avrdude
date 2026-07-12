@@ -450,7 +450,7 @@ static void ch341a_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 void ch341a_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "ch341a");
+  pgm->ptyp = "ch341a";
 
   // Mandatory functions
   pgm->initialize = ch341a_initialize;
@@ -482,7 +482,7 @@ static int ch341a_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void ch341a_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "ch341a");
+  pgm->ptyp = "ch341a";
   pgm->open = ch341a_nousb_open;
 }
 #endif                          // !defined(HAVE_LIBUSB_1_0)

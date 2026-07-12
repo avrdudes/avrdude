@@ -425,7 +425,7 @@ static int check_for_port_argument_match(const char *port, const char *bus,
 
   if(str_casestarts(port, "usb:")) {
     port += 4;
-    char *dev_name = strchr(port, ':');
+    const char *dev_name = strchr(port, ':');
 
     if(dev_name)                // Compare with busdir:devicefile
       return str_busdev_eq(port, bus) && str_busdev_eq(dev_name+1, device);
@@ -1344,7 +1344,7 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
 }
 
 void usbasp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "usbasp");
+  pgm->ptyp = "usbasp";
 
   // Mandatory functions
   pgm->initialize = usbasp_initialize;
@@ -1378,7 +1378,7 @@ static int usbasp_nousb_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void usbasp_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "usbasp");
+  pgm->ptyp = "usbasp";
 
   pgm->open = usbasp_nousb_open;
 }

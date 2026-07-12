@@ -55,12 +55,12 @@ static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void avrftdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi");
+  pgm->ptyp = "avrftdi";
   pgm->open = avrftdi_noftdi_open;
 }
 
 void avrftdi_jtag_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi_jtag");
+  pgm->ptyp = "avrftdi_jtag";
   pgm->open = avrftdi_noftdi_open;
 }
 
@@ -1343,7 +1343,7 @@ static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       str_eq(p->id, "m32a") || str_eq(p->id, "m32") ||
       str_eq(p->id, "m16a") || str_eq(p->id, "m16") || str_eq(p->id, "m162")) {
 
-      pmsg_error("programmer type %s is known not to work for %s\n", pgm->type, p->desc);
+      pmsg_error("programmer type %s is known not to work for %s\n", pgm->ptyp, p->desc);
       pmsg_error("exiting, use -F to carry on regardless\n");
       return LIBAVRDUDE_EXIT_FAIL;
     }
@@ -1686,7 +1686,7 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
 }
 
 void avrftdi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi");
+  pgm->ptyp = "avrftdi";
 
   // Mandatory functions
   pgm->initialize = avrftdi_initialize;
@@ -1716,7 +1716,7 @@ void avrftdi_initpgm(PROGRAMMER *pgm) {
 }
 
 void avrftdi_jtag_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "avrftdi_jtag");
+  pgm->ptyp = "avrftdi_jtag";
 
   // Mandatory functions
   pgm->initialize = avrftdi_jtag_initialize;

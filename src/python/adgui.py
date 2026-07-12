@@ -72,7 +72,7 @@ def classify_devices():
         'avr_de': [],
         'other': []
     }
-    avr_de_re = re.compile(r'AVR\d+[DE][A-Z]\d+')
+    avr_de_re = re.compile(r'AVR\d+[DEL][A-Z]\d+')
     part = ad.lfirst(ad.cvar.part_list)
     while part:
         p = ad.ldata_avrpart(part)

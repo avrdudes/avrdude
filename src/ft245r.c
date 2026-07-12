@@ -98,7 +98,7 @@ static int ft245r_noftdi_open(PROGRAMMER *pgm, const char *name) {
 }
 
 void ft245r_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "ftdi_syncbb");
+  pgm->ptyp = "ftdi_syncbb";
   pgm->open = ft245r_noftdi_open;
 }
 
@@ -1208,7 +1208,7 @@ void ft245r_teardown(PROGRAMMER *pgm) {
 }
 
 void ft245r_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, "ftdi_syncbb");
+  pgm->ptyp = "ftdi_syncbb";
 
   // Mandatory functions
   pgm->initialize = ft245r_initialize;

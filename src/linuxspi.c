@@ -455,7 +455,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
 }
 
 void linuxspi_initpgm(PROGRAMMER *pgm) {
-  strcpy(pgm->type, LINUXSPI);
+  pgm->ptyp = LINUXSPI;
 
   pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 
