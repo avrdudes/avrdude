@@ -502,14 +502,20 @@ class adgui(QObject):
     def __init__(self, argv):
         super().__init__()
 
+        # the main Qt app
+        self.app = QApplication(sys.argv)
+        # can be 'Dark', 'Light', or 'Unknown'
+        guimode = self.app.styleHints().colorScheme().name
+        self.darkmode = guimode == 'Dark'
+
         # members for logging
-        self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
+        if self.darkmode:
+            self.logstring = "<font color='#8080E0'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
+        else:
+            self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
         self.at_bol = { 'stdout': True, 'stderr': True }
         self.debuglog = ""
         self.debug_bol = True
-
-        # the main Qt app
-        self.app = QApplication(sys.argv)
 
         self.port = None
         self.pgm = None
@@ -646,17 +652,30 @@ class adgui(QObject):
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
-        colors = [
-            '#804040', # MSG_EXT_ERROR
-            '#A03030', # MSG_ERROR
-            '#A08000', # MSG_WARNING
-            '#000000', # MSG_INFO
-            '#006000', # MSG_NOTICE
-            '#005030', # MSG_NOTICE2
-            '#808080', # MSG_DEBUG
-            '#60A060', # MSG_TRACE - not used
-            '#6060A0', # MSG_TRACE2 - not used
-        ]
+        if self.darkmode:
+            colors = [
+                '#804040', # MSG_EXT_ERROR
+                '#F08030', # MSG_ERROR
+                '#E0E000', # MSG_WARNING
+                '#A0A0A0', # MSG_INFO
+                '#A0E0A0', # MSG_NOTICE
+                '#A0E0F0', # MSG_NOTICE2
+                '#808080', # MSG_DEBUG
+                '#60A060', # MSG_TRACE - not used
+                '#6060A0', # MSG_TRACE2 - not used
+            ]
+        else:
+            colors = [
+                '#804040', # MSG_EXT_ERROR
+                '#A03030', # MSG_ERROR
+                '#A08000', # MSG_WARNING
+                '#000000', # MSG_INFO
+                '#006000', # MSG_NOTICE
+                '#005030', # MSG_NOTICE2
+                '#808080', # MSG_DEBUG
+                '#60A060', # MSG_TRACE - not used
+                '#6060A0', # MSG_TRACE2 - not used
+            ]
         color = colors[level - ad.MSG_EXT_ERROR]
         html = None
         if level <= ad.MSG_WARNING:
