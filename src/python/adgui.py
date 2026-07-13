@@ -556,6 +556,12 @@ class adgui(QObject):
         self.memories.ee_avr.setScene(gsc)
         self.memories.fuse_avr.setScene(gsc)
 
+        if self.darkmode:
+            # adjust signature value stylesheets
+            self.memories.configSig.setStyleSheet("background-color: rgb(0, 0, 0);")
+            self.memories.deviceSig.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(180, 180, 180);")
+            self.memories.candidate.setStyleSheet("background-color: rgb(0, 0, 0);")
+
         self.disable_fuses()
 
         self.helptext()
@@ -986,8 +992,12 @@ class adgui(QObject):
         self.stop_programmer()
 
     def read_signature(self):
-        sig_ok = "background-color: rgb(255, 255, 255);\ncolor: rgb(0, 100, 0);"
-        sig_bad = "background-color: rgb(255, 255, 255);\ncolor: rgb(150, 0, 0);"
+        if self.darkmode:
+            sig_ok = "background-color: rgb(0, 0, 0);\ncolor: rgb(0, 150, 0);"
+            sig_bad = "background-color: rgb(0, 0, 0);\ncolor: rgb(200, 80, 0);"
+        else:
+            sig_ok = "background-color: rgb(255, 255, 255);\ncolor: rgb(0, 100, 0);"
+            sig_bad = "background-color: rgb(255, 255, 255);\ncolor: rgb(150, 0, 0);"
         if self.connected:
             m = ad.avr_locate_mem(self.dev, 'signature')
             if m:
