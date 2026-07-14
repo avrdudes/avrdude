@@ -324,8 +324,8 @@ add_library(libavrdude
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
-    VERSION 4.0.0
-    SOVERSION 4
+    VERSION 5.0.0
+    SOVERSION 5
     )
 
 target_include_directories(libavrdude

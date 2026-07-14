@@ -425,7 +425,7 @@ static int check_for_port_argument_match(const char *port, const char *bus,
 
   if(str_casestarts(port, "usb:")) {
     port += 4;
-    char *dev_name = strchr(port, ':');
+    const char *dev_name = strchr(port, ':');
 
     if(dev_name)                // Compare with busdir:devicefile
       return str_busdev_eq(port, bus) && str_busdev_eq(dev_name+1, device);
