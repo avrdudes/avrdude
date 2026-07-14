@@ -19,7 +19,7 @@
 #ifndef libavrdude_h
 #define libavrdude_h
 
-// #define TO_BE_DEPRECATED_IN_2026
+#define TO_BE_DEPRECATED_IN_2026
 // #define TO_BE_DEPRECATED_IN_2027
 
 #include <stdio.h>

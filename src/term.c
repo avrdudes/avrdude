@@ -1761,9 +1761,10 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   Part_FL fusel;                // Copy of fuses and lock bits
   const Configvalue *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
-  Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
-  FL_item *fc;                  // Current fuse and lock bits memories
+  Cnfg *cc = NULL;              // Current configuration; cc[] and ct[] are parallel arrays
+  FL_item *fc = NULL;           // Current fuse and lock bits memories
   int nf = 0;                   // Number of involved fuse and lock bits memories
+  char *item = NULL;            // Copy of argument
 
   memset(&fusel, 0, sizeof fusel);
 
@@ -1787,6 +1788,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
 
   cc = mmt_malloc(sizeof *cc*nc);
   fc = mmt_malloc(sizeof *fc*nc);
+  item = mmt_strdup(argc < 2? "*": argv[1]);
 
   AVRMEM *m = avr_locate_lock(p);
   const char *locktype = m? m->desc: "lock";
@@ -1815,8 +1817,6 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     }
     fc[nf - 1].mask |= ct[i].mask;
   }
-
-  const char *item = argc < 2? "*": argv[1];
 
   char *rhs = strchr(item, '=');
 
@@ -1996,6 +1996,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
 finished:
   mmt_free(cc);
   mmt_free(fc);
+  mmt_free(item);
 
   return ret;
 }

@@ -591,7 +591,7 @@ const char *str_plural(int x) {
 static const char *str_filename(const char *fn, const char *stdname) {
   if(!fn)
     fn = "???";
-  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  const char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
 
   return str_eq(fn, "-")? stdname: str_starts(fn, "/dev/")? fn: p1? p1 + 1: p2? p2 + 1: fn;
 }

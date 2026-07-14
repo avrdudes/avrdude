@@ -968,7 +968,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo, union filedescripto
    *
    * ... for a direct connection.
    */
-  char *ttySeparator = strchr(port, '@');
+  const char *ttySeparator = strchr(port, '@');
 
   if(ttySeparator == NULL) {
     pmsg_error("XBee: bad port syntax, require <xbee-address>@<serial-device>\n");
@@ -979,7 +979,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo, union filedescripto
 
   XBeeBootSessionInit(xbs);
 
-  char *tty = &ttySeparator[1];
+  const char *tty = ttySeparator + 1;
 
   if(ttySeparator == port) {
     // Direct connection
@@ -1073,8 +1073,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo, union filedescripto
   pmsg_notice("baud %ld\n", (long) pinfo.serialinfo.baud);
 
   {
-    const int rc = xbs->serialDevice->open(tty, pinfo,
-      &xbs->serialDescriptor);
+    const int rc = xbs->serialDevice->open(tty, pinfo, &xbs->serialDescriptor);
 
     if(rc < 0) {
       mmt_free(xbs);
