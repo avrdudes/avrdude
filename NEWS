@@ -15,7 +15,13 @@ Changes since version 8.2:
 
   * Issues fixed:
 
+    - GUI does not cope with new AVR-LA parts #2148
+    - GUI should detect darkmode #2154
+
   * Pull requests:
+
+    - Fix GUI for AVR LA #2155
+    - Fix dark mode #2156
 
   * Internals:
 
