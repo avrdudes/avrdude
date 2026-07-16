@@ -502,14 +502,20 @@ class adgui(QObject):
     def __init__(self, argv):
         super().__init__()
 
+        # the main Qt app
+        self.app = QApplication(sys.argv)
+        # can be 'Dark', 'Light', or 'Unknown'
+        guimode = self.app.styleHints().colorScheme().name
+        self.darkmode = guimode == 'Dark'
+
         # members for logging
-        self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
+        if self.darkmode:
+            self.logstring = "<font color='#8080E0'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
+        else:
+            self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
         self.at_bol = { 'stdout': True, 'stderr': True }
         self.debuglog = ""
         self.debug_bol = True
-
-        # the main Qt app
-        self.app = QApplication(sys.argv)
 
         self.port = None
         self.pgm = None
@@ -549,6 +555,12 @@ class adgui(QObject):
         self.memories.avr.setScene(gsc)
         self.memories.ee_avr.setScene(gsc)
         self.memories.fuse_avr.setScene(gsc)
+
+        if self.darkmode:
+            # adjust signature value stylesheets
+            self.memories.configSig.setStyleSheet("background-color: rgb(0, 0, 0);")
+            self.memories.deviceSig.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(180, 180, 180);")
+            self.memories.candidate.setStyleSheet("background-color: rgb(0, 0, 0);")
 
         self.disable_fuses()
 
@@ -646,17 +658,30 @@ class adgui(QObject):
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
-        colors = [
-            '#804040', # MSG_EXT_ERROR
-            '#A03030', # MSG_ERROR
-            '#A08000', # MSG_WARNING
-            '#000000', # MSG_INFO
-            '#006000', # MSG_NOTICE
-            '#005030', # MSG_NOTICE2
-            '#808080', # MSG_DEBUG
-            '#60A060', # MSG_TRACE - not used
-            '#6060A0', # MSG_TRACE2 - not used
-        ]
+        if self.darkmode:
+            colors = [
+                '#804040', # MSG_EXT_ERROR
+                '#F08030', # MSG_ERROR
+                '#E0E000', # MSG_WARNING
+                '#A0A0A0', # MSG_INFO
+                '#A0E0A0', # MSG_NOTICE
+                '#A0E0F0', # MSG_NOTICE2
+                '#808080', # MSG_DEBUG
+                '#60A060', # MSG_TRACE - not used
+                '#6060A0', # MSG_TRACE2 - not used
+            ]
+        else:
+            colors = [
+                '#804040', # MSG_EXT_ERROR
+                '#A03030', # MSG_ERROR
+                '#A08000', # MSG_WARNING
+                '#000000', # MSG_INFO
+                '#006000', # MSG_NOTICE
+                '#005030', # MSG_NOTICE2
+                '#808080', # MSG_DEBUG
+                '#60A060', # MSG_TRACE - not used
+                '#6060A0', # MSG_TRACE2 - not used
+            ]
         color = colors[level - ad.MSG_EXT_ERROR]
         html = None
         if level <= ad.MSG_WARNING:
@@ -967,8 +992,12 @@ class adgui(QObject):
         self.stop_programmer()
 
     def read_signature(self):
-        sig_ok = "background-color: rgb(255, 255, 255);\ncolor: rgb(0, 100, 0);"
-        sig_bad = "background-color: rgb(255, 255, 255);\ncolor: rgb(150, 0, 0);"
+        if self.darkmode:
+            sig_ok = "background-color: rgb(0, 0, 0);\ncolor: rgb(0, 150, 0);"
+            sig_bad = "background-color: rgb(0, 0, 0);\ncolor: rgb(200, 80, 0);"
+        else:
+            sig_ok = "background-color: rgb(255, 255, 255);\ncolor: rgb(0, 100, 0);"
+            sig_bad = "background-color: rgb(255, 255, 255);\ncolor: rgb(150, 0, 0);"
         if self.connected:
             m = ad.avr_locate_mem(self.dev, 'signature')
             if m:
