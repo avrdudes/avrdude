@@ -378,6 +378,10 @@ part_def :
           yywarning("revise fileio_mem_offset(), avrdude.conf entry or memory type assignment");
       }
 
+      // Sort memories in canonical order
+      if(current_part->mem)
+        lsort(current_part->mem, avr_mem_cmp);
+
       existing_part = locate_part(part_list, current_part->id);
       if(existing_part) {
         { /* temporarily set lineno to lineno of part start */
