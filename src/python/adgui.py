@@ -877,7 +877,8 @@ class adgui(QObject):
         mm = avrpart_to_mem(p)
         row = 0
         for m in mm:
-            model.setItem(row, 0, QStandardItem(m.desc))
+            name = ad.avr_mem_name(p, m)
+            model.setItem(row, 0, QStandardItem(name))
             sz = QStandardItem(size_to_str(m.size))
             sz.setTextAlignment(Qt.Alignment(int(Qt.AlignRight) | int(Qt.AlignVCenter)))
             model.setItem(row, 1, sz)
