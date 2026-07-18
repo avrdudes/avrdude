@@ -627,6 +627,7 @@ AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
 AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
+const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem);
 
 // Programming modes for parts and programmers: ensure it's copied from libavrdude.h
 #define PM_SPM                1 // Bootloaders, self-programming with SPM opcodes or NVM Controllers
