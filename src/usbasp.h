@@ -59,7 +59,7 @@
 #define USBASP_ISP_SCK_8      5 //   8 kHz
 #define USBASP_ISP_SCK_16     6 //  16 kHz
 #define USBASP_ISP_SCK_32     7 //  32 kHz
-#define USBASP_ISP_SCK_93_75  8 //  93.75 kHz
+#define USBASP_ISP_SCK_93_75  8 //  125 kHz
 #define USBASP_ISP_SCK_187_5  9 // 187.5  kHz
 #define USBASP_ISP_SCK_375   10 // 375 kHz
 #define USBASP_ISP_SCK_750   11 // 750 kHz
