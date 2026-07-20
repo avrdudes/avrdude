@@ -24,6 +24,8 @@ Changes since version 8.2:
     - Fix GUI for AVR LA #2155
     - Fix dark mode #2156
     - Fix issue #2149#2157
+    - jtagmkII: treat leave-progmode refusal as benign when target
+      reset succeeds #2162
 
   * Internals:
 
