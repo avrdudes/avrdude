@@ -531,6 +531,9 @@ class adgui(QObject):
 
         p = pathlib.Path(argv[0])
         srcdir = str(p.parent)
+        if srcdir.endswith(builddir):
+            # developer option: when running from builddir, search UI sources
+            srcdir = builddir + "/../../src/python"
         for f in [ "adgui.ui", "about.ui", "device.ui",
                    "devinfo.ui", "loglevel.ui", "programmer.ui",
                    "memories.ui", "askfuse.ui", "help.ui" ]:
@@ -566,6 +569,9 @@ class adgui(QObject):
 
         self.helptext()
         self.help.textBrowser.setHtml(self.helptext)
+
+        self.abouttext()
+        self.about.textBrowser.setMarkdown(self.aboutmsg)
 
         self.adgui.show()
 
@@ -1798,6 +1804,33 @@ considered a pattern that will be replaced by the <tt>fuse</tt><strong>N</strong
             b's\xdd\xa8]\x90\xb3\x0c\xee\x82\x8cq\x01\x8cq\x01\x8cq\x01,\x01'+ \
             b'\x80\x7f\x01\xd4\xa0\x1d\x07\x10\x94\xee\x92\x00\x00\x00\x00IEND\xae'+ \
             b'B`\x82'
+
+    def abouttext(self):
+        self.aboutmsg = '''# AVRDUDE
+*AVR Downloader UploaDEr*, Version @CMAKE_PROJECT_VERSION@
+
+Program for downloading and uploading the on-chip memories of
+Microchip’s AVR microcontrollers.
+
+## AVRDUDE GUI
+
+This GUI demonstrates the SWIG_Avrdude Python bindings.
+
+## License
+
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# Authors
+
+This GUI was written by Jörg Wunsch.
+
+@AUTHORS_MD@
+
+'''
 
 def main():
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
