@@ -1633,10 +1633,6 @@ class adgui(QObject):
 <body>
 <h1>Usage instructions</h1>
 
-<h2>Preface</h2>
-
-<p>Keep in mind that this is a GUI demonstrator only.</p>
-
 <h2>GUI layout</h2>
 
 <p>The GUI consists of three major parts: a menu bar to select the
