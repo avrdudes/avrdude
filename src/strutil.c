@@ -626,6 +626,22 @@ const char *str_ccinterval(int a, int b) {
   return ret;
 }
 
+// Dump n bytes (max 16) as hex line with adjacent character field into buffer of size 69
+void str_hexdump16(char *buf, const unsigned char *p, int n) {
+  const char *hexdata = "0123456789abcdef";
+
+  memset(buf, ' ', 67);
+  buf[50] = buf[67] = '|';
+  buf[68] = 0;
+
+  for(int j = 0, i = 0; i < n && i < 16; i++, j += i==8? 4: 3) {
+    int c = p[i];
+    buf[j] = hexdata[(c & 0xf0) >> 4];
+    buf[j + 1] = hexdata[c & 0x0f];
+    buf[51 + i] = isascii(c) && isspace(c)? ' ': isascii(c) && isgraph(c)? c: '.';
+  }
+}
+
 bool is_bigendian() {
   union {
     char a[2];

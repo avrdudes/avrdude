@@ -1233,6 +1233,7 @@ extern "C" {
   int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
   void report_progress(int completed, int total, const char *hdr);
   void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
+  void trace_dump(const char *funstr, const unsigned char *buf, size_t buflen);
   int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int avr_has_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
@@ -1749,6 +1750,7 @@ extern "C" {
   const char *str_infilename(const char *fn);
   const char *str_outname(const char *fn);
   const char *str_outfilename(const char *fn);
+  void str_hexdump16(char *buf69, const unsigned char *p, int n);
   const char *str_ccinterval(int a, int b);
   bool is_bigendian(void);
   void change_endian(void *p, int size);
