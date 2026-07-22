@@ -135,22 +135,6 @@ static const struct command cmd[] = {
 
 #define spi_mode (cx->term_spi_mode)
 
-// Dump n bytes (max 16) as hex line with adjacent character field into buffer of size 69
-static void hexdump16(char *buf, const unsigned char *p, int n) {
-  const char *hexdata = "0123456789abcdef";
-
-  memset(buf, ' ', 67);
-  buf[50] = buf[67] = '|';
-  buf[68] = 0;
-
-  for(int j = 0, i = 0; i < n && i < 16; i++, j += i==8? 2: 1) {
-    unsigned char c = p[i];
-    buf[j++] = hexdata[(c & 0xf0) >> 4];
-    buf[j++] = hexdata[c & 0x0f];
-    buf[51 + i] = isascii(c) && isspace(c)? ' ': isascii(c) && isgraph(c)? c: '.';
-  }
-}
-
 static int hexdump_buf(const AVRMEM *m, int startaddr, const unsigned char *buf, int len) {
   char dst[80];
 
@@ -165,7 +149,7 @@ static int hexdump_buf(const AVRMEM *m, int startaddr, const unsigned char *buf,
     if(addr + n > m->size)
       n = m->size - addr;
 
-    hexdump16(dst, p, n);
+    str_hexdump16(dst, p, n);
     term_out("%0*x  %s\n", m->size > 0x10000? 5: 4, addr, dst);
     len -= n;
     addr += n;

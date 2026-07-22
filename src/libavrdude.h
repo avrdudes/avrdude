@@ -1749,6 +1749,7 @@ extern "C" {
   const char *str_infilename(const char *fn);
   const char *str_outname(const char *fn);
   const char *str_outfilename(const char *fn);
+  void str_hexdump16(char *buf69, const unsigned char *p, int n);
   const char *str_ccinterval(int a, int b);
   bool is_bigendian(void);
   void change_endian(void *p, int size);
