@@ -1869,15 +1869,17 @@ void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen) {
 
 // Output comms buffer like memory dump
 void trace_dump(const char *funstr, const unsigned char *buf, size_t buflen) {
+  char out[72];
+  int nspaces = (int) strlen(funstr) + 2;
+
   pmsg_trace("%s: ", funstr);
   while(buflen) {
-    char out[69];
     size_t len = buflen > 16? 16: buflen;
 
     str_hexdump16(out, buf, len);
     msg_trace("%s\n", out);
     buf += len;
     if(buflen -= len)
-      pmsg_trace("%*s", (int) strlen(funstr)+2, "");
+      pmsg_trace("%*s", nspaces, "");
   }
 }

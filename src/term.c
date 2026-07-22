@@ -136,7 +136,7 @@ static const struct command cmd[] = {
 #define spi_mode (cx->term_spi_mode)
 
 static int hexdump_buf(const AVRMEM *m, int startaddr, const unsigned char *buf, int len) {
-  char dst[80];
+  char dst[72];
 
   int addr = startaddr;
   unsigned char *p = (unsigned char *) buf;

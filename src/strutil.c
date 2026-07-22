@@ -634,10 +634,10 @@ void str_hexdump16(char *buf, const unsigned char *p, int n) {
   buf[50] = buf[67] = '|';
   buf[68] = 0;
 
-  for(int j = 0, i = 0; i < n && i < 16; i++, j += i==8? 2: 1) {
-    unsigned char c = p[i];
-    buf[j++] = hexdata[(c & 0xf0) >> 4];
-    buf[j++] = hexdata[c & 0x0f];
+  for(int j = 0, i = 0; i < n && i < 16; i++, j += i==8? 4: 3) {
+    int c = p[i];
+    buf[j] = hexdata[(c & 0xf0) >> 4];
+    buf[j + 1] = hexdata[c & 0x0f];
     buf[51 + i] = isascii(c) && isspace(c)? ' ': isascii(c) && isgraph(c)? c: '.';
   }
 }
