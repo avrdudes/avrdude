@@ -1093,8 +1093,6 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
   c = resp[0];
   mmt_free(resp);
   if(c != RSP_OK) {
-    my.recently_written = 0;
-    my.prog_enabled = 0;
     /*
      * The JTAG ICE mkII couples leaving progmode with re-attaching the
      * on-chip debug system; on a part with the OCDEN fuse unprogrammed that
@@ -1103,6 +1101,8 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
      * is only an error if the reset fails too.
      */
     if(jtagmkII_reset(pgm, 0x01) >= 0) {
+      my.recently_written = 0;
+      my.prog_enabled = 0;
       pmsg_notice("leave progmode declined by ICE (%s), target reset and running; "
         "this is expected when the OCDEN fuse is unprogrammed\n", jtagmkII_get_rc(pgm, c));
       return 0;
