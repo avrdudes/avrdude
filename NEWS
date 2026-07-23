@@ -27,6 +27,7 @@ Changes since version 8.2:
     - jtagmkII: treat some leave-progmode refusal as benign #2162
     - Fix lookup for automotive ATTiny parts with pickit5 #2158
     - Provide trace_dump() #2167
+    - Fix prog_enabled clearance #2168
 
   * Internals:
 
