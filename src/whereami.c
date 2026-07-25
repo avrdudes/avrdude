@@ -2,6 +2,7 @@
 //   without any warranty.
 //   by Gregory Pakosz (@gpakosz)
 // https://github.com/gpakosz/whereami
+// Modified for AVRDUDE in commits 934027b, 3f91c2e, a4f6cb8, 566dfe5 (https://github.com/avrdudes/avrdude)
 
 // In case you want to #include "whereami.c" in a larger compilation unit
 
