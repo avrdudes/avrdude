@@ -135,56 +135,8 @@ static const struct command cmd[] = {
 
 #define spi_mode (cx->term_spi_mode)
 
-static int hexdump_line(char *buffer, unsigned char *p, int n, int pad) {
-  char *hexdata = "0123456789abcdef";
-  char *b = buffer;
-  int i = 0;
-  int j = 0;
-
-  for(i = 0; i < n; i++) {
-    if(i && ((i%8) == 0))
-      b[j++] = ' ';
-    b[j++] = hexdata[(p[i] & 0xf0) >> 4];
-    b[j++] = hexdata[(p[i] & 0x0f)];
-    if(i < 15)
-      b[j++] = ' ';
-  }
-
-  for(i = j; i < pad; i++)
-    b[i] = ' ';
-
-  b[i] = 0;
-
-  for(i = 0; i < pad; i++) {
-    if(!((b[i] == '0') || (b[i] == ' ')))
-      return 0;
-  }
-
-  return 1;
-}
-
-static int chardump_line(char *buffer, unsigned char *p, int n, int pad) {
-  int i;
-  unsigned char b[128];
-
-  // Sanity check
-  n = n < 1? 1: n > (int) sizeof b? (int) sizeof b: n;
-
-  memcpy(b, p, n);
-  for(int i = 0; i < n; i++)
-    buffer[i] = isascii(b[i]) && isspace(b[i])? ' ': isascii(b[i]) && isgraph(b[i])? b[i]: '.';
-
-  for(i = n; i < pad; i++)
-    buffer[i] = ' ';
-
-  buffer[i] = 0;
-
-  return 0;
-}
-
-static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsigned char *buf, int len) {
-  char dst1[80];
-  char dst2[80];
+static int hexdump_buf(const AVRMEM *m, int startaddr, const unsigned char *buf, int len) {
+  char dst[72];
 
   int addr = startaddr;
   unsigned char *p = (unsigned char *) buf;
@@ -197,9 +149,8 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
     if(addr + n > m->size)
       n = m->size - addr;
 
-    hexdump_line(dst1, p, n, 48);
-    chardump_line(dst2, p, n, 16);
-    term_out("%0*x  %s  |%s|\n", m->size > 0x10000? 5: 4, addr, dst1, dst2);
+    str_hexdump16(dst, p, n);
+    term_out("%0*x  %s\n", m->size > 0x10000? 5: 4, addr, dst);
     len -= n;
     addr += n;
     if(addr >= m->size)
@@ -499,7 +450,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   if(!buf)
     return -1;
 
-  hexdump_buf(stdout, mem, addr, buf, len);
+  hexdump_buf(mem, addr, buf, len);
   lterm_out("");
   mmt_free(buf);
 

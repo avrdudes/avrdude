@@ -2,6 +2,7 @@
 //   without any warranty.
 //   by Gregory Pakosz (@gpakosz)
 // https://github.com/gpakosz/whereami
+// Modified for AVRDUDE in commits dcfb6a8, 2cd6209 (https://github.com/avrdudes/avrdude)
 
 #ifndef WHEREAMI_H
 #define WHEREAMI_H

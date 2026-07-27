@@ -16,16 +16,18 @@ Changes since version 8.2:
   * Issues fixed:
 
     - GUI does not cope with new AVR-LA parts #2148
-    - GUI should detect darkmode #2154
+    - GUI should detect dark mode #2154
     - GUI puts fusea in odd position #2149
 
   * Pull requests:
 
     - Fix GUI for AVR LA #2155
     - Fix dark mode #2156
-    - Fix issue #2149#2157
-    - jtagmkII: treat leave-progmode refusal as benign when target
-      reset succeeds #2162
+    - Put GUI memories in right order #2157
+    - jtagmkII: treat some leave-progmode refusal as benign #2162
+    - Fix lookup for automotive ATTiny parts with pickit5 #2158
+    - Provide trace_dump() #2167
+    - Fix prog_enabled clearance #2168
 
   * Internals:
 

@@ -413,7 +413,7 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     pmsg_error("invalid extended parameter: %s\n", extended_param);
-    rv = -1;
+    rv = LIBAVRDUDE_GENERAL_FAILURE;
   }
   return rv;
 }
@@ -985,7 +985,13 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     rc = get_pickit_jtag_script(&(my.scripts), p->desc);
     default_baud = 500000;
   } else if(both_updi(pgm, p)) {
-    rc = get_pickit_updi_script(&(my.scripts), p->desc);
+    char *p_desc = mmt_strdup(p->desc);
+    if(str_caseends(p_desc, "auto")) { // Remove trailing auto
+      p_desc[strlen(p_desc) - 4] = 0;
+      pmsg_debug("trying to match scripts to %s instead of %s\n", p_desc, p->desc);
+    }
+    rc = get_pickit_updi_script(&my.scripts, p_desc);
+    mmt_free(p_desc);
     default_baud = 200000;
   } else if(both_tpi(pgm, p)) {
     rc = get_pickit_tpi_script(&(my.scripts), p->desc);
@@ -997,11 +1003,11 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(rc == -1) {
     pmsg_error("no matching prog_mode found, aborting\n");
-    return -1;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
   if(rc == -2) {
     pmsg_error("failed to match scripts to %s, aborting\n", p->desc);
-    return -1;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
   pmsg_debug("found scripts at namepos %d", rc);
 
@@ -1016,7 +1022,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(my.pk_op_mode < PK_OP_RESPONDS) {
     if(pickit5_get_fw_info(pgm) < 0) // PK responds: we can try to enable voltage
-      return -1;
+      return LIBAVRDUDE_EXIT_FAIL;
     my.pk_op_mode = PK_OP_RESPONDS;
   }
 
@@ -1038,15 +1044,15 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         if(both_xmegajtag(pgm, p) || both_pdi(pgm, p)) {
           if(my.target_voltage > 3.49) {
             pmsg_error("xMega part selected but requested voltage is over 3.49V, aborting");
-            return -1;
+            return LIBAVRDUDE_NOTSUPPORTED;
           }
         }
 
         if(pickit5_set_vtarget(pgm, my.target_voltage) < 0)
-          return -1;            // Set requested voltage
+          return LIBAVRDUDE_EXIT_FAIL;            // Set requested voltage
 
         if(pickit5_get_vtarget(pgm, &v_target) < 0)
-          return -1;            // Verify voltage
+          return LIBAVRDUDE_EXIT_FAIL;            // Verify voltage
 
         // Make sure the voltage is in our requested range. Due to voltage drop on
         // the LDO and on USB itself, the lower limit is capped at 4.4V
@@ -1056,11 +1062,11 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
           lower_limit = 4.4;
         if((v_target < lower_limit) || (v_target > upper_limit)) {
           pmsg_error("target voltage (%1.2fV) is outside of allowed range, aborting\n", v_target);
-          return -1;
+          return LIBAVRDUDE_NOTSUPPORTED;
         }
       } else {
         pmsg_error("no external voltage detected, aborting; overwrite this check with -x vtarg=0\n");
-        return -1;
+        return LIBAVRDUDE_EXIT_FAIL;
       }
     } else {
       my.power_source = POWER_SOURCE_EXT; // Overwrite user input
@@ -1090,18 +1096,18 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pickit5_set_sck_period(pgm, 1.0 / my.actual_pgm_clk);
   if(pickit5_program_enable(pgm, p) < 0) {
     pmsg_error("failed to enable programming mode\n");
-    return -1;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
   if(pickit5_read_dev_id(pgm, p) < 0) {
     pmsg_error("failed to obtain device ID\n");
-    return -1;
+    return LIBAVRDUDE_EXIT_FAIL;
   }
 
-  return 0;
+  return LIBAVRDUDE_SUCCESS;
 }
 
 static int pickit5_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
-  return -2;
+  return LIBAVRDUDE_NOTSUPPORTED;
 }
 
 static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
@@ -1135,7 +1141,7 @@ static int pickit5_program_disable(const PROGRAMMER *pgm, const AVRPART *p) {
   if(my.pk_op_mode == PK_OP_READY) {
     return pickit5_send_script_cmd(pgm, exit_prog, exit_prog_len, NULL, 0);
   }
-  return 0;
+  return LIBAVRDUDE_SUCCESS;
 }
 
 static int pickit5_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
