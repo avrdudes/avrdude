@@ -194,6 +194,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
   PROGRAMMER *pgm = pgm_new();
 
   if(src) {
+    // First free memory allocated by pgm_new()
     ldestroy_cb(pgm->id, mmt_f_free);
     ldestroy_cb(pgm->usbpid, mmt_f_free);
     ldestroy_cb(pgm->hvupdi_support, mmt_f_free);
