@@ -134,6 +134,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->desc = nulp;
   pgm->ptyp = "not set";
   pgm->parent_id = nulp;
+  pgm->default_port = nulp;
   pgm->usbdev = nulp;
   pgm->usbsn = nulp;
   pgm->usbvendor = nulp;
