@@ -2326,8 +2326,8 @@ is supported.
 Chip Select must be externally held low for direct SPI when
 using USBtinyISP, and send must be a multiple of four bytes.
 .Pp
-The avrftdi driver allows one to select specific devices using any combination of vid,pid
-serial number (usbsn) vendor description (usbvendoror part description (usbproduct)
+The avrftdi driver allows one to select specific devices using any combination of vid,pid;
+serial number (usbsn); vendor description (usbvendor) or part description (usbproduct)
 as seen with lsusb or whatever tool used to view USB device information. Multiple
 devices can be on the bus at the same time. For the H parts, which have multiple MPSSE
 interfaces, the interface can also be selected.  It defaults to interface 'A'.
