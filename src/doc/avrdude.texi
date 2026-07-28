@@ -3823,6 +3823,25 @@ If a parent is specified, all settings of it (except its ids) are used for the n
 programmer. These values can be changed by new setting them for the new programmer.
 
 @noindent
+Programmer definitions can be modified using the following syntax
+@smallexample
+modify programmer <id>
+    # Any property as above, for example
+    baudrate = <num>;                        # baudrate for the programmer
+    usbsn    = <serialno>;                   # USB Serial Number
+;
+@end smallexample
+
+@noindent
+The @code{modify} keyword makes most sense in the per-user configuration
+file, where users may want to add specific properties of their programmer
+such as its USB serial number. This technique should not be used for the
+main @code{avrdude.conf} file, as the developer option @code{-c
+<programmer>/S} that prints the programmer definition as AVRDUDE
+understands it will only consider the final definition; it will not print
+@code{modify} statements.
+
+@noindent
 @strong{Notes}
 
 @enumerate
@@ -4091,6 +4110,23 @@ AVRDUDE will complain. Almost all occurrences of numbers (with the
 exception of pin numbers and where they are separated by space, e.g., in
 signature and readback) can also be given as simple expressions involving
 arithemtic and bitwise operators.
+
+@noindent
+Part definitions can be modified using the following syntax
+@smallexample
+modify part <id>
+    # Any part property as above, for example
+    chip_erase_delay = <num>;                 # microseconds
+;
+@end smallexample
+
+@noindent
+The @code{modify} keyword makes most sense in the per-user configuration
+file, where users may want to modify specific properties of a part for
+debugging. This technique should not be used within the main
+@code{avrdude.conf} file, as the developer option @code{-p <part>/S} that
+prints the part definition as AVRDUDE understands it will only consider
+the final definition; it will not print @code{modify} statements.
 
 @menu
 * Parent Part::
