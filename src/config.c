@@ -504,6 +504,31 @@ COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
   return NULL;
 }
 
+// Modify part/programmer comments pointed to by commentsp using comments mods, and free mods if needed
+void modify_comments(LISTID *commentsp, LISTID mods) {
+  if(!*commentsp) {
+    *commentsp = mods;
+  } else if(mods) {
+    for(LNODEID ln = lfirst(mods); ln; ln = lnext(ln)) {
+      COMMENT *cpm = ldata(ln);
+      if(cpm) {
+        COMMENT *cpc = locate_comment(*commentsp, cpm->kw, cpm->rhs);
+        if(!cpc) {
+          ladd(*commentsp, cpm);
+        } else if(!str_eq(cpm->kw, "*") || !cpc->comms) { // Overwrite existing comment strings
+          if(cpc->comms)
+            ldestroy_cb(cpc->comms, mmt_f_free);
+          cpc->comms = cpm->comms;
+        } else if(cpm->comms) {    // Add comment-strings to existing list
+          for(LNODEID ls = lfirst(cpm->comms); ls; ls = lnext(ls))
+            ladd(cpc->comms, (char *) ldata(ls));
+        }
+      }
+    }
+    ldestroy(mods);
+  }
+}
+
 static void addcomment(int rhs) {
   if(cx->cfg_lkw) {
     COMMENT *node = mmt_malloc(sizeof(*node));
