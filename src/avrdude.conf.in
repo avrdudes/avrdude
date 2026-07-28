@@ -28,7 +28,8 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       is_serialadapter = <yes|no>               # programmer is also a serialadapter
 #       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER (2)
 #       connection_type = parallel | serial | usb | spi
-#       baudrate = <num> ;                        # baudrate for avr910-programmer
+#       default_port = <port>                     # default port, quoted string
+#       baudrate = <num> ;                        # baudrate for the programmer
 #       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s) (3)
 #       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
 #       reset    = <pin> ;                        # pin number
@@ -46,9 +47,9 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       usbvid   = <hexnum> ;                     # USB vendor ID
 #       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB product ID (4)
 #       usbdev   = <interface> ;                  # USB interface or other device info
-#       usbvendor = <vendorname> ;                # USB Vendor Name
-#       usbproduct = <productname> ;              # USB Product Name
-#       usbsn    = <serialno> ;                   # USB Serial Number
+#       usbvendor = <vendorname> ;                # USB vendor name
+#       usbproduct = <productname> ;              # USB product name
+#       usbsn    = <serialno> ;                   # USB serial number
 #       hvupdi_support = <num> [, <num>, ... ] ;  # HV support for enabling UPDI
 #   ;
 #
@@ -97,7 +98,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       baudrate = <num> ;                        # optional default baudrate, eg, in .avrduderc
 #       usbvid   = <hexnum> ;                     # USB vendor ID
 #       usbpid   = <hexnum> [, <hexnum> ...] ;    # list of USB product IDs
-#       usbsn    = <serialno> ;                   # USB Serial Number in per-user .avrduderc
+#       usbsn    = <serialno> ;                   # USB serial number in per-user .avrduderc
 #   ;
 #
 #   part
