@@ -94,6 +94,7 @@ static int parse_cmdbits(OPCODE *op, int opnum);
 %token K_LOADPAGE
 %token K_SDI
 %token K_SDO
+%token K_MODIFY
 %token K_PARALLEL
 %token K_PARENT
 %token K_PART
@@ -259,7 +260,7 @@ prog_def :
     {
       PROGRAMMER *existing_prog;
       if(lsize(current_prog->id) == 0) {
-        yyerror("required parameter id not specified");
+        yyerror("required programmer parameter id not specified");
         YYABORT;
       }
       if(current_prog->initpgm == NULL && current_prog->prog_modes) {
@@ -288,6 +289,11 @@ prog_def :
       current_prog = NULL;
       current_strct = COMP_CONFIG_MAIN;
     }
+  | prog_modify prog_parms {
+    modify_comments(&current_prog->comments, cfg_move_comments());
+    current_prog = NULL;
+    current_strct = COMP_CONFIG_MAIN;
+  }
 ;
 
 
@@ -315,6 +321,17 @@ prog_decl :
     }
 ;
 
+prog_modify:
+  K_MODIFY K_PROGRAMMER TKN_STRING {
+    current_prog = locate_programmer(programmers, $3->value.string);
+    if(!current_prog) {
+      yyerror("to be modified programmer %s not found", $3->value.string);
+      free_token($3);
+      YYABORT;
+    }
+    free_token($3);
+  }
+;
 
 part_def :
   part_decl part_parms
@@ -324,7 +341,7 @@ part_def :
       AVRPART *existing_part;
 
       if(current_part->id[0] == 0) {
-        yyerror("required parameter id not specified");
+        yyerror("required part parameter id not specified");
         YYABORT;
       }
 
@@ -400,6 +417,11 @@ part_def :
       current_part = NULL;
       current_strct = COMP_CONFIG_MAIN;
     }
+  | part_modify part_parms {
+    modify_comments(&current_part->comments, cfg_move_comments());
+    current_part = NULL;
+    current_strct = COMP_CONFIG_MAIN;
+  }
 ;
 
 part_decl :
@@ -426,6 +448,18 @@ part_decl :
 
       free_token($3);
     }
+;
+
+part_modify:
+  K_MODIFY K_PART TKN_STRING {
+    current_part = locate_part(part_list, $3->value.string);
+    if(!current_part) {
+      yyerror("to be modified part %s not found", $3->value.string);
+      free_token($3);
+      YYABORT;
+    }
+    free_token($3);
+  }
 ;
 
 string_list :

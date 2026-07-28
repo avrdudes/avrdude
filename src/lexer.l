@@ -207,6 +207,7 @@ load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); ccap(); return K_LOAD_EXT_
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); ccap(); return K_LOADPAGE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); ccap(); return K_LOADPAGE_LO; }
 memory           { yylval=NULL; ccap(); current_strct = COMP_AVRMEM; return K_MEMORY; }
+modify           { yylval=NULL; return K_MODIFY; }
 NULL             { yylval=NULL; return K_NULL; }
 page_size        { yylval=NULL; ccap(); return K_PAGE_SIZE; }
 parallel         { yylval=NULL; ccap(); return K_PARALLEL; }
