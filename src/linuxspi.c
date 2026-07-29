@@ -144,48 +144,43 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 }
 
 static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
-  const char *port_error = "unknown port specification, "
-    "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
-  char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
-  char *spidev, *gpiochip, *reset_pin;
-  char *port = mmt_strdup(pt);
+  const char * const port_error_fmt =
+    "port %s is not of format /dev/spidev<n.m>:/dev/gpiochip<k>[:<resetno>]\n";
+  char *port = mmt_strdup(str_eq(pt, "unknown")? "/dev/spidev0.0:/dev/gpiochip0": pt);
   struct gpiohandle_request req;
-  int ret;
+  int ret = -1;
 
-  if(str_eq(port, "unknown"))
-    port = port_default;
-
-  spidev = strtok(port, ":");
+  char *spidev = strtok(port, ":");
   if(!spidev) {
-    pmsg_error("%s", port_error);
-    return -1;
+    pmsg_error(port_error_fmt, pt);
+    goto ret_error;
   }
 
-  gpiochip = strtok(NULL, ":");
+  char *gpiochip = strtok(NULL, ":");
   if(!gpiochip) {
-    pmsg_error("%s", port_error);
-    return -1;
+    pmsg_error(port_error_fmt, pt);
+    goto ret_error;
   }
 
   // Optional: override reset pin in configuration
-  reset_pin = strtok(NULL, ":");
+  char *reset_pin = strtok(NULL, ":");
   if(reset_pin) {
     const char *errstr;
 
     pgm->pinno[PIN_AVR_RESET] = str_int(reset_pin, STR_UINT32, &errstr);
     if(errstr) {
       pmsg_error("pin number %s: %s", reset_pin, errstr);
-      return -1;
+      goto ret_error;
     }
   }
 
   pmsg_notice("opening %s:%s:%d\n", spidev, gpiochip, pgm->pinno[PIN_AVR_RESET] & PIN_MASK);
 
-  pgm->chosen_port = port;
-  my.fd_spidev = open(pgm->chosen_port, O_RDWR);
+  pgm->chosen_port = cache_string(spidev);
+  my.fd_spidev = open(spidev, O_RDWR);
   if(my.fd_spidev < 0) {
-    pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->chosen_port, strerror(errno));
-    return -1;
+    pmsg_ext_error("unable to open the spidev device %s: %s\n", spidev, strerror(errno));
+    goto ret_error;
   }
 
   uint32_t mode = SPI_MODE_0;
@@ -260,9 +255,10 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
   }
   if(pgm->bitclock == 0) {
     pmsg_notice("defaulting bit clock to 200 kHz\n");
-    pgm->bitclock = 5E-6;       // 200 kHz - 5 µs
+    pgm->bitclock = 5E-6;       // 200 kHz or 5 µs
   }
 
+  mmt_free(port);
   return 0;
 
 close_out:
@@ -271,6 +267,8 @@ close_gpiochip:
   close(my.fd_gpiochip);
 close_spidev:
   close(my.fd_spidev);
+ret_error:
+  mmt_free(port);
   return ret;
 }
 
