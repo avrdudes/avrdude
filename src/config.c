@@ -60,6 +60,7 @@ char *cfg_infile;
 
 extern char *yytext;
 
+#define pgm_comp_name_desc(n, x, type)  { n, COMP_PROGRAMMER, offsetof(PROGRAMMER, x), sizeof(((PROGRAMMER *) NULL)->x), type }
 #define pgm_comp_desc(x, type)  { #x, COMP_PROGRAMMER, offsetof(PROGRAMMER, x), sizeof(((PROGRAMMER *) NULL)->x), type }
 #define part_comp_desc(x, type) { #x, COMP_AVRPART, offsetof(AVRPART, x), sizeof(((AVRPART *) NULL)->x), type }
 #define mem_comp_desc(x, type)  { #x, COMP_AVRMEM, offsetof(AVRMEM, x), sizeof(((AVRMEM *) NULL)->x), type }
@@ -71,7 +72,7 @@ Component avr_comp[] = {
   pgm_comp_desc(prog_modes, COMP_INT),
   pgm_comp_desc(is_serialadapter, COMP_INT),
   pgm_comp_desc(extra_features, COMP_INT),
-  pgm_comp_desc(default_port, COMP_STRING),
+  pgm_comp_name_desc("port", default_port, COMP_STRING),
   pgm_comp_desc(baudrate, COMP_INT),
   pgm_comp_desc(usbvid, COMP_INT),
   pgm_comp_desc(usbdev, COMP_STRING),

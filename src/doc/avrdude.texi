@@ -3793,7 +3793,7 @@ programmer
     is_serialadapter = <yes|no>              # programmer is also a serialadapter
     extra_features = HAS_<fea> @{| HAS_<fea>@}  # extra features, e.g., HAS_SUFFER (2)
     connection_type = parallel | serial | usb | spi
-    default_port = <port>                    # default port, quoted string
+    port     = <port>                        # default port, quoted string
     baudrate = <num>;                        # baudrate for the programmer
     vcc      = <pin1> [, <pin2> ... ];       # pin number(s) (3)
     buff     = <pin1> [, <pin2> ... ];       # pin number(s)
@@ -3828,7 +3828,7 @@ Programmer definitions can be modified using the following syntax
 @smallexample
 modify programmer <id>
     # Any property as above, for example
-    default_port = <port>                    # default port, quoted string
+    port     = <port>                        # default port, quoted string
     usbsn    = <serialno>;                   # USB serial number
 ;
 @end smallexample

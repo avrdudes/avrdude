@@ -1025,7 +1025,7 @@ typedef struct programmer {
   int extra_features;
   struct pindef pin[N_PINS];
   Conntype conntype;
-  const char *default_port;
+  const char *default_port;     // Programmer config's port = "xyz";
   int baudrate;
   int usbvid;
   LISTID usbpid;

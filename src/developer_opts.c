@@ -1393,7 +1393,8 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(intcmp, mmt_strdup(extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
-  _if_pgmout_str(strcmp, cfg_escape(pgm->default_port), default_port);
+  if(!base || !str_eq(base->default_port, pgm->default_port)) \
+    _pgmout_fmt("port", "%s", cfg_escape(pgm->default_port));
   _if_pgmout(intcmp, "%d", baudrate);
 
   _if_pgmout(intcmp, "0x%04x", usbvid);
