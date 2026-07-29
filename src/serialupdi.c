@@ -61,7 +61,7 @@ static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock)
     pmsg_warning("-c %s sets its UPDI speed using -b baudrate; ignoring -B\n", pgmid);
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   return updi_link_open(pgm);
 }
 

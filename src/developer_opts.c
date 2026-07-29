@@ -1272,7 +1272,7 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
   dp.usbvendor = NULL;
   dp.usbproduct = NULL;
   dp.hvupdi_support = NULL;
-  dp.port = NULL;
+  dp.chosen_port = NULL;
 
   // Only dump contents of PROGRAMMER struct up to and excluding the fd component
   dev_raw_dump((char *) &dp, offsetof(PROGRAMMER, fd), id, "pgm", 0);

@@ -851,7 +851,7 @@ static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
 static int stk500_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   int rc;

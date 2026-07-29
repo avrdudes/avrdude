@@ -513,7 +513,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
 
   pmsg_notice2("jtagmkI_open()\n");
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   my.initial_baudrate = -1L;
 
   for(i = 0; i < sizeof(baudtab)/sizeof(baudtab[0]); i++) {

@@ -1691,7 +1691,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
     pgm->fd.usb.eep = 0;
 
-    pgm->port = port;
+    pgm->chosen_port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
     if(rv == LIBAVRDUDE_EXIT_FAIL || rv == LIBAVRDUDE_EXIT_OK)
       return rv;
@@ -1709,7 +1709,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
       pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
       pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
 
-      pgm->port = port;
+      pgm->chosen_port = port;
       rv = serial_open(port, pinfo, &pgm->fd);
       if(rv == LIBAVRDUDE_EXIT_FAIL || rv == LIBAVRDUDE_EXIT_OK)
         return rv;

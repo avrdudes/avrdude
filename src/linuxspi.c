@@ -181,10 +181,10 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 
   pmsg_notice("opening %s:%s:%d\n", spidev, gpiochip, pgm->pinno[PIN_AVR_RESET] & PIN_MASK);
 
-  pgm->port = port;
-  my.fd_spidev = open(pgm->port, O_RDWR);
+  pgm->chosen_port = port;
+  my.fd_spidev = open(pgm->chosen_port, O_RDWR);
   if(my.fd_spidev < 0) {
-    pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->port, strerror(errno));
+    pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->chosen_port, strerror(errno));
     return -1;
   }
 

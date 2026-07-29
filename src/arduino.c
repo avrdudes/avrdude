@@ -115,7 +115,7 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->bitclock)
     pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   union pinfo pinfo;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;

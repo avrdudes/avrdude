@@ -1420,7 +1420,7 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
 
   union pinfo pinfo;
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   pinfo.serialinfo.baud = pgm->baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
 
