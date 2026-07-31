@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1783,4 +1784,46 @@ char *str_sysconfig(void) {
 #else
   return mmt_realpath(CONFIG_DIR "/" SYSTEM_CONF_FILE);
 #endif
+}
+
+#if !defined(WIN32)
+// Safely concatenate dir/file into dst that has size n
+static char *concatpath(char *dst, char *dir, char *file, size_t n) {
+  // Dir or file empty?
+  if(!dir || !*dir || !file || !*file)
+    return NULL;
+
+  size_t len = strlen(dir);
+
+  // Insufficient space?
+  if(len + (dir[len - 1] != '/') + strlen(file) > n - 1)
+    return NULL;
+
+  if(dst != dir)
+    strcpy(dst, dir);
+
+  if(dst[len - 1] != '/')
+    strcat(dst, "/");
+
+  strcat(dst, file);
+
+  return dst;
+}
+#endif
+
+// Return mmt_malloc'd location of personal configuration file
+char *str_usrconfig(void) {
+  char config[PATH_MAX] = { 0 };
+  struct stat sb;
+
+#if defined(WIN32)
+  win_set_path(config, sizeof config, USER_CONF_FILE);
+#else
+  if(!concatpath(config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof config))
+    concatpath(config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof config);
+  if(stat(config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(config, getenv("HOME"), USER_CONF_FILE, sizeof config);
+#endif
+
+  return mmt_realpath(config);
 }

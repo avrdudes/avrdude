@@ -1783,6 +1783,7 @@ extern "C" {
   int pgmid_is(const char *str);
   char *mmt_realpath(const char *);
   char *str_sysconfig(void);
+  char *str_usrconfig(void);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
