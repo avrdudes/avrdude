@@ -18,6 +18,7 @@ Changes since version 8.2:
     - GUI does not cope with new AVR-LA parts #2148
     - GUI should detect dark mode #2154
     - GUI puts fusea in odd position #2149
+    - Add port in the config file for programmers #2170
 
   * Pull requests:
 
@@ -28,6 +29,7 @@ Changes since version 8.2:
     - Fix lookup for automotive ATTiny parts with pickit5 #2158
     - Provide trace_dump() #2167
     - Fix prog_enabled clearance #2168
+    - Provide port and modify configuration syntax #2171
 
   * Internals:
 
