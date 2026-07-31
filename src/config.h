@@ -133,6 +133,8 @@ extern "C" {
 
   COMMENT *locate_comment(const LISTID comments, const char *where, int rhs);
 
+  void modify_comments(LISTID *commentsp, LISTID mods);
+
   void cfg_capture_prologue(void);
 
   LISTID cfg_get_prologue(void);

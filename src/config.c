@@ -60,6 +60,7 @@ char *cfg_infile;
 
 extern char *yytext;
 
+#define pgm_comp_name_desc(n, x, type)  { n, COMP_PROGRAMMER, offsetof(PROGRAMMER, x), sizeof(((PROGRAMMER *) NULL)->x), type }
 #define pgm_comp_desc(x, type)  { #x, COMP_PROGRAMMER, offsetof(PROGRAMMER, x), sizeof(((PROGRAMMER *) NULL)->x), type }
 #define part_comp_desc(x, type) { #x, COMP_AVRPART, offsetof(AVRPART, x), sizeof(((AVRPART *) NULL)->x), type }
 #define mem_comp_desc(x, type)  { #x, COMP_AVRMEM, offsetof(AVRMEM, x), sizeof(((AVRMEM *) NULL)->x), type }
@@ -71,6 +72,7 @@ Component avr_comp[] = {
   pgm_comp_desc(prog_modes, COMP_INT),
   pgm_comp_desc(is_serialadapter, COMP_INT),
   pgm_comp_desc(extra_features, COMP_INT),
+  pgm_comp_name_desc("port", default_port, COMP_STRING),
   pgm_comp_desc(baudrate, COMP_INT),
   pgm_comp_desc(usbvid, COMP_INT),
   pgm_comp_desc(usbdev, COMP_STRING),
@@ -502,6 +504,31 @@ COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
     }
 
   return NULL;
+}
+
+// Modify part/programmer comments pointed to by commentsp using comments mods, and free mods if needed
+void modify_comments(LISTID *commentsp, LISTID mods) {
+  if(!*commentsp) {
+    *commentsp = mods;
+  } else if(mods) {
+    for(LNODEID ln = lfirst(mods); ln; ln = lnext(ln)) {
+      COMMENT *cpm = ldata(ln);
+      if(cpm) {
+        COMMENT *cpc = locate_comment(*commentsp, cpm->kw, cpm->rhs);
+        if(!cpc) {
+          ladd(*commentsp, cpm);
+        } else if(!str_eq(cpm->kw, "*") || !cpc->comms) { // Overwrite existing comment strings
+          if(cpc->comms)
+            ldestroy_cb(cpc->comms, mmt_f_free);
+          cpc->comms = cpm->comms;
+        } else if(cpm->comms) {    // Add comment-strings to existing list
+          for(LNODEID ls = lfirst(cpm->comms); ls; ls = lnext(ls))
+            ladd(cpc->comms, (char *) ldata(ls));
+        }
+      }
+    }
+    ldestroy(mods);
+  }
 }
 
 static void addcomment(int rhs) {

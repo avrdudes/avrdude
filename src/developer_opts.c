@@ -1248,6 +1248,8 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
   if(dp.desc)
     dev_raw_dump(dp.desc, strlen(dp.desc) + 1, id, "desc", 0);
   // Dump cache_string values
+  if(dp.default_port && *dp.default_port)
+    dev_raw_dump(dp.default_port, strlen(dp.default_port) + 1, id, "default_port", 0);
   if(dp.usbdev && *dp.usbdev)
     dev_raw_dump(dp.usbdev, strlen(dp.usbdev) + 1, id, "usbdev", 0);
   if(dp.usbsn && *dp.usbsn)
@@ -1264,12 +1266,13 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
   dp.parent_id = NULL;
   dp.initpgm = NULL;
   dp.usbpid = NULL;
+  dp.default_port = NULL;
   dp.usbdev = NULL;
   dp.usbsn = NULL;
   dp.usbvendor = NULL;
   dp.usbproduct = NULL;
   dp.hvupdi_support = NULL;
-  dp.port = NULL;
+  dp.chosen_port = NULL;
 
   // Only dump contents of PROGRAMMER struct up to and excluding the fd component
   dev_raw_dump((char *) &dp, offsetof(PROGRAMMER, fd), id, "pgm", 0);
@@ -1390,6 +1393,8 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(intcmp, mmt_strdup(extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
+  if(!base || !str_eq(base->default_port, pgm->default_port)) \
+    _pgmout_fmt("port", "%s", cfg_escape(pgm->default_port));
   _if_pgmout(intcmp, "%d", baudrate);
 
   _if_pgmout(intcmp, "0x%04x", usbvid);

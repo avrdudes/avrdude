@@ -325,7 +325,7 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
     pmsg_warning("-c %s does not support adjustable bitclock speed; ignoring -B\n", pgmid);
 
   union pinfo pinfo;
-  pgm->port = port;
+  pgm->chosen_port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 19200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   int rc;

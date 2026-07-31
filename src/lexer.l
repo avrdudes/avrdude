@@ -146,7 +146,8 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
      }
 
 
-(?x: desc | prog_modes | is_serialadapter | extra_features | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
+(?x: desc | prog_modes | is_serialadapter | extra_features | port | baudrate |
+  usbvid | usbdev | usbsn | usbvendor | usbproduct |
   family_id | mcuid | archnum | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
   hvupdi_variant | stk500_devcode | avr910_devcode | chip_erase_delay | pagel | bs2 |
   timeout | stabdelay | cmdexedelay | synchloops | bytedelay | pollindex | pollvalue | predelay | postdelay | pollmethod |
@@ -207,6 +208,7 @@ load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); ccap(); return K_LOAD_EXT_
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); ccap(); return K_LOADPAGE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); ccap(); return K_LOADPAGE_LO; }
 memory           { yylval=NULL; ccap(); current_strct = COMP_AVRMEM; return K_MEMORY; }
+modify           { yylval=NULL; return K_MODIFY; }
 NULL             { yylval=NULL; return K_NULL; }
 page_size        { yylval=NULL; ccap(); return K_PAGE_SIZE; }
 parallel         { yylval=NULL; ccap(); return K_PARALLEL; }

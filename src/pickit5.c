@@ -681,7 +681,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;  // Command read
     pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP; // Command write
     pgm->fd.usb.eep = 0x00;
-    pgm->port = port;
+    pgm->chosen_port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
   } else {                      // Otherwise walk the list of config file PIDs
     for(usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
@@ -690,7 +690,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;  // Command read
       pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP; // Command write
       pgm->fd.usb.eep = 0x00;
-      pgm->port = port;
+      pgm->chosen_port = port;
       rv = serial_open(port, pinfo, &pgm->fd);
     }
   }

@@ -1338,6 +1338,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if(port == NULL && *pgm->default_port)
+    port = mmt_strdup(pgm->default_port);
+
   if(port == NULL) {
     switch(pgm->conntype) {
     case CONNTYPE_PARALLEL:

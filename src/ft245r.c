@@ -820,7 +820,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     return rv;
   }
 
-  pgm->port = port;
+  pgm->chosen_port = port;
 
   // Read device string cut after 8 chars (max. length of serial number)
   if(!str_casestarts(port, "usb:") || sscanf(port+4, "%8s", device) != 1) {

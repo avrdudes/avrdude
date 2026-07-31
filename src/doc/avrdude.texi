@@ -234,9 +234,9 @@ A typical programming cable would then look like:
 @item @tab @code{25}     @tab @code{6}   @tab @code{GND}
 @end multitable
 
-The @code{-P @var{port}} option defaults to
-@code{/dev/spidev0.0:/dev/gpiochip0} for this programmer. And, mind the
-3.3@w{ }V voltage level of the Raspberry Pi!
+The @code{-P @var{port}} option for this programmer typically has the
+format @code{/dev/spidev0.0:/dev/gpiochip0}. And, mind the 3.3@w{ }V
+voltage level of the Raspberry Pi!
 
 @cindex Atmel STK500
 @cindex Atmel JTAG ICE mkI
@@ -513,6 +513,7 @@ following options are recognized:
 @cindex Option @code{--part} @var{partname}
 @cindex @code{-p} @var{partname}
 @cindex @code{--part} @var{partname}
+@cindex Part specification
 This option tells AVRDUDE what part (MCU) is connected to the programmer.
 The @var{partname} parameter is the part's id listed in the configuration
 file. To see a list of currently supported MCUs use @code{?} as partname,
@@ -593,6 +594,7 @@ the computer.
 @cindex Option @code{--programmer} @var{programmer-id}
 @cindex @code{-c} @var{programmer-id}
 @cindex @code{--programmer} @var{programmer-id}
+@cindex Programmer specification
 Specify the programmer to be used.  AVRDUDE knows about quite a few
 programmers. The @var{programmer-id} parameter is the programmer's id
 listed in the configuration file.  Specify @code{-c ?} to list all
@@ -826,27 +828,31 @@ Note that the result will be stored in the EEPROM cell at address 0.
 @cindex Option @code{--port} @var{port}
 @cindex @code{-P} @var{port}
 @cindex @code{--port} @var{port}
+@cindex Port specification
+
 Use @var{port} to identify the connection through which the programmer is
 attached. This can be a serial, spi, linuxgpio or, on a Linux or BSD
-system, parallel connection. The programmer normally specifies the
-connection type; in absence of a @code{-P} specification, system-dependent
-default values @code{default_serial}, @code{default_spi},
-@code{default_linuxgpio} or @code{default_parallel} from the configuration
-file are used. If you need to use a different port, use this option to
-specify the alternate port name.
+system, parallel connection. The programmer configuration normally only
+ever specifies the connection type but an optional port entry can be added
+in the per-user configuration file @code{.avrduderc}, which is then used
+in absence of @code{-P}. If the programmer configuration does not specify
+the @var{port}, system-dependent default values @code{default_serial},
+@code{default_spi}, @code{default_linuxgpio} or @code{default_parallel}
+from the configuration file are used. These, too, can be overwritten in
+the per-user configuration file.
 
-USB-only programmers normally do not need the port option be specified as
-they are automatically identified via their vendor and product IDs from
+USB-only programmers normally do not need a @var{port} name as they are
+automatically identified via their vendor and product IDs from
 @code{avrdude.conf} or @code{.avrduderc}. Only when there are multiple
-programmers of the same type plugged into the host computer is the
-@code{-P} option needed, see below. Some @code{-c} programmers, e.g.,
-pickit5, ignore the @code{-P} option altogether; these cannot distinguish
-multiple plugged-in programmers.
+programmers of the same type plugged in is the programmer's port
+configuration or the @code{-P} option needed, see below. Some @code{-c}
+programmers, e.g., pickit2, ignore the @code{-P} option altogether; these
+cannot distinguish multiple plugged-in programmers.
 
-Most USB programmers, however, support the command-line syntax  @code{-P
-usb[:@var{vid}:@var{pid}][:@var{serialno}]} which allows the user to
-override the vendor and product IDs with hexadecimal numbers @var{vid} and
-@var{pid} and/or request a match of the desired device's serial number
+Most USB programmers, however, support the port name syntax
+@code{usb[:@var{vid}:@var{pid}][:@var{serialno}]}, which allows the user
+to override the vendor and product IDs with hexadecimal numbers @var{vid}
+and @var{pid} and/or request a match of the desired device serial number
 with @var{serialno}. The match is done after stripping any existing colons
 from the given serial number on the command line, and right-to-left, so
 only the least significant bytes from the serial number need to be given.
@@ -880,12 +886,12 @@ JTAG ICE mkII will be looked up on USB.  If @var{serialno} is also
 specified, it will be matched against the serial number read from any JTAG
 ICE mkII found on USB.  The match is done after stripping any existing
 colons from the given serial number, and right-to-left, so only the least
-significant bytes from the serial number need to be given.
-@code{avrdude -v -P usb:xyz -c jtag2 -p ... 2>&1 | grep ^Found} lists all JTAG ICEs
+significant bytes from the serial number need to be given. @code{avrdude
+-v -P usb:xyz -c jtag2 -p ... 2>&1 | grep ^Found} lists all JTAG ICEs
 attached to USB, see @ref{Example Command Line Invocations}.
 
-As the AVRISP mkII device can only be talked to over USB, the very
-same method of specifying the port is required there.
+As the AVRISP mkII device can only be talked to over USB, the very same
+method of specifying the port is required there.
 
 For the USB programmer AVR-Doper running in HID mode, the port must be
 specified as @code{-P avrdoper}. Libhidapi support is required on Unix and
@@ -3792,8 +3798,9 @@ programmer
     prog_modes = PM_<i/f> @{| PM_<i/f>@}       # interfaces, e.g., PM_SPM|PM_PDI (1)
     is_serialadapter = <yes|no>              # programmer is also a serialadapter
     extra_features = HAS_<fea> @{| HAS_<fea>@}  # extra features, e.g., HAS_SUFFER (2)
-    connection_type = parallel | serial | usb | spi
-    baudrate = <num>;                        # baudrate for avr910-programmer
+    connection_type = parallel | serial | usb | spi | linuxgpio
+    port     = <port>                        # default port, quoted string
+    baudrate = <num>;                        # baudrate for the programmer
     vcc      = <pin1> [, <pin2> ... ];       # pin number(s) (3)
     buff     = <pin1> [, <pin2> ... ];       # pin number(s)
     reset    = <pin>;                        # pin number
@@ -3811,16 +3818,35 @@ programmer
     usbvid   = <hexnum>;                     # USB vendor ID
     usbpid   = <hexnum> [, <hexnum> ...];    # USB product ID (4)
     usbdev   = <interface>;                  # USB interface or other device info
-    usbvendor = <vendorname>;                # USB Vendor Name
-    usbproduct = <productname>;              # USB Product Name
-    usbsn    = <serialno>;                   # USB Serial Number
+    usbvendor = <vendorname>;                # USB vendor name
+    usbproduct = <productname>;              # USB product name
+    usbsn    = <serialno>;                   # USB serial number
     hvupdi_support = <num> [, <num>, ... ];  # HV support for enabling UPDI
 ;
 @end smallexample
 
 @noindent
 If a parent is specified, all settings of it (except its ids) are used for the new
-programmer. These values can be changed by new setting them for the new programmer.
+programmer. These values can be changed by setting them for the new programmer.
+
+@noindent
+Programmer definitions can be modified using the following syntax
+@smallexample
+modify programmer <id>
+    # Any property as above, for example
+    port     = <port>                        # default port, quoted string
+    usbsn    = <serialno>;                   # USB serial number
+;
+@end smallexample
+
+@noindent
+The @code{modify} keyword makes most sense in the per-user configuration
+file, where users may want to add specific properties of their programmer.
+This could be its USB serial number or default port, eg, a serialadapter
+such as @code{"ch340"}. This technique should not be used for the main
+@code{avrdude.conf} file, as the developer option @code{-c <programmer>/S}
+that prints the programmer definition as AVRDUDE understands it will only
+consider the final definition; it will not print @code{modify} statements.
 
 @noindent
 @strong{Notes}
@@ -3934,7 +3960,7 @@ serialadapter
     baudrate = <num>;                         # optional default baudrate, eg, in .avrduderc
     usbvid   = <hexnum>;                      # USB vendor ID
     usbpid   = <hexnum> [, <hexnum> ...];     # list of USB product IDs
-    usbsn    = <serialno>;                    # USB Serial Number in per-user .avrduderc
+    usbsn    = <serialno>;                    # USB serial number in per-user .avrduderc
 ;
 @end smallexample
 
@@ -4091,6 +4117,23 @@ AVRDUDE will complain. Almost all occurrences of numbers (with the
 exception of pin numbers and where they are separated by space, e.g., in
 signature and readback) can also be given as simple expressions involving
 arithemtic and bitwise operators.
+
+@noindent
+Part definitions can be modified using the following syntax
+@smallexample
+modify part <id>
+    # Any part property as above, for example
+    chip_erase_delay = <num>;                 # microseconds
+;
+@end smallexample
+
+@noindent
+The @code{modify} keyword makes most sense in the per-user configuration
+file, where users may want to modify specific properties of a part for
+debugging. This technique should not be used within the main
+@code{avrdude.conf} file, as the developer option @code{-p <part>/S} that
+prints the part definition as AVRDUDE understands it will only consider
+the final definition; it will not print @code{modify} statements.
 
 @menu
 * Parent Part::

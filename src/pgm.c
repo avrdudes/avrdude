@@ -134,6 +134,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->desc = nulp;
   pgm->ptyp = "not set";
   pgm->parent_id = nulp;
+  pgm->default_port = nulp;
   pgm->usbdev = nulp;
   pgm->usbsn = nulp;
   pgm->usbvendor = nulp;
@@ -194,6 +195,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
   PROGRAMMER *pgm = pgm_new();
 
   if(src) {
+    // First free memory allocated by pgm_new()
     ldestroy_cb(pgm->id, mmt_f_free);
     ldestroy_cb(pgm->usbpid, mmt_f_free);
     ldestroy_cb(pgm->hvupdi_support, mmt_f_free);

@@ -2147,7 +2147,7 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   int rc;
   if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
     return rc;
@@ -2215,7 +2215,7 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   int rc;
   if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
     return rc;
@@ -3926,7 +3926,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   int rc;
   if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
     return rc;
@@ -4024,7 +4024,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   int rc;
   if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
     return rc;
@@ -4097,7 +4097,7 @@ static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  pgm->port = port;
+  pgm->chosen_port = port;
   int rc;
   if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
     return rc;

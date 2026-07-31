@@ -447,7 +447,7 @@ static int buspirate_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  pgm->port = port;
+  pgm->chosen_port = port;
   int rc;
   if((rc = serial_open(port, pinfo, &pgm->fd)) < 0)
     return rc;

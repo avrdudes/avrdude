@@ -133,10 +133,9 @@ directly in the port specification. An external pull-up resistor
 should be connected between the AVR's reset pin and Vcc. If Vcc is not
 the same as the SPI voltage, this should be done on the AVR side of
 the level translator to protect the hardware from damage.
-.Pp
 The
-.Fl P Ar portname
-option for this programmer defaults to
+.Fl P Ar port
+option for this programmer typically has the format
 .Li /dev/spidev0.0:/dev/gpiochip0 .
 .Pp
 Atmel's STK500 programmer is also supported and connects to a serial
@@ -597,34 +596,39 @@ Note that the result will be stored in the EEPROM cell at address 0.
 Use
 .Ar port
 to identify the connection through which the programmer is attached. This
-can be a serial, spi, linuxgpio or, on Linux or BSD systems, a parallel connection.
-The programmer normally specifies the connection type; in absence of -P,
-system-dependent default values
+can be a serial, spi, linuxgpio or, on Linux or BSD systems, parallel
+connection. The programmer configuration normally only ever specifies the
+connection type but an optional
+.Pa port
+entry can be added in the per-user configuration file .avrduderc, which is then
+used in absence of -P. If the programmer configuration does not specify the
+port, system-dependent default values
 .Pa default_serial ,
 .Pa default_spi ,
 .Pa default_linuxgpio
 or
 .Pa default_parallel
-from the configuration file are used. If you need to use a different port,
-use this option to specify the alternate port name.
+from the configuration file are used. These, too, can be overwritten in the
+per-user configuration file.
 .Pp
-USB-only programmers normally do not need the port option be specified as
-they are automatically identified via their vendor and product IDs from
-avrdude.conf or .avrduderc. Only when there are multiple programmers of
-the same type plugged into the host computer is the -P option needed, see
-below. Some -c programmers, eg, pickit2, ignore the -P option altogether;
-these cannot distinguish multiple plugged-in programmers.
+USB-only programmers normally do not need a port name as they are automatically
+identified via their vendor and product IDs from avrdude.conf or .avrduderc.
+Only when there are multiple programmers of the same type plugged in is the
+programmer's
+.Pa port
+configuration or the -P option needed, see below. Some -c programmers, eg,
+pickit2, ignore the port name altogether: they cannot distinguish multiple
+plugged-in programmers.
 .Pp
-Most USB programmers, however, support the command-line syntax -P
-usb[:<vid>:<pid>][:<serialno>] which allows the user to override the
-vendor and product IDs with hexadecimal numbers <vid> and <pid> and/or
-request a match of the desired device's serial number with <serialno>. The
-match is done after stripping any existing colons from the given serial
-number on the command line, and right-to-left, so only the least
-significant bytes from the serial number need to be given. The JTAG ICE
-mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi programmers are
-examples for this -P port syntax. Some of these in turn, e.g. the CH341A
-and teensy are not capable of matching serial numbers.
+Most USB programmers, however, support the port name syntax
+usb[:<vid>:<pid>][:<serialno>], which allows the user to override the vendor
+and product IDs with hexadecimal numbers <vid> and <pid> and/or request a match
+of the desired device serial number with <serialno>. The match is done after
+stripping any existing colons from the given serial number on the command line,
+and right-to-left, so only the least significant bytes from the serial number
+need to be given. The JTAG ICE mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy
+and avrftdi programmers are examples for this port name syntax. Some of these
+in turn, e.g. the CH341A and teensy are not capable of matching serial numbers.
 .Pp
 If
 .Nm
@@ -2326,8 +2330,8 @@ is supported.
 Chip Select must be externally held low for direct SPI when
 using USBtinyISP, and send must be a multiple of four bytes.
 .Pp
-The avrftdi driver allows one to select specific devices using any combination of vid,pid
-serial number (usbsn) vendor description (usbvendoror part description (usbproduct)
+The avrftdi driver allows one to select specific devices using any combination of vid,pid;
+serial number (usbsn); vendor description (usbvendor) or part description (usbproduct)
 as seen with lsusb or whatever tool used to view USB device information. Multiple
 devices can be on the bus at the same time. For the H parts, which have multiple MPSSE
 interfaces, the interface can also be selected.  It defaults to interface 'A'.
