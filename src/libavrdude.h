@@ -1782,6 +1782,7 @@ extern "C" {
   char *str_vectorname(const Avrintel *up, int vn);
   int pgmid_is(const char *str);
   char *mmt_realpath(const char *);
+  char *str_sysconfig(void);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);

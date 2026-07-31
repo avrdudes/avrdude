@@ -19,6 +19,7 @@
 
 #include <ac_cfg.h>
 
+#include <whereami.h>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
@@ -1741,4 +1742,45 @@ int pgmid_is(const char *str) {
 char *mmt_realpath(const char *file) {
   char path[PATH_MAX + 1] = { 0 };
   return realpath(file, path) && access(path, F_OK) == 0? mmt_strdup(path): NULL;
+}
+
+/*
+ * Return mmt_malloc'd location of system configuration file in this order:
+ *  1. <dirpath of executable>/../etc/avrdude.conf
+ *  2. <dirpath of executable>/avrdude.conf
+ *  3. First avrdude.conf in PATH (Windows) or CONFIG_DIR/avrdude.conf (elsewhere)
+ */
+char *str_sysconfig(void) {
+  char *ret, config[PATH_MAX + 1 + sizeof( CONFIG_DIR "/../etc/" SYSTEM_CONF_FILE)] = { 0 };
+  int dirpath_len = 0;
+  int abspath_len = wai_getExecutablePath(config, PATH_MAX, &dirpath_len);
+
+  if(abspath_len > 0 && dirpath_len > 0) {
+    config[dirpath_len] = 0;
+    for(char *p = config; *p; p++) // Replace backslashes with forward slashes
+      if(*p == '\\')
+        *p = '/';
+
+    msg_trace2("dirpath = %s\n", config);
+  }
+
+  if(*config) {
+    // 1. Check <dirpath of executable>/../etc/avrdude.conf
+    strcat(config, "/../etc/" SYSTEM_CONF_FILE);
+    if((ret = mmt_realpath(config)))
+      return ret;
+
+    // 2. Check <dirpath of executable>/avrdude.conf
+    config[dirpath_len] = 0;
+    strcat(config, "/" SYSTEM_CONF_FILE);
+    if((ret = mmt_realpath(config)))
+      return ret;
+  }
+  // 3. Check CONFIG_DIR/avrdude.conf
+#if defined(WIN32)
+  win_set_path(config, sizeof config, SYSTEM_CONF_FILE);
+  return mmt_realpath(config);
+#else
+  return mmt_realpath(CONFIG_DIR "/" SYSTEM_CONF_FILE);
+#endif
 }
