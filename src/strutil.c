@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1734,4 +1735,10 @@ int pgmid_is(const char *str) {
       return 1;
 
   return 0;
+}
+
+// Return mmt_malloc'd canonicalised absolute path of file or NULL on error
+char *mmt_realpath(const char *file) {
+  char path[PATH_MAX + 1] = { 0 };
+  return realpath(file, path) && access(path, F_OK) == 0? mmt_strdup(path): NULL;
 }

@@ -427,7 +427,7 @@ int read_config(const char *file) {
   FILE *f;
   int r;
 
-  if(!(cfg_infile = realpath(file, NULL))) {
+  if(!(cfg_infile = mmt_realpath(file))) {
     pmsg_ext_error("cannot determine realpath() of config file %s: %s\n", file, strerror(errno));
     return -1;
   }

@@ -23,10 +23,6 @@
 
 #include "libavrdude.h"
 
-#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
-#define realpath(N, R) _fullpath((R), (N), PATH_MAX)
-#endif
-
 typedef struct {
   char *kw;                     // Keyword near the comments
   LISTID comms;                 // Chained list of comments
