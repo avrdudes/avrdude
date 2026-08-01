@@ -1752,7 +1752,7 @@ char *mmt_realpath(const char *file) {
  *  3. First avrdude.conf in PATH (Windows) or CONFIG_DIR/avrdude.conf (elsewhere)
  */
 char *str_sysconfig(void) {
-  char *ret, config[PATH_MAX + 1 + sizeof( CONFIG_DIR "/../etc/" SYSTEM_CONF_FILE)] = { 0 };
+  char *ret, config[PATH_MAX + 1 + sizeof("/../etc/" SYSTEM_CONF_FILE)] = { 0 };
   int dirpath_len = 0;
   int abspath_len = wai_getExecutablePath(config, PATH_MAX, &dirpath_len);
 
@@ -1761,11 +1761,8 @@ char *str_sysconfig(void) {
     for(char *p = config; *p; p++) // Replace backslashes with forward slashes
       if(*p == '\\')
         *p = '/';
-
     msg_trace2("dirpath = %s\n", config);
-  }
 
-  if(*config) {
     // 1. Check <dirpath of executable>/../etc/avrdude.conf
     strcat(config, "/../etc/" SYSTEM_CONF_FILE);
     if((ret = mmt_realpath(config)))
@@ -1777,11 +1774,12 @@ char *str_sysconfig(void) {
     if((ret = mmt_realpath(config)))
       return ret;
   }
-  // 3. Check CONFIG_DIR/avrdude.conf
 #if defined(WIN32)
+  // 3. First config file in PATH
   win_set_path(config, sizeof config, SYSTEM_CONF_FILE);
   return mmt_realpath(config);
 #else
+  // 3. Check CONFIG_DIR/avrdude.conf
   return mmt_realpath(CONFIG_DIR "/" SYSTEM_CONF_FILE);
 #endif
 }
