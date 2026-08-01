@@ -744,6 +744,7 @@ int main(int argc, char *argv[]) {
   const char shortopts[] =
     "aAb:B:c:C:dDeE:fFgGhHi:IjJkKl:LmMnNoOp:P:qQrRsStT:uU:vVwWx:XyYzZ0123456789";
   int ch, option_idx = 0;
+  UPDATE *upd;
 
   while((ch = getopt_long(argc, argv, shortopts, longopts, &option_idx)) != -1) {
     switch(ch) {
@@ -868,7 +869,7 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'U':                   // Memory operation (can be repeated)
-      UPDATE *upd = parse_op(optarg);
+      upd = parse_op(optarg);
       if(upd == NULL) {
         pmsg_error("unable to parse update operation %s\n", optarg);
         exit(1);
