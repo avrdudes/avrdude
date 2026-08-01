@@ -451,7 +451,7 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
 }
 
 static void exithook(void) {
-  if(pgm->teardown)
+  if(pgm && pgm->teardown)
     pgm->teardown(pgm);
 }
 
@@ -630,10 +630,7 @@ static void part_not_found(const char *partdesc) {
 
 int main(int argc, char *argv[]) {
   int exitrc;                   // Exit code for main()
-  int ch;                       // Options flag
   AVRPART *pt = NULL;           // Which avr part we are programming
-  AVRMEM *sig;                  // Signature data
-  UPDATE *upd;
 
   // Options/operating mode variables
   int erase = 0;                // 1 = erase chip, 0 = don't
@@ -746,7 +743,7 @@ int main(int argc, char *argv[]) {
   };
   const char shortopts[] =
     "aAb:B:c:C:dDeE:fFgGhHi:IjJkKl:LmMnNoOp:P:qQrRsStT:uU:vVwWx:XyYzZ0123456789";
-  int option_idx = 0;
+  int ch, option_idx = 0;
 
   while((ch = getopt_long(argc, argv, shortopts, longopts, &option_idx)) != -1) {
     switch(ch) {
@@ -871,7 +868,7 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'U':                   // Memory operation (can be repeated)
-      upd = parse_op(optarg);
+      UPDATE *upd = parse_op(optarg);
       if(upd == NULL) {
         pmsg_error("unable to parse update operation %s\n", optarg);
         exit(1);
@@ -932,7 +929,6 @@ int main(int argc, char *argv[]) {
     msg_debug("%s%c", str_ccsharg(argv[i]), i == argc - 1? '\n': ' ');
 
   size_t ztest;
-
   if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
     pmsg_warning("linked C library does not conform to C99; %s may not work as expected\n", progname);
 
@@ -984,9 +980,8 @@ int main(int argc, char *argv[]) {
   }
 
   // Set bitclock from configuration files unless changed by command line
-  if(default_bitclock > 0 && bitclock == 0.0) {
+  if(default_bitclock > 0 && bitclock == 0.0)
     bitclock = default_bitclock;
-  }
 
   if(!(pgmid && *pgmid) && *default_programmer)
     pgmid = cache_string(default_programmer);
@@ -1018,62 +1013,58 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(port) {
-    if(str_eq(port, "?s")) {
-      list_available_serialports(programmers);
-      exit(0);
-    } else if(str_eq(port, "?sa")) {
-      lmsg_error("Valid serial adapters are:\n");
-      list_serialadapters(stderr, "  ", programmers);
-      exit(0);
-    }
+  if(port && str_eq(port, "?s")) {
+    list_available_serialports(programmers);
+    exit(0);
   }
 
-  if(partdesc) {
-    if(str_eq(partdesc, "?")) {
-      if(pgmid && *pgmid && explicit_c) {
-        PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
-
-        if(!pgm || !is_programmer(pgm)) {
-          programmer_not_found(pgmid, pgm, NULL);
-          exit(1);
-        }
-        msg_error("\nValid parts for programmer %s are:\n", pgmid);
-        list_parts(stderr, "  ", part_list, pgm->prog_modes);
-      } else {
-        msg_error("\nValid parts are:\n");
-        list_parts(stderr, "  ", part_list, ~0);
-      }
-      msg_error("\n");
-      exit(1);
-    }
+  if(port && str_eq(port, "?sa")) {
+    lmsg_error("Valid serial adapters are:\n");
+    list_serialadapters(stderr, "  ", programmers);
+    exit(0);
   }
 
-  if(pgmid) {
-    if(str_eq(pgmid, "?")) {
-      if(partdesc && *partdesc) {
-        AVRPART *p = locate_part(part_list, partdesc);
+  if(partdesc && str_eq(partdesc, "?")) {
+    if(pgmid && *pgmid && explicit_c) {
+      PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
 
-        if(!p) {
-          part_not_found(partdesc);
-          exit(1);
-        }
-        msg_error("\nValid programmers for part %s are:\n", p->desc);
-        list_programmers(stderr, "  ", programmers, p->prog_modes);
-      } else {
-        msg_error("\nValid programmers are:\n");
-        list_programmers(stderr, "  ", programmers, ~0);
+      if(!pgm || !is_programmer(pgm)) {
+        programmer_not_found(pgmid, pgm, NULL);
+        exit(1);
       }
-      msg_error("\n");
-      exit(1);
+      msg_error("\nValid parts for programmer %s are:\n", pgmid);
+      list_parts(stderr, "  ", part_list, pgm->prog_modes);
+    } else {
+      msg_error("\nValid parts are:\n");
+      list_parts(stderr, "  ", part_list, ~0);
     }
+    msg_error("\n");
+    exit(1);
+  }
 
-    if(str_eq(pgmid, "?type")) {
-      msg_error("\nValid programmer types are:\n");
-      list_programmer_types(stderr, "  ");
-      msg_error("\n");
-      exit(1);
+  if(pgmid && str_eq(pgmid, "?")) {
+    if(partdesc && *partdesc) {
+      AVRPART *p = locate_part(part_list, partdesc);
+
+      if(!p) {
+        part_not_found(partdesc);
+        exit(1);
+      }
+      msg_error("\nValid programmers for part %s are:\n", p->desc);
+      list_programmers(stderr, "  ", programmers, p->prog_modes);
+    } else {
+      msg_error("\nValid programmers are:\n");
+      list_programmers(stderr, "  ", programmers, ~0);
     }
+    msg_error("\n");
+    exit(1);
+  }
+
+  if(pgmid && str_eq(pgmid, "?type")) {
+    msg_error("\nValid programmer types are:\n");
+    list_programmer_types(stderr, "  ");
+    msg_error("\n");
+    exit(1);
   }
 
   msg_notice("\n");
@@ -1098,20 +1089,17 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(pgm->initpgm) {
-    pgm->initpgm(pgm);
-  } else {
-    msg_error("\n");
+  if(!pgm->initpgm) {
     pmsg_error("cannot initialize the programmer\n\n");
     exit(1);
   }
+  pgm->initpgm(pgm);
 
-  if(pgm->setup) {
+  if(pgm->setup)
     pgm->setup(pgm);
-  }
-  if(pgm->teardown) {
+
+  if(pgm->teardown)
     atexit(exithook);
-  }
 
   if(lsize(extended_params) > 0) {
     if(pgm->parseextparams == NULL) {
@@ -1359,7 +1347,7 @@ int main(int argc, char *argv[]) {
   int doexit = 0;
 
   for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
-    upd = ldata(ln);
+    UPDATE *upd = ldata(ln);
     if(upd->memstr == NULL && upd->cmdline == NULL) {
       const char *mtype = is_pdi(pt)? "application": "flash";
 
@@ -1521,7 +1509,7 @@ init_again:
       }
     }
 
-    sig = avr_locate_signature(pt);
+    AVRMEM *sig = avr_locate_signature(pt);
     if(sig == NULL)
       pmsg_warning("signature memory not defined for device %s\n", pt->desc);
     else {
@@ -1604,7 +1592,7 @@ init_again:
   if(uflags & UF_AUTO_ERASE) {
     if((pt->prog_modes & (PM_PDI | PM_UPDI)) && pgm->page_erase && lsize(updates) > 0) {
       for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
-        upd = ldata(ln);
+        UPDATE *upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, pt)) {
           cx->avr_disableffopt = 1;     // Must write full flash file including trailing 0xff
           pmsg_notice("NOT erasing chip as page erase will be used for new flash%s contents;\n",
@@ -1616,7 +1604,7 @@ init_again:
     } else {
       uflags &= ~UF_AUTO_ERASE;
       for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
-        upd = ldata(ln);
+        UPDATE *upd = ldata(ln);
         if(upd->cmdline && *str_ltrim(upd->cmdline) && str_starts("erase", str_ltrim(upd->cmdline)))
           break;                // -T erase already erases the chip: no auto-erase needed
 
@@ -1676,7 +1664,7 @@ init_again:
   for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
     const AVRMEM *m;
 
-    upd = ldata(ln);
+    UPDATE *upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
       wrmem = 0;
       pgm->reset_cache(pgm, pt);
