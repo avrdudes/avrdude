@@ -31,7 +31,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <whereami.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -42,7 +41,6 @@
 #include <ctype.h>
 #include <getopt.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/time.h>
 
 #if !defined(WIN32)
@@ -51,7 +49,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "config.h"
 #include "developer_opts.h"
 
 char *progname = "avrdude";
@@ -227,14 +224,9 @@ int ovsigck;                    // 1 = override sig check, 0 = don't
 const char *partdesc;           // Part -p string
 const char *pgmid;              // Programmer -c string
 
-static char usr_config[PATH_MAX];       // Per-user config file
-
 // Usage message
 static void usage(void) {
-  char *home = getenv("HOME");
-  size_t l = home? strlen(home): 0;
-  char *cfg = home && str_casestarts(usr_config, home)?
-    mmt_sprintf("~/%s", usr_config + l + (usr_config[l] == '/')): mmt_sprintf("%s", usr_config);
+  char *cfg = str_home2tilde(str_usrconfig());
 
   msg_error("Usage: %s {<option>}\n"
     "Options:\n"
@@ -278,7 +270,7 @@ static void usage(void) {
     "  -h --help                Display this usage\n"
     "(*) These options can be repeatedly used on the command line\n"
     "\navrdude version %s https://github.com/avrdudes/avrdude\n",
-    progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
+    progname, !cfg || strlen(cfg) < 24? "config file ": "", cfg? cfg: "", AVRDUDE_FULL_VERSION);
 
   mmt_free(cfg);
 }
@@ -485,15 +477,6 @@ static void cleanup_main(void) {
   cleanup_config();
 }
 
-static void replace_backslashes(char *s) {
-  // Replace all backslashes with forward slashes
-  for(size_t i = 0; i < strlen(s); i++) {
-    if(s[i] == '\\') {
-      s[i] = '/';
-    }
-  }
-}
-
 // Return whether a part/programmer string is a developer option and if so which type
 static int dev_opt(const char *str) {
   return !str? 0: str_eq(str, "*") || str_starts(str, "*/s")? 2:    // Print PART DEFINITIONS comment as well
@@ -649,40 +632,13 @@ static void part_not_found(const char *partdesc) {
     pmsg_error("no AVR part has been specified; use -p part or -p? to see all valid parts\n");
 }
 
-#if !defined(WIN32)
-// Safely concatenate dir/file into dst that has size n
-static char *concatpath(char *dst, char *dir, char *file, size_t n) {
-  // Dir or file empty?
-  if(!dir || !*dir || !file || !*file)
-    return NULL;
-
-  size_t len = strlen(dir);
-
-  // Insufficient space?
-  if(len + (dir[len - 1] != '/') + strlen(file) > n - 1)
-    return NULL;
-
-  if(dst != dir)
-    strcpy(dst, dir);
-
-  if(dst[len - 1] != '/')
-    strcat(dst, "/");
-
-  strcat(dst, file);
-
-  return dst;
-}
-#endif
-
 
 int main(int argc, char *argv[]) {
   int rc;                       // General return code checking
   int exitrc;                   // Exit code for main()
-  int i;                        // General loop counter
   int ch;                       // Options flag
   struct avrpart *p;            // Which avr part we are programming
   AVRMEM *sig;                  // Signature data
-  struct stat sb;
   UPDATE *upd;
   LNODEID *ln;
 
@@ -695,11 +651,7 @@ int main(int argc, char *argv[]) {
   const char *exitspecs;        // Exit specs string from command line
   int explicit_c;               // 1=explicit -c on command line, 0=not specified there
   int explicit_e;               // 1=explicit -e on command line, 0=not specified there
-  char sys_config[PATH_MAX];    // System wide config file
-  char executable_abspath[PATH_MAX];     // Absolute path to avrdude executable
-  char executable_dirpath[PATH_MAX];     // Absolute path to folder with executable
-  bool executable_abspath_found = false; // Absolute path to executable found
-  bool sys_config_found = false;         // avrdude.conf file found
+  char *sysconfig = NULL;       // System configuration file path
   char *e;                      // For strtod() error checking
   const char *errstr;           // For str_int() error checking
   int baudrate;                 // Override default programmer baud rate
@@ -723,15 +675,12 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, (char *) NULL, _IOLBF, 0);
   setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 
-  sys_config[0] = '\0';
-
   progname = strrchr(argv[0], '/');
 
-#if defined (WIN32)
-  // Take care of backslash as dir sep in W32
+#if defined (WIN32)             // Take care of backslash as dir sep
   if(!progname)
     progname = strrchr(argv[0], '\\');
-#endif                          // WIN32
+#endif
 
   if(progname)
     progname++;
@@ -806,18 +755,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  // Determine the location of personal configuration file
-
-#if defined(WIN32)
-  win_set_path(usr_config, sizeof usr_config, USER_CONF_FILE);
-#else
-  usr_config[0] = 0;
-  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
-    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
-  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
-    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
-#endif
-
   // Process command line arguments
   struct option longopts[] = {
     {"keep-trailing-0xff", no_argument,       NULL, 'A'},
@@ -890,12 +827,10 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'C':                   // System wide configuration file (can be repeated)
-      if(optarg[0] == '+') {
+      if(optarg[0] == '+')
         ladd(additional_config_files, optarg + 1);
-      } else {
-        strncpy(sys_config, optarg, PATH_MAX);
-        sys_config[PATH_MAX - 1] = 0;
-      }
+      else
+        sysconfig = mmt_strdup(optarg);
       break;
 
     case 'D':                   // Disable auto-erase
@@ -1042,125 +977,34 @@ int main(int argc, char *argv[]) {
   if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
     pmsg_warning("linked C library does not conform to C99; %s may not work as expected\n", progname);
 
-  // Search for system configuration file unless -C conffile was given
-  if(strlen(sys_config) == 0) {
-    /*
-     * Executable abspath: Determine the absolute path to avrdude executable.
-     * This will be used to locate the avrdude.conf file later.
-     */
-    int executable_dirpath_len = 0;
-    int executable_abspath_len = wai_getExecutablePath(executable_abspath, PATH_MAX,
-      &executable_dirpath_len);
-
-    if(executable_abspath_len > 0 && executable_dirpath_len > 0) {
-      executable_abspath_found = true;
-      executable_abspath[executable_abspath_len] = '\0';
-      replace_backslashes(executable_abspath);
-
-      // Define executable_dirpath to be the path to the parent folder of the executable
-      strcpy(executable_dirpath, executable_abspath);
-      executable_dirpath[executable_dirpath_len] = '\0';
-
-      msg_trace2("executable_abspath = %s\n", executable_abspath);
-      msg_trace2("executable_abspath_len = %i\n", executable_abspath_len);
-      msg_trace2("executable_dirpath = %s\n", executable_dirpath);
-      msg_trace2("executable_dirpath_len = %i\n", executable_dirpath_len);
-    }
-
-    /*
-     * System config
-     * -------------
-     * Determine the location of avrdude.conf. Check in this order:
-     *  1. <dirpath of executable>/../etc/avrdude.conf
-     *  2. <dirpath of executable>/avrdude.conf
-     *  3. CONFIG_DIR/avrdude.conf
-     *
-     * When found, write the result into the 'sys_config' variable.
-     */
-    if(executable_abspath_found) {
-      // 1. Check <dirpath of executable>/../etc/avrdude.conf
-      strcpy(sys_config, executable_dirpath);
-      sys_config[PATH_MAX - 1] = '\0';
-      i = strlen(sys_config);
-      if(i && (sys_config[i - 1] != '/'))
-        strcat(sys_config, "/");
-      strcat(sys_config, "../etc/" SYSTEM_CONF_FILE);
-      sys_config[PATH_MAX - 1] = '\0';
-      if(access(sys_config, F_OK) == 0) {
-        sys_config_found = true;
-      } else {
-        // 2. Check <dirpath of executable>/avrdude.conf
-        strcpy(sys_config, executable_dirpath);
-        sys_config[PATH_MAX - 1] = '\0';
-        i = strlen(sys_config);
-        if(i && (sys_config[i - 1] != '/'))
-          strcat(sys_config, "/");
-        strcat(sys_config, SYSTEM_CONF_FILE);
-        sys_config[PATH_MAX - 1] = '\0';
-        if(access(sys_config, F_OK) == 0) {
-          sys_config_found = true;
-        }
-      }
-    }
-    if(!sys_config_found) {
-      // 3. Check CONFIG_DIR/avrdude.conf
-
-#if defined(WIN32)
-      win_set_path(sys_config, sizeof sys_config, SYSTEM_CONF_FILE);
-#else
-      strcpy(sys_config, CONFIG_DIR);
-      i = strlen(sys_config);
-      if(i && (sys_config[i - 1] != '/'))
-        strcat(sys_config, "/");
-      strcat(sys_config, SYSTEM_CONF_FILE);
-#endif
-
-      if(access(sys_config, F_OK) == 0) {
-        sys_config_found = true;
-      }
-    }
-  }
-  // Debug output
-  msg_trace2("sys_config = %s\n", sys_config);
-  msg_trace2("sys_config_found = %s\n", sys_config_found? "true": "false");
-  msg_trace2("\n");
+  // Set system configuration file unless -C conffile was given
+  if(!sysconfig)
+    sysconfig = str_sysconfig();
+  msg_trace2("sysconfig = %s\n", sysconfig? sysconfig: "not set");
 
   if(quell_progress == 0)
     terminal_setup_update_progress();
 
-  // Print out an identifying string so folks can tell what version they are running
   pmsg_notice("%s version %s\n", progname, AVRDUDE_FULL_VERSION);
   pmsg_notice("Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
-  if(*sys_config) {
-    char *real_sys_config = realpath(sys_config, NULL);
-
-    if(real_sys_config) {
-      pmsg_notice("system wide configuration file is %s\n", real_sys_config);
-    } else
-      pmsg_warning("cannot determine realpath() of config file %s: %s\n", sys_config, strerror(errno));
-
-    rc = read_config(real_sys_config);
-    if(rc) {
-      pmsg_error("unable to process system wide configuration file %s\n", real_sys_config);
+  if(sysconfig) {
+    if(read_config(sysconfig)) {
+      pmsg_error("unable to process system wide configuration file %s\n", sysconfig);
       exit(1);
     }
-    mmt_free(real_sys_config);
+    mmt_free(sysconfig);
   }
 
-  if(usr_config[0] != 0 && !no_avrduderc) {
-    int ok = (rc = stat(usr_config, &sb)) >= 0 && (sb.st_mode & S_IFREG);
+  if(!no_avrduderc) {
+    char *usrconfig = str_usrconfig();
 
-    pmsg_notice("user configuration file %s%s%s\n", ok? "is ": "", usr_config,
-      rc < 0? " does not exist": !(sb.st_mode & S_IFREG)? " is not a regular file, skipping": "");
-
-    if(ok) {
-      rc = read_config(usr_config);
-      if(rc) {
-        pmsg_error("unable to process user configuration file %s\n", usr_config);
-        exit(1);
-      }
+    pmsg_notice("user configuration file is %s\n", usrconfig? usrconfig: "not provided");
+    if(usrconfig && read_config(usrconfig)) {
+      pmsg_error("unable to process user configuration file %s\n", usrconfig);
+      exit(1);
     }
+    mmt_free(usrconfig);
   }
 
   if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION)) {
@@ -1758,7 +1602,7 @@ init_again:
 
       int ff = 1, zz = 1;
 
-      for(i = 0; i < sig->size; i++) {
+      for(int i = 0; i < sig->size; i++) {
         if(sig->buf[i] != 0xff)
           ff = 0;
         if(sig->buf[i] != 0x00)
