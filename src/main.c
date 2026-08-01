@@ -669,24 +669,7 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, (char *) NULL, _IOLBF, 0);
   setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 
-  progname = strrchr(argv[0], '/');
-
-#if defined (WIN32)             // Take care of backslash as dir sep
-  if(!progname)
-    progname = strrchr(argv[0], '\\');
-#endif
-
-  if(progname)
-    progname++;
-  else
-    progname = argv[0];
-
-  // Remove trailing .exe
-  if(str_ends(progname, ".exe")) {
-    progname = mmt_strdup(progname);    // Don't write to argv[0]
-    progname[strlen(progname) - 4] = 0;
-  }
-
+  progname = str_progname(argv[0]);
   avrdude_conf_version = "";
 
   default_programmer = "";
