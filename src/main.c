@@ -632,7 +632,7 @@ int main(int argc, char *argv[]) {
   int rc;                       // General return code checking
   int exitrc;                   // Exit code for main()
   int ch;                       // Options flag
-  struct avrpart *p;            // Which avr part we are programming
+  AVRPART *pt = NULL;           // Which avr part we are programming
   AVRMEM *sig;                  // Signature data
   UPDATE *upd;
 
@@ -721,7 +721,6 @@ int main(int argc, char *argv[]) {
   }
 
   partdesc = NULL;
-  p = NULL;
   ovsigck = 0;
   quell_progress = 0;
   pgm = NULL;
@@ -1103,15 +1102,15 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  p = partdesc && *partdesc? locate_part(part_list, partdesc): NULL;
-  pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, p);
+  pt = partdesc && *partdesc? locate_part(part_list, partdesc): NULL;
+  pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, pt);
   if(pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid, pgm, p);
+    programmer_not_found(pgmid, pgm, pt);
     exit(1);
   }
 
-  if(p && !(p->prog_modes & pgm->prog_modes)) {
-    pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, p->desc);
+  if(pt && !(pt->prog_modes & pgm->prog_modes)) {
+    pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, pt->desc);
     if(!ovsigck) {
       imsg_error("use -F to override this check\n");
       exit(1);
@@ -1330,8 +1329,7 @@ int main(int argc, char *argv[]) {
     goto main_exit;
   }
 
-  p = locate_part(part_list, partdesc);
-  if(p == NULL) {
+  if(!(pt = locate_part(part_list, partdesc))) {
     part_not_found(partdesc);
     exitrc = 1;
     goto main_exit;
@@ -1353,7 +1351,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(avr_initmem(p) != 0) {
+  if(avr_initmem(pt) != 0) {
     msg_error("\n");
     pmsg_error("unable to initialize memories\n");
     exitrc = 1;
@@ -1363,8 +1361,8 @@ int main(int argc, char *argv[]) {
   if(verbose > 0) {
     if((str_eq(pgm->ptyp, "avr910"))) {
       imsg_notice("avr910_devcode (avrdude.conf) : ");
-      if(p->avr910_devcode)
-        msg_notice("0x%02x\n", (uint8_t) p->avr910_devcode);
+      if(pt->avr910_devcode)
+        msg_notice("0x%02x\n", (uint8_t) pt->avr910_devcode);
       else
         msg_notice("none\n");
     }
@@ -1382,13 +1380,13 @@ int main(int argc, char *argv[]) {
   for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
     upd = ldata(ln);
     if(upd->memstr == NULL && upd->cmdline == NULL) {
-      const char *mtype = is_pdi(p)? "application": "flash";
+      const char *mtype = is_pdi(pt)? "application": "flash";
 
       pmsg_notice2("defaulting memstr in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v', upd->filename, mtype);
       upd->memstr = mmt_strdup(mtype);
     }
-    rc = update_dryrun(p, upd);
+    rc = update_dryrun(pt, upd);
     if(rc && rc != LIBAVRDUDE_SOFTFAIL)
       doexit = 1;
   }
@@ -1415,7 +1413,7 @@ int main(int argc, char *argv[]) {
   }
 
   if(verbose > 0 && quell_progress < 2) {
-    avr_display(stderr, pgm, p, "", verbose);
+    avr_display(stderr, pgm, pt, "", verbose);
     msg_notice2("\n");
     programmer_display(pgm, "");
   }
@@ -1425,7 +1423,7 @@ int main(int argc, char *argv[]) {
   exitrc = 0;
 
   // Enable the programmer
-  pgm->enable(pgm, p);
+  pgm->enable(pgm, pt);
 
   // Turn off all the status LEDs and reset LED states
   led_set(pgm, LED_BEG);
@@ -1434,7 +1432,7 @@ int main(int argc, char *argv[]) {
   int reinitialised = 0;
   int erased_by_unlock = 0;
 init_again:
-  init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
+  init_ok = (rc = pgm->initialize(pgm, pt)) >= 0;
   if(!init_ok) {
     if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
       exitrc = rc == LIBAVRDUDE_EXIT_FAIL;
@@ -1455,7 +1453,7 @@ init_again:
       // Reinitialise at most once if erase successful
       if(reinitialised++)
         pmsg_error("re-initialization failed despite part erasure; try re-running command line\n");
-      else if(pgm->chip_erase(pgm, p) == LIBAVRDUDE_SUCCESS) {
+      else if(pgm->chip_erase(pgm, pt) == LIBAVRDUDE_SUCCESS) {
         erased_by_unlock = 1;
         goto init_again;
       }
@@ -1499,20 +1497,20 @@ init_again:
    * the other end that is responding correctly.  A check against
    * 0xffffff/0x000000 should ensure that the signature bytes are valid.
    */
-  if(!is_awire(p)) {            // Not AVR32
+  if(!is_awire(pt)) {           // Not AVR32
     int attempt = 0;
     int waittime = 10000;       // 10 ms
 
   sig_again:
     usleep(waittime);
     if(init_ok) {
-      rc = avr_signature(pgm, p);
+      rc = avr_signature(pgm, pt);
       if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
         exitrc =  rc == LIBAVRDUDE_EXIT_FAIL;
         goto main_exit;
       }
       if(rc != LIBAVRDUDE_SUCCESS) {
-        if(rc == LIBAVRDUDE_SOFTFAIL && is_updi(p) && attempt < 1) {
+        if(rc == LIBAVRDUDE_SOFTFAIL && is_updi(pt) && attempt < 1) {
           attempt++;
           if(erase) {
             erase = 0;
@@ -1520,7 +1518,7 @@ init_again:
               pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
             } else {
               pmsg_info("unlocking the chip");
-              exitrc = avr_unlock(pgm, p);
+              exitrc = avr_unlock(pgm, pt);
               if(exitrc)
                 goto main_exit;
               msg_info(" and trying again\n");
@@ -1542,14 +1540,14 @@ init_again:
       }
     }
 
-    sig = avr_locate_signature(p);
+    sig = avr_locate_signature(pt);
     if(sig == NULL)
-      pmsg_warning("signature memory not defined for device %s\n", p->desc);
+      pmsg_warning("signature memory not defined for device %s\n", pt->desc);
     else {
       const char *mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes);
 
       if(!*mculist) {           // No matching signatures?
-        if(is_updi(p)) {        // UPDI parts have different(!) offsets for signature
+        if(is_updi(pt)) {       // UPDI parts have different(!) offsets for signature
           int k, n = 0;         // Gather list of known different signature offsets
           unsigned myoff = sig->offset, offlist[10];
 
@@ -1567,7 +1565,7 @@ init_again:
           // Now go through the list of other(!) sig offsets and try these
           for(k = 0; k < n; k++) {
             sig->offset = offlist[k];
-            if(avr_signature(pgm, p) >= 0)
+            if(avr_signature(pgm, pt) >= 0)
               if(*(mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes)))
                 break;
           }
@@ -1583,13 +1581,13 @@ init_again:
         if(sig->buf[i] != 0x00)
           zz = 0;
       }
-      bool signature_matches = sig->size >= 3 && !memcmp(sig->buf, p->signature, 3);
+      bool signature_matches = sig->size >= 3 && !memcmp(sig->buf, pt->signature, 3);
       int showsig = !signature_matches || ff || zz || verbose > 0;
 
       if(showsig)
         pmsg_info("device signature =%s", str_cchex(sig->buf, sig->size, 1));
       if(*mculist && showsig)
-        msg_info(" (%s)", is_dryrun? p->desc: mculist);
+        msg_info(" (%s)", is_dryrun? pt->desc: mculist);
 
       if(ff || zz) {            // All three bytes are 0xff or all three bytes are 0x00
         if(++attempt < 3) {
@@ -1600,7 +1598,7 @@ init_again:
         msg_info("\n");
         pmsg_error("invalid device signature\n");
         if(!ovsigck) {
-          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          pmsg_error("expected signature for %s is%s\n", pt->desc, str_cchex(pt->signature, 3, 1));
           imsg_error("  - double check connections and try again, or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
@@ -1611,9 +1609,9 @@ init_again:
 
       if(!signature_matches) {
         if(ovsigck) {
-          pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          pmsg_warning("expected signature for %s is%s\n", pt->desc, str_cchex(pt->signature, 3, 1));
         } else {
-          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          pmsg_error("expected signature for %s is%s\n", pt->desc, str_cchex(pt->signature, 3, 1));
           imsg_error("  - double check chip or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
@@ -1623,13 +1621,13 @@ init_again:
   }
 
   if(uflags & UF_AUTO_ERASE) {
-    if((p->prog_modes & (PM_PDI | PM_UPDI)) && pgm->page_erase && lsize(updates) > 0) {
+    if((pt->prog_modes & (PM_PDI | PM_UPDI)) && pgm->page_erase && lsize(updates) > 0) {
       for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
         upd = ldata(ln);
-        if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
+        if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, pt)) {
           cx->avr_disableffopt = 1;     // Must write full flash file including trailing 0xff
           pmsg_notice("NOT erasing chip as page erase will be used for new flash%s contents;\n",
-            avr_locate_bootrow(p)? "/bootrow": "");
+            avr_locate_bootrow(pt)? "/bootrow": "");
           imsg_notice("unprogrammed flash contents remains: use -e for an explicit chip-erase\n");
           break;
         }
@@ -1642,14 +1640,14 @@ init_again:
           break;                // -T erase already erases the chip: no auto-erase needed
 
         if(upd->cmdline || (upd->memstr &&      // Might be reading flash?
-            (upd->op == DEVICE_READ || upd->op == DEVICE_VERIFY) && memlist_contains_flash(upd->memstr, p)))
+            (upd->op == DEVICE_READ || upd->op == DEVICE_VERIFY) && memlist_contains_flash(upd->memstr, pt)))
           flashread = 1;
 
-        if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
+        if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, pt)) {
           if(flashread) {
             pmsg_info("NOT auto-erasing chip as flash might need reading before writing to it\n");
           } else {
-            if(!is_generated_fname(upd->filename) || generated_file_has_contents(p, upd->filename)) {
+            if(!is_generated_fname(upd->filename) || generated_file_has_contents(pt, upd->filename)) {
               erase = 1;
               pmsg_notice("auto-erasing chip as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
               imsg_notice("specify the -D option to disable this feature\n");
@@ -1672,7 +1670,7 @@ init_again:
       else
         pmsg_notice("-n specified, NOT erasing chip\n");
     } else {
-      exitrc = avr_chip_erase(pgm, p);
+      exitrc = avr_chip_erase(pgm, pt);
       if(exitrc == LIBAVRDUDE_SOFTFAIL) {
         pmsg_notice("delaying chip erase until first -U upload to flash\n");
         ce_delayed = 1;
@@ -1700,24 +1698,24 @@ init_again:
     upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
       wrmem = 0;
-      pgm->reset_cache(pgm, p);
+      pgm->reset_cache(pgm, pt);
     } else if(!upd->cmdline) {  // Flush cache before any device memory access
-      pgm->flush_cache(pgm, p);
+      pgm->flush_cache(pgm, pt);
       wrmem |= upd->op == DEVICE_WRITE;
     }
     if((uflags & UF_NOWRITE) && upd->cmdline && !terminal++)
       pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
-    rc = do_op(pgm, p, upd, uflags);
+    rc = do_op(pgm, pt, upd, uflags);
     if(rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
-    } else if(rc == 0 && upd->op == DEVICE_WRITE && (m = avr_locate_mem(p, upd->memstr)) && mem_is_in_flash(m))
+    } else if(rc == 0 && upd->op == DEVICE_WRITE && (m = avr_locate_mem(pt, upd->memstr)) && mem_is_in_flash(m))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
-  pgm->flush_cache(pgm, p);
+  pgm->flush_cache(pgm, pt);
 
   if(pgm->end_programming)
-    if(pgm->end_programming(pgm, p) < 0)
+    if(pgm->end_programming(pgm, pt) < 0)
       pmsg_error("could not end programming, aborting\n");
 
 main_exit:
