@@ -19,7 +19,6 @@
 
 #include <ac_cfg.h>
 
-#include <whereami.h>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
@@ -29,6 +28,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <whereami.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
