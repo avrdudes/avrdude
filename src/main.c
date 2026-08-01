@@ -313,20 +313,17 @@ static void pmshorten(char *desc, const char *modes) {
 }
 
 static void list_programmers(FILE *f, const char *prefix, LISTID programmers, int pm) {
-  LNODEID ln1;
-  LNODEID ln2;
-  PROGRAMMER *pgm;
   int maxlen = 0, len;
-  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
+  PROGRAMMER *pgm, *dry = locate_programmer(programmers, "dryrun");
 
   sort_programmers(programmers);
 
   // Compute max length of programmer names
-  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     pgm = ldata(ln1);
     if(!is_programmer(pgm))
       continue;
-    for(ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
+    for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
 
@@ -337,11 +334,11 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
       }
   }
 
-  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     pgm = ldata(ln1);
     if(!is_programmer(pgm))
       continue;
-    for(ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
+    for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
       // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
@@ -416,15 +413,13 @@ static const char *part_ccdesc(const AVRPART *p) {
 }
 
 static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
-  LNODEID ln1;
-  AVRPART *p;
   int maxlen = 0, len;
 
   sort_avrparts(avrparts);
 
   // Compute max length of part names
-  for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
-    p = ldata(ln1);
+  for(LNODEID ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+    AVRPART *p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
       if(verbose < MSG_NOTICE2 && p->id[0] == '.')      // Hide ids starting with '.'
@@ -434,8 +429,8 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
     }
   }
 
-  for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
-    p = ldata(ln1);
+  for(LNODEID ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+    AVRPART *p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
       if(verbose < MSG_NOTICE2 && p->id[0] == '.')      // Hide ids starting with '.'
@@ -640,7 +635,6 @@ int main(int argc, char *argv[]) {
   struct avrpart *p;            // Which avr part we are programming
   AVRMEM *sig;                  // Signature data
   UPDATE *upd;
-  LNODEID *ln;
 
   // Options/operating mode variables
   int erase;                    // 1=erase chip, 0=don't
@@ -1013,10 +1007,9 @@ int main(int argc, char *argv[]) {
   }
 
   if(lsize(additional_config_files) > 0) {
-    LNODEID ln1;
     const char *p = NULL;
 
-    for(ln1 = lfirst(additional_config_files); ln1; ln1 = lnext(ln1)) {
+    for(LNODEID ln1 = lfirst(additional_config_files); ln1; ln1 = lnext(ln1)) {
       p = ldata(ln1);
       pmsg_notice("additional configuration file is %s\n", p);
 
@@ -1404,7 +1397,7 @@ int main(int argc, char *argv[]) {
    */
   int doexit = 0;
 
-  for(ln = lfirst(updates); ln; ln = lnext(ln)) {
+  for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
     upd = ldata(ln);
     if(upd->memstr == NULL && upd->cmdline == NULL) {
       const char *mtype = is_pdi(p)? "application": "flash";
@@ -1649,7 +1642,7 @@ init_again:
 
   if(uflags & UF_AUTO_ERASE) {
     if((p->prog_modes & (PM_PDI | PM_UPDI)) && pgm->page_erase && lsize(updates) > 0) {
-      for(ln = lfirst(updates); ln; ln = lnext(ln)) {
+      for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
         upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           cx->avr_disableffopt = 1;     // Must write full flash file including trailing 0xff
@@ -1661,7 +1654,7 @@ init_again:
       }
     } else {
       uflags &= ~UF_AUTO_ERASE;
-      for(ln = lfirst(updates); ln; ln = lnext(ln)) {
+      for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
         upd = ldata(ln);
         if(upd->cmdline && *str_ltrim(upd->cmdline) && str_starts("erase", str_ltrim(upd->cmdline)))
           break;                // -T erase already erases the chip: no auto-erase needed
@@ -1719,7 +1712,7 @@ init_again:
 
   if(lsize(updates) <= 1)
     uflags |= UF_NOHEADING;
-  for(ln = lfirst(updates); ln; ln = lnext(ln)) {
+  for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
     const AVRMEM *m;
 
     upd = ldata(ln);
