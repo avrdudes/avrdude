@@ -300,7 +300,7 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
-      current_prog->config_file = cache_string(cfg_infile);
+      current_prog->config_file = cache_string(cfg_infile? cfg_infile: "unknown");
       current_prog->lineno = cfg_lineno;
     }
     |
@@ -315,7 +315,7 @@ prog_decl :
       current_prog = pgm_dup(pgm);
       current_prog->parent_id = cache_string($3->value.string);
       current_prog->comments = NULL;
-      current_prog->config_file = cache_string(cfg_infile);
+      current_prog->config_file = cache_string(cfg_infile? cfg_infile: "unknown");
       current_prog->lineno = cfg_lineno;
       free_token($3);
     }
@@ -428,7 +428,7 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
-      current_part->config_file = cache_string(cfg_infile);
+      current_part->config_file = cache_string(cfg_infile? cfg_infile: "unknown");
       current_part->lineno = cfg_lineno;
     } |
   K_PART K_PARENT TKN_STRING
@@ -443,7 +443,7 @@ part_decl :
       current_part = avr_dup_part(parent_part);
       current_part->parent_id = cache_string($3->value.string);
       current_part->comments = NULL;
-      current_part->config_file = cache_string(cfg_infile);
+      current_part->config_file = cache_string(cfg_infile? cfg_infile: "unknown");
       current_part->lineno = cfg_lineno;
 
       free_token($3);
@@ -1065,7 +1065,7 @@ mem_spec :
     {
       int ps = $3->value.number;
       if(ps <= 0)
-        pmsg_warning("invalid page size %d, ignored [%s:%d]\n", ps, cfg_infile, cfg_lineno);
+        pmsg_warning("invalid page size %d, ignored [%s:%d]\n", ps, cfg_infile? cfg_infile: "unknown", cfg_lineno);
       else
         current_mem->page_size = ps;
       free_token($3);

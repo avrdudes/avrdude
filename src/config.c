@@ -443,12 +443,9 @@ int read_config(const char *file) {
   yylex_destroy();
 #endif
 
+  mmt_free(cfg_infile);
+  cfg_infile = NULL;
   fclose(f);
-
-  if(cfg_infile) {
-    mmt_free(cfg_infile);
-    cfg_infile = NULL;
-  }
 
   return rc;
 }
