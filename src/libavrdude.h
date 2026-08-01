@@ -1784,6 +1784,7 @@ extern "C" {
   char *mmt_realpath(const char *);
   char *str_sysconfig(void);
   char *str_usrconfig(void);
+  char *str_home2tilde(char *str);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);

@@ -1811,7 +1811,7 @@ static char *concatpath(char *dst, char *dir, char *file, size_t n) {
 }
 #endif
 
-// Return mmt_malloc'd location of personal configuration file
+// Return mmt_malloc'd location of personal configuration file or NULL if not there
 char *str_usrconfig(void) {
   char config[PATH_MAX] = { 0 };
   struct stat sb;
@@ -1826,4 +1826,30 @@ char *str_usrconfig(void) {
 #endif
 
   return mmt_realpath(config);
+}
+
+// Replace initial part of string with ~ if it is the home directory
+char *str_home2tilde(char *str) {
+  char *home = getenv("HOME");
+
+  if(!str || !home || !*home || !str_casestarts(str, home))
+    return str;
+
+  size_t l = strlen(home), n = strlen(str);
+  if(l == n) {
+    strcpy(str, "~");
+    return str;
+  }
+
+  if(home[l-1] != '/' && str[l] != '/')
+    return str;
+
+  while(str[l] == '/')
+    l++;
+  if(l > 1 || *home != '/') {
+    str[0] = '~'; str[1] = '/';
+    memmove(str+2, str+l, n+1 - l);
+  }
+
+  return str;
 }
