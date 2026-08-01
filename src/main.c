@@ -1662,8 +1662,6 @@ init_again:
   if(lsize(updates) <= 1)
     uflags |= UF_NOHEADING;
   for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
-    const AVRMEM *m;
-
     UPDATE *upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
       wrmem = 0;
@@ -1674,6 +1672,8 @@ init_again:
     }
     if((uflags & UF_NOWRITE) && upd->cmdline && !terminal++)
       pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
+
+    const AVRMEM *m;
     int rc = do_op(mpgm, pt, upd, uflags);
     if(rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
@@ -1683,9 +1683,8 @@ init_again:
   }
   mpgm->flush_cache(mpgm, pt);
 
-  if(mpgm->end_programming)
-    if(mpgm->end_programming(mpgm, pt) < 0)
-      pmsg_error("could not end programming, aborting\n");
+  if(mpgm->end_programming && mpgm->end_programming(mpgm, pt) < 0)
+    pmsg_error("could not end programming, aborting\n");
 
 main_exit:
 
