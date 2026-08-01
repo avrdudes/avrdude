@@ -215,7 +215,7 @@ static LISTID extended_params = NULL;
 
 static LISTID additional_config_files = NULL;
 
-static PROGRAMMER *pgm;
+static PROGRAMMER *mpgm;
 
 // Global options
 int verbose;                    // Verbose output
@@ -451,8 +451,8 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
 }
 
 static void exithook(void) {
-  if(pgm && pgm->teardown)
-    pgm->teardown(pgm);
+  if(mpgm && mpgm->teardown)
+    mpgm->teardown(mpgm);
 }
 
 static void cleanup_main(void) {
@@ -702,7 +702,7 @@ int main(int argc, char *argv[]) {
   partdesc = NULL;
   ovsigck = 0;
   quell_progress = 0;
-  pgm = NULL;
+  mpgm = NULL;
   pgmid = "";
   verbose = 0;
 
@@ -1026,14 +1026,14 @@ int main(int argc, char *argv[]) {
 
   if(partdesc && str_eq(partdesc, "?")) {
     if(pgmid && *pgmid && explicit_c) {
-      PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
+      PROGRAMMER *qpgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
 
-      if(!pgm || !is_programmer(pgm)) {
-        programmer_not_found(pgmid, pgm, NULL);
+      if(!qpgm || !is_programmer(qpgm)) {
+        programmer_not_found(pgmid, qpgm, NULL);
         exit(1);
       }
       msg_error("\nValid parts for programmer %s are:\n", pgmid);
-      list_parts(stderr, "  ", part_list, pgm->prog_modes);
+      list_parts(stderr, "  ", part_list, qpgm->prog_modes);
     } else {
       msg_error("\nValid parts are:\n");
       list_parts(stderr, "  ", part_list, ~0);
@@ -1075,13 +1075,13 @@ int main(int argc, char *argv[]) {
   }
 
   pt = partdesc && *partdesc? locate_part(part_list, partdesc): NULL;
-  pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, pt);
-  if(pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid, pgm, pt);
+  mpgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, pt);
+  if(mpgm == NULL || !is_programmer(mpgm)) {
+    programmer_not_found(pgmid, mpgm, pt);
     exit(1);
   }
 
-  if(pt && !(pt->prog_modes & pgm->prog_modes)) {
+  if(pt && !(pt->prog_modes & mpgm->prog_modes)) {
     pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, pt->desc);
     if(!ovsigck) {
       imsg_error("use -F to override this check\n");
@@ -1089,20 +1089,20 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(!pgm->initpgm) {
+  if(!mpgm->initpgm) {
     pmsg_error("cannot initialize the programmer\n\n");
     exit(1);
   }
-  pgm->initpgm(pgm);
+  mpgm->initpgm(mpgm);
 
-  if(pgm->setup)
-    pgm->setup(pgm);
+  if(mpgm->setup)
+    mpgm->setup(mpgm);
 
-  if(pgm->teardown)
+  if(mpgm->teardown)
     atexit(exithook);
 
   if(lsize(extended_params) > 0) {
-    if(pgm->parseextparams == NULL) {
+    if(mpgm->parseextparams == NULL) {
       for(LNODEID ln = lfirst(extended_params); ln; ln = lnext(ln)) {
         const char *extended_param = ldata(ln);
 
@@ -1114,7 +1114,7 @@ int main(int argc, char *argv[]) {
           pmsg_error("programmer does not support extended parameter -x %s, option ignored\n", extended_param);
       }
     } else {
-      int rc = pgm->parseextparams(pgm, extended_params);
+      int rc = mpgm->parseextparams(mpgm, extended_params);
 
       if(rc == LIBAVRDUDE_EXIT_OK)
         exit(0);
@@ -1125,11 +1125,11 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(port == NULL && *pgm->default_port)
-    port = mmt_strdup(pgm->default_port);
+  if(port == NULL && *mpgm->default_port)
+    port = mmt_strdup(mpgm->default_port);
 
   if(port == NULL) {
-    switch(pgm->conntype) {
+    switch(mpgm->conntype) {
     case CONNTYPE_PARALLEL:
       port = mmt_strdup(default_parallel);
       break;
@@ -1163,7 +1163,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  int is_dryrun = str_eq(pgm->ptyp, "Dryrun") || (dry && pgm->initpgm == dry->initpgm);
+  int is_dryrun = str_eq(mpgm->ptyp, "Dryrun") || (dry && mpgm->initpgm == dry->initpgm);
 
   if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
@@ -1183,7 +1183,7 @@ int main(int argc, char *argv[]) {
   bool print_ports = true;
   SERIALADAPTER *ser = NULL;
 
-  if(pgm->conntype == CONNTYPE_SERIAL) {
+  if(mpgm->conntype == CONNTYPE_SERIAL) {
     char *portdup = mmt_strdup(port);
     char *port_tok[4], *tok = portdup;
 
@@ -1243,33 +1243,33 @@ int main(int argc, char *argv[]) {
     pmsg_notice("using port            : %s\n", port);
   pmsg_notice("using programmer      : %s\n", pgmid);
 
-  if(baudrate && !pgm->baudrate && !default_baudrate) { // None set
+  if(baudrate && !mpgm->baudrate && !default_baudrate) { // None set
     pmsg_notice("setting baud rate     : %d\n", baudrate);
-    pgm->baudrate = baudrate;
-  } else if(baudrate && ((pgm->baudrate && pgm->baudrate != baudrate)
-      || (!pgm->baudrate && default_baudrate != baudrate))) {
+    mpgm->baudrate = baudrate;
+  } else if(baudrate && ((mpgm->baudrate && mpgm->baudrate != baudrate)
+      || (!mpgm->baudrate && default_baudrate != baudrate))) {
     pmsg_notice("overriding baud rate  : %d\n", baudrate);
-    pgm->baudrate = baudrate;
-  } else if(!pgm->baudrate && default_baudrate) {
+    mpgm->baudrate = baudrate;
+  } else if(!mpgm->baudrate && default_baudrate) {
     pmsg_notice("default baud rate     : %d\n", default_baudrate);
-    pgm->baudrate = default_baudrate;
+    mpgm->baudrate = default_baudrate;
   } else if(ser && ser->baudrate) {
     pmsg_notice("serial baud rate      : %d\n", ser->baudrate);
-    pgm->baudrate = ser->baudrate;
-  } else if(pgm->baudrate != 0)
-    pmsg_notice("programmer baud rate  : %d\n", pgm->baudrate);
+    mpgm->baudrate = ser->baudrate;
+  } else if(mpgm->baudrate != 0)
+    pmsg_notice("programmer baud rate  : %d\n", mpgm->baudrate);
 
   if(bitclock != 0.0) {
     pmsg_notice("setting bit clk period: %.1f us\n", bitclock);
-    pgm->bitclock = bitclock*1e-6;
+    mpgm->bitclock = bitclock*1e-6;
   }
 
   if(ispdelay != 0) {
     pmsg_notice("setting ISP clk delay : %3i us\n", ispdelay);
-    pgm->ispdelay = ispdelay;
+    mpgm->ispdelay = ispdelay;
   }
 
-  int rc = pgm->open(pgm, port);
+  int rc = mpgm->open(mpgm, port);
   if(rc < 0) {
     if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
       exitrc = rc == LIBAVRDUDE_EXIT_FAIL;
@@ -1278,7 +1278,7 @@ int main(int argc, char *argv[]) {
 
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
   skipopen:
-    if(print_ports && pgm->conntype == CONNTYPE_SERIAL) {
+    if(print_ports && mpgm->conntype == CONNTYPE_SERIAL) {
 
 #ifdef HAVE_LIBSERIALPORT
       list_available_serialports(programmers);
@@ -1287,7 +1287,7 @@ int main(int argc, char *argv[]) {
 #endif
     }
     exitrc = 1;
-    pgm->ppidata = 0;           // Clear all bits at exit
+    mpgm->ppidata = 0;          // Clear all bits at exit
     goto main_exit;
   }
   is_open = 1;
@@ -1305,11 +1305,11 @@ int main(int argc, char *argv[]) {
   }
 
   if(exitspecs != NULL) {
-    if(pgm->parseexitspecs == NULL) {
+    if(mpgm->parseexitspecs == NULL) {
       pmsg_warning("-E option not supported by this programmer type\n");
       exitspecs = NULL;
     } else {
-      int rc = pgm->parseexitspecs(pgm, exitspecs);
+      int rc = mpgm->parseexitspecs(mpgm, exitspecs);
 
       if(rc == LIBAVRDUDE_EXIT_OK)
         exit(0);
@@ -1328,7 +1328,7 @@ int main(int argc, char *argv[]) {
   }
 
   if(verbose > 0) {
-    if((str_eq(pgm->ptyp, "avr910"))) {
+    if((str_eq(mpgm->ptyp, "avr910"))) {
       imsg_notice("avr910_devcode (avrdude.conf) : ");
       if(pt->avr910_devcode)
         msg_notice("0x%02x\n", (uint8_t) pt->avr910_devcode);
@@ -1366,12 +1366,12 @@ int main(int argc, char *argv[]) {
 
   if(calibrate) {
     // Perform an RC oscillator calibration as outlined in appnote AVR053
-    if(pgm->perform_osccal == 0) {
+    if(mpgm->perform_osccal == 0) {
       pmsg_error("programmer does not support RC oscillator calibration\n");
       exitrc = 1;
     } else {
       pmsg_notice2("performing RC oscillator calibration\n");
-      exitrc = pgm->perform_osccal(pgm);
+      exitrc = mpgm->perform_osccal(mpgm);
     }
     if(exitrc)
       pmsg_error("RC calibration unsuccesful\n");
@@ -1382,9 +1382,9 @@ int main(int argc, char *argv[]) {
   }
 
   if(verbose > 0 && quell_progress < 2) {
-    avr_display(stderr, pgm, pt, "", verbose);
+    avr_display(stderr, mpgm, pt, "", verbose);
     msg_notice2("\n");
-    programmer_display(pgm, "");
+    programmer_display(mpgm, "");
   }
 
   lmsg_info("");
@@ -1392,16 +1392,16 @@ int main(int argc, char *argv[]) {
   exitrc = 0;
 
   // Enable the programmer
-  pgm->enable(pgm, pt);
+  mpgm->enable(mpgm, pt);
 
   // Turn off all the status LEDs and reset LED states
-  led_set(pgm, LED_BEG);
+  led_set(mpgm, LED_BEG);
 
   // Initialize the chip in preparation for accepting commands
   int reinitialised = 0;
   int erased_by_unlock = 0;
 init_again:
-  init_ok = (rc = pgm->initialize(pgm, pt)) >= 0;
+  init_ok = (rc = mpgm->initialize(mpgm, pt)) >= 0;
   if(!init_ok) {
     if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
       exitrc = rc == LIBAVRDUDE_EXIT_FAIL;
@@ -1422,7 +1422,7 @@ init_again:
       // Reinitialise at most once if erase successful
       if(reinitialised++)
         pmsg_error("re-initialization failed despite part erasure; try re-running command line\n");
-      else if(pgm->chip_erase(pgm, pt) == LIBAVRDUDE_SUCCESS) {
+      else if(mpgm->chip_erase(mpgm, pt) == LIBAVRDUDE_SUCCESS) {
         erased_by_unlock = 1;
         goto init_again;
       }
@@ -1435,17 +1435,17 @@ init_again:
     else
       imsg_error(" - double check the connections and try again\n");
 
-    if(str_eq(pgm->ptyp, "serialupdi"))
+    if(str_eq(mpgm->ptyp, "serialupdi"))
       imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
-    else if(str_eq(pgm->ptyp, "BusPirate_BB") || str_eq(pgm->ptyp, "linuxgpio") ||
-      str_eq(pgm->ptyp, "PPI") || str_eq(pgm->ptyp, "SERBB")) {
+    else if(str_eq(mpgm->ptyp, "BusPirate_BB") || str_eq(mpgm->ptyp, "linuxgpio") ||
+      str_eq(mpgm->ptyp, "PPI") || str_eq(mpgm->ptyp, "SERBB")) {
       imsg_error(" - use -i %sto set a longer delay (in microseconds) between each bit state change, e.g. -i 50\n",
         bitclock? "instead of -B ": "");
     }
     else
       imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 
-    if(str_starts(pgm->ptyp, "pickit5"))
+    if(str_starts(mpgm->ptyp, "pickit5"))
       imsg_error(" - reset the programmer by unplugging it");
 
     if(!ovsigck) {
@@ -1456,7 +1456,7 @@ init_again:
   }
 
   // Indicate programmer is ready
-  led_set(pgm, LED_RDY);
+  led_set(mpgm, LED_RDY);
 
   msg_notice("\n");
   pmsg_notice("AVR device initialized and ready to accept instructions\n");
@@ -1473,7 +1473,7 @@ init_again:
   sig_again:
     usleep(waittime);
     if(init_ok) {
-      int rc = avr_signature(pgm, pt);
+      int rc = avr_signature(mpgm, pt);
       if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
         exitrc = (rc == LIBAVRDUDE_EXIT_FAIL);
         goto main_exit;
@@ -1487,7 +1487,7 @@ init_again:
               pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
             } else {
               pmsg_info("unlocking the chip");
-              exitrc = avr_unlock(pgm, pt);
+              exitrc = avr_unlock(mpgm, pt);
               if(exitrc)
                 goto main_exit;
               msg_info(" and trying again\n");
@@ -1513,7 +1513,7 @@ init_again:
     if(sig == NULL)
       pmsg_warning("signature memory not defined for device %s\n", pt->desc);
     else {
-      const char *mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes);
+      const char *mculist = str_ccmcunames_signature(sig->buf, mpgm->prog_modes);
 
       if(!*mculist) {           // No matching signatures?
         if(is_updi(pt)) {       // UPDI parts have different(!) offsets for signature
@@ -1534,8 +1534,8 @@ init_again:
           // Now go through the list of other(!) sig offsets and try these
           for(k = 0; k < n; k++) {
             sig->offset = offlist[k];
-            if(avr_signature(pgm, pt) >= 0)
-              if(*(mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes)))
+            if(avr_signature(mpgm, pt) >= 0)
+              if(*(mculist = str_ccmcunames_signature(sig->buf, mpgm->prog_modes)))
                 break;
           }
           sig->offset = myoff;
@@ -1590,7 +1590,7 @@ init_again:
   }
 
   if(uflags & UF_AUTO_ERASE) {
-    if((pt->prog_modes & (PM_PDI | PM_UPDI)) && pgm->page_erase && lsize(updates) > 0) {
+    if((pt->prog_modes & (PM_PDI | PM_UPDI)) && mpgm->page_erase && lsize(updates) > 0) {
       for(LNODEID ln = lfirst(updates); ln; ln = lnext(ln)) {
         UPDATE *upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, pt)) {
@@ -1639,7 +1639,7 @@ init_again:
       else
         pmsg_notice("-n specified, NOT erasing chip\n");
     } else {
-      exitrc = avr_chip_erase(pgm, pt);
+      exitrc = avr_chip_erase(mpgm, pt);
       if(exitrc == LIBAVRDUDE_SOFTFAIL) {
         pmsg_notice("delaying chip erase until first -U upload to flash\n");
         ce_delayed = 1;
@@ -1667,35 +1667,35 @@ init_again:
     UPDATE *upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
       wrmem = 0;
-      pgm->reset_cache(pgm, pt);
+      mpgm->reset_cache(mpgm, pt);
     } else if(!upd->cmdline) {  // Flush cache before any device memory access
-      pgm->flush_cache(pgm, pt);
+      mpgm->flush_cache(mpgm, pt);
       wrmem |= upd->op == DEVICE_WRITE;
     }
     if((uflags & UF_NOWRITE) && upd->cmdline && !terminal++)
       pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
-    int rc = do_op(pgm, pt, upd, uflags);
+    int rc = do_op(mpgm, pt, upd, uflags);
     if(rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
     } else if(rc == 0 && upd->op == DEVICE_WRITE && (m = avr_locate_mem(pt, upd->memstr)) && mem_is_in_flash(m))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
-  pgm->flush_cache(pgm, pt);
+  mpgm->flush_cache(mpgm, pt);
 
-  if(pgm->end_programming)
-    if(pgm->end_programming(pgm, pt) < 0)
+  if(mpgm->end_programming)
+    if(mpgm->end_programming(mpgm, pt) < 0)
       pmsg_error("could not end programming, aborting\n");
 
 main_exit:
 
   // Program complete
   if(is_open) {
-    // Clear rdy LED and summarise interaction in err, pgm and vfy LEDs
-    led_set(pgm, LED_END);
-    pgm->powerdown(pgm);
-    pgm->disable(pgm);
-    pgm->close(pgm);
+    // Clear rdy LED and summarise interaction in err, mpgm and vfy LEDs
+    led_set(mpgm, LED_END);
+    mpgm->powerdown(mpgm);
+    mpgm->disable(mpgm);
+    mpgm->close(mpgm);
   }
 
   if(cx->usb_access_error) {
