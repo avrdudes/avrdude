@@ -314,7 +314,7 @@ static void pmshorten(char *desc, const char *modes) {
 
 static void list_programmers(FILE *f, const char *prefix, LISTID programmers, int pm) {
   int maxlen = 0, len;
-  PROGRAMMER *pgm, *dry = locate_programmer(programmers, "dryrun");
+  const PROGRAMMER *pgm, *dry = locate_programmer(programmers, "dryrun");
 
   sort_programmers(programmers);
 
@@ -419,7 +419,7 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
 
   // Compute max length of part names
   for(LNODEID ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
-    AVRPART *p = ldata(ln1);
+    const AVRPART *p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
       if(verbose < MSG_NOTICE2 && p->id[0] == '.')      // Hide ids starting with '.'
@@ -430,7 +430,7 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
   }
 
   for(LNODEID ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
-    AVRPART *p = ldata(ln1);
+    const AVRPART *p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
       if(verbose < MSG_NOTICE2 && p->id[0] == '.')      // Hide ids starting with '.'
@@ -501,7 +501,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
   int nid = 0;                  // Number of possible programmer ids
 
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-    PROGRAMMER *pgm = ldata(ln1);
+    const PROGRAMMER *pgm = ldata(ln1);
 
     if(is_programmer(pgm))
       for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
@@ -512,10 +512,10 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 
   // Fill d[] struct
   int idx = 0;
-  AVRPART *p = locate_part(part_list, partdesc);
+  const AVRPART *p = locate_part(part_list, partdesc);
 
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-    PROGRAMMER *pgm = ldata(ln1);
+    const PROGRAMMER *pgm = ldata(ln1);
 
     if(!is_programmer(pgm))
       continue;
@@ -577,7 +577,7 @@ static void programmer_not_found(const char *programmer, const PROGRAMMER *pgm, 
   int pmatches = 0, maxlen = 0, len;
 
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-    PROGRAMMER *pg = ldata(ln1);
+    const PROGRAMMER *pg = ldata(ln1);
 
     if(is_programmer(pg) && (pg->prog_modes & pmode))
       for(LNODEID ln2 = lfirst(pg->id); ln2; ln2 = lnext(ln2)) {
@@ -593,7 +593,7 @@ static void programmer_not_found(const char *programmer, const PROGRAMMER *pgm, 
   if(pmatches) {
     pmsg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
     for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-      PROGRAMMER *pg = ldata(ln1);
+      const PROGRAMMER *pg = ldata(ln1);
 
       if(is_programmer(pg) && (pg->prog_modes & pmode))
         for(LNODEID ln2 = lfirst(pg->id); ln2; ln2 = lnext(ln2)) {
@@ -604,7 +604,7 @@ static void programmer_not_found(const char *programmer, const PROGRAMMER *pgm, 
         }
     }
   } else if(!pgm || !pgm->id || !lsize(pgm->id)) {
-    PROGRAMMER *pg = locate_programmer(programmers, programmer);
+    const PROGRAMMER *pg = locate_programmer(programmers, programmer);
 
     if(!pgm && pt && pg && !(pg->prog_modes & pmode)) {
       pmsg_error("programmer %s and part %s have no programming modes in common\n", programmer, pt->desc);
@@ -995,13 +995,13 @@ int main(int argc, char *argv[]) {
     exit(0);
   }
 
-  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
+  const PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
 
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
-    AVRPART *p = ldata(ln1);
+    const AVRPART *p = ldata(ln1);
 
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
-      PROGRAMMER *pgm = ldata(ln2);
+      const PROGRAMMER *pgm = ldata(ln2);
 
       if(!is_programmer(pgm))
         continue;
@@ -1026,7 +1026,7 @@ int main(int argc, char *argv[]) {
 
   if(partdesc && str_eq(partdesc, "?")) {
     if(pgmid && *pgmid && explicit_c) {
-      PROGRAMMER *qpgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
+      const PROGRAMMER *qpgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
 
       if(!qpgm || !is_programmer(qpgm)) {
         programmer_not_found(pgmid, qpgm, NULL);
@@ -1044,7 +1044,7 @@ int main(int argc, char *argv[]) {
 
   if(pgmid && str_eq(pgmid, "?")) {
     if(partdesc && *partdesc) {
-      AVRPART *p = locate_part(part_list, partdesc);
+      const AVRPART *p = locate_part(part_list, partdesc);
 
       if(!p) {
         part_not_found(partdesc);
