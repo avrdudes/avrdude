@@ -424,15 +424,8 @@ extern int yylex_destroy(void);
 #endif
 
 int read_config(const char *file) {
-  FILE *f;
-  int r;
-
-  if(!(cfg_infile = mmt_realpath(file))) {
-    pmsg_ext_error("cannot determine realpath() of config file %s: %s\n", file, strerror(errno));
-    return -1;
-  }
-
-  f = fopen(cfg_infile, "r");
+  cfg_infile = mmt_strdup(file);
+  FILE *f = fopen(cfg_infile, "r");
   if(f == NULL) {
     pmsg_ext_error("cannot open config file %s: %s\n", cfg_infile, strerror(errno));
     mmt_free(cfg_infile);
@@ -443,7 +436,7 @@ int read_config(const char *file) {
   cfg_lineno = 1;
   yyin = f;
 
-  r = yyparse();
+  int rc = yyparse();
 
 #ifdef HAVE_YYLEX_DESTROY
   // Reset lexer and free any allocated memory
@@ -457,7 +450,7 @@ int read_config(const char *file) {
     cfg_infile = NULL;
   }
 
-  return r;
+  return rc;
 }
 
 // Adapted version of a neat empirical hash function from comp.lang.c by Daniel Bernstein
