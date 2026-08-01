@@ -629,7 +629,6 @@ static void part_not_found(const char *partdesc) {
 
 
 int main(int argc, char *argv[]) {
-  int rc;                       // General return code checking
   int exitrc;                   // Exit code for main()
   int ch;                       // Options flag
   AVRPART *pt = NULL;           // Which avr part we are programming
@@ -977,8 +976,7 @@ int main(int argc, char *argv[]) {
       const char *cfn = ldata(ln1);
       pmsg_notice("additional configuration file is %s\n", cfn);
 
-      rc = read_config(cfn);
-      if(rc) {
+      if(read_config(cfn)) {
         pmsg_error("unable to process additional configuration file %s\n", cfn);
         exit(1);
       }
@@ -1283,7 +1281,7 @@ int main(int argc, char *argv[]) {
     pgm->ispdelay = ispdelay;
   }
 
-  rc = pgm->open(pgm, port);
+  int rc = pgm->open(pgm, port);
   if(rc < 0) {
     if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
       exitrc = rc == LIBAVRDUDE_EXIT_FAIL;
@@ -1369,7 +1367,7 @@ int main(int argc, char *argv[]) {
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v', upd->filename, mtype);
       upd->memstr = mmt_strdup(mtype);
     }
-    rc = update_dryrun(pt, upd);
+    int rc = update_dryrun(pt, upd);
     if(rc && rc != LIBAVRDUDE_SOFTFAIL)
       doexit = 1;
   }
@@ -1487,9 +1485,9 @@ init_again:
   sig_again:
     usleep(waittime);
     if(init_ok) {
-      rc = avr_signature(pgm, pt);
+      int rc = avr_signature(pgm, pt);
       if(rc == LIBAVRDUDE_EXIT_FAIL || rc == LIBAVRDUDE_EXIT_OK) {
-        exitrc =  rc == LIBAVRDUDE_EXIT_FAIL;
+        exitrc = (rc == LIBAVRDUDE_EXIT_FAIL);
         goto main_exit;
       }
       if(rc != LIBAVRDUDE_SUCCESS) {
@@ -1688,7 +1686,7 @@ init_again:
     }
     if((uflags & UF_NOWRITE) && upd->cmdline && !terminal++)
       pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
-    rc = do_op(pgm, pt, upd, uflags);
+    int rc = do_op(pgm, pt, upd, uflags);
     if(rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
