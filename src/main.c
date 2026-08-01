@@ -1702,16 +1702,9 @@ main_exit:
     pmsg_info("\nUSB access errors detected; this could have many reasons; if it is\n"
       "USB permission problems, avrdude is likely to work when run as root\n"
       "but this is not good practice; instead you might want to\n");
-
-#if 0 && !defined(WIN32)
-    DIR *dir;
-
-    if((dir = opendir("/etc/udev/rules.d"))) {  // Linux udev land
-      closedir(dir);
+    if(access("/etc/udev/rules.d", F_OK) == 0) // Linux udev land
       imsg_info("run the command below to show udev rules recitifying USB access\n" "$ %s -c %s/u\n", progname, pgmid);
-    } else
-#endif
-
+    else
       imsg_info("check out USB port permissions on your OS and set them correctly\n");
   }
 
