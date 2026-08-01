@@ -1661,7 +1661,7 @@ const char *str_ccaddress(int addr, int size) {
      str_ccprintf("0x%0*x", intlog2(size-1)/4 + 1, addr);
 }
 
-// Return a malloc'd string quoted for a shell argument
+// Return a mmt_malloc'd string quoted for a shell argument
 char *str_quote_bash(const char *s) {
   size_t n = strlen(s);
   char *ret = mmt_malloc(4*n + 3), *r = ret;
@@ -1695,7 +1695,7 @@ const char *str_ccsharg(const char *str) {
   return str;
 }
 
-// Return malloc'd ISR vector name without _ (given the vector number)
+// Return mmt_malloc'd ISR vector name without _ (given the vector number)
 char *str_vectorname(const Avrintel *up, int vn) {
   if(!up->isrtable || vn < -1 || vn > up->ninterrupts)
     return mmt_strdup("unknown");
@@ -1850,4 +1850,25 @@ char *str_home2tilde(char *str) {
   }
 
   return str;
+}
+
+// Return mmt_malloc'd progname computed from argv[0]
+char *str_progname(const char *argv0) {
+  const char *pn = strrchr(argv0, '/');
+
+#if defined (WIN32)             // Take care of backslash as dir sep
+  if(!pn)
+    pn = strrchr(argv0, '\\');
+#endif
+
+  if(pn)
+    pn++;
+  else
+    pn = argv0;
+
+  char *ret = mmt_strdup(pn);
+  if(str_ends(ret, ".exe"))     // Remove trailing .exe
+    ret[strlen(ret) - 4] = 0;
+
+  return ret;
 }
