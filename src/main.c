@@ -637,26 +637,26 @@ int main(int argc, char *argv[]) {
   UPDATE *upd;
 
   // Options/operating mode variables
-  int erase;                    // 1=erase chip, 0=don't
-  int flashread;                // 1=flash is going to be read, 0=no flash reads
-  int calibrate;                // 1=calibrate RC oscillator, 0=don't
-  int no_avrduderc;             // 1=don't load personal conf file
-  char *port;                   // Device port (/dev/xxx)
-  const char *exitspecs;        // Exit specs string from command line
-  int explicit_c;               // 1=explicit -c on command line, 0=not specified there
-  int explicit_e;               // 1=explicit -e on command line, 0=not specified there
+  int erase = 0;                // 1 = erase chip, 0 = don't
+  int flashread = 0;            // 1 = flash is going to be read, 0 = no flash reads
+  int calibrate = 0;            // 1 = calibrate RC oscillator, 0 = don't
+  int no_avrduderc = 0;         // 1 = don't load personal conf file, 0 = do
+  char *port = NULL;            // Device port (/dev/xxx, usb:2341:0034, ch340, ...)
+  const char *exitspecs = NULL; // Exit specs string from command line
+  int explicit_c = 0;           // 1 = explicit -c on command line, 0 = not specified there
+  int explicit_e = 0;           // 1 = explicit -e on command line, 0 = not specified there
   char *sysconfig = NULL;       // System configuration file path
-  char *e;                      // For strtod() error checking
+  char *endp;                   // For strtod() error checking
   const char *errstr;           // For str_int() error checking
-  int baudrate;                 // Override default programmer baud rate
-  int touch_1200bps;            // Touch serial port prior to programming
-  double bitclock;              // Specify programmer bit clock (JTAG ICE)
-  int ispdelay;                 // Specify the delay for ISP clock
-  int init_ok;                  // Device initialization worked well
-  int is_open;                  // Device open succeeded
-  int ce_delayed;               // Chip erase delayed
-  char *logfile;                // Use logfile rather than stderr for diagnostics
-  int showversion;              // Show version and exit
+  int baudrate = 0;             // Override default programmer baud rate
+  int touch_1200bps = 0;        // Touch serial port prior to programming
+  double bitclock = 0;          // Specify programmer bit clock (JTAG ICE)
+  int ispdelay = 0;             // Specify the delay for ISP clock
+  int init_ok = 0;              // Device initialization worked well
+  int is_open = 0;              // Device open succeeded
+  int ce_delayed = 0;           // Chip erase delayed
+  char *logfile = NULL;         // Use logfile rather than stderr for diagnostics
+  int showversion = 0;          // Show version and exit
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY;  // Flags for do_op()
 
   init_cx(NULL);
@@ -721,28 +721,12 @@ int main(int argc, char *argv[]) {
   }
 
   partdesc = NULL;
-  port = NULL;
-  erase = 0;
-  flashread = 0;
-  calibrate = 0;
-  no_avrduderc = 0;
   p = NULL;
   ovsigck = 0;
   quell_progress = 0;
-  exitspecs = NULL;
   pgm = NULL;
   pgmid = "";
-  explicit_c = 0;
-  explicit_e = 0;
   verbose = 0;
-  baudrate = 0;
-  touch_1200bps = 0;
-  bitclock = 0.0;
-  ispdelay = 0;
-  is_open = 0;
-  ce_delayed = 0;
-  logfile = NULL;
-  showversion = 0;
 
   if(argc == 1) {               // No arguments?
     usage();
@@ -794,23 +778,23 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'B':                   // Specify bit clock period
-      bitclock = strtod(optarg, &e);
-      if((e == optarg) || bitclock <= 0.0) {
+      bitclock = strtod(optarg, &endp);
+      if((endp == optarg) || bitclock <= 0.0) {
         pmsg_error("invalid bit clock period %s\n", optarg);
         exit(1);
       }
-      while(*e && isascii(*e & 0xff) && isspace(*e & 0xff))
-        e++;
-      if(*e == 0 || str_caseeq(e, "us"))        // us is optional and the default
+      while(*endp && isascii(*endp & 0xff) && isspace(*endp & 0xff))
+        endp++;
+      if(*endp == 0 || str_caseeq(endp, "us"))        // us is optional and the default
         ;
-      else if(str_caseeq(e, "m") || str_caseeq(e, "mhz"))
+      else if(str_caseeq(endp, "m") || str_caseeq(endp, "mhz"))
         bitclock = 1/bitclock;
-      else if(str_caseeq(e, "k") || str_caseeq(e, "khz"))
+      else if(str_caseeq(endp, "k") || str_caseeq(endp, "khz"))
         bitclock = 1e3/bitclock;
-      else if(str_caseeq(e, "hz"))
+      else if(str_caseeq(endp, "hz"))
         bitclock = 1e6/bitclock;
       else {
-        pmsg_error("invalid bit clock unit %s\n", e);
+        pmsg_error("invalid bit clock unit %s\n", endp);
         exit(1);
       }
       break;
@@ -1007,15 +991,13 @@ int main(int argc, char *argv[]) {
   }
 
   if(lsize(additional_config_files) > 0) {
-    const char *p = NULL;
-
     for(LNODEID ln1 = lfirst(additional_config_files); ln1; ln1 = lnext(ln1)) {
-      p = ldata(ln1);
-      pmsg_notice("additional configuration file is %s\n", p);
+      const char *cfn = ldata(ln1);
+      pmsg_notice("additional configuration file is %s\n", cfn);
 
-      rc = read_config(p);
+      rc = read_config(cfn);
       if(rc) {
-        pmsg_error("unable to process additional configuration file %s\n", p);
+        pmsg_error("unable to process additional configuration file %s\n", cfn);
         exit(1);
       }
     }
