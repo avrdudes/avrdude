@@ -30,6 +30,7 @@ Changes since version 8.2:
     - Provide trace_dump() #2167
     - Fix prog_enabled clearance #2168
     - Provide port and modify configuration syntax #2171
+    - Simplify main.c and provide library functions #2172
 
   * Internals:
 
