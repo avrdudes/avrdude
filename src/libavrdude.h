@@ -1408,6 +1408,10 @@ extern "C" {
 
 // Formerly config.h
 
+#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+#define realpath(N, R) _fullpath((R), (N), PATH_MAX)
+#endif
+
 extern LISTID part_list;
 extern LISTID programmers;
 extern const char *avrdude_conf_version;
@@ -1777,6 +1781,11 @@ extern "C" {
   const char *str_ccsharg(const char *str);
   char *str_vectorname(const Avrintel *up, int vn);
   int pgmid_is(const char *str);
+  char *mmt_realpath(const char * file);
+  char *str_sysconfig(void);
+  char *str_usrconfig(void);
+  char *str_home2tilde(char *str);
+  char *str_progname(const char *str);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);

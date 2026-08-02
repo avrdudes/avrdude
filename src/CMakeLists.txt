@@ -308,6 +308,8 @@ set(SOURCES
     usbtiny.h
     usbtiny.c
     update.c
+    whereami.c
+    whereami.h
     wiring.h
     wiring.c
     xbee.h
@@ -359,8 +361,6 @@ add_executable(avrdude
     developer_opts.c
     developer_opts.h
     developer_opts_private.h
-    whereami.c
-    whereami.h
     ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
     ${EXTRA_WINDOWS_RESOURCES}
     )

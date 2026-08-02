@@ -229,6 +229,8 @@ libavrdude_la_SOURCES = \
 	usbtiny.h \
 	usbtiny.c \
 	update.c \
+	whereami.c \
+	whereami.h \
 	wiring.h \
 	wiring.c \
 	xbee.h \
@@ -240,8 +242,6 @@ include_HEADERS += libavrdude-avrintel.h
 
 avrdude_SOURCES = \
 	main.c \
-	whereami.c \
-	whereami.h \
 	developer_opts.c \
 	developer_opts.h \
 	developer_opts_private.h

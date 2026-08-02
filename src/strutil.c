@@ -26,6 +26,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <whereami.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1658,7 +1661,7 @@ const char *str_ccaddress(int addr, int size) {
      str_ccprintf("0x%0*x", intlog2(size-1)/4 + 1, addr);
 }
 
-// Return a malloc'd string quoted for a shell argument
+// Return a mmt_malloc'd string quoted for a shell argument
 char *str_quote_bash(const char *s) {
   size_t n = strlen(s);
   char *ret = mmt_malloc(4*n + 3), *r = ret;
@@ -1692,7 +1695,7 @@ const char *str_ccsharg(const char *str) {
   return str;
 }
 
-// Return malloc'd ISR vector name without _ (given the vector number)
+// Return mmt_malloc'd ISR vector name without _ (given the vector number)
 char *str_vectorname(const Avrintel *up, int vn) {
   if(!up->isrtable || vn < -1 || vn > up->ninterrupts)
     return mmt_strdup("unknown");
@@ -1734,4 +1737,138 @@ int pgmid_is(const char *str) {
       return 1;
 
   return 0;
+}
+
+// Return mmt_malloc'd canonicalised absolute path of file or NULL on error
+char *mmt_realpath(const char *file) {
+  char path[PATH_MAX + 1] = { 0 };
+  return realpath(file, path) && access(path, F_OK) == 0? mmt_strdup(path): NULL;
+}
+
+/*
+ * Return mmt_malloc'd location of system configuration file in this order:
+ *  1. <dirpath of executable>/../etc/avrdude.conf
+ *  2. <dirpath of executable>/avrdude.conf
+ *  3. First avrdude.conf in PATH (Windows) or CONFIG_DIR/avrdude.conf (elsewhere)
+ */
+char *str_sysconfig(void) {
+  char *ret, config[PATH_MAX + 1 + sizeof("/../etc/" SYSTEM_CONF_FILE)] = { 0 };
+  int dirpath_len = 0;
+  int abspath_len = wai_getExecutablePath(config, PATH_MAX, &dirpath_len);
+
+  if(abspath_len > 0 && dirpath_len > 0) {
+    config[dirpath_len] = 0;
+    for(char *p = config; *p; p++) // Replace backslashes with forward slashes
+      if(*p == '\\')
+        *p = '/';
+    msg_trace2("dirpath = %s\n", config);
+
+    // 1. Check <dirpath of executable>/../etc/avrdude.conf
+    strcat(config, "/../etc/" SYSTEM_CONF_FILE);
+    if((ret = mmt_realpath(config)))
+      return ret;
+
+    // 2. Check <dirpath of executable>/avrdude.conf
+    config[dirpath_len] = 0;
+    strcat(config, "/" SYSTEM_CONF_FILE);
+    if((ret = mmt_realpath(config)))
+      return ret;
+  }
+#if defined(WIN32)
+  // 3. First config file in PATH
+  win_set_path(config, sizeof config, SYSTEM_CONF_FILE);
+  return mmt_realpath(config);
+#else
+  // 3. Check CONFIG_DIR/avrdude.conf
+  return mmt_realpath(CONFIG_DIR "/" SYSTEM_CONF_FILE);
+#endif
+}
+
+#if !defined(WIN32)
+// Safely concatenate dir/file into dst that has size n
+static char *concatpath(char *dst, char *dir, char *file, size_t n) {
+  // Dir or file empty?
+  if(!dir || !*dir || !file || !*file)
+    return NULL;
+
+  size_t len = strlen(dir);
+
+  // Insufficient space?
+  if(len + (dir[len - 1] != '/') + strlen(file) > n - 1)
+    return NULL;
+
+  if(dst != dir)
+    strcpy(dst, dir);
+
+  if(dst[len - 1] != '/')
+    strcat(dst, "/");
+
+  strcat(dst, file);
+
+  return dst;
+}
+#endif
+
+// Return mmt_malloc'd location of personal configuration file or NULL if not there
+char *str_usrconfig(void) {
+  char config[PATH_MAX] = { 0 };
+  struct stat sb;
+
+#if defined(WIN32)
+  win_set_path(config, sizeof config, USER_CONF_FILE);
+#else
+  if(!concatpath(config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof config))
+    concatpath(config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof config);
+  if(stat(config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(config, getenv("HOME"), USER_CONF_FILE, sizeof config);
+#endif
+
+  return mmt_realpath(config);
+}
+
+// Replace initial part of string with ~ if it is the home directory
+char *str_home2tilde(char *str) {
+  char *home = getenv("HOME");
+
+  if(!str || !home || !*home || !str_casestarts(str, home))
+    return str;
+
+  size_t l = strlen(home), n = strlen(str);
+  if(l == n) {
+    strcpy(str, "~");
+    return str;
+  }
+
+  if(home[l-1] != '/' && str[l] != '/')
+    return str;
+
+  while(str[l] == '/')
+    l++;
+  if(l > 1 || *home != '/') {
+    str[0] = '~'; str[1] = '/';
+    memmove(str+2, str+l, n+1 - l);
+  }
+
+  return str;
+}
+
+// Return mmt_malloc'd progname computed from argv[0]
+char *str_progname(const char *argv0) {
+  const char *pn = strrchr(argv0, '/');
+
+#if defined (WIN32)             // Take care of backslash as dir sep
+  if(!pn)
+    pn = strrchr(argv0, '\\');
+#endif
+
+  if(pn)
+    pn++;
+  else
+    pn = argv0;
+
+  char *ret = mmt_strdup(pn);
+  if(str_ends(ret, ".exe"))     // Remove trailing .exe
+    ret[strlen(ret) - 4] = 0;
+
+  return ret;
 }
