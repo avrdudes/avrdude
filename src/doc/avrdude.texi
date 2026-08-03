@@ -3843,7 +3843,7 @@ modify programmer <id>
 The @code{modify} keyword makes most sense in the per-user configuration
 file, where users may want to add specific properties of their programmer.
 This could be its USB serial number or default port, eg, a serialadapter
-such as @code{"ch340"}. This technique should not be used for the main
+such as @code{"ch340"}. This technique must not be used in the system
 @code{avrdude.conf} file, as the developer option @code{-c <programmer>/S}
 that prints the programmer definition as AVRDUDE understands it will only
 consider the final definition; it will not print @code{modify} statements.
@@ -4130,7 +4130,7 @@ modify part <id>
 @noindent
 The @code{modify} keyword makes most sense in the per-user configuration
 file, where users may want to modify specific properties of a part for
-debugging. This technique should not be used within the main
+debugging. This technique must not be used in the system
 @code{avrdude.conf} file, as the developer option @code{-p <part>/S} that
 prints the part definition as AVRDUDE understands it will only consider
 the final definition; it will not print @code{modify} statements.
