@@ -48,6 +48,7 @@ static int assign_pin(int pinfunc, TOKEN *v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN *opcode);
 static int parse_cmdbits(OPCODE *op, int opnum);
+static int in_systemconfig(void);
 
 #define pin_name (cx->cfgy_pin_name)
 %}
@@ -323,6 +324,10 @@ prog_decl :
 
 prog_modify:
   K_MODIFY K_PROGRAMMER TKN_STRING {
+    if(in_systemconfig()) {
+      free_token($3);
+      YYABORT;
+    }
     current_prog = locate_programmer(programmers, $3->value.string);
     if(!current_prog) {
       yyerror("to be modified programmer %s not found", $3->value.string);
@@ -452,6 +457,10 @@ part_decl :
 
 part_modify:
   K_MODIFY K_PART TKN_STRING {
+    if(in_systemconfig()) {
+      free_token($3);
+      YYABORT;
+    }
     current_part = locate_part(part_list, $3->value.string);
     if(!current_part) {
       yyerror("to be modified part %s not found", $3->value.string);
@@ -1375,4 +1384,14 @@ static int parse_cmdbits(OPCODE *op, int opnum) {
     yywarning("too few opcode bits in instruction");
 
   return rv;
+}
+
+static int in_systemconfig(void) {
+  char *sysconfig = str_sysconfig();
+  int ret = !cfg_infile || str_eq(cfg_infile, sysconfig);
+  mmt_free(sysconfig);
+
+  if(ret)
+    yyerror("modify operation %s configuration file", !cfg_infile? "without obvious": "not allowd in system");
+  return ret;
 }
