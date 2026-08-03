@@ -314,8 +314,7 @@ static int net_send(const union filedescriptor *fd, const unsigned char *buf, si
   if(!len)
     return 0;
 
-  if(verblevel >= MSG_TRACE)
-    trace_buffer(__func__, buf, len);
+  trace_buffer(__func__, buf, len);
 
   while(len) {
     rc = send(fd->ifd, (const char *) buf, len > 1024? 1024: len, 0);
@@ -351,8 +350,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
   if(!len)
     return 0;
 
-  if(verblevel >= MSG_TRACE)
-    trace_buffer(__func__, buf, len);
+  trace_buffer(__func__, buf, len);
 
   // Set minimum r/w timeout to 2000 ms or higher to cater for 110 baud or faster
   if(!serial_w32SetRWTimeOut(hComPort, (len > 20? len: 20)*100)) {
@@ -429,9 +427,7 @@ static int net_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     len += rc;
   }
 
-  if(verblevel >= MSG_TRACE)
-    trace_buffer(__func__, buf, len);
-
+  trace_buffer(__func__, buf, len);
   return 0;
 }
 
@@ -473,9 +469,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     return -1;
   }
 
-  if(verblevel >= MSG_TRACE)
-    trace_buffer(__func__, buf, read);
-
+  trace_buffer(__func__, buf, read);
   return 0;
 }
 

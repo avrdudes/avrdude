@@ -425,8 +425,7 @@ static void ser_rawclose(union filedescriptor *fd) {
 static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
   int rc;
 
-  if(verblevel >= MSG_TRACE)
-    trace_buffer(__func__, buf, len);
+  trace_buffer(__func__, buf, len);
 
   while(len) {
     rc = write(fd->ifd, buf, len > 1024? 1024: len);
@@ -481,9 +480,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     len += rc;
   }
 
-  if(verblevel >= MSG_TRACE)
-    trace_buffer(__func__, buf, len);
-
+  trace_buffer(__func__, buf, len);
   return 0;
 }
 
