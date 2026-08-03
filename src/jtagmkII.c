@@ -604,9 +604,7 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
        */
       memmove(*msg, *msg + 8, rv);
 
-      if(verblevel >= MSG_TRACE)
-        trace_buffer(__func__, *msg, rv);
-
+      trace_buffer(__func__, *msg, rv);
       return rv;
     }
     if(r_seqno == 0xffff) {

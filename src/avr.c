@@ -1856,32 +1856,17 @@ void report_progress(int completed, int total, const char *hdr) {
   }
 }
 
-// Output comms buffer
-void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen) {
-  pmsg_trace("%s: ", funstr);
-  while(buflen--) {
-    unsigned char c = *buf++;
-
-    msg_trace("%c [%02x]%s", isascii(c) && isprint(c)? c: '.', c, buflen? " ": "");
-  }
-  msg_trace("\n");
-}
-
 // Output comms buffer like memory dump
-void trace_dump(const char *funstr, const unsigned char *buf, size_t buflen) {
+void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen) {
   if(verblevel >= MSG_TRACE) {
     char out[72];
-    int nspaces = (int) strlen(funstr) + 2;
 
-    pmsg_trace("%s: ", funstr);
     while(buflen) {
       size_t len = buflen > 16? 16: buflen;
-
       str_hexdump16(out, buf, len);
-      msg_trace("%s\n", out);
+      pmsg_trace("%s: %s\n", funstr, out);
       buf += len;
-      if(buflen -= len)
-        pmsg_trace("%*s", nspaces, "");
+      buflen -= len;
     }
   }
 }

@@ -1234,7 +1234,6 @@ extern "C" {
   int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
   void report_progress(int completed, int total, const char *hdr);
   void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
-  void trace_dump(const char *funstr, const unsigned char *buf, size_t buflen);
   int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int avr_has_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int avr_has_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
