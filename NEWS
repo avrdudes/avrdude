@@ -33,6 +33,7 @@ Changes since version 8.2:
     - Simplify main.c and provide library functions #2172
     - Enforce modify cannot be used in system config file #2173
     - Improve readability of trace_buffer() #2174
+    - Harden jtag3_xyx() functions #2177
 
   * Internals:
 
