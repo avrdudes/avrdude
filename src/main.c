@@ -955,7 +955,7 @@ int main(int argc, char *argv[]) {
   if(!no_avrduderc) {
     char *usrconfig = str_usrconfig();
 
-    pmsg_notice("user configuration file is %s\n", usrconfig? usrconfig: "not provided");
+    pmsg_notice("user configuration file is %s\n", usrconfig? usrconfig: "not provided/readable");
     if(usrconfig && read_config(usrconfig)) {
       pmsg_error("unable to process user configuration file %s\n", usrconfig);
       exit(1);

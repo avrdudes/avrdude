@@ -1776,8 +1776,7 @@ char *str_sysconfig(void) {
   }
 #if defined(WIN32)
   // 3. First config file in PATH
-  win_set_path(config, sizeof config, SYSTEM_CONF_FILE);
-  return mmt_realpath(config);
+  return win_set_path(config, sizeof config, SYSTEM_CONF_FILE)? mmt_realpath(config): NULL;
 #else
   // 3. Check CONFIG_DIR/avrdude.conf
   return mmt_realpath(CONFIG_DIR "/" SYSTEM_CONF_FILE);
@@ -1809,21 +1808,23 @@ static char *concatpath(char *dst, char *dir, char *file, size_t n) {
 }
 #endif
 
-// Return mmt_malloc'd location of personal configuration file or NULL if not there
+// Return mmt_malloc'd location of readable personal configuration file or NULL if not there
 char *str_usrconfig(void) {
   char config[PATH_MAX] = { 0 };
   struct stat sb;
 
 #if defined(WIN32)
-  win_set_path(config, sizeof config, USER_CONF_FILE);
+  if(!win_set_path(config, sizeof config, USER_CONF_FILE))
+    memset(config, 0, sizeof config);
 #else
   if(!concatpath(config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof config))
     concatpath(config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof config);
-  if(stat(config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+  if(stat(config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0 || access(config, R_OK) < 0)
     concatpath(config, getenv("HOME"), USER_CONF_FILE, sizeof config);
 #endif
 
-  return mmt_realpath(config);
+  return *config && stat(config, &sb) == 0 && (sb.st_mode & S_IFREG) && access(config, R_OK) == 0?
+    mmt_realpath(config): NULL;
 }
 
 // Replace initial part of string with ~ if it is the home directory
