@@ -473,7 +473,6 @@ int jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   }
 
   mmt_free(buf);
-
   return 0;
 }
 
@@ -698,6 +697,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       pmsg_notice("%s(): unable to send CMSIS-DAP vendor command\n", __func__);
       mmt_free(request);
       mmt_free(*msg);
+      *msg = NULL;
       return -1;
     }
 
@@ -707,6 +707,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       // Timeout in receive
       pmsg_notice2("%s(): timeout receiving packet\n", __func__);
       mmt_free(*msg);
+      *msg = NULL;
       mmt_free(request);
       return -1;
     }
@@ -714,6 +715,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
     if(buf[0] != EDBG_VENDOR_AVR_RSP) {
       pmsg_notice("%s(): unexpected response 0x%02x\n", __func__, buf[0]);
       mmt_free(*msg);
+      *msg = NULL;
       mmt_free(request);
       return -1;
     }
@@ -726,6 +728,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       cx->usb_access_error = 1; // Also end up here on wrong USB permissions
       pmsg_notice("%s(): no response available\n", __func__);
       mmt_free(*msg);
+      *msg = NULL;
       mmt_free(request);
       return -1;
     }
@@ -739,6 +742,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       if(nfrags != (buf[1] & 0x0F)) {
         pmsg_notice("%s(): inconsistent # of fragments; had %d, now %d\n", __func__, nfrags, (buf[1] & 0x0F));
         mmt_free(*msg);
+        *msg = NULL;
         mmt_free(request);
         return -1;
       }
@@ -747,6 +751,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       pmsg_notice("%s(): inconsistent fragment number; expect %d, got %d\n",
         __func__, thisfrag, ((buf[1] >> 4) & 0x0F));
       mmt_free(*msg);
+      *msg = NULL;
       mmt_free(request);
       return -1;
     }
@@ -784,6 +789,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
         jtag3_prevent(pgm, *msg, rv & USB_RECV_LENGTH_MASK);
 
       mmt_free(*msg);
+      *msg = NULL;
       continue;
     }
 
@@ -803,6 +809,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
       if(rv < 0) {
         pmsg_error("unexpected return value %d from jtag3_recv_frame()\n", rv);
         mmt_free(*msg);
+        *msg = NULL;
         return -1;
       }
       memmove(*msg, *msg + 3, rv);
@@ -812,6 +819,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
     pmsg_notice2("%s(): got wrong sequence number, %u != %u\n", __func__, r_seqno, my.command_sequence);
 
     mmt_free(*msg);
+    *msg = NULL;
   }
 }
 
@@ -2939,7 +2947,7 @@ int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cm
     pmsg_error("[TPI] command %s FAILED! Status: 0x%02x\n", descr, c);
     status = (*resp)[3];
     mmt_free(*resp);
-    resp = 0;
+    *resp = NULL;
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -3002,7 +3010,6 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
     return -1;
   mmt_free(resp);
-
   return 0;
 }
 
