@@ -3209,7 +3209,6 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 
 static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *m, unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  unsigned int block_size;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char *cmd;
   unsigned char *resp = NULL;
@@ -3232,10 +3231,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    if((maxaddr - addr) < page_size)
-      block_size = maxaddr - addr;
-    else
-      block_size = page_size;
+    unsigned int block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
     pmsg_debug("%s(): block_size at addr 0x%x is %d\n", __func__, addr, block_size);
 
     u32_to_b4_big_endian((cmd + 3), addr + m->offset);  // Address
