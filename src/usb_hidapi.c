@@ -233,42 +233,48 @@ static void usbhid_close(union filedescriptor *fd) {
 
 static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   hid_device *udev = (hid_device *) fd->usb.handle;
-  int rv;
-  unsigned char usbbuf[USBDEV_MAX_XFER_3 + 1];
-  const int tx_size = mlen < USBDEV_MAX_XFER_3? mlen: USBDEV_MAX_XFER_3;
+  unsigned char usbbuf[USBDEV_MAX_XFER_3 + 1] = { 0 };
 
   if(udev == NULL)
     return -1;
 
-  usbbuf[0] = 0;                // No report ID used
-  memcpy(usbbuf + 1, bp, tx_size);
-  rv = hid_write(udev, usbbuf, tx_size + 1);
-  if(rv < 0) {
-    pmsg_error("unable to write %d bytes to USB\n", tx_size);
+  if(mlen > USBDEV_MAX_XFER_3) {
+    pmsg_warning("sending only %d USB HID data, not %lu\n", USBDEV_MAX_XFER_3, (unsigned long) mlen);
+    mlen = USBDEV_MAX_XFER_3;
+  }
+
+  memcpy(usbbuf + 1, bp, mlen); // usbbuf[0] == 0 means no report ID used
+  int rv = hid_write(udev, usbbuf, mlen + 1);
+  if((size_t) rv != mlen + 1) {
+    pmsg_error(str_ccprintf("hid_write() %s %%d bytes to USB\n",
+      rv > 0? "wrote %d instead of": "returns %d and fails writing"), rv, (int) (mlen + 1));
     return -1;
   }
-  if(rv != tx_size + 1)
-    pmsg_error("short write to USB: %d bytes out of %d written\n", rv, tx_size + 1);
 
-  trace_buffer(__func__, bp, tx_size);
+  trace_buffer(__func__, bp, mlen);
   return 0;
 }
 
 static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   hid_device *udev = (hid_device *) fd->usb.handle;
-  int i, rv;
-  unsigned char *p = buf;
 
   if(udev == NULL)
     return -1;
 
-  rv = i = hid_read_timeout(udev, buf, nbytes, 10000);
-  if(i < 0)
-    pmsg_error("hid_read_timeout(usb, %lu, 10000) failed\n", (unsigned long) nbytes);
-  else if((size_t) i != nbytes)
-    pmsg_error("short read, read only %d out of %lu bytes\n", i, (unsigned long) nbytes);
+  int rv = hid_read_timeout(udev, buf, nbytes, 10000);
+  if(rv <= 0 || (size_t) rv > nbytes) {
+    if(rv < 0)
+      pmsg_error("hid_read_timeout(usb, %lu, 10000) failed\n", (unsigned long) nbytes);
+    else if(rv == 0)
+      pmsg_warning("hid_read_timeout() experienced a timeout after 10 s\n");
+    else
+      pmsg_error("hid_read_timeout() received than the requested %lu bytes\n", (unsigned long) nbytes);
+    return rv? -1: 0;
+  }
+  if((size_t) rv < nbytes)
+    pmsg_warning("short read, read only %d out of %lu bytes\n", rv, (unsigned long) nbytes);
 
-  trace_buffer(__func__, p, i);
+  trace_buffer(__func__, buf, rv);
   return rv;
 }
 
