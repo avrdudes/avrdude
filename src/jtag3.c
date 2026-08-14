@@ -758,9 +758,9 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 
     int thislen = (buf[2] << 8) | buf[3];
 
-    if(thislen > rv + 4) {
-      pmsg_notice("%s(): unexpected length value (%d > %d)\n", __func__, thislen, rv + 4);
-      thislen = rv + 4;
+    if(thislen > rv - 4) {
+      pmsg_notice("%s(): unexpected length (%d > %d)\n", __func__, thislen, rv - 4);
+      thislen = rv - 4;
     }
     if(len + thislen > USBDEV_MAX_XFER_3) {
       pmsg_notice("%s(): length exceeds max size (%d > %d)\n", __func__, len + thislen, USBDEV_MAX_XFER_3);
