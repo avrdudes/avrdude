@@ -678,7 +678,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   pmsg_trace("%s():\n", __func__);
 
-  unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3);
+  unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3 + pgm->fd.usb.max_xfer);
   unsigned char *request = mmt_malloc(pgm->fd.usb.max_xfer);
   int rv, len = 0, nfrags = 0, thisfrag = 0;
 
