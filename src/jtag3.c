@@ -676,48 +676,32 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 }
 
 static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
-  int rv, len = 0;
-  unsigned char *buf;
-  unsigned char *request;
-
   pmsg_trace("jtag3_edbg_recv():\n");
 
-  buf = mmt_malloc(USBDEV_MAX_XFER_3);
-  request = mmt_malloc(pgm->fd.usb.max_xfer);
+  unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3);
+  unsigned char *request = mmt_malloc(pgm->fd.usb.max_xfer);
+  int rv, len = 0, nfrags = 0, thisfrag = 0;
 
   *msg = buf;
-
-  int nfrags = 0;
-  int thisfrag = 0;
 
   do {
     request[0] = EDBG_VENDOR_AVR_RSP;
 
     if(serial_send(&pgm->fd, request, pgm->fd.usb.max_xfer) != 0) {
       pmsg_notice("%s(): unable to send CMSIS-DAP vendor command\n", __func__);
-      mmt_free(request);
-      mmt_free(*msg);
-      *msg = NULL;
-      return -1;
+      goto error;
     }
 
     rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
 
     if(rv < 0) {
-      // Timeout in receive
       pmsg_notice2("%s(): timeout receiving packet\n", __func__);
-      mmt_free(*msg);
-      *msg = NULL;
-      mmt_free(request);
-      return -1;
+      goto error;
     }
 
     if(buf[0] != EDBG_VENDOR_AVR_RSP) {
       pmsg_notice("%s(): unexpected response 0x%02x\n", __func__, buf[0]);
-      mmt_free(*msg);
-      *msg = NULL;
-      mmt_free(request);
-      return -1;
+      goto error;
     }
 
     if(buf[1] == 0) {
@@ -727,10 +711,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
        */
       cx->usb_access_error = 1; // Also end up here on wrong USB permissions
       pmsg_notice("%s(): no response available\n", __func__);
-      mmt_free(*msg);
-      *msg = NULL;
-      mmt_free(request);
-      return -1;
+      goto error;
     }
 
     // Calculate fragment information
@@ -738,22 +719,14 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       // First fragment
       nfrags = buf[1] & 0x0F;
       thisfrag = 1;
-    } else {
-      if(nfrags != (buf[1] & 0x0F)) {
-        pmsg_notice("%s(): inconsistent # of fragments; had %d, now %d\n", __func__, nfrags, (buf[1] & 0x0F));
-        mmt_free(*msg);
-        *msg = NULL;
-        mmt_free(request);
-        return -1;
-      }
+    } else if(nfrags != (buf[1] & 0x0F)) {
+      pmsg_notice("%s(): inconsistent # of fragments; had %d, now %d\n", __func__, nfrags, buf[1] & 0x0F);
+      goto error;
     }
     if(thisfrag != ((buf[1] >> 4) & 0x0F)) {
       pmsg_notice("%s(): inconsistent fragment number; expect %d, got %d\n",
-        __func__, thisfrag, ((buf[1] >> 4) & 0x0F));
-      mmt_free(*msg);
-      *msg = NULL;
-      mmt_free(request);
-      return -1;
+        __func__, thisfrag, (buf[1] >> 4) & 0x0F);
+      goto error;
     }
 
     int thislen = (buf[2] << 8) | buf[3];
@@ -774,6 +747,12 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 
   mmt_free(request);
   return len;
+
+error:
+  mmt_free(request);
+  mmt_free(*msg);
+  *msg = NULL;
+  return -1;
 }
 
 int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
