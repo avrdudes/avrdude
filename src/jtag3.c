@@ -678,8 +678,9 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   pmsg_trace("%s():\n", __func__);
 
-  unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3 + pgm->fd.usb.max_xfer);
-  unsigned char *request = mmt_malloc(pgm->fd.usb.max_xfer);
+  int max_xfer = pgm->fd.usb.max_xfer;
+  unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3 + max_xfer);
+  unsigned char *request = mmt_malloc(max_xfer);
   int rv, len = 0, nfrags = 0, thisfrag = 0;
 
   *msg = buf;
@@ -687,12 +688,12 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   do {
     request[0] = EDBG_VENDOR_AVR_RSP;
 
-    if(serial_send(&pgm->fd, request, pgm->fd.usb.max_xfer) != 0) {
+    if(serial_send(&pgm->fd, request, max_xfer) != 0) {
       pmsg_notice("%s(): unable to send CMSIS-DAP vendor command\n", __func__);
       goto error;
     }
 
-    rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
+    rv = serial_recv(&pgm->fd, buf, max_xfer);
 
     if(rv < 0) {
       pmsg_notice2("%s(): timeout receiving packet\n", __func__);
@@ -715,8 +716,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
     }
 
     // Calculate fragment information
-    if(thisfrag == 0) {
-      // First fragment
+    if(thisfrag == 0) {         // First fragment
       nfrags = buf[1] & 0x0F;
       thisfrag = 1;
     } else if(nfrags != (buf[1] & 0x0F)) {
@@ -746,6 +746,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   } while(thisfrag <= nfrags);
 
   mmt_free(request);
+  memset(*msg + len, 0, USBDEV_MAX_XFER_3 + max_xfer - len);
   return len;
 
 error:
