@@ -1962,7 +1962,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   int status, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
-  pmsg_notice2("jtag3_paged_write(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, 0x%04x, %d)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   unsigned int memaddr = jtag3_memaddr(pgm, p, m, addr);
   if(memaddr != addr)
@@ -3216,7 +3216,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   long otimeout = serial_recv_timeout;
 
   msg_notice2("\n");
-  pmsg_notice2("jtag3_paged_write_tpi(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, 0x%04x, %d)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   if(m->offset)
     imsg_notice2("mapped to address: 0x%04x\n", (addr + m->offset));
