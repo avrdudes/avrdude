@@ -659,7 +659,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   if(pgm->flag & PGM_FL_IS_EDBG)
     return jtag3_edbg_recv_frame(pgm, msg);
 
-  pmsg_trace("jtag3_recv_frame():\n");
+  pmsg_trace("%s():\n", __func__);
 
   buf = mmt_malloc(pgm->fd.usb.max_xfer);
   rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
@@ -676,7 +676,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 }
 
 static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
-  pmsg_trace("jtag3_edbg_recv():\n");
+  pmsg_trace("%s():\n", __func__);
 
   unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3);
   unsigned char *request = mmt_malloc(pgm->fd.usb.max_xfer);
