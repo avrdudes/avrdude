@@ -1957,7 +1957,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  unsigned int block_size;
+  unsigned int block_size = 0;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char *cmd, *resp = NULL;
   int status, dynamic_mtype = 0;
@@ -1965,10 +1965,9 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   pmsg_notice2("jtag3_paged_write(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
 
-  block_size = jtag3_memaddr(pgm, p, m, addr);
-  if(block_size != addr)
-    imsg_notice2("mapped to address: 0x%04x\n", block_size);
-  block_size = 0;
+  unsigned int memaddr = jtag3_memaddr(pgm, p, m, addr);
+  if(memaddr != addr)
+    imsg_notice2("mapped to address: 0x%04x\n", memaddr);
 
   if(!(pgm->flag & PGM_FL_IS_DW) && jtag3_program_enable(pgm) < 0)
     return -1;
