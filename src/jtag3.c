@@ -1957,7 +1957,6 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  unsigned int block_size = 0;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char *cmd, *resp = NULL;
   int status, dynamic_mtype = 0;
@@ -2013,10 +2012,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   }
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    if((maxaddr - addr) < page_size)
-      block_size = maxaddr - addr;
-    else
-      block_size = page_size;
+    unsigned int block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if(dynamic_mtype)
