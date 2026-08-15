@@ -477,14 +477,9 @@ int jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
 }
 
 static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  unsigned char buf[USBDEV_MAX_XFER_3];
-  unsigned char status[USBDEV_MAX_XFER_3];
+  unsigned char buf[USBDEV_MAX_XFER_3] = { 0 };
+  unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
   int rv;
-
-  if(verblevel >= MSG_TRACE) {
-    memset(buf, 0, USBDEV_MAX_XFER_3);
-    memset(status, 0, USBDEV_MAX_XFER_3);
-  }
 
   msg_debug("\n");
   pmsg_debug("%s(): sending %lu bytes\n", __func__, (unsigned long) len);
@@ -554,15 +549,12 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
 
 // Send out all the CMSIS-DAP stuff needed to prepare the ICE
 static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
-  unsigned char buf[USBDEV_MAX_XFER_3];
-  unsigned char status[USBDEV_MAX_XFER_3];
+  unsigned char buf[USBDEV_MAX_XFER_3] = { 0 };
+  unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
   int rv;
 
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_prepare()\n");
-
-  if(verblevel >= MSG_TRACE)
-    memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_CONNECT;
   buf[1] = CMSISDAP_CONN_SWD;
@@ -599,15 +591,12 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
 
 // Send out all the CMSIS-DAP stuff when signing off
 static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
-  unsigned char buf[USBDEV_MAX_XFER_3];
-  unsigned char status[USBDEV_MAX_XFER_3];
+  unsigned char buf[USBDEV_MAX_XFER_3] = { 0 };
+  unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
   int rv;
 
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_signoff()\n");
-
-  if(verblevel >= MSG_TRACE)
-    memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_LED;
   buf[1] = CMSISDAP_LED_CONNECT;
@@ -845,7 +834,6 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
 }
 
 int jtag3_getsync(const PROGRAMMER *pgm, int mode) {
-
   unsigned char buf[3], *resp = NULL;
 
   pmsg_debug("jtag3_getsync()\n");
