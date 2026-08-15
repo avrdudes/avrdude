@@ -689,6 +689,11 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       goto error;
     }
 
+    if(rv < 4) {
+      pmsg_error("%s() returns fewer bytes than the 4-byte header\n", __func__);
+      goto error;
+    }
+
     if(buf[0] != EDBG_VENDOR_AVR_RSP) {
       pmsg_notice("%s(): unexpected response 0x%02x\n", __func__, buf[0]);
       goto error;
@@ -795,13 +800,10 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
 int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
   unsigned char **resp, const char *descr) {
 
-  int status;
-  unsigned char c;
-
   pmsg_notice2("sending %s command: ", descr);
   jtag3_send(pgm, cmd, cmdlen);
 
-  status = jtag3_recv(pgm, resp);
+  int status = jtag3_recv(pgm, resp);
   if(status <= 0) {
     msg_notice2("\n");
     pmsg_notice2("%s command: timeout/error communicating with programmer (status %d)\n", descr, status);
@@ -817,7 +819,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
     msg_notice2("0x%02x (%d bytes msg)\n", (*resp)[1], status);
   }
 
-  c = (*resp)[1] & RSP3_STATUS_MASK;
+  unsigned char c = (*resp)[1] & RSP3_STATUS_MASK;
   if(c != RSP3_OK) {
     if((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED || (*resp)[3] == RSP3_FAIL_CRC_FAILURE)) {
       pmsg_error("device is locked; chip erase required to unlock\n");
