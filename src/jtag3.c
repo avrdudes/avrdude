@@ -2086,10 +2086,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   }
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    if((maxaddr - addr) < page_size)
-      block_size = maxaddr - addr;
-    else
-      block_size = page_size;
+    block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if(dynamic_mtype)
@@ -2115,7 +2112,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     }
 
     if(resp)
-      memcpy(m->buf + addr, resp + 3, status - 4);
+      memcpy(m->buf + addr, resp + 3, block_size);
     mmt_free(resp);
   }
   serial_recv_timeout = otimeout;
@@ -3163,10 +3160,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    if((maxaddr - addr) < page_size)
-      block_size = maxaddr - addr;
-    else
-      block_size = page_size;
+    block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
     pmsg_debug("%s(): block_size at addr 0x%x is %d\n", __func__, addr, block_size);
 
     u32_to_b4_big_endian((cmd + 2), addr + m->offset);  // Address
@@ -3189,7 +3183,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     }
 
     if(resp)
-      memcpy(m->buf + addr, resp + 2, status - 2);
+      memcpy(m->buf + addr, resp + 2, block_size);
     mmt_free(resp);
   }
   serial_recv_timeout = otimeout;
