@@ -2889,22 +2889,18 @@ int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char **msg) {
 int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
   unsigned char **resp, const char *descr) {
 
-  int status;
-  unsigned char c;
-
   jtag3_send_tpi(pgm, cmd, cmdlen);
 
-  status = jtag3_recv_tpi(pgm, resp);
+  *resp = NULL;
+  int status = jtag3_recv_tpi(pgm, resp);
   if(status <= 0) {
     msg_notice2("\n");
     pmsg_notice2("TPI %s command: timeout/error communicating with programmer (status %d)\n", descr, status);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
-  c = (*resp)[1];
-  if(c != XPRG_ERR_OK) {
-    pmsg_error("[TPI] command %s FAILED! Status: 0x%02x\n", descr, c);
-    status = (*resp)[3];
+  if(status < 2 || !*resp || (*resp)[1] != XPRG_ERR_OK) {
+    pmsg_error("[TPI] command %s failed (status 0x%02x)\n", descr, *resp? (*resp)[1]: -1);
     mmt_free(*resp);
     *resp = NULL;
     return LIBAVRDUDE_GENERAL_FAILURE;
