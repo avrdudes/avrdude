@@ -2911,8 +2911,7 @@ int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cm
 
 // Initialize the AVR device and prepare it to accept commands
 static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
-  unsigned char cmd[3];
-  unsigned char *resp = NULL;
+  unsigned char cmd[3], *resp = NULL;
   int status;
 
   // Read or write target voltage
@@ -2952,7 +2951,6 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   cmd[1] = XPRG_PARAM_NVMCMD_ADDR;
   cmd[2] = TPI_NVMCMD_ADDRESS;
 
-  resp = NULL;
   if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCMD")) < 0)
     return -1;
   mmt_free(resp);
@@ -2961,7 +2959,6 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   cmd[1] = XPRG_PARAM_NVMCSR_ADDR;
   cmd[2] = TPI_NVMCSR_ADDRESS;
 
-  resp = NULL;
   if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
     return -1;
   mmt_free(resp);
@@ -2973,8 +2970,7 @@ static void jtag3_enable_tpi(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
-  unsigned char cmd[1];
-  unsigned char *resp = NULL;
+  unsigned char cmd[1], *resp = NULL;
   int status;
 
   cmd[0] = XPRG_CMD_LEAVE_PROGMODE;
@@ -2988,8 +2984,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned long addr, unsigned char *value) {
   int status;
   const size_t len = 8;
-  unsigned char cmd[8];
-  unsigned char *resp = NULL;
+  unsigned char cmd[8], *resp = NULL;
   unsigned long paddr = 0UL;
 
   msg_notice2("\n");
@@ -3004,15 +2999,14 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Read Byte")) < 0)
     return -1;
-  *value = resp? resp[2]: '?';
+  *value = status > 2? resp[2]: '?';
   mmt_free(resp);
   return 0;
 }
 
 static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr) {
   const size_t len = 6;
-  unsigned char cmd[6];
-  unsigned char *resp = NULL;
+  unsigned char cmd[6], *resp = NULL;
   int status;
   unsigned long paddr = 0UL;
 
@@ -3038,8 +3032,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   unsigned long addr, unsigned char data) {
   size_t len = 11;
   size_t data_size = 2;
-  unsigned char cmd[17];
-  unsigned char *resp = NULL;
+  unsigned char cmd[17], *resp = NULL;
   int status;
   unsigned long paddr = 0UL;
 
@@ -3095,8 +3088,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   const size_t len = 6;
-  unsigned char cmd[6];
-  unsigned char *resp = NULL;
+  unsigned char cmd[6], *resp = NULL;
   int status;
   unsigned long paddr = 0UL;
 
@@ -3133,8 +3125,7 @@ void jtag3_close_tpi(PROGRAMMER *pgm) {
 static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *m, unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   unsigned int maxaddr = addr + n_bytes;
-  unsigned char cmd[8];
-  unsigned char *resp = NULL;
+  unsigned char cmd[8], *resp = NULL;
   int status;
   long otimeout = serial_recv_timeout;
 
@@ -3161,14 +3152,8 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     if((status = jtag3_command_tpi(pgm, cmd, 8, &resp, "Read Memory")) < 0)
       return -1;
 
-    if(status < 2 || !resp) {
-      pmsg_error("unexpected return value %d from jtag3_paged_load_tpi()\n", status);
-      mmt_free(resp);
-      return -1;
-    }
-
-    if(resp[1] != XPRG_ERR_OK || status < (int) block_size + 2) {
-      pmsg_error("wrong/short reply to read memory command\n");
+    if(status < (int) block_size + 2) {
+      pmsg_error("too short reply of read memory command\n");
       serial_recv_timeout = otimeout;
       mmt_free(resp);
       return -1;
@@ -3185,8 +3170,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *m, unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   unsigned int maxaddr = addr + n_bytes;
-  unsigned char *cmd;
-  unsigned char *resp = NULL;
+  unsigned char *cmd, *resp = NULL;
   int status;
   long otimeout = serial_recv_timeout;
 
