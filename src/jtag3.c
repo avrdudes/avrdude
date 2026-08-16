@@ -2999,7 +2999,14 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Read Byte")) < 0)
     return -1;
-  *value = status > 2? resp[2]: '?';
+
+  if(status < 3) {
+    pmsg_error("too short reply of read byte command\n");
+    mmt_free(resp);
+    return -1;
+  }
+
+  *value = resp[2];
   mmt_free(resp);
   return 0;
 }
