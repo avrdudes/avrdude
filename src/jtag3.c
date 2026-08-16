@@ -473,7 +473,6 @@ int jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
 static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char buf[USBDEV_MAX_XFER_3] = { 0 };
   unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
-  int rv;
 
   msg_debug("\n");
   pmsg_debug("%s(): sending %lu bytes\n", __func__, (unsigned long) len);
@@ -523,7 +522,7 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
       pmsg_notice("%s(): unable to send command to serial port\n", __func__);
       return -1;
     }
-    rv = serial_recv(&pgm->fd, status, max_xfer);
+    int rv = serial_recv(&pgm->fd, status, max_xfer);
 
     if(rv < 0) {
       // Timeout in receive
@@ -545,7 +544,6 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
 static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
   unsigned char buf[USBDEV_MAX_XFER_3] = { 0 };
   unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
-  int rv;
 
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_prepare()\n");
@@ -556,7 +554,7 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
     pmsg_error("unable to send command to serial port\n");
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  int rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
   if(rv != pgm->fd.usb.max_xfer) {
     pmsg_error("unable to read from serial port (%d)\n", rv);
     return -1;
@@ -587,7 +585,6 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
 static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
   unsigned char buf[USBDEV_MAX_XFER_3] = { 0 };
   unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
-  int rv;
 
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_signoff()\n");
@@ -599,7 +596,7 @@ static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
     pmsg_notice("%s(): unable to send command to serial port\n", __func__);
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  int rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
   if(rv != pgm->fd.usb.max_xfer) {
     pmsg_notice("%s(): unable to read from serial port (%d)\n", __func__, rv);
     return -1;
@@ -636,7 +633,6 @@ static int jtag3_drain(const PROGRAMMER *pgm, int display) {
  * Caller must eventually mmt_free() the buffer.
  */
 static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
-  int rv;
   unsigned char *buf = NULL;
 
   if(pgm->flag & PGM_FL_IS_EDBG)
@@ -645,7 +641,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   pmsg_trace("%s():\n", __func__);
 
   buf = mmt_malloc(pgm->fd.usb.max_xfer);
-  rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
+  int rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
 
   if(rv < 0) {
     pmsg_notice2("%s(): timeout receiving packet\n", __func__);
@@ -664,7 +660,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   int max_xfer = pgm->fd.usb.max_xfer;
   unsigned char *buf = mmt_malloc(USBDEV_MAX_XFER_3 + max_xfer);
   unsigned char *request = mmt_malloc(max_xfer);
-  int rv, len = 0, nfrags = 0, thisfrag = 0;
+  int len = 0, nfrags = 0, thisfrag = 0;
 
   *msg = buf;
 
@@ -676,7 +672,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       goto error;
     }
 
-    rv = serial_recv(&pgm->fd, buf, max_xfer);
+    int rv = serial_recv(&pgm->fd, buf, max_xfer);
 
     if(rv < 0) {
       pmsg_notice2("%s(): timeout receiving packet\n", __func__);
@@ -746,10 +742,10 @@ error:
 
 int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
   unsigned short r_seqno;
-  int rv;
 
   for(;;) {
-    if((rv = jtag3_recv_frame(pgm, msg)) <= 0)
+    int rv = jtag3_recv_frame(pgm, msg);
+    if(rv <= 0)
       return rv;
 
     if((rv & USB_RECV_FLAG_EVENT) != 0) {
@@ -2847,7 +2843,6 @@ static unsigned char tpi_get_mtype(const AVRMEM *m) {
 // Send the data as a JTAGICE3 encapsulated TPI packet
 static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char *cmdbuf;
-  int rv;
 
   cmdbuf = mmt_malloc(len + 1);
   cmdbuf[0] = SCOPE_AVR_TPI;
@@ -2863,16 +2858,14 @@ static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len
     msg_trace("0x%02x ", cmdbuf[i]);
   msg_trace("\n");
 
-  rv = jtag3_send(pgm, cmdbuf, len + 1);
+  int rv = jtag3_send(pgm, cmdbuf, len + 1);
   mmt_free(cmdbuf);
 
   return rv;
 }
 
 int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char **msg) {
-  int rv;
-
-  rv = jtag3_recv(pgm, msg);
+  int rv = jtag3_recv(pgm, msg);
 
   if(rv <= 0) {
     pmsg_error("%s(): unable to receive\n", __func__);
