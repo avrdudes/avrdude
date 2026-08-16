@@ -790,7 +790,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
 int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
   unsigned char **resp, const char *descr) {
 
-  pmsg_notice2("sending %s command: ", descr);
+  pmsg_notice2("%s(%s): ", __func__, descr);
   jtag3_send(pgm, cmd, cmdlen);
 
   *resp = NULL;
@@ -1822,10 +1822,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 }
 
 static int jtag3_open(PROGRAMMER *pgm, const char *port) {
-  pmsg_notice2("jtag3_open()\n");
+  pmsg_notice2("%s(%s)\n", __func__, port && *port? port: "NULL");
 
   int rc = jtag3_open_common(pgm, port, my.pk4_snap_mode);
-
   if(rc < 0)
     return rc;
 
@@ -1833,10 +1832,9 @@ static int jtag3_open(PROGRAMMER *pgm, const char *port) {
 }
 
 static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
-  pmsg_notice2("jtag3_open_dw()\n");
+  pmsg_notice2("%s(%s)\n", __func__, port && *port? port: "NULL");
 
   int rc = jtag3_open_common(pgm, port, my.pk4_snap_mode);
-
   if(rc < 0)
     return rc;
 
@@ -1847,9 +1845,9 @@ static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
 }
 
 static int jtag3_open_pdi(PROGRAMMER *pgm, const char *port) {
-  pmsg_notice2("jtag3_open_pdi()\n");
-  int rc = jtag3_open_common(pgm, port, my.pk4_snap_mode);
+  pmsg_notice2("%s(%s)\n", __func__, port && *port? port: "NULL");
 
+  int rc = jtag3_open_common(pgm, port, my.pk4_snap_mode);
   if(rc < 0)
     return rc;
 
@@ -1857,7 +1855,7 @@ static int jtag3_open_pdi(PROGRAMMER *pgm, const char *port) {
 }
 
 static int jtag3_open_updi(PROGRAMMER *pgm, const char *port) {
-  pmsg_notice2("jtag3_open_updi()\n");
+  pmsg_notice2("%s(%s)\n", __func__, port && *port? port: "NULL");
 
   LNODEID ln;
 
@@ -1877,7 +1875,7 @@ static int jtag3_open_updi(PROGRAMMER *pgm, const char *port) {
 void jtag3_close(PROGRAMMER *pgm) {
   unsigned char buf[4], *resp = NULL;
 
-  pmsg_notice2("jtag3_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   buf[0] = SCOPE_AVR;
   buf[1] = CMD3_SIGN_OFF;
@@ -1905,7 +1903,7 @@ void jtag3_close(PROGRAMMER *pgm) {
 static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int addr) {
   unsigned char cmd[8], *resp = NULL;
 
-  pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%x)\n", __func__, m->desc, addr);
 
   if(is_classic(p) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
@@ -2044,7 +2042,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   int status, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
-  pmsg_notice2("jtag3_paged_load(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, 0x%04x, %d)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   unsigned int memaddr = jtag3_memaddr(pgm, p, m, addr);
   if(memaddr != addr)
@@ -2118,7 +2116,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0;
 
-  pmsg_notice2("jtag3_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   paddr = jtag3_memaddr(pgm, p, mem, addr);
   if(paddr != addr)
@@ -2302,7 +2300,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   unsigned int pagesize = 0;
   unsigned long mapped_addr;
 
-  pmsg_notice2("jtag3_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   mapped_addr = jtag3_memaddr(pgm, p, mem, addr);
   if(mapped_addr != addr)
@@ -2471,7 +2469,7 @@ int jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
   unsigned char buf[6], *resp = NULL;
   char descr[60];
 
-  pmsg_notice2("jtag3_getparm()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   buf[0] = scope;
   buf[1] = CMD3_GET_PARAMETER;
@@ -2511,7 +2509,7 @@ int jtag3_setparm(const PROGRAMMER *pgm, unsigned char scope,
   unsigned char *buf, *resp = NULL;
   char descr[60];
 
-  pmsg_notice2("jtag3_setparm()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   sprintf(descr, "set parameter (scope 0x%02x, section %d, parm %d)", scope, section, parm);
 
@@ -2929,7 +2927,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   if(verbose > 0 && quell_progress < 2)
     jtag3_print_parms1(pgm, "", stderr);
 
-  pmsg_notice2("jtag3_initialize_tpi() start\n");
+  pmsg_notice2("%s() start\n", __func__);
 
   cmd[0] = XPRG_CMD_ENTER_PROGMODE;
 
@@ -2956,7 +2954,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtag3_enable_tpi(PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_notice2("jtag3_enable_tpi() is empty. No action necessary.\n");
+  pmsg_notice2("%s() is empty; no action necessary\n", __func__);
 }
 
 static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
@@ -2978,7 +2976,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned long paddr = 0UL;
 
   msg_notice2("\n");
-  pmsg_notice2("jtag3_read_byte_tpi(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   paddr = mem->offset + addr;
 
@@ -3110,13 +3108,13 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int jtag3_open_tpi(PROGRAMMER *pgm, const char *port) {
-  pmsg_notice2("jtag3_open_tpi()\n");
+  pmsg_notice2("%s(%s)\n", __func__, port && *port? port: "NULL");
 
   return jtag3_open_common(pgm, port, my.pk4_snap_mode);
 }
 
 void jtag3_close_tpi(PROGRAMMER *pgm) {
-  pmsg_notice2("jtag3_close_tpi() is empty. No action necessary.\n");
+  pmsg_notice2("%s() is empty; no action necessary\n", __func__);
 }
 
 static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
@@ -3127,7 +3125,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   long otimeout = serial_recv_timeout;
 
   msg_notice2("\n");
-  pmsg_notice2("jtag3_paged_load_tpi(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, 0x%04x, %d)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   if(m->offset)
     imsg_notice2("mapped to address: 0x%04x\n", (addr + m->offset));
