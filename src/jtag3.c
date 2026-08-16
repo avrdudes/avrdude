@@ -358,12 +358,6 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
   }
 }
 
-static int jtag3_errcode(int reason) {
-  if(reason == RSP3_FAIL_OCD_LOCKED || reason == RSP3_FAIL_CRC_FAILURE)
-    return LIBAVRDUDE_SOFTFAIL;
-  return LIBAVRDUDE_GENERAL_FAILURE;
-}
-
 static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   if(verblevel >= MSG_TRACE) {
     size_t i;
@@ -803,6 +797,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
   pmsg_notice2("sending %s command: ", descr);
   jtag3_send(pgm, cmd, cmdlen);
 
+  *resp = NULL;
   int status = jtag3_recv(pgm, resp);
   if(status <= 0) {
     msg_notice2("\n");
@@ -812,24 +807,32 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
       *resp = NULL;
     }
     return LIBAVRDUDE_GENERAL_FAILURE;
-  } else if(verblevel >= MSG_DEBUG) {
+  }
+
+  if(status < 4 || !resp) {
+    pmsg_error("%s(%s) failed owing to unexpected return\n", __func__, descr);
+    mmt_free(*resp);
+    *resp = NULL;
+    return LIBAVRDUDE_GENERAL_FAILURE;
+  }
+
+  if(verblevel >= MSG_DEBUG) {
     msg_debug("\n");
     jtag3_prmsg(pgm, *resp, status);
   } else {
     msg_notice2("0x%02x (%d bytes msg)\n", (*resp)[1], status);
   }
 
-  unsigned char c = (*resp)[1] & RSP3_STATUS_MASK;
-  if(c != RSP3_OK) {
-    if((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED || (*resp)[3] == RSP3_FAIL_CRC_FAILURE)) {
+  unsigned char code = (*resp)[1] & RSP3_STATUS_MASK;
+  int softfail = (*resp)[3] == RSP3_FAIL_OCD_LOCKED || (*resp)[3] == RSP3_FAIL_CRC_FAILURE;
+  if(code != RSP3_OK) {
+    if(code == RSP3_FAILED && softfail)
       pmsg_error("device is locked; chip erase required to unlock\n");
-    } else {
-      pmsg_notice("bad response to %s command: 0x%02x\n", descr, c);
-    }
-    status = (*resp)[3];
+    else
+      pmsg_notice("bad response to %s command: 0x%02x\n", descr, code);
     mmt_free(*resp);
     *resp = NULL;
-    return jtag3_errcode(status);
+    return softfail? LIBAVRDUDE_SOFTFAIL: LIBAVRDUDE_GENERAL_FAILURE;
   }
 
   return status;
