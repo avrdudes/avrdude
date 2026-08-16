@@ -2095,12 +2095,6 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     if((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
       return -1;
 
-    if(status < 4 || !resp) {
-      pmsg_error("unexpected response from read memory jtag3_command()\n");
-      mmt_free(resp);
-      return -1;
-    }
-
     if(resp[1] != RSP3_DATA || status < (int) block_size + 4) {
       pmsg_error("wrong/short reply to read memory command\n");
       serial_recv_timeout = otimeout;
