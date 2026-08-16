@@ -2943,7 +2943,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 
   cmd[0] = XPRG_CMD_ENTER_PROGMODE;
 
-  if((status = jtag3_command_tpi(pgm, cmd, 1, &resp, "Enter Progmode")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, 1, &resp, "enter progmode")) < 0)
     return -1;
   mmt_free(resp);
 
@@ -2951,7 +2951,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   cmd[1] = XPRG_PARAM_NVMCMD_ADDR;
   cmd[2] = TPI_NVMCMD_ADDRESS;
 
-  if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCMD")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "set NVMCMD")) < 0)
     return -1;
   mmt_free(resp);
 
@@ -2959,7 +2959,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   cmd[1] = XPRG_PARAM_NVMCSR_ADDR;
   cmd[2] = TPI_NVMCSR_ADDRESS;
 
-  if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "set NVMCSR")) < 0)
     return -1;
   mmt_free(resp);
   return 0;
@@ -2975,7 +2975,7 @@ static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
 
   cmd[0] = XPRG_CMD_LEAVE_PROGMODE;
 
-  if((status = jtag3_command_tpi(pgm, cmd, 1, &resp, "Leave Progmode")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, 1, &resp, "leave progmode")) < 0)
     return;
   mmt_free(resp);
 }
@@ -2997,7 +2997,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
   u32_to_b4_big_endian((cmd + 2), paddr);       // Address
   u16_to_b2_big_endian((cmd + 6), 1);   // Size
 
-  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Read Byte")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "read byte")) < 0)
     return -1;
 
   if(status < 3) {
@@ -3029,7 +3029,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   paddr = (mem->offset + addr) | 0x01;  // An erase is triggered by an access to the hi-byte
   u32_to_b4_big_endian((cmd + 2), paddr);
 
-  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Erase")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "erase")) < 0)
     return -1;
   mmt_free(resp);
   return 0;
@@ -3087,7 +3087,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   cmd[15] = 0xFF;
   cmd[16] = 0xFF;               // len = 17 if n_word_writes == 4
 
-  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Write Byte")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "write byte")) < 0)
     return -1;
   mmt_free(resp);
   return 0;
@@ -3113,7 +3113,7 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   cmd[1] = XPRG_ERASE_CHIP;
   u32_to_b4_big_endian((cmd + 2), paddr);
 
-  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Chip Erase")) < 0)
+  if((status = jtag3_command_tpi(pgm, cmd, len, &resp, "chip erase")) < 0)
     return -1;
   mmt_free(resp);
   return 0;
@@ -3156,7 +3156,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     u32_to_b4_big_endian((cmd + 2), addr + m->offset);  // Address
     u16_to_b2_big_endian((cmd + 6), block_size);        // Size
 
-    if((status = jtag3_command_tpi(pgm, cmd, 8, &resp, "Read Memory")) < 0)
+    if((status = jtag3_command_tpi(pgm, cmd, 8, &resp, "read memory")) < 0)
       return -1;
 
     if(status < (int) block_size + 2) {
@@ -3211,7 +3211,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     memset(cmd + 9, 0xff, page_size);
     memcpy(cmd + 9, m->buf + addr, block_size);
 
-    if((status = jtag3_command_tpi(pgm, cmd, page_size + 9, &resp, "Write Memory")) < 0) {
+    if((status = jtag3_command_tpi(pgm, cmd, page_size + 9, &resp, "write memory")) < 0) {
       mmt_free(cmd);
       serial_recv_timeout = otimeout;
       return -1;
