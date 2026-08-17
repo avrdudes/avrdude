@@ -943,10 +943,10 @@ int main(int argc, char *argv[]) {
   if(!sysconfig)
     sysconfig = str_sysconfig();
   if(!sysconfig || !*sysconfig) {
-    pmsg_error("cannot locate a readable system configuration file in:\n"
-      "  - <dirpath of %s>/../etc/avrdude.conf\n"
-      "  - <dirpath of %s>/avrdude.conf\n"
-      "  - First avrdude.conf in PATH (Windows) or " CONFIG_DIR "/" SYSTEM_CONF_FILE " (otherwise)\n",
+    pmsg_error("cannot locate a readable system configuration file in either:\n"
+      "  - <dirpath of %s>/../etc/" SYSTEM_CONF_FILE "\n"
+      "  - <dirpath of %s>/" SYSTEM_CONF_FILE "\n"
+      "  - " LAST_RESORT_SYS_CONF_DESCRIPTION "\n",
       progname, progname);
     exit(1);
   }
