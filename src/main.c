@@ -969,10 +969,9 @@ int main(int argc, char *argv[]) {
     mmt_free(usrconfig);
   }
 
-  if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION)) {
-    pmsg_warning("system wide configuration file version (%s)\n", avrdude_conf_version);
-    imsg_warning("does not match Avrdude build version (%s)\n", AVRDUDE_FULL_VERSION);
-  }
+  if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION))
+    pmsg_warning("config file version %s does not match %s's %s\n",
+      avrdude_conf_version, progname, AVRDUDE_FULL_VERSION);
 
   if(lsize(additional_config_files) > 0) {
     for(LNODEID ln1 = lfirst(additional_config_files); ln1; ln1 = lnext(ln1)) {
