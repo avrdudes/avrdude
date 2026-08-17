@@ -59,7 +59,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   struct usb_device *dev;
   usb_dev_handle *udev;
   char serno[64] = { 0 };
-  int i, iface, rc;
+  int i, iface;
 
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
@@ -160,7 +160,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
              * HID-class device.  On those, the driver needs to be detached
              * before we can claim the interface.
              */
-            if((rc = usb_detach_kernel_driver_np(udev, cx->usb_interface)))
+            int rc = usb_detach_kernel_driver_np(udev, cx->usb_interface);
+            if(rc)
               pmsg_notice("usb_detach_kernel_driver_np() unexpectedly returns %d: %s\n", rc, usb_strerror());
 #endif
 
