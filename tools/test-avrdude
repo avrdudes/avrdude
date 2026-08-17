@@ -277,6 +277,7 @@ for (( p=0; p<$arraylength; p++ )); do
 
     if [[ -z "$flash_size" ]]; then
       echo "Cannot detect flash; check that \"${pgm_and_target[$p]}\" are valid avrdude options; skipping this test"
+      exitstate=1
       continue
     fi
 
