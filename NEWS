@@ -21,6 +21,7 @@ Changes since version 8.2:
     - Add port in the config file for programmers #2170
     - Missing avrdude.rd file breaks Windows avrdude #2180
     - Atmel AVRISP mkII not working with MSVC build #2175
+    - Check dryrun test results #2184
 
   * Pull requests:
 
@@ -38,6 +39,7 @@ Changes since version 8.2:
     - Harden jtag3_xyx() functions #2177
     - Harden str_usrconfig() and str_sysconfig() #2181
     - Revert commit eb66125 #2182
+    - Exit test-avrdude with error on failed but skipped tests #2185
 
   * Internals:
 
