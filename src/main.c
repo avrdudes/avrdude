@@ -933,24 +933,30 @@ int main(int argc, char *argv[]) {
   if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
     pmsg_warning("linked C library does not conform to C99; %s may not work as expected\n", progname);
 
-  // Set system configuration file unless -C conffile was given
-  if(!sysconfig)
-    sysconfig = str_sysconfig();
-  msg_trace2("sysconfig = %s\n", sysconfig? sysconfig: "not set");
-
   if(quell_progress == 0)
     terminal_setup_update_progress();
 
   pmsg_notice("%s version %s\n", progname, AVRDUDE_FULL_VERSION);
   pmsg_notice("Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
-  if(sysconfig) {
-    if(read_config(sysconfig)) {
-      pmsg_error("unable to process system wide configuration file %s\n", sysconfig);
-      exit(1);
-    }
-    mmt_free(sysconfig);
+  // Set system configuration file unless -C conffile was given
+  if(!sysconfig)
+    sysconfig = str_sysconfig();
+  if(!sysconfig || !*sysconfig) {
+    pmsg_error("cannot locate a readable system configuration file in:\n"
+      "  - <dirpath of %s>/../etc/avrdude.conf\n"
+      "  - <dirpath of %s>/avrdude.conf\n"
+      "  - First avrdude.conf in PATH (Windows) or " CONFIG_DIR "/" SYSTEM_CONF_FILE " (otherwise)\n",
+      progname, progname);
+    exit(1);
   }
+  msg_trace2("sysconfig = %s\n", sysconfig);
+
+  if(read_config(sysconfig)) {
+    pmsg_error("unable to process system wide configuration file %s\n", sysconfig);
+    exit(1);
+  }
+  mmt_free(sysconfig);
 
   if(!no_avrduderc) {
     char *usrconfig = str_usrconfig();
