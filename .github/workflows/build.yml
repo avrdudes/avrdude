@@ -364,8 +364,7 @@ jobs:
         if: matrix.arch != 'arm64'
         run: build/src/${{env.BUILD_TYPE}}/avrdude.exe -?
       - name: "Dryrun test (not installed)"
-        # FIXME: Skip running avrdude.
-        #        The exe file on arm64 is not runnable - x86_64 perhaps?
+        #        The exe file on arm64 is not runnable as the runner is x86_64.
         if: matrix.arch != 'arm64'
         run: |
           $tmp = [System.IO.Path]::GetTempPath()
