@@ -1508,7 +1508,7 @@ static size_t qwertydist(size_t w, unsigned char c1, unsigned char c2) {
 
   ret += sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2))/2.5*w;
 
-  return ret > w? w: ret > 0? ret: 1;
+  return ret > w? w: ret < 1? 1: ret;
 }
 
 // Substitution cost considering qwerty keyboard typos and case

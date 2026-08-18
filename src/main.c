@@ -534,7 +534,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 
   if(nid) {                     // Sort list so programmers according to string distance
     qsort(d, nid, sizeof(*d), cmp_pgmid);
-    size_t dst = d[nid > 2? 2: nid - 1].dist;
+    size_t dst = d[nid > 2? 2: nid-1].dist;
 
     if(dst > max_distance)
       dst = max_distance;
@@ -933,24 +933,30 @@ int main(int argc, char *argv[]) {
   if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
     pmsg_warning("linked C library does not conform to C99; %s may not work as expected\n", progname);
 
-  // Set system configuration file unless -C conffile was given
-  if(!sysconfig)
-    sysconfig = str_sysconfig();
-  msg_trace2("sysconfig = %s\n", sysconfig? sysconfig: "not set");
-
   if(quell_progress == 0)
     terminal_setup_update_progress();
 
   pmsg_notice("%s version %s\n", progname, AVRDUDE_FULL_VERSION);
   pmsg_notice("Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
-  if(sysconfig) {
-    if(read_config(sysconfig)) {
-      pmsg_error("unable to process system wide configuration file %s\n", sysconfig);
-      exit(1);
-    }
-    mmt_free(sysconfig);
+  // Set system configuration file unless -C conffile was given
+  if(!sysconfig)
+    sysconfig = str_sysconfig();
+  if(!sysconfig || !*sysconfig) {
+    pmsg_error("cannot locate a readable system configuration file in either:\n"
+      "  - <dirpath of %s>/../etc/" SYSTEM_CONF_FILE "\n"
+      "  - <dirpath of %s>/" SYSTEM_CONF_FILE "\n"
+      "  - " LAST_RESORT_SYS_CONF_DESCRIPTION "\n",
+      progname, progname);
+    exit(1);
   }
+  msg_trace2("sysconfig = %s\n", sysconfig);
+
+  if(read_config(sysconfig)) {
+    pmsg_error("unable to process system wide configuration file %s\n", sysconfig);
+    exit(1);
+  }
+  mmt_free(sysconfig);
 
   if(!no_avrduderc) {
     char *usrconfig = str_usrconfig();
@@ -963,10 +969,9 @@ int main(int argc, char *argv[]) {
     mmt_free(usrconfig);
   }
 
-  if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION)) {
-    pmsg_warning("system wide configuration file version (%s)\n", avrdude_conf_version);
-    imsg_warning("does not match Avrdude build version (%s)\n", AVRDUDE_FULL_VERSION);
-  }
+  if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION))
+    pmsg_warning("config file version %s does not match %s's %s\n",
+      avrdude_conf_version, progname, AVRDUDE_FULL_VERSION);
 
   if(lsize(additional_config_files) > 0) {
     for(LNODEID ln1 = lfirst(additional_config_files); ln1; ln1 = lnext(ln1)) {

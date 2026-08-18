@@ -59,7 +59,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   struct usb_device *dev;
   usb_dev_handle *udev;
   char serno[64] = { 0 };
-  int i, iface, rc;
+  int i, iface;
 
   if(fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
@@ -160,7 +160,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
              * HID-class device.  On those, the driver needs to be detached
              * before we can claim the interface.
              */
-            if((rc = usb_detach_kernel_driver_np(udev, cx->usb_interface)))
+            int rc = usb_detach_kernel_driver_np(udev, cx->usb_interface);
+            if(rc)
               pmsg_notice("usb_detach_kernel_driver_np() unexpectedly returns %d: %s\n", rc, usb_strerror());
 #endif
 
@@ -262,21 +263,20 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
   usb_dev_handle *udev = (usb_dev_handle *) fd->usb.handle;
   int rv;
   int i = mlen;
-  const unsigned char *p = bp;
-  int tx_size;
+  const unsigned char *buf = bp;
 
   if(udev == NULL)
     return -1;
 
   /*
-   * Split the frame into multiple packets.  It's important to make sure we
-   * finish with a short packet, or else the device won't know the frame is
-   * finished.  For example, if we need to send 64 bytes, we must send a packet
-   * of length 64 followed by a packet of length 0.
+   * Split the frame into multiple packets. It's important to finish with a
+   * short packet, or else the device won't know the frame is finished. For
+   * example, when sending 64 bytes, a packet of length 64 followed by one
+   * of length 0 needs to be sent.
    */
   do {
-    tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
-    rv = (fd->usb.use_interrupt_xfer?usb_interrupt_write: usb_bulk_write)(udev, fd->usb.wep, (char *) bp, tx_size, 10000);
+    int tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
+    rv = (fd->usb.use_interrupt_xfer? usb_interrupt_write: usb_bulk_write)(udev, fd->usb.wep, (char *) bp, tx_size, 10000);
     if(rv != tx_size) {
       pmsg_error(str_ccprintf("%s() %s %%d bytes, err = %%s\n",
         fd->usb.use_interrupt_xfer? "usb_interrupt_write": "usb_bulk_write",
@@ -288,7 +288,7 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
     mlen -= tx_size;
   } while(mlen > 0);
 
-  trace_buffer(__func__, p, i);
+  trace_buffer(__func__, buf, i);
   return 0;
 }
 
@@ -319,25 +319,22 @@ static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_inter
 
 static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   usb_dev_handle *udev = (usb_dev_handle *) fd->usb.handle;
-  int i, amnt;
-  unsigned char *p = buf;
 
   if(udev == NULL)
     return -1;
 
-  for(i = 0; nbytes > 0;) {
-    if(cx->usb_buflen <= cx->usb_bufptr) {
+  for(int i = 0, n = nbytes; n > 0;) {
+    if(cx->usb_bufptr >= cx->usb_buflen)
       if(usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep, fd->usb.use_interrupt_xfer) < 0)
         return -1;
-    }
-    amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
+    int amnt = cx->usb_buflen - cx->usb_bufptr > n? n: cx->usb_buflen - cx->usb_bufptr;
     memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
     cx->usb_bufptr += amnt;
-    nbytes -= amnt;
+    n -= amnt;
     i += amnt;
   }
 
-  trace_buffer(__func__, p, i);
+  trace_buffer(__func__, buf, nbytes);
   return 0;
 }
 
