@@ -26,9 +26,11 @@
 
 #if defined(WIN32)
 #define USER_CONF_FILE "avrdude.rc"
+#define LAST_RESORT_SYS_CONF_DESCRIPTION "First " SYSTEM_CONF_FILE " in PATH"
 #else
 #define USER_CONF_FILE ".avrduderc"
 #define XDG_USER_CONF_FILE "avrdude/avrdude.rc"
+#define LAST_RESORT_SYS_CONF_DESCRIPTION  CONFIG_DIR "/" SYSTEM_CONF_FILE
 #endif
 
 extern char *progname;          // Name of program, for messages
