@@ -534,7 +534,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 
   if(nid) {                     // Sort list so programmers according to string distance
     qsort(d, nid, sizeof(*d), cmp_pgmid);
-    size_t dst = d[nid > 2? 2: nid - 1].dist;
+    size_t dst = d[nid > 2? 2: nid-1].dist;
 
     if(dst > max_distance)
       dst = max_distance;

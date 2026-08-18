@@ -375,7 +375,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       toread = maxsize - whence;
     int gap = maxsize - whence - toread;
 
-    after = gap >= 16? 16: gap < 0? 0: gap;
+    after = gap > 16? 16: gap < 0? 0: gap;
     toread += after;
     if(toread - before < 2)     // Cannot disassemble just one byte
       goto nocontent;
