@@ -122,12 +122,12 @@ cat <<EOF
 
 Build succeeded.
 
-For Linux, macOS MacPorts and BSDs, you may want to run
+For Linux, macOS MacPorts and BSDs, run
 
 sudo cmake --build build_${ostype} --target install
 
 to install.
 
-For Windows and macOS Homebrew, you may want to copy avrdude binary and avrdude.conf file to the right location.
+For Windows and macOS Homebrew, copy avrdude binary and avrdude.conf file to the right location.
 
 EOF
