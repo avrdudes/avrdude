@@ -1723,7 +1723,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
         Return("urprotocol paged r/w len %d cannot exceed 256", len);
       *q++ = len;               // len==256 is sent as 0
     } else {
-      int max = ur.uP.pagesize > 256? ur.uP.pagesize: 256;
+      int max = maxm(ur.uP.pagesize, 256);
       if(len > max)
         Return("urprotocol paged r/w len %d cannot exceed %d for %s", len, max, ur.uP.name);
       *q++ = len>>8;            // Big endian length when needed
@@ -1732,7 +1732,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     i = q-buf;
 
   } else {
-    int max = ur.uP.pagesize > 256? ur.uP.pagesize: 256;
+    int max = maxm(ur.uP.pagesize, 256);
     if(len > max)
       Return("stk500 paged r/w len %d cannot exceed %d for %s", len, max, ur.uP.name);
 

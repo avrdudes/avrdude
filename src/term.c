@@ -1580,7 +1580,7 @@ static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
         o.vmax = vt[j].value;
       llen = strlen(vt[j].label);
       lmin = minm(llen, lmin);
-      lmax = llen > lmax? llen: lmax;
+      lmax = maxm(llen, lmax);
     }
   }
   llen = lmax <= lmin + MAX_PAD? lmax: 1;     // Align label width if max and min length are similar
@@ -1865,8 +1865,8 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
         if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label))) {
           llen = strlen(vt[j].label);
           lmin = minm(llen, lmin);
-          lmax = llen > lmax? llen: lmax;
-          o.vmax = vt[j].value > o.vmax? vt[j].value: o.vmax;
+          lmax = maxm(llen, lmax);
+          o.vmax = maxm(vt[j].value, o.vmax);
         }
       }
       llen = lmax <= lmin + MAX_PAD? lmax: 1; // Align label width if max and min length are similar
