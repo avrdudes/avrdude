@@ -68,7 +68,7 @@ static int sa_portcmp(const void *p, const void *q) {
   size_t la = null_len(a) - null_len(na), lb = null_len(b) - null_len(nb);
 
   // Compare string bases first
-  if(la && lb && (ret = strncasecmp(a, b, la < lb? la: lb)))
+  if(la && lb && (ret = strncasecmp(a, b, minm(la, lb))))
     return ret;
   if((ret = la - lb))
     return ret;

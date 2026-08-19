@@ -836,7 +836,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if(fusesm) {
     size_t fusz = fusesm->size;
 
-    memcpy(fusesm->buf, inifuses, fusz < sizeof inifuses? fusz: sizeof inifuses);
+    memcpy(fusesm->buf, inifuses, minm(fusz, sizeof inifuses));
   }
 
   // Is the programmer a bootloader?
@@ -1006,7 +1006,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         pgm->read_byte(pgm, p, dmem, i, m->buf+i);
 
     for(; addr < end; addr += chunk) {
-      chunk = end - addr < page_size? end - addr: page_size;
+      chunk = minm(end - addr, page_size);
 
       // Silently skip writing the chunk if that were to overwrite bootloader
       if(dry.bl && mchr == 'F' && !mem_is_apptable(m) && ur.blend > ur.blstart) {
@@ -1064,7 +1064,7 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
         addr, end - 1, dry.dp->desc, dmem->desc, dmem->size - 1);
 
     for(; addr < end; addr += chunk) {
-      chunk = end - addr < page_size? end - addr: page_size;
+      chunk = minm(end - addr, page_size);
       memcpy(m->buf + addr, dmem->buf + addr, chunk);
     }
   }

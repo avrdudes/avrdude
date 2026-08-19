@@ -1538,7 +1538,7 @@ vblvecfound:
                 rc = ur_readEF(pgm, p, spc, ur.pfend+1-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
                 if(rc < 0)
                   return rc;
-                int len = mcode < sizeof ur.filename? mcode: sizeof ur.filename;
+                int len = minm(mcode, sizeof ur.filename);
                 memcpy(ur.filename, spc, len);
                 ur.filename[len-1] = 0;
               }
@@ -1790,7 +1790,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
   // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
   int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = maxm(4*bd/5/10 - 2, 2) & ~1;
   while(len > 0) {
-    int thislen = len < rdchunk? len: rdchunk;
+    int thislen = minm(len, rdchunk);
 
     if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, badd, thislen, mchr, NULL) < 0)
       return -1;
@@ -1988,7 +1988,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       } else
         break;
     } else {                    // Board not yet out of reset or bootloader twiddles lights
-      int slp = 32<<(attempt < 3? attempt: 3);
+      int slp = 32 << minm(attempt, 3);
       pmsg_debug("%4lld ms: sleeping for %d ms\n", (long long) avr_mstimestamp(), slp);
       usleep(slp*1000);
     }
@@ -2302,7 +2302,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     n = addr + n_bytes;
 
     for(; addr < n; addr += chunk) {
-      chunk = n-addr < page_size? n-addr: page_size;
+      chunk = minm(n-addr, page_size);
 
       if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, addr, chunk, mchr, (char *) m->buf+addr)<0)
         return -3;
@@ -2341,7 +2341,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
-      chunk = n-addr < page_size? n-addr: page_size;
+      chunk = minm(n-addr, page_size);
 
       if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, addr, chunk, mchr, NULL) < 0)
         return -3;

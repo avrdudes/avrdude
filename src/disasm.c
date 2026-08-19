@@ -123,7 +123,7 @@ static int nmult(int type) {
 static int maxmult(Dis_symbol *s, int done) {
   int max = nmult(s->subtype);
 
-  return s->count-done < max? s->count-done: max;
+  return minm(s->count-done, max);
 }
 
 // Width of memory a subtype covers

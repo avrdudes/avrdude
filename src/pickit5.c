@@ -823,9 +823,9 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
   if(is_updi(pgm)) {
     if((mem = avr_locate_sram(p)))
-      mem->page_size = mem->size < 256? mem->size : 256;
+      mem->page_size = minm(mem->size, 256);
     if((mem = avr_locate_eeprom(p)))
-      mem->page_size = mem->size < 32? mem->size : 32;
+      mem->page_size = minm(mem->size, 32);
     if((mem = avr_locate_sib(p))) { // This is mandatory as PICkit is reading all 32 bytes at once
       mem->page_size = 32;
       mem->readsize = 32;
@@ -833,15 +833,15 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
   if(is_debugwire(pgm)) {
     if((mem = avr_locate_flash(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024; // The Flash Write function on DW needs 1600 bytes.
-      mem->readsize = mem->size < 1024? mem->size : 1024;  // This reduces overhead and speeds things up
+      mem->page_size = minm(mem->size, 1024); // The Flash Write function on DW needs 1600 bytes.
+      mem->readsize = minm(mem->size, 1024);  // This reduces overhead and speeds things up
     }
   }
   if(is_isp(pgm)) {
     if((mem = avr_locate_flash(p))) {
       if(mem->mode != 0x04) {   // Don't change default flash settings on old AVRs
-        mem->page_size = mem->size < 1024? mem->size : 1024;
-        mem->readsize = mem->size < 1024? mem->size : 1024;
+        mem->page_size = minm(mem->size, 1024);
+        mem->readsize = minm(mem->size, 1024);
       } else {
         mem->page_size = 256;
         mem->readsize = 256;
@@ -862,26 +862,26 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
   if(both_jtag(pgm, p)) {
     if((mem = avr_locate_flash(p))) {
-      mem->page_size = mem->size < 512? mem->size : 512;
-      mem->readsize = mem->size < 512? mem->size : 512;
+      mem->page_size = minm(mem->size, 512);
+      mem->readsize = minm(mem->size, 512);
     }
   }
   if(both_xmegajtag(pgm, p)) {    // True Page size is needed for a PDI fix, so don't increase them
     if((mem = avr_locate_flash(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024;
-      mem->readsize = mem->size < 1024? mem->size : 1024;
+      mem->page_size = minm(mem->size, 1024);
+      mem->readsize = minm(mem->size, 1024);
     }
     if((mem = avr_locate_application(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024;
-      mem->readsize = mem->size < 1024? mem->size : 1024;
+      mem->page_size = minm(mem->size, 1024);
+      mem->readsize = minm(mem->size, 1024);
     }
     if((mem = avr_locate_apptable(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024;
-      mem->readsize = mem->size < 1024? mem->size : 1024;
+      mem->page_size = minm(mem->size, 1024);
+      mem->readsize = minm(mem->size, 1024);
     }
     if((mem = avr_locate_boot(p))) {
-      mem->page_size = mem->size < 1024? mem->size : 1024;
-      mem->readsize = mem->size < 1024? mem->size : 1024;
+      mem->page_size = minm(mem->size, 1024);
+      mem->readsize = minm(mem->size, 1024);
     }
   }
 }
@@ -1243,7 +1243,7 @@ static int pickit5_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
   if(rc == 0)
     rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
 
-  return rc < 0? rc: 0;
+  return minm(rc, 0);
 }
 
 // UPDI Specific function providing a reduced overhead when writing a single byte
@@ -2247,7 +2247,7 @@ static int usbdev_bulk_recv(const union filedescriptor *fd, unsigned char *buf, 
       cx->usb_bufptr = 0;
     }
 
-    amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
+    amnt = minm(cx->usb_buflen - cx->usb_bufptr, (int) nbytes);
     memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
     cx->usb_bufptr += amnt;
     nbytes -= amnt;

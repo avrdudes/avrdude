@@ -287,7 +287,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       cx->term_rmem[mi].mem = mem;
     if(cx->term_rmem[mi].mem == mem) {
       if(cx->term_rmem[mi].len <= 0)
-        cx->term_rmem[mi].len = maxsize > default_len? default_len: maxsize;
+        cx->term_rmem[mi].len = minm(maxsize, default_len);
       else if(cx->term_rmem[mi].len > maxsize)
         cx->term_rmem[mi].len = maxsize;
       if(cx->term_rmem[mi].addr < 0 || cx->term_rmem[mi].addr >= maxsize)
@@ -973,7 +973,7 @@ done:
   mmt_free(seglist);
   mmt_free(filename);
 
-  return ret < 0? ret: 0;
+  return minm(ret, 0);
 }
 
 static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
@@ -1579,7 +1579,7 @@ static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
       if(vt[j].value > o.vmax)
         o.vmax = vt[j].value;
       llen = strlen(vt[j].label);
-      lmin = llen < lmin? llen: lmin;
+      lmin = minm(llen, lmin);
       lmax = llen > lmax? llen: lmax;
     }
   }
@@ -1864,7 +1864,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       for(int j = 0; j < nv; j++) {
         if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label))) {
           llen = strlen(vt[j].label);
-          lmin = llen < lmin? llen: lmin;
+          lmin = minm(llen, lmin);
           lmax = llen > lmax? llen: lmax;
           o.vmax = vt[j].value > o.vmax? vt[j].value: o.vmax;
         }

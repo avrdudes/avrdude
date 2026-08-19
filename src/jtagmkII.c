@@ -3387,7 +3387,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
   cmd[2] = 0x05;
 
   for(; addr < maxaddr; addr += block_size) {
-    block_size = maxaddr - addr < (unsigned int) pgm->page_size? maxaddr - addr: (unsigned int) pgm->page_size;
+    block_size = minm(maxaddr - addr, (unsigned int) pgm->page_size);
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     u32_to_b4r(cmd + 3, m->offset + addr);
@@ -3489,7 +3489,7 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
       gotoerr;
 
     for(blocks = 0; blocks < 2; ++blocks) {
-      block_size = maxaddr - addr < (unsigned int) pgm->page_size? maxaddr - addr: (unsigned int) pgm->page_size;
+      block_size = minm(maxaddr - addr, (unsigned int) pgm->page_size);
       pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
       u32_to_b4r(cmd + 6, m->offset + addr);

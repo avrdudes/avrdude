@@ -428,7 +428,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
   trace_buffer(__func__, buf, len);
 
   while(len) {
-    rc = write(fd->ifd, buf, len > 1024? 1024: len);
+    rc = write(fd->ifd, buf, minm(len, 1024));
     if(rc < 0) {
       pmsg_ext_error("unable to write: %s\n", strerror(errno));
       return -1;
@@ -471,7 +471,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
       }
     }
 
-    rc = read(fd->ifd, p, buflen - len > 1024? 1024: buflen - len);
+    rc = read(fd->ifd, p, minm(buflen - len, 1024));
     if(rc < 0) {
       pmsg_ext_error("unable to read: %s\n", strerror(errno));
       return -1;

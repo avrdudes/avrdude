@@ -1012,9 +1012,9 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
         break;
       }
 
-      int clock_period = minm(1000000/clock_rate, 255);       // Max period is 255
+      int clock_period = minm(1000000/clock_rate, 255);   // Max period is 255
 
-      clock_rate = (int) (1000000/(clock_period + 5e-7));     // Assume highest speed is 2 MHz
+      clock_rate = (int) (1000000/(clock_period + 5e-7)); // Assume highest speed is 2 MHz
 
       pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
       my.clock_period = clock_period;
