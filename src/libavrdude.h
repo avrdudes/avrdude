@@ -53,8 +53,6 @@
  * with the application.
  */
 
-typedef uint32_t Pinmask;
-
 /*
  * Values returned by library functions. Some library functions also return a
  * count, i.e. a positive number greater than 0.
@@ -690,6 +688,8 @@ extern "C" {
 
 // Formerly pindefs.h
 
+typedef uint32_t Pinmask;
+
 enum {
   PPI_AVR_VCC = 1,
   PPI_AVR_BUFF,
@@ -714,7 +714,6 @@ enum {
 #define PIN_MAX              31 // Largest allowed pin number
 
 #ifdef HAVE_LINUXGPIO
-
 // Embedded systems might have a lot more gpio than only 0-31
 #undef PIN_MAX
 #define PIN_MAX     1000        // Largest allowed pin number
