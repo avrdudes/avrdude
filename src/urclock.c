@@ -219,9 +219,6 @@
 #include "urclock.h"
 #include "urclock_private.h"
 
-#define urmax(a, b) ((a) > (b)? (a): (b))
-#define urmin(a, b) ((a) < (b)? (a): (b))
-
 static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p);
 static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint32_t addr, int len,
   char memchr);
@@ -1295,9 +1292,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if(ur.boothigh && ur.xbootsize % ur.uP.pagesize)
       Return("-x bootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
-    if(ur.xbootsize < 64 || ur.xbootsize > urmin(8192, ur.uP.flashsize/4))
+    if(ur.xbootsize < 64 || ur.xbootsize > minm(8192, ur.uP.flashsize/4))
       Return("implausible -x bootsize=%d, should be in [64, %d]",
-        ur.xbootsize, urmin(8192, ur.uP.flashsize/4));
+        ur.xbootsize, minm(8192, ur.uP.flashsize/4));
     if(ur.boothigh) {
       ur.blstart = flm->size - ur.xbootsize;
       ur.blend   = flm->size - 1;
@@ -1686,7 +1683,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
       int resetsize = set_resetvector(ur.blstart, ur.uP.flashsize, jmptoboot, vecsz, ur.urprotocol);
 
       if(badd < (unsigned int) resetsize) { // Ensure reset vector points to bl
-        int n = urmin((unsigned int) resetsize - badd, (unsigned int) len);
+        int n = minm((unsigned int) resetsize - badd, (unsigned int) len);
         int resetdest;
 
         if(badd == 0 && len >= vecsz) {
@@ -1778,20 +1775,20 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
     Return("bootloader %s not have EEPROM access%s", ur.blurversion? "does": "might",
       ur.blurversion? " capability": "; try -x eepromrw if it has");
 
-  if(len < 1 || len > urmax(ur.uP.pagesize, 256))
-    Return("len %d exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
+  if(len < 1 || len > maxm(ur.uP.pagesize, 256))
+    Return("len %d exceeds range [1, %d]", len, maxm(ur.uP.pagesize, 256));
 
   // Odd byte address under word-address protocol for "classic" parts (optiboot, avrisp etc)
   int odd = !ur.urprotocol && classic && (badd&1);
   if(odd) {                     // Need to read one extra byte
     len++;
     badd--;
-    if(len > urmax(ur.uP.pagesize, 256))
-      Return("len+1 = %d odd address exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
+    if(len > maxm(ur.uP.pagesize, 256))
+      Return("len+1 = %d odd address exceeds range [1, %d]", len, maxm(ur.uP.pagesize, 256));
   }
 
   // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
-  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = urmax(4*bd/5/10 - 2, 2) & ~1;
+  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = maxm(4*bd/5/10 - 2, 2) & ~1;
   while(len > 0) {
     int thislen = len < rdchunk? len: rdchunk;
 
@@ -2325,7 +2322,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned int n;
 
   // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
-  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = urmax(4*bd/5/10 - 2, 2) & ~1;
+  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = maxm(4*bd/5/10 - 2, 2) & ~1;
   if((unsigned) rdchunk < page_size)
     page_size = rdchunk;
 
@@ -2539,7 +2536,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     for(size_t i = 0; i < sizeof options/sizeof*options; i++) {
       msg_error("  -x %s%s%*s%s\n", options[i].name,
         options[i].assign && options[i].strbuf? "=<str>": options[i].assign? "=<n>  ": "",
-        urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
+        maxm(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
       return LIBAVRDUDE_EXIT_OK;
