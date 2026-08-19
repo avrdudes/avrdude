@@ -1972,7 +1972,6 @@ extern libavrdude_context *cx;
 // Formerly confwin.h
 
 #if defined(WIN32)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1983,6 +1982,11 @@ extern "C" {
 }
 #endif
 #endif                          // WIN32
+
+// Minimum, maximum and clip-to-interval macros
+#define minm(a, b) ((a) < (b)? (a): (b))
+#define maxm(a, b) ((a) > (b)? (a): (b))
+#define cliptom(v, min, max) ((v) < (min)? (min): (v) > (max)? (max): (v))
 
 #ifndef TO_BE_DEPRECATED_IN_2026
 
