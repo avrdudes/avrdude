@@ -425,7 +425,7 @@ static int rawuartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
 static int uartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
   int ret = rawuartbrr(up, f_cpu, br, nsamples), mxb = maxbrr(up);
 
-  return ret < 0? 0: ret > mxb? mxb: ret;
+  return cliptom(ret, 0, mxb);
 }
 
 // Actual baud rate given f_cpu, desired baud rated and number 8..63 of samples

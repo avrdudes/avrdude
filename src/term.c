@@ -375,7 +375,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       toread = maxsize - whence;
     int gap = maxsize - whence - toread;
 
-    after = gap > 16? 16: gap < 0? 0: gap;
+    after = cliptom(gap, 0, 16);
     toread += after;
     if(toread - before < 2)     // Cannot disassemble just one byte
       goto nocontent;
@@ -3064,7 +3064,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     cx->term_header = mmt_strdup(hdr);
   }
 
-  percent = percent > 100? 100: percent < 0? 0: percent;
+  percent = cliptom(percent, 0, 100);
 
   if(cx->term_tty_todo) {
     if(!cx->term_header)
@@ -3095,7 +3095,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
-  percent = percent > 100? 100: percent < 0? 0: percent;
+  percent = cliptom(percent, 0, 100);
 
   if(hdr) {
     lmsg_info("%s | ", hdr);
