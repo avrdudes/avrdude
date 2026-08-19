@@ -609,7 +609,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   bool llcode = firstbeg == 0 && firstlen > ur.uP.ninterrupts*vecsz; // Looks like code
   bool llvectors = firstbeg == 0 && firstlen >= ur.uP.ninterrupts*vecsz; // Looks like vector table
-  for(int i=0; llvectors && i<ur.uP.ninterrupts*vecsz; i+=vecsz) {
+  for(int i = 0; llvectors && i < ur.uP.ninterrupts*vecsz; i += vecsz) {
     uint16_t op16 = buf2uint16(flm->buf+i);
     if(!isop(op16, rjmp) && !(vecsz == 4 && isop(op16, jmp)))
       llvectors = 0;
@@ -1440,11 +1440,11 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
         op16 = wasjmp = wasop32 = 0;
         toend = flm->size-ur.blstart; // Number of bytes to FLASHEND
         npages = toend/flm->page_size;
-        for(i=0; i<npages; i++) {
+        for(i = 0; i < npages; i++) {
           // Read bootloader page by page
           if((rc = ur_readEF(pgm, p, spc, ur.blstart+i*flm->page_size, flm->page_size, 'F')))
             return rc;
-          for(n=flm->page_size/2, q=spc, j=0; j<n; j++, q+=2, toend-=2) { // Check 16-bit opcodes
+          for(n = flm->page_size/2, q = spc, j = 0; j < n; j++, q += 2, toend -= 2) { // Check 16-bit opcodes
             opcode = buf2uint16(q);
             if(wasjmp) {        // Opcode is the word address of the destination
               wasjmp=0;
@@ -1541,7 +1541,7 @@ vblvecfound:
                 rc = ur_readEF(pgm, p, spc, ur.pfend+1-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
                 if(rc < 0)
                   return rc;
-                int len = mcode<sizeof ur.filename? mcode: sizeof ur.filename;
+                int len = mcode < sizeof ur.filename? mcode: sizeof ur.filename;
                 memcpy(ur.filename, spc, len);
                 ur.filename[len-1] = 0;
               }
@@ -1588,7 +1588,7 @@ vblvecfound:
     first=0;
   }
   if(ur.showboot || ur.showall) {
-    term_out(&" %s%d"[first], single? "": "boot ", ur.blend>ur.blstart? ur.blend-ur.blstart+1: 0);
+    term_out(&" %s%d"[first], single? "": "boot ", ur.blend > ur.blstart? ur.blend - ur.blstart+1: 0);
     first=0;
   }
   if(ur.showversion || ur.showall) {
@@ -1991,7 +1991,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       } else
         break;
     } else {                    // Board not yet out of reset or bootloader twiddles lights
-      int slp = 32<<(attempt<3? attempt: 3);
+      int slp = 32<<(attempt < 3? attempt: 3);
       pmsg_debug("%4lld ms: sleeping for %d ms\n", (long long) avr_mstimestamp(), slp);
       usleep(slp*1000);
     }
@@ -2489,7 +2489,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     const char *extended_param = ldata(ln);
     size_t i, olen, plen = strlen(extended_param);
 
-    for(i=0; i<sizeof options/sizeof*options; i++) {
+    for(i = 0; i < sizeof options/sizeof*options; i++) {
       olen = strlen(options[i].name);
       if(strncmp(extended_param, options[i].name, olen) == 0) {
         if(!options[i].nstrbuf) {
@@ -2536,7 +2536,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
 
   if(help || rc < 0) {
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    for(size_t i=0; i<sizeof options/sizeof*options; i++) {
+    for(size_t i = 0; i < sizeof options/sizeof*options; i++) {
       msg_error("  -x %s%s%*s%s\n", options[i].name,
         options[i].assign && options[i].strbuf? "=<str>": options[i].assign? "=<n>  ": "",
         urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);

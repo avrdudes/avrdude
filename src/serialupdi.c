@@ -558,8 +558,8 @@ static int serialupdi_write_userrow(const PROGRAMMER *pgm, const AVRPART *p, con
       pmsg_error("writing USER ROW failed\n");
       return -1;
     }
-    addr_offset+=current_write_size;
-    remaining_bytes-=current_write_size;
+    addr_offset += current_write_size;
+    remaining_bytes -= current_write_size;
   }
 
   if(updi_write_cs(pgm, UPDI_ASI_SYS_CTRLA,
