@@ -287,7 +287,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       cx->term_rmem[mi].mem = mem;
     if(cx->term_rmem[mi].mem == mem) {
       if(cx->term_rmem[mi].len <= 0)
-        cx->term_rmem[mi].len = maxsize > default_len? default_len: maxsize;
+        cx->term_rmem[mi].len = minm(maxsize, default_len);
       else if(cx->term_rmem[mi].len > maxsize)
         cx->term_rmem[mi].len = maxsize;
       if(cx->term_rmem[mi].addr < 0 || cx->term_rmem[mi].addr >= maxsize)
@@ -375,7 +375,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       toread = maxsize - whence;
     int gap = maxsize - whence - toread;
 
-    after = gap > 16? 16: gap < 0? 0: gap;
+    after = cliptom(gap, 0, 16);
     toread += after;
     if(toread - before < 2)     // Cannot disassemble just one byte
       goto nocontent;
@@ -973,7 +973,7 @@ done:
   mmt_free(seglist);
   mmt_free(filename);
 
-  return ret < 0? ret: 0;
+  return minm(ret, 0);
 }
 
 static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
@@ -1579,8 +1579,8 @@ static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
       if(vt[j].value > o.vmax)
         o.vmax = vt[j].value;
       llen = strlen(vt[j].label);
-      lmin = llen < lmin? llen: lmin;
-      lmax = llen > lmax? llen: lmax;
+      lmin = minm(llen, lmin);
+      lmax = maxm(llen, lmax);
     }
   }
   llen = lmax <= lmin + MAX_PAD? lmax: 1;     // Align label width if max and min length are similar
@@ -1864,9 +1864,9 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       for(int j = 0; j < nv; j++) {
         if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label))) {
           llen = strlen(vt[j].label);
-          lmin = llen < lmin? llen: lmin;
-          lmax = llen > lmax? llen: lmax;
-          o.vmax = vt[j].value > o.vmax? vt[j].value: o.vmax;
+          lmin = minm(llen, lmin);
+          lmax = maxm(llen, lmax);
+          o.vmax = maxm(vt[j].value, o.vmax);
         }
       }
       llen = lmax <= lmin + MAX_PAD? lmax: 1; // Align label width if max and min length are similar
@@ -3064,7 +3064,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     cx->term_header = mmt_strdup(hdr);
   }
 
-  percent = percent > 100? 100: percent < 0? 0: percent;
+  percent = cliptom(percent, 0, 100);
 
   if(cx->term_tty_todo) {
     if(!cx->term_header)
@@ -3095,7 +3095,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
-  percent = percent > 100? 100: percent < 0? 0: percent;
+  percent = cliptom(percent, 0, 100);
 
   if(hdr) {
     lmsg_info("%s | ", hdr);

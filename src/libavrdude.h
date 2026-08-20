@@ -53,8 +53,6 @@
  * with the application.
  */
 
-typedef uint32_t Pinmask;
-
 /*
  * Values returned by library functions. Some library functions also return a
  * count, i.e. a positive number greater than 0.
@@ -690,6 +688,8 @@ extern "C" {
 
 // Formerly pindefs.h
 
+typedef uint32_t Pinmask;
+
 enum {
   PPI_AVR_VCC = 1,
   PPI_AVR_BUFF,
@@ -714,7 +714,6 @@ enum {
 #define PIN_MAX              31 // Largest allowed pin number
 
 #ifdef HAVE_LINUXGPIO
-
 // Embedded systems might have a lot more gpio than only 0-31
 #undef PIN_MAX
 #define PIN_MAX     1000        // Largest allowed pin number
@@ -1973,7 +1972,6 @@ extern libavrdude_context *cx;
 // Formerly confwin.h
 
 #if defined(WIN32)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1984,6 +1982,11 @@ extern "C" {
 }
 #endif
 #endif                          // WIN32
+
+// Minimum, maximum and clip-to-interval macros
+#define minm(a, b) ((a) < (b)? (a): (b))
+#define maxm(a, b) ((a) > (b)? (a): (b))
+#define cliptom(v, min, max) ((v) < (min)? (min): (v) > (max)? (max): (v))
 
 #ifndef TO_BE_DEPRECATED_IN_2026
 

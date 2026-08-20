@@ -759,7 +759,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     int result = 0;
 
     while(n_bytes > 0) {
-      size_t chunk_size = n_bytes < pdata->page_size? n_bytes: pdata->page_size;
+      size_t chunk_size = minm(n_bytes, pdata->page_size);
 
       memcpy(page_buffer, mem->buf + addr, chunk_size);
       memset(page_buffer + chunk_size, 0xFF, pdata->page_size - chunk_size);

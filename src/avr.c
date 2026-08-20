@@ -1862,7 +1862,7 @@ void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen) {
     char out[72];
 
     while(buflen) {
-      size_t len = buflen > 16? 16: buflen;
+      size_t len = minm(buflen, 16);
       str_hexdump16(out, buf, len);
       pmsg_trace("%s: %s\n", funstr, out);
       buf += len;

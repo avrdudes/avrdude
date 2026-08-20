@@ -997,7 +997,7 @@ part_parm :
         unsigned char cmd[4] = { 0, 0, 0, 0, };
         int bn;
 
-        for(int i=0; i<AVR_OP_MAX; i++)
+        for(int i = 0; i < AVR_OP_MAX; i++)
           if(current_mem && current_mem->op[i]) {
             if((bn = avr_set_addr_mem(current_mem, i, cmd, 0UL)) > 0)
               yywarning("%s's %s %s misses a necessary address bit a%d",

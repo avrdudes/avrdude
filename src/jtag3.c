@@ -496,7 +496,7 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
 
     if(frag == 0) {
       // Only first fragment has TOKEN and seq#
-      this_len = (int) len < max_xfer - 8? (int) len: max_xfer - 8;
+      this_len = minm((int) len, max_xfer - 8);
       buf[2] = (this_len + 4) >> 8;
       buf[3] = (this_len + 4) & 0xff;
       buf[4] = TOKEN;
@@ -508,7 +508,7 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
       }
       memcpy(buf + 8, data, this_len);
     } else {
-      this_len = (int) len < max_xfer - 4? (int) len: max_xfer - 4;
+      this_len = minm((int) len, max_xfer - 4);
       buf[2] = (this_len) >> 8;
       buf[3] = (this_len) & 0xff;
       if(this_len < 0) {
@@ -1999,7 +1999,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   }
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    unsigned int block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
+    unsigned int block_size = minm(maxaddr - addr, page_size);
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if(dynamic_mtype)
@@ -2081,7 +2081,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   }
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    unsigned int block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
+    unsigned int block_size = minm(maxaddr - addr, page_size);
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if(dynamic_mtype)
@@ -2496,7 +2496,7 @@ int jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
     return -1;
   }
   if(resp)
-    memcpy(value, resp + 3, (length < status? length: status));
+    memcpy(value, resp + 3, minm(length, status));
   mmt_free(resp);
 
   return 0;
@@ -3138,7 +3138,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    unsigned int block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
+    unsigned int block_size = minm(maxaddr - addr, page_size);
     pmsg_debug("%s(): block_size at addr 0x%x is %d\n", __func__, addr, block_size);
 
     u32_to_b4_big_endian((cmd + 2), addr + m->offset);  // Address
@@ -3185,7 +3185,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 
   serial_recv_timeout = 100;
   for(; addr < maxaddr; addr += page_size) {
-    unsigned int block_size = maxaddr - addr < page_size? maxaddr - addr: page_size;
+    unsigned int block_size = minm(maxaddr - addr, page_size);
     pmsg_debug("%s(): block_size at addr 0x%x is %d\n", __func__, addr, block_size);
 
     u32_to_b4_big_endian((cmd + 3), addr + m->offset);  // Address

@@ -1159,8 +1159,7 @@ void dev_output_part_defs(char *partdesc) {
         dev_info
           ("%s '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, "
            "0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'],",
-          tsv || all? ".desc": "   ",
-          p->desc, len > 0? len: 0, "",
+          tsv || all? ".desc": "   ", p->desc, maxm(len, 0), "",
           p->signature[0], p->signature[1], p->signature[2], flashoffset, flashsize, flashpagesize,
           eepromoffset, eepromsize, eeprompagesize, nfuses, ok, p->flags, dev_prog_modes(p->prog_modes));
         if(verbose > 0)
@@ -1592,8 +1591,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
         int len = 19 - strlen(id);
 
         dev_info("%s '%s' =>%*s ['%s', '%s', '%s'], # %s %d\n",
-          tsv? ".desc": "   ",
-          id, len > 0? len: 0, "",
+          tsv? ".desc": "   ", id, maxm(len, 0), "",
           locate_programmer_type_id(pgm->initpgm), dev_prog_modes(pgm->prog_modes),
           pgm->desc, pgm->config_file, pgm->lineno);
       }
