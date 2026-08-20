@@ -115,6 +115,12 @@ else()
 endif()
 
 # =====================================
+# Pull AUTHORS.md into a variable
+# =====================================
+
+file(READ "../AUTHORS.md" AUTHORS_MD)
+
+# =====================================
 # Configure files
 # =====================================
 
@@ -125,6 +131,10 @@ configure_file(
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.spec.in"
   "${CMAKE_CURRENT_BINARY_DIR}/avrdude.spec"
+)
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.py.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/adgui.py"
 )
 if(WIN32 OR MINGW)
   configure_file(
@@ -421,6 +431,7 @@ install(FILES "avrdude.1"
 if(HAVE_SWIG)
     install(TARGETS swig_avrdude DESTINATION ${PYTHON_SITE_PACKAGES})
     install(FILES ${CMAKE_BINARY_DIR}/src/swig_avrdude.py DESTINATION ${PYTHON_SITE_PACKAGES})
+    install(FILES ${CMAKE_BINARY_DIR}/src/adgui.py DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude)
     install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.ui")
     install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.py")
   if(WIN32 OR MINGW)
