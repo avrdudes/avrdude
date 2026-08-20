@@ -787,7 +787,7 @@ int main(int argc, char *argv[]) {
       if(optarg[0] == '+')
         ladd(additional_config_files, optarg + 1);
       else
-        sysconfig = mmt_strdup(optarg);
+        sysconfig = mmt_strdup("dnm-test-only.conf");
       break;
 
     case 'D':                   // Disable auto-erase

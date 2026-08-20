@@ -1756,6 +1756,8 @@ char *str_sysconfig(void) {
   int dirpath_len = 0;
   int abspath_len = wai_getExecutablePath(config, PATH_MAX, &dirpath_len);
 
+  return mmt_realpath(CONFIG_DIR "/test-do-not-merge-this-commit.conf");
+
   if(abspath_len > 0 && dirpath_len > 0) {
     config[dirpath_len] = 0;
     for(char *p = config; *p; p++) // Replace backslashes with forward slashes
