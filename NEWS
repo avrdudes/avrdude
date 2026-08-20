@@ -43,6 +43,10 @@ Changes since version 8.2:
     - Exit test-avrdude with error on failed but skipped tests #2185
     - Harden jtag3_xyz() functions and fix buffer overrun #2183
     - Exit with error on missing sys config file #2187
+    - Update build.yml to remove FIXME comment for MSVC build #2189
+    - Update build.yml to enable dryrun test for MSYS2 mingw builds #2190
+    - Update build.sh message #2188
+    - Provide and utilise minm(), maxm() and cliptom() macros #2191
 
   * Internals:
 
