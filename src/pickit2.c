@@ -105,10 +105,6 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **dev, int vid
 static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]);
 static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]);
 
-#ifndef MIN
-#define MIN(X, Y) ((X) < (Y)? (X): (Y))
-#endif
-
 struct pdata {
 
 #ifdef WIN32
@@ -211,9 +207,9 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     pmsg_warning("both -i delay and -B bitrate set; using -i\n");
 
   if(pgm->ispdelay > 0) {
-    my.clock_period = MIN(pgm->ispdelay, 255);
+    my.clock_period = minm(pgm->ispdelay, 255);
   } else if(pgm->bitclock > 0.0) {
-    my.clock_period = MIN(pgm->bitclock*1e6, 255);
+    my.clock_period = minm(pgm->bitclock*1e6, 255);
   }
 
   return 0;
@@ -456,7 +452,7 @@ static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
      * handles breaking up the data into packets -- but we need to keep
      * transfers frequent so that we can update the status indicator bar.
      */
-    uint32_t blockSize = MIN(65536 - (addr_base%65536), MIN(max_addr - addr_base, SPI_MAX_CHUNK/4));
+    uint32_t blockSize = minm(65536 - (addr_base%65536), minm(max_addr - addr_base, SPI_MAX_CHUNK/4));
 
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
@@ -572,8 +568,8 @@ static int pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     uint32_t blockSize;
 
     if(mem->paged) {
-      blockSize = MIN(page_size - (addr_base%page_size),
-        MIN(max_addr - addr_base, SPI_MAX_CHUNK/4)); // Bytes remaining in page
+      blockSize = minm(page_size - (addr_base%page_size),
+        minm(max_addr - addr_base, SPI_MAX_CHUNK/4)); // Bytes remaining in page
     } else {
       blockSize = 1;
     }
@@ -646,7 +642,7 @@ static int pickit2_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   int retval = 0, temp1 = 0, temp2 = 0, count = n_bytes;
 
   while(count > 0) {
-    uint8_t i, blockSize = MIN(count, SPI_MAX_CHUNK);
+    uint8_t i, blockSize = minm(count, SPI_MAX_CHUNK);
     uint8_t report[65] = { 0, CMD_DOWNLOAD_DATA_2(blockSize) };
     uint8_t *repptr = report + 3;
 
@@ -1016,9 +1012,9 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
         break;
       }
 
-      int clock_period = MIN(1000000/clock_rate, 255);        // Max period is 255
+      int clock_period = minm(1000000/clock_rate, 255);   // Max period is 255
 
-      clock_rate = (int) (1000000/(clock_period + 5e-7));     // Assume highest speed is 2 MHz
+      clock_rate = (int) (1000000/(clock_period + 5e-7)); // Assume highest speed is 2 MHz
 
       pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
       my.clock_period = clock_period;

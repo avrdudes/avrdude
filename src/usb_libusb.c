@@ -327,7 +327,7 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
     if(cx->usb_bufptr >= cx->usb_buflen)
       if(usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep, fd->usb.use_interrupt_xfer) < 0)
         return -1;
-    int amnt = cx->usb_buflen - cx->usb_bufptr > n? n: cx->usb_buflen - cx->usb_bufptr;
+    int amnt = minm(cx->usb_buflen - cx->usb_bufptr, n);
     memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
     cx->usb_bufptr += amnt;
     n -= amnt;

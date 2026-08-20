@@ -39,7 +39,7 @@
 } while (0)
 
 static int has_alt_spec(int nu, const Uart_conf *uap) {
-  for(int i=0; i<nu; i++)
+  for(int i = 0; i < nu; i++)
     if(uap[i].alt)
       return 1;
   return 0;
@@ -425,7 +425,7 @@ static int rawuartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
 static int uartbrr(const Avrintel *up, long f_cpu, long br, int nsamples) {
   int ret = rawuartbrr(up, f_cpu, br, nsamples), mxb = maxbrr(up);
 
-  return ret < 0? 0: ret > mxb? mxb: ret;
+  return cliptom(ret, 0, mxb);
 }
 
 // Actual baud rate given f_cpu, desired baud rated and number 8..63 of samples
@@ -1396,7 +1396,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
     int add[32] = { 0 }, maxd = 0, addone = 0, alldiff = 0;
     int sw=0, se=0, sU=0, sd=0, sj=0, sh=0, sP=0, sr=0, sa=0, sc=0, sp=0, sm=0;
 
-    for(int n=0; n<nut; n++) {
+    for(int n = 0; n < nut; n++) {
       char *t = ppp->vectorstr && !(urlist[n]->features & URFEATURE_HW)? "vector": urlist[n]->type;
       if(strlen(t) > maxtype)
         maxtype = strlen(t);
@@ -1433,7 +1433,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
 
     term_out("%*.*s Size %*sUse Vers%s Features  Type%*s Canonical file name\n",
       maxd, maxd, "Selection", (int) maxuse-3, "", maxver < 15? "": "i", (int) maxtype-4, "");
-    for(int use=0, n=0; n<nut; n++) {
+    for(int use = 0, n = 0; n < nut; n++) {
       ppp->ut = urlist[n];
       char *p = urboot_filename(ppp, ".hex");
       char *t = ppp->vectorstr && !(urlist[n]->features & URFEATURE_HW)? "vector": urlist[n]->type;
@@ -1520,7 +1520,7 @@ static int urbootautogen_parse(const AVRPART *part, char *urname, Urbootparams *
         ppp->ut = urlist[n];
 
   // Deallocate urlist
-  for(int n=0; n<nut; n++) {
+  for(int n = 0; n < nut; n++) {
     if(urlist[n] && urlist[n] != ppp->ut) {
       mmt_free(urlist[n]->tofree);
       mmt_free(urlist[n]);

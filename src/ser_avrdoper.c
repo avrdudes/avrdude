@@ -231,7 +231,7 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
   while(buflen > 0) {
     unsigned char buffer[256];
     int rval, lenIndex = chooseDataSize(buflen);
-    int thisLen = (int) buflen > reportDataSizes[lenIndex]? reportDataSizes[lenIndex]: (int) buflen;
+    int thisLen = minm((int) buflen, reportDataSizes[lenIndex]);
 
     buffer[0] = lenIndex + 1;   // Report ID
     buffer[1] = thisLen;
@@ -294,7 +294,7 @@ static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, si
         return -1;
       continue;
     }
-    len = remaining < available? remaining: available;
+    len = minm(remaining, available);
     memcpy(p, cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxPosition, len);
     p += len;
     remaining -= len;

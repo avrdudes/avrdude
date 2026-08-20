@@ -39,14 +39,6 @@
 #include "avrftdi_private.h"
 #include "usbdevs.h"
 
-#ifndef MAX
-#define MAX(a, b) ((a)>(b)?(a):(b))
-#endif
-
-#ifndef MIN
-#define MIN(a, b) ((a)<(b)?(a):(b))
-#endif
-
 #ifdef DO_NOT_BUILD_AVRFTDI
 static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
   pmsg_error("no libftdi or libusb support; install\n");
@@ -308,10 +300,10 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
   size_t blocksize = pdata->rx_buffer_size/2; // Reading 2 bytes per data byte
 
   // Determine a maximum size of data block
-  size_t max_size = MIN(pdata->ftdic->max_packet_size, (unsigned int) pdata->tx_buffer_size);
+  size_t max_size = minm(pdata->ftdic->max_packet_size, (unsigned int) pdata->tx_buffer_size);
 
   // Select block size so that resulting commands does not exceed max_size if possible
-  blocksize = MAX(1, (max_size - 7)/((8*2*6) + (8*1*2)));
+  blocksize = maxm(1, (max_size - 7)/((8*2*6) + (8*1*2)));
   // msg_notice("blocksize %d \n", blocksize);
 
   unsigned char *send_buffer = alloca(8*2*6*blocksize + 8*1*2*blocksize + 7);

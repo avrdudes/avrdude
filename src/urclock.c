@@ -219,9 +219,6 @@
 #include "urclock.h"
 #include "urclock_private.h"
 
-#define urmax(a, b) ((a) > (b)? (a): (b))
-#define urmin(a, b) ((a) < (b)? (a): (b))
-
 static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p);
 static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint32_t addr, int len,
   char memchr);
@@ -609,7 +606,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   bool llcode = firstbeg == 0 && firstlen > ur.uP.ninterrupts*vecsz; // Looks like code
   bool llvectors = firstbeg == 0 && firstlen >= ur.uP.ninterrupts*vecsz; // Looks like vector table
-  for(int i=0; llvectors && i<ur.uP.ninterrupts*vecsz; i+=vecsz) {
+  for(int i = 0; llvectors && i < ur.uP.ninterrupts*vecsz; i += vecsz) {
     uint16_t op16 = buf2uint16(flm->buf+i);
     if(!isop(op16, rjmp) && !(vecsz == 4 && isop(op16, jmp)))
       llvectors = 0;
@@ -1295,9 +1292,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if(ur.boothigh && ur.xbootsize % ur.uP.pagesize)
       Return("-x bootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
-    if(ur.xbootsize < 64 || ur.xbootsize > urmin(8192, ur.uP.flashsize/4))
+    if(ur.xbootsize < 64 || ur.xbootsize > minm(8192, ur.uP.flashsize/4))
       Return("implausible -x bootsize=%d, should be in [64, %d]",
-        ur.xbootsize, urmin(8192, ur.uP.flashsize/4));
+        ur.xbootsize, minm(8192, ur.uP.flashsize/4));
     if(ur.boothigh) {
       ur.blstart = flm->size - ur.xbootsize;
       ur.blend   = flm->size - 1;
@@ -1440,11 +1437,11 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
         op16 = wasjmp = wasop32 = 0;
         toend = flm->size-ur.blstart; // Number of bytes to FLASHEND
         npages = toend/flm->page_size;
-        for(i=0; i<npages; i++) {
+        for(i = 0; i < npages; i++) {
           // Read bootloader page by page
           if((rc = ur_readEF(pgm, p, spc, ur.blstart+i*flm->page_size, flm->page_size, 'F')))
             return rc;
-          for(n=flm->page_size/2, q=spc, j=0; j<n; j++, q+=2, toend-=2) { // Check 16-bit opcodes
+          for(n = flm->page_size/2, q = spc, j = 0; j < n; j++, q += 2, toend -= 2) { // Check 16-bit opcodes
             opcode = buf2uint16(q);
             if(wasjmp) {        // Opcode is the word address of the destination
               wasjmp=0;
@@ -1541,7 +1538,7 @@ vblvecfound:
                 rc = ur_readEF(pgm, p, spc, ur.pfend+1-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
                 if(rc < 0)
                   return rc;
-                int len = mcode<sizeof ur.filename? mcode: sizeof ur.filename;
+                int len = minm(mcode, sizeof ur.filename);
                 memcpy(ur.filename, spc, len);
                 ur.filename[len-1] = 0;
               }
@@ -1588,7 +1585,7 @@ vblvecfound:
     first=0;
   }
   if(ur.showboot || ur.showall) {
-    term_out(&" %s%d"[first], single? "": "boot ", ur.blend>ur.blstart? ur.blend-ur.blstart+1: 0);
+    term_out(&" %s%d"[first], single? "": "boot ", ur.blend > ur.blstart? ur.blend - ur.blstart+1: 0);
     first=0;
   }
   if(ur.showversion || ur.showall) {
@@ -1686,7 +1683,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
       int resetsize = set_resetvector(ur.blstart, ur.uP.flashsize, jmptoboot, vecsz, ur.urprotocol);
 
       if(badd < (unsigned int) resetsize) { // Ensure reset vector points to bl
-        int n = urmin((unsigned int) resetsize - badd, (unsigned int) len);
+        int n = minm((unsigned int) resetsize - badd, (unsigned int) len);
         int resetdest;
 
         if(badd == 0 && len >= vecsz) {
@@ -1726,7 +1723,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
         Return("urprotocol paged r/w len %d cannot exceed 256", len);
       *q++ = len;               // len==256 is sent as 0
     } else {
-      int max = ur.uP.pagesize > 256? ur.uP.pagesize: 256;
+      int max = maxm(ur.uP.pagesize, 256);
       if(len > max)
         Return("urprotocol paged r/w len %d cannot exceed %d for %s", len, max, ur.uP.name);
       *q++ = len>>8;            // Big endian length when needed
@@ -1735,7 +1732,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     i = q-buf;
 
   } else {
-    int max = ur.uP.pagesize > 256? ur.uP.pagesize: 256;
+    int max = maxm(ur.uP.pagesize, 256);
     if(len > max)
       Return("stk500 paged r/w len %d cannot exceed %d for %s", len, max, ur.uP.name);
 
@@ -1778,22 +1775,22 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
     Return("bootloader %s not have EEPROM access%s", ur.blurversion? "does": "might",
       ur.blurversion? " capability": "; try -x eepromrw if it has");
 
-  if(len < 1 || len > urmax(ur.uP.pagesize, 256))
-    Return("len %d exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
+  if(len < 1 || len > maxm(ur.uP.pagesize, 256))
+    Return("len %d exceeds range [1, %d]", len, maxm(ur.uP.pagesize, 256));
 
   // Odd byte address under word-address protocol for "classic" parts (optiboot, avrisp etc)
   int odd = !ur.urprotocol && classic && (badd&1);
   if(odd) {                     // Need to read one extra byte
     len++;
     badd--;
-    if(len > urmax(ur.uP.pagesize, 256))
-      Return("len+1 = %d odd address exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
+    if(len > maxm(ur.uP.pagesize, 256))
+      Return("len+1 = %d odd address exceeds range [1, %d]", len, maxm(ur.uP.pagesize, 256));
   }
 
   // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
-  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = urmax(4*bd/5/10 - 2, 2) & ~1;
+  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = maxm(4*bd/5/10 - 2, 2) & ~1;
   while(len > 0) {
-    int thislen = len < rdchunk? len: rdchunk;
+    int thislen = minm(len, rdchunk);
 
     if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, badd, thislen, mchr, NULL) < 0)
       return -1;
@@ -1991,7 +1988,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       } else
         break;
     } else {                    // Board not yet out of reset or bootloader twiddles lights
-      int slp = 32<<(attempt<3? attempt: 3);
+      int slp = 32 << minm(attempt, 3);
       pmsg_debug("%4lld ms: sleeping for %d ms\n", (long long) avr_mstimestamp(), slp);
       usleep(slp*1000);
     }
@@ -2305,7 +2302,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     n = addr + n_bytes;
 
     for(; addr < n; addr += chunk) {
-      chunk = n-addr < page_size? n-addr: page_size;
+      chunk = minm(n-addr, page_size);
 
       if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, addr, chunk, mchr, (char *) m->buf+addr)<0)
         return -3;
@@ -2325,7 +2322,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned int n;
 
   // Read in chunks that the bootloader can send within 800 ms lest it triggers WDT
-  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = urmax(4*bd/5/10 - 2, 2) & ~1;
+  int bd = pgm->baudrate <= 0? 115200: pgm->baudrate, rdchunk = maxm(4*bd/5/10 - 2, 2) & ~1;
   if((unsigned) rdchunk < page_size)
     page_size = rdchunk;
 
@@ -2344,7 +2341,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
-      chunk = n-addr < page_size? n-addr: page_size;
+      chunk = minm(n-addr, page_size);
 
       if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, addr, chunk, mchr, NULL) < 0)
         return -3;
@@ -2489,7 +2486,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     const char *extended_param = ldata(ln);
     size_t i, olen, plen = strlen(extended_param);
 
-    for(i=0; i<sizeof options/sizeof*options; i++) {
+    for(i = 0; i < sizeof options/sizeof*options; i++) {
       olen = strlen(options[i].name);
       if(strncmp(extended_param, options[i].name, olen) == 0) {
         if(!options[i].nstrbuf) {
@@ -2536,10 +2533,10 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
 
   if(help || rc < 0) {
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    for(size_t i=0; i<sizeof options/sizeof*options; i++) {
+    for(size_t i = 0; i < sizeof options/sizeof*options; i++) {
       msg_error("  -x %s%s%*s%s\n", options[i].name,
         options[i].assign && options[i].strbuf? "=<str>": options[i].assign? "=<n>  ": "",
-        urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
+        maxm(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
       return LIBAVRDUDE_EXIT_OK;

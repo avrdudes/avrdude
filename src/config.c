@@ -1118,7 +1118,7 @@ void cfg_update_mcuid(AVRPART *part) {
       if(flash) {
         size_t l1 = strlen(part->desc), l2 = strlen(uP_table[i].name);
 
-        if(strncasecmp(part->desc, uP_table[i].name, l1 < l2? l1: l2) ||
+        if(strncasecmp(part->desc, uP_table[i].name, minm(l1, l2)) ||
           flash->size != uP_table[i].flashsize ||
           flash->page_size != uP_table[i].pagesize || part->n_interrupts != (int8_t) uP_table[i].ninterrupts)
           yywarning("mcuid %d is reserved for %s, use a free number >= %d",
