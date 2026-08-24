@@ -23,6 +23,7 @@ Changes since version 8.2:
     - Atmel AVRISP mkII not working with MSVC build #2175
     - Check dryrun test results #2184
     - TPI memory overwrite error with jtag3.c programmers #2179
+    - jtag3_command() failed owing to unexpected return #2194
 
   * Pull requests:
 
@@ -47,6 +48,8 @@ Changes since version 8.2:
     - Update build.yml to enable dryrun test for MSYS2 mingw builds #2190
     - Update build.sh message #2188
     - Provide and utilise minm(), maxm() and cliptom() macros #2191
+    - Enable dryrun tests for avrdude Linux container build #2193
+    - Fix jtag3_command() #2195
 
   * Internals:
 
