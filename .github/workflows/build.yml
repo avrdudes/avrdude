@@ -201,6 +201,15 @@ jobs:
       - name: "avrdude -? (not installed)"
         if: matrix.arch == 'i386'
         run: build/src/avrdude -?
+      - name: "Dryrun test (not installed)"
+        if: matrix.arch == 'i386'
+        run: printf "\n\n" | ./tools/test-avrdude -v -e build/src/avrdude -c '-C build/src/avrdude.conf' -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
+      - name: Install
+        if: matrix.arch == 'i386'
+        run: cmake --build build --target install
+      - name: "Dryrun test (installed)"
+        if: matrix.arch == 'i386'
+        run: printf "\n\n" | ./tools/test-avrdude -v -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"        
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
