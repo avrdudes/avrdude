@@ -805,7 +805,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
-  if(status < 4 || !resp) {
+  if(status < 3 || !resp) {
     pmsg_error("%s(%s) failed owing to unexpected return\n", __func__, descr);
     mmt_free(*resp);
     *resp = NULL;
@@ -820,7 +820,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
   }
 
   unsigned char code = (*resp)[1] & RSP3_STATUS_MASK;
-  int softfail = (*resp)[3] == RSP3_FAIL_OCD_LOCKED || (*resp)[3] == RSP3_FAIL_CRC_FAILURE;
+  int softfail = status > 3 && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED || (*resp)[3] == RSP3_FAIL_CRC_FAILURE);
   if(code != RSP3_OK) {
     if(code == RSP3_FAILED && softfail)
       pmsg_error("device is locked; chip erase required to unlock\n");
