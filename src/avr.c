@@ -1378,7 +1378,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
     size = vsize;
   }
 
-  int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size + 1: 10;
+  int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size: verbose >= MSG_NOTICE? 10: 1;
   int ro = mem_is_readonly(a);  // Other memories can have known protected zones such as bootloaders
 
   for(int i = 0; i < size; i++) {
@@ -1407,8 +1407,6 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
           imsg_warning("  suppressing further verification errors\n");
         }
         verror++;
-        if(verbose < MSG_NOTICE)
-          return -1;
       } else {
         // Mismatch is only in unused bits
         if((buf1[i] | bitmask) != 0xff) {
