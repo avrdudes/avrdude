@@ -1389,14 +1389,14 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         if(vroerror < 10)
           imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (read-only location: ignored)\n", buf1[i], buf2[i], i);
         else if(vroerror == 10)
-          imsg_info("  suppressing further mismatches in read-only areas\n");
+          imsg_info("  showing no further mismatches in read-only areas\n");
         vroerror++;
       } else if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
         // Mismatch is not just in unused bits
         if(verror < maxerrs)
           imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
         else if(verror == maxerrs)
-          imsg_info("  suppressing further verification errors\n");
+          imsg_info("  showing no further verification errors (increase verbosity for more)\n");
         verror++;
       } else {
         // Mismatch is only in unused bits
