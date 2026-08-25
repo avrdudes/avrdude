@@ -1421,6 +1421,11 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
       }
     }
   }
+  if(verror)
+    imsg_info("  %d byte%s do not match caused by %d bit error%s of which %d set and %d cleared on device\n",
+      verror, str_plural(verror), biterrs, str_plural(biterrs), bitsset, biterrs-bitsset);
+  if(verror && bitsset == 0 && mem_is_in_flash(a))
+    imsg_info("  maybe flash was not erased beforehand or flash programming sections overlap?\n");
 
   return verror? -1: size;
 }
