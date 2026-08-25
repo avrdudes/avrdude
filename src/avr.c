@@ -1380,6 +1380,8 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size: verbose >= MSG_NOTICE? 10: 1;
   int ro = mem_is_readonly(a);  // Other memories can have known protected zones such as bootloaders
+  int biterrs = 0, bitsset = 0;
+  unsigned int bdiff;
 
   for(int i = 0; i < size; i++) {
     if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
@@ -1391,8 +1393,13 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         else if(vroerror == 10)
           imsg_info("  showing no further mismatches in read-only areas\n");
         vroerror++;
-      } else if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
-        // Mismatch is not just in unused bits
+      } else if((bdiff = (buf1[i] & bitmask) ^ (buf2[i] & bitmask))) {
+        // Mismatch is not just in unused bits, loop over bit positions that differ
+        for(unsigned int lbit; bdiff; bdiff ^= lbit) {
+           lbit = bdiff & -bdiff; // Lowest bit that differs
+           biterrs++;             // Number of bit mismatches
+           bitsset += !!(lbit & buf1[i]); // The mismatched bit was set on device
+        }
         if(verror < maxerrs)
           imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
         else if(verror == maxerrs)
