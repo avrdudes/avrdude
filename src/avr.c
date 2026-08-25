@@ -1355,7 +1355,6 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 }
 
 int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const AVRMEM *a, int size) {
-  int i;
   unsigned char *buf1, *buf2;
   int vsize;
   AVRMEM *b;
@@ -1382,7 +1381,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size + 1: 10;
   int ro = mem_is_readonly(a);  // Other memories can have known protected zones such as bootloaders
 
-  for(i = 0; i < size; i++) {
+  for(int i = 0; i < size; i++) {
     if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = is_isp(p)? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
 
