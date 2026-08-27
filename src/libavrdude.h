@@ -1307,6 +1307,7 @@ extern "C" {
   FILE *fileio_fopenr(const char *fname);
   int is_generated_fname(const char *filename);
   int generated_file_has_contents(const AVRPART *part, const char *filename);
+  int fileio_any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp, const AVRMEM *any, unsigned maxsize);
   int fileio_fmt_autodetect_fp(FILE *f);
   int fileio_fmt_autodetect(const char *fname);
   int fileio_mem(int oprwv, const char *filename, FILEFMT format, const AVRPART *p, const AVRMEM *mem, int size);
