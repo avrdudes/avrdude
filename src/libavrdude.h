@@ -1303,6 +1303,7 @@ extern "C" {
   char *fileio_fmtstr(FILEFMT format);
   int fileio_fmtchr(FILEFMT format);
   AVRMEM *fileio_any_memory(const char *name);
+  int mem_is_any(const AVRMEM *mem);
   unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
   FILE *fileio_fopenr(const char *fname);
   int is_generated_fname(const char *filename);
