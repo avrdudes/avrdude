@@ -1351,28 +1351,58 @@ extended parameters to be specified on the command line.
 
 Dryrun emulates external programming without the need to connect a
 programmer or a part while dryboot emulates bootloader programming without
-the need to connect the target part. They accept the following parameters:
+the need to connect the target part.
+
+@code{Lock} and @code{fuse} memories are initialised with with factory
+values as far as known, @code{0xff} otherwise. The @code{signature} memory
+is set from the configuration file; the @code{calibration} memory is
+filled with @code{U} (for uncalibrated); @code{osc16err} with @code{e} and
+@code{osc20err} with @code{E} (for error); @code{osccal16} with o and
+@code{osccal20} with @code{O}; @code{sib} with @code{S}; @code{tempsense}
+with @code{T}; @code{sernum} with the downward letter sequence
+@code{UTSRQP...}; and the volatile @code{io} memory with reset values if
+known, @code{0x00} otherwise.
+
+If either the @code{init} or @code{random} parameters are set, then the
+@code{flash} memory is randomly configured in terms of bootloader
+sections, code and application data sections, and the fuses updated
+accordingly. In either case, @code{flash} (including ATxmega submemories
+of @code{application}, @code{apptable} and @code{boot}), @code{eeprom},
+and all other existing memories such as @code{prodsig}/@code{sigrow},
+@code{userrow}/@code{usersig} and @code{bootrow} are updated with random
+data.  @code{flash} is always initialised with benign code, that is its
+opcodes will not access I/O memories, SRAM or flash.
+
+If none of @code{init} or @code{random} parameters are set, these memories
+are initialised with @code{0xff}. Note that @code{init} and @code{random}
+are not meant to be both set at the same time.
+
+
+The dryrun and dryboot programmers accept the following parameters:
 
 @table @code
 @cindex @code{flash}
 @item init
-Initialise memories with human-readable patterns. Flash memory will be
-randomly configured with respect to bootloader, data and code length.
-Patterns can best be seen with fixed-width font and the @code{:I} format
-by inspecting the generated hex file or by using, eg, @code{-U
-flash:r:-:I}. Patterns in flash memory are executable and represent benign
-AVR code, ie, no I/O memory access. Choose a fixed seed for reproducible
-results.
+
+The patterns that are used for initialising memories as detailed above are
+human-readable. These patterns can best be seen with a fixed-width font
+and the @code{:I} format by inspecting the generated hex file or by using,
+eg, @code{-U flash:r:-:I} to dump the patterns on screen.  @code{eeprom},
+@code{userrow}/@code{usersig} and @code{bootrow} memories are filled with
+pangrams such as The quick brown fox jumps over the lazy dog. Choose a
+fixed seed for reproducible results.
 
 @item init=@var{n}
 Shortcut for @code{-x init -x seed=@var{n}} (see below)
 
 @cindex @code{flash}
 @item random
-Initialise memories with random code and values. Flash memory will be
-randomly configured with respect to bootloader, data and code length.
-Random code in flash will be benign, that is, not accessing I/O memories,
-SRAM or flash. Choose a fixed seed for reproducible results.
+Initialise @code{flash} with random opcodes and, if applicable, random
+application table data. Random code in flash will be benign, that is, not
+accessing I/O memories, SRAM or flash. The @code{sernum} memory, if it
+exists, will be initialised with a random upper-letter sequence. Other
+memories are initialised with a random sequence of at-signs and spaces.
+Choose a fixed seed for reproducible results.
 
 @item random=@var{n}
 Shortcut for @code{-x random -x seed=@var{n}}
