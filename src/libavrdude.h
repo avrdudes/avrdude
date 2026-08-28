@@ -1855,7 +1855,7 @@ extern "C" {
   Urboot_template **urboottemplate(const Avrintel *up, const char *mcu, const char *io, const char *blt,
     int req_feat, int req_ulevel, int showall, int *np, int silent);
 
-  AVRPART *dryrun_part(const char *id, int *bootsizep, int init, int random, int hole, int seed);
+  AVRPART *dryrun_part(const char *id, int *bootsizep, int init, int random, int holes, int seed);
 
 #ifdef __cplusplus
 }
