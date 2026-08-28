@@ -57,7 +57,7 @@ typedef struct {
   int init;                     // Initialise memories with something interesting
   int random;                   // Random initialisation of memories
   int seed;                     // Seed for random number generator
-  int hole;                     // Whether eeprom/flash should have holes
+  int holes;                    // Whether eeprom/flash should have holes
   struct {
     int vectornum;              // Vector bootloader vector number for jump to application op code
     int urversion;              // Octal byte 076 means v7.6 (minor version number is lowest 3 bit)
@@ -392,7 +392,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if(dry.dp)                    // Already configured
     return;
 
-  dry.dp = dryrun_part(p->id, &dry.bootsize, dry.init, dry.random, dry.hole, dry.seed);
+  dry.dp = dryrun_part(p->id, &dry.bootsize, dry.init, dry.random, dry.holes, dry.seed);
 
   // Initialise urboot descriptor so that all flash is programmable and there is no bootloader
   if((m = avr_locate_flash(p)))

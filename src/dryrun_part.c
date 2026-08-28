@@ -18,7 +18,7 @@
 
 /*
  * AVRPART *dryrun_part(const char *id, int *bootsizep,
- *   int init, int random, int hole, int seed)
+ *   int init, int random, int holes, int seed)
  *
  * Returns a duplicate of the part structure that is known from the
  * configuration file under the given id (eg, m328p). Lock and fuse
@@ -86,7 +86,7 @@ typedef struct {
   int lock;                     // Cache of lock (unused)
   int init;                     // Initialise memories with something interesting
   int random;                   // Random initialisation of memories
-  int hole;                     // Whether eeprom/flash should have holes
+  int holes;                    // Whether eeprom/flash should have holes
   int seed;                     // Seed for random number generator
   // Flash configuration irrespective of -c programming is bootloading or not
   int appstart, appsize;        // Start and size of application section
@@ -485,7 +485,7 @@ static void putother(const Testpart_data *mep, const AVRPART *p, const AVRMEM *m
     m->buf[m->size - len - 1] = ' ';
 }
 
-AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, int hole, int seed) {
+AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, int holes, int seed) {
   pmsg_debug("%s()\n", __func__);
 
   const AVRPART *p = locate_part(part_list, partid);
@@ -499,7 +499,7 @@ AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, i
 
   me.init = init;               // Initialise memories with something interesting
   me.random = random;           // Random initialisation of memories
-  me.hole = hole;               // Whether eeprom/flash should have holes
+  me.holes = holes;             // Whether eeprom/flash should have holes
   me.seed = seed;               // Seed for random number generator
   memset(me.fuses, 0xff, sizeof me.fuses);
   srandom(me.seed? me.seed: time(NULL));
