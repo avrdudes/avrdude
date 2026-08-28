@@ -40,7 +40,7 @@
  * access I/O memories, SRAM or flash. The other memories are filled with
  * random sequences of @ and spaces. If init is set then the flash opcodes
  * are restricted to those forming a human-readable ASCII banner that is
- * visible with a terminal dump and fixed-width fonts. Other memories are 
+ * visible with a terminal dump and fixed-width fonts. Other memories are
  * initialised with pangrams such as The quick brown fox jumps over the
  * lazy dog. Init and random are not meant to be both set at the same
  * time. If random is set then the sernum memory, if it exists, will be
@@ -461,7 +461,7 @@ seal:                          // Put 1-2 endless loops in top memory section
 
 // Initialise a user writable memory other than flash or fuses
 static void putother(const Testpart_data *mep, const AVRPART *p, const AVRMEM *m, const char *str) {
-  const char *name = avr_mem_name(p, m);
+  const char *name = avr_mem_name(p, m), *hi = me.random? "@  @": "Hello, world!";
   int len = strlen(str);
 
   if(len > m->size)
@@ -483,6 +483,18 @@ static void putother(const Testpart_data *mep, const AVRPART *p, const AVRMEM *m
   memcpy(m->buf + m->size - len, name, len);
   if(len < m->size)
     m->buf[m->size - len - 1] = ' ';
+
+  if(me.holes && m->size >= 64) {
+    // Remove an initial, a middling and a final section
+    int delta[4];               // Random number between -2 and 2
+    for(size_t i = 0; i < sizeof delta/sizeof *delta; i++)
+      delta[i] = random()%5 - 2;
+    memset(m->buf, 0xff, m->size/8 + delta[0]);
+    memset(m->buf + m->size/2 + delta[1], 0xff, m->size/4 + delta[2]);
+    memcpy(m->buf + m->size/2 + delta[1] + 3, hi, strlen(hi));
+    int len = m->size/8 + delta[3];
+    memset(m->buf + m->size - len, 0xff, len);
+  }
 }
 
 AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, int holes, int seed) {
@@ -657,6 +669,26 @@ AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, i
     putflash(mep, me.dp, flm, me.datastart, me.datasize, ADATA);
 
   putflash(mep, me.dp, flm, me.appstart + vtb, me.appsize - vtb - urbtsz, ROCKS);
+
+  if(me.holes && me.appsize >= 128) { // Generate holes in the code section
+    int start = me.appstart & ~1, size = me.appsize & ~3;
+    int len3 = size/3 & ~3, len4 = size/4 - 1;
+    unsigned char *code = flm->buf + start;
+
+    /*
+     * Cut away just shy of 1/4 of flash either side deliberately making the
+     * hole odd-sized. Overwrite odd boundary with a space (0x20): note that
+     * the opcodes 0x20ff (sbrs r18, 0) and  0xff20 (tst r15) are benign. Then
+     * cut off the central third of the code section and introduce an island
+     * with a single space in the middle (generating a single tst r15 opcode).
+     */
+    memset(code, 0xff, len4); code[len4] = ' ';
+    memset(code + size - len4, 0xff, len4); code[size - len4 - 1] = ' ';
+    memset(code + len3, 0xff, len3); code[size/2 - 1] = ' ';
+    // Terminate code section with two endless loops
+    code[size - 4] = code[size - 2] = 0xff;
+    code[size - 3] = code[size - 1] = 0xcf;
+  }
 
   // Initialise other overlapping flash memories from flash (think XMEGA)
   for(LNODEID ln = lfirst(me.dp->mem); ln; ln = lnext(ln)) {
