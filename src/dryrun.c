@@ -759,6 +759,10 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
       dry.random = 1;
       continue;
     }
+    if(str_eq(xpara, "holes")) {
+      dry.holes = 1;
+      continue;
+    }
     if(str_starts(xpara, "seed=") || str_starts(xpara, "init=") || str_starts(xpara, "random=")) {
       const char *errptr;
       int seed = str_int(strchr(xpara, '=') + 1, STR_INT32, &errptr);
