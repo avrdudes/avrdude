@@ -692,14 +692,14 @@ AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, i
 
     /*
      * Cut away just shy of 1/4 of flash either side deliberately making the
-     * hole odd-sized. Overwrite odd boundary with a space (0x20): note that
-     * the opcodes 0x20ff (sbrs r18, 0) and  0xff20 (tst r15) are benign. Then
-     * cut off the central third of the code section and introduce an island
-     * with a single space in the middle (generating a single tst r15 opcode).
+     * hole odd-sized. Overwrite odd boundary with an @ (0x40): note that the
+     * opcodes 0x40ff (sbrs r20, 0) and 0xff40 (sbci r31, 0x0f) are benign.
+     * Then cut off the central third of the code section and introduce an
+     * island with a single @ in the middle (generating a benign opcode).
      */
-    memset(code, 0xff, len4); code[len4] = ' ';
-    memset(code + size - len4, 0xff, len4); code[size - len4 - 1] = ' ';
-    memset(code + len3, 0xff, len3); code[size/2 - 1] = ' ';
+    memset(code, 0xff, len4); code[len4] = '@';
+    memset(code + size - len4, 0xff, len4); code[size - len4 - 1] = '@';
+    memset(code + len3, 0xff, len3); code[size/2 - 1] = '@';
     // Terminate code section with two endless loops
     code[size - 4] = code[size - 2] = 0xff;
     code[size - 3] = code[size - 1] = 0xcf;
