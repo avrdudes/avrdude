@@ -1363,6 +1363,7 @@ with @code{T}; @code{sernum} with the downward letter sequence
 @code{UTSRQP...}; and the volatile @code{io} memory with reset values if
 known, @code{0x00} otherwise.
 
+@cindex benign code
 If either the @code{init} or @code{random} parameters are set, then the
 @code{flash} memory is randomly configured in terms of bootloader
 sections, code and application data sections, and the fuses updated
@@ -1370,7 +1371,7 @@ accordingly. In either case, @code{flash} (including ATxmega submemories
 of @code{application}, @code{apptable} and @code{boot}), @code{eeprom},
 and all other existing memories such as @code{prodsig}/@code{sigrow},
 @code{userrow}/@code{usersig} and @code{bootrow} are updated with random
-data.  @code{flash} is always initialised with benign code, that is its
+data.  @code{flash} is always initialised with benign code, that is, its
 opcodes will not access I/O memories, SRAM or flash.
 
 If none of @code{init} or @code{random} parameters are set, these memories
@@ -1398,14 +1399,21 @@ Shortcut for @code{-x init -x seed=@var{n}} (see below)
 @cindex @code{flash}
 @item random
 Initialise @code{flash} with random opcodes and, if applicable, random
-application table data. Random code in flash will be benign, that is, not
-accessing I/O memories, SRAM or flash. The @code{sernum} memory, if it
-exists, will be initialised with a random upper-letter sequence. Other
-memories are initialised with a random sequence of at-signs and spaces.
-Choose a fixed seed for reproducible results.
+application table data. The @code{sernum} memory, if it exists, will be
+initialised with a random upper-letter sequence. Other memories are
+initialised with a random sequence of at-signs and spaces. Choose a fixed
+seed for reproducible results.
 
+@cindex @code{flash}
 @item random=@var{n}
 Shortcut for @code{-x random -x seed=@var{n}}
+
+@cindex @code{flash}
+@item holes
+Put holes into larger memories, ie, longer sequences of @code{0xff}, and
+add small islands of code or data. Some of these holes can pose problems
+for programmers that do not anticipate them. As such these can be used for
+hardened testing, which is the main purpose of the dryrun programmers.
 
 @item seed=@var{n}
 Seed random number generator with @var{n}; the default is

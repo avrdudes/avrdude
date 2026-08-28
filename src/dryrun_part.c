@@ -23,28 +23,43 @@
  * Returns a duplicate of the part structure that is known from the
  * configuration file under the given id (eg, m328p). Lock and fuse
  * memories are initialised with with factory values as far as known, 0xff
- * otherwise; the signature memory is set from the configuration file; the
- * calibration memory is filled with U (for uncalibrated), osc16err with e
- * and osc20err with E (for error), osccal16 with o and osccal20 with O,
- * sib with S, tempsense with T, sernum with the downward letter sequence
- * UTSRQP..., and the volatile io memory with reset values if known, 0x00
+ * otherwise. The signature memory is set from the configuration file; the
+ * calibration memory is filled with U (for uncalibrated); osc16err with e
+ * and osc20err with E (for error); osccal16 with o and osccal20 with O;
+ * sib with S; tempsense with T; sernum with the downward letter sequence
+ * UTSRQP...; and the volatile io memory with reset values if known, 0x00
  * otherwise.
  *
- * If either init or random are set, then the flash memory is randomly
- * configured in terms of bootloader sections, code and application data
- * sections, and the fuses updated accordingly. In either case, flash
- * (including ATxmega submemories of application, apptable and boot),
- * eeprom, userrow and bootrow memories, if any, are updated with random
- * data. If random is set then random valid opcodes of the AVR-model are
- * chosen for flash; the code is meant to be benign, that is, it will not
- * access I/O memories, SRAM or flash. The other memories are filled with
- * random sequences of @ and spaces. If init is set then the flash opcodes
- * are restricted to those forming a human-readable ASCII banner that is
- * visible with a terminal dump and fixed-width fonts. Other memories are
- * initialised with pangrams such as The quick brown fox jumps over the
- * lazy dog. Init and random are not meant to be both set at the same
- * time. If random is set then the sernum memory, if it exists, will be
- * initialised with a random upper-letter sequence.
+ * If either the init or random parameters are set, then the flash memory
+ * is randomly configured in terms of bootloader sections, code and
+ * application data sections, and the fuses updated accordingly. In either
+ * case, flash (including ATxmega submemories of application, apptable and
+ * boot), eeprom, and all other existing memories such as prodsig/sigrow,
+ * userrow/usersig and bootrow are updated with random data. Flash is
+ * always initialised with benign code, that is its opcodes will not
+ * access I/O memories, SRAM or flash.
+ *
+ * If none of init or random parameters are set, these memories are
+ * initialised with 0xff. Note that init and random are not meant to be
+ * both set at the same time.
+ *
+ * If init is set then, the patterns that are used for initialising
+ * memories as detailed above are human-readable. These patterns can best
+ * be seen with a fixed-width font and the :I format by inspecting the
+ * generated hex file or by using, eg, -U flash:r:-:I to dump the patterns
+ * on screen. eeprom, userrow/usersig and bootrow memories are filled with
+ * pangrams such as The quick brown fox jumps over the lazy dog.
+ *
+ * If random is set flash is initialised with random opcodes and, if
+ * applicable, random application table data. The sernum memory, if it
+ * exists, will be initialised with a random upper-letter sequence. Other
+ * memories are initialised with a random sequence of at-signs and spaces.
+ *
+ * If holes is set then dryrun_parts() puts holes into larger memories,
+ * ie, longer sequences of 0xff, and adds small islands of code or data.
+ * Some of these holes can pose problems for programmers that do not
+ * anticipate them. As such these can be used for hardened testing, which
+ * is the main purpose of the dryrun programmers
  *
  * The argument seed, if positive, initialises the seed of the pseudo
  * random number generator. If seed is zero, time(NULL) is used for
