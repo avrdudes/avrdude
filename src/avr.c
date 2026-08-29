@@ -1355,7 +1355,6 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 }
 
 int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const AVRMEM *a, int size) {
-  int i;
   unsigned char *buf1, *buf2;
   int vsize;
   AVRMEM *b;
@@ -1379,37 +1378,33 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
     size = vsize;
   }
 
-  int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size + 1: 10;
+  int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size: verbose >= MSG_NOTICE? 10: 1;
   int ro = mem_is_readonly(a);  // Other memories can have known protected zones such as bootloaders
+  int biterrs = 0, bitsset = 0;
+  unsigned int bdiff;
 
-  for(i = 0; i < size; i++) {
+  for(int i = 0; i < size; i++) {
     if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = is_isp(p)? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
 
       if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
-        if(quell_progress < 2) {
-          if(vroerror < 10) {
-            if(!(verror + vroerror))
-              pmsg_warning("%s verification mismatch%s\n", a->desc,
-                mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
-            imsg_warning("  device 0x%02x != input 0x%02x at addr 0x%04x "
-              "(read only location: ignored)\n", buf1[i], buf2[i], i);
-          } else if(vroerror == 10)
-            imsg_warning("  suppressing further mismatches in read-only areas\n");
-        }
+        if(vroerror < 10)
+          imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (read-only location: ignored)\n", buf1[i], buf2[i], i);
+        else if(vroerror == 10)
+          imsg_info("  showing no further mismatches in read-only areas\n");
         vroerror++;
-      } else if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
-        // Mismatch is not just in unused bits
-        if(verror < maxerrs) {
-          if(!(verror + vroerror))
-            pmsg_warning("%s verification mismatch\n", a->desc);
-          imsg_error("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
-        } else if(verror == maxerrs) {
-          imsg_warning("  suppressing further verification errors\n");
+      } else if((bdiff = (buf1[i] & bitmask) ^ (buf2[i] & bitmask))) {
+        // Mismatch is not just in unused bits, loop over bit positions that differ
+        for(unsigned int lbit; bdiff; bdiff ^= lbit) {
+           lbit = bdiff & -bdiff; // Lowest bit that differs
+           biterrs++;             // Number of bit mismatches
+           bitsset += !!(lbit & buf1[i]); // The mismatched bit was set on device
         }
+        if(verror < maxerrs)
+          imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
+        else if(verror == maxerrs)
+          imsg_info("  showing no further verification errors (increase verbosity for more)\n");
         verror++;
-        if(verbose < MSG_NOTICE)
-          return -1;
       } else {
         // Mismatch is only in unused bits
         if((buf1[i] | bitmask) != 0xff) {
@@ -1426,6 +1421,11 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
       }
     }
   }
+  if(verror)
+    imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared on device\n",
+      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset);
+  if(verror && bitsset == 0 && mem_is_in_flash(a))
+    imsg_info("  maybe flash was not erased beforehand or flash programming sections overlap?\n");
 
   return verror? -1: size;
 }
