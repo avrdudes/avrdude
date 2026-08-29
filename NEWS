@@ -50,6 +50,8 @@ Changes since version 8.2:
     - Provide and utilise minm(), maxm() and cliptom() macros #2191
     - Enable dryrun tests for avrdude Linux container build #2193
     - Fix jtag3_command() #2195
+    - Improve verification reports #2196
+    - Provide -x holes for dryrun programmers #2197
 
   * Internals:
 
