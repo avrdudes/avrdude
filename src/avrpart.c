@@ -1003,6 +1003,9 @@ AVRPART *avr_dup_part(const AVRPART *d) {
 }
 
 void avr_free_part(AVRPART *d) {
+  if(d == NULL)
+    return;
+
   ldestroy_cb(d->mem, (void (*)(void *)) avr_free_mem);
   d->mem = NULL;
   ldestroy_cb(d->mem_alias, (void (*)(void *)) avr_free_memalias);

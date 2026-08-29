@@ -1607,24 +1607,53 @@ versions of the bootloader.
 .It Ar dryboot
 Dryrun emulates external programming without the need to connect a
 programmer or a part while dryboot emulates bootloader programming without
-the need to connect the target part. They accept the following parameters:
+the need to connect the target part.
+.Pp
+Lock and fuse memories are initialised with with factory values as far as
+known, 0xff otherwise. The signature memory is set from the configuration
+file; the calibration memory is filled with U (for uncalibrated); osc16err
+with e and osc20err with E (for error); osccal16 with o and osccal20 with
+O; sib with S; tempsense with T; sernum with the downward letter sequence
+UTSRQP...; and the volatile io memory with reset values if known, 0x00
+otherwise.
+.Pp
+If either the init or random parameters are set, then the flash memory is
+randomly configured in terms of bootloader sections, code and application
+data sections, and the fuses updated accordingly. In either case, flash
+(including ATxmega submemories of application, apptable and boot), eeprom,
+and all other existing memories such as prodsig/sigrow, userrow/usersig
+and bootrow are updated with random data. Flash is always initialised with
+benign code, that is its opcodes will not access I/O memories, SRAM or
+flash.
+.Pp
+If none of init or random parameters are set, these memories are
+initialised with 0xff. Note that init and random are not meant to be both
+set at the same time.
+.Pp
+The dryrun and dryboot programmers accept the following parameters:
 .Bl -tag -offset indent -width indent
 .It Ar init
-Initialise memories with human-readable patterns. Flash memory will be
-randomly configured with respect to bootloader, data and code length.
-Patterns can best be seen with fixed-width font and the :I format
-by inspecting the generated hex file or by using, eg, -U flash:r:-:I.
-Patterns in flash memory are executable and represent benign AVR code, ie,
-no I/O memory access. Choose a fixed seed for reproducible results.
+The patterns that are used for initialising memories as detailed above are
+human-readable. These patterns can best be seen with a fixed-width font
+and the :I format by inspecting the generated hex file or by using, eg, -U
+flash:r:-:I to dump the patterns on screen.  eeprom, userrow/usersig and
+bootrow memories are filled with pangrams such as The quick brown fox
+jumps over the lazy dog. Choose a fixed seed for reproducible results.
 .It Ar init=<n>
 Shortcut for -x init -x seed=<n> (see below)
 .It Ar random
-Initialise memories with random code and values. Flash memory will be
-randomly configured with respect to bootloader, data and code length.
-Random code in flash will be benign, that is, not accessing I/O memories,
-SRAM or flash. Choose a fixed seed for reproducible results.
+Initialise flash with random opcodes and, if applicable, random
+application table data. The sernum memory, if it exists, will be
+initialised with a random upper-letter sequence. Other memories are
+initialised with a random sequence of at-signs and spaces. Choose a fixed
+seed for reproducible results.
 .It Ar random=<n>
 Shortcut for -x random -x seed=<n>
+.It Ar holes
+Put holes into larger memories, ie, longer sequences of 0xff, and add
+small islands of code or data. Some of these holes can pose problems for
+programmers that do not anticipate them. As such these can be used for
+hardened testing, which is the main purpose of the dryrun programmers.
 .It Ar seed=<n>
 Seed random number generator with <n>; the default is time(NULL).
 Setting this option with a fixed n > 0 will make the random choices

@@ -200,6 +200,10 @@ AVRMEM *fileio_any_memory(const char *name) {
   return avr_new_memory(name, ANY_MEM_SIZE);
 }
 
+int mem_is_any(const AVRMEM *mem) {
+  return mem->type == 0 && mem->size == (int) ANY_MEM_SIZE;
+}
+
 #define boffset(p, basemem) baseoffset((p), avr_locate_ ## basemem(p), # basemem)
 
 static int baseoffset(const AVRPART *p, const AVRMEM *base, const char *memname) {
@@ -210,7 +214,7 @@ static int baseoffset(const AVRPART *p, const AVRMEM *base, const char *memname)
 
 // Extends where memory is put in flat address space of .elf files
 unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
-  if(mem->type == 0 && mem->size == (int) ANY_MEM_SIZE)
+  if(mem_is_any(mem))
     return 0;
 
   unsigned location =
@@ -450,8 +454,7 @@ static int ihex_readrec(struct ihexsrec *ihex, char *rec) {
 }
 
 // Extract correct memory from large any memory assuming multi-memory model
-static int any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp, const AVRMEM *any, unsigned maxsize) {
-
+int fileio_any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp, const AVRMEM *any, unsigned maxsize) {
   // Compute location for multi-memory file input
   unsigned location = maxsize > MEND(FLASH) + 1? fileio_mem_offset(p, mem): 0;
 
@@ -622,7 +625,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
   pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
 
 done:
-  rc = any2mem(p, mem, segp, any, maxaddr);
+  rc = fileio_any2mem(p, mem, segp, any, maxaddr);
   avr_free_mem(any);
   if(!rc)
     pmsg_warning("no %s data found in Intel Hex file %s\n", mem->desc, infile);
@@ -950,7 +953,7 @@ static int srec2b(const char *infile, FILE *inf, const AVRPART *p,
 
   pmsg_warning("no end of file record found for Motorola S-Records file %s\n", infile);
 done:
-  rc = any2mem(p, mem, segp, any, maxaddr);
+  rc = fileio_any2mem(p, mem, segp, any, maxaddr);
   avr_free_mem(any);
   if(!rc)
     pmsg_warning("no %s data found in Motorola S-Record file %s\n", mem->desc, infile);
@@ -1249,7 +1252,6 @@ done:
 
 // Read/write binary files and return highest memory addr set + 1
 static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f, const AVRMEM *mem, const Segment *segp) {
-
   int rc;
 
   switch(fio->op) {

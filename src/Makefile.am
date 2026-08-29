@@ -122,6 +122,7 @@ libavrdude_la_SOURCES = \
 	dfu.h \
 	dryrun.c \
 	dryrun.h \
+	dryrun_part.c \
 	dryrun_private.h \
 	fileio.c \
 	flip1.c \
