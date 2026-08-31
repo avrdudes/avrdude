@@ -788,21 +788,31 @@ multiple memories. The special memory
 expands to all memories that a part has while
 .Ar all
 expands to all memories with exception of sub-memories.
+.Ar test
+expands to a list of writable memories plus signature; this is
+particularly useful for testing AVRDUDE and its -c programmers.
 .Ar etc
 is the same as
 .Ar all ;
 this can be used to change the order in which memories are written to
 or read from file, eg,
 .Ar signature,etc
-is a list of all memories such that the
+expands to a list of all memories such that the
 .Ar signature
 memory comes first. It is possible to remove a memory from the list so far
 by preceding a minus or backslash, eg,
 .Ar all,-calibration .
-The available memory types are device-dependent, the actual configuration
+The available memories are device-dependent; the actual memory configuration
 can be viewed with the
 .Cm part
-command in terminal mode.
+command in terminal mode. The expansion of memory lists depends in subtle
+ways on the actually used -c programmer or on the chosen programming mode:
+for example, the
+.Ar usersig
+memories of classic parts cannot be handled by ISP programming, so in
+those cases above lists would not include the
+.Ar usersig
+memory, while it would be included in other programming constellations.
 .Pp
 Typically, a device's memory configuration at least contains
 the memories
