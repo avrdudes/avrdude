@@ -458,7 +458,8 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         nread++;
         report_progress(nread, npages, NULL);
       } else {
-        pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr/mem->page_size);
+        pmsg_debug("%s(): skipping page %u in a hole or beyond input file\n",
+          __func__, pageaddr/mem->page_size);
       }
     }
     if(!failure) {
@@ -1184,7 +1185,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
         nwritten++;
         report_progress(nwritten, npages, NULL);
       } else {
-        pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr/cm->page_size);
+        pmsg_debug("%s(): skipping page %u in a hole or beyond input file\n",
+          __func__, pageaddr/cm->page_size);
       }
     }
 
@@ -1689,7 +1691,11 @@ static int mem_group(AVRMEM *mem) {
     mem_is_in_flash(mem)? 1:
     mem_is_in_fuses(mem)? 2:
     mem_is_lock(mem)? 3:
-    mem_is_in_sigrow(mem)? 4: mem_is_user_type(mem)? 5: mem_is_io(mem)? 6: mem_is_sram(mem)? 7: mem_is_sib(mem)? 8: 9;
+    mem_is_in_sigrow(mem)? 4:
+    mem_is_user_type(mem)? 5:
+    mem_is_io(mem)? 6:
+    mem_is_sram(mem)? 7:
+    mem_is_sib(mem)? 8: 9;
 }
 
 // Return sort order of memories
