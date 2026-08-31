@@ -283,6 +283,13 @@ static int is_backup_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
     mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p): is_interesting_mem(pgm, p, mem);
 }
 
+// Whether a memory should be included in a test:... file: writeable memories plus signature
+static int is_test_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  return
+    mem_is_readonly(mem)? mem_is_signature(mem):
+    is_interesting_mem(pgm, p, mem);
+}
+
 // Add (not == 0) or subtract (not == 1) a memory from list
 static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
   for(int i = 0; i < nm; i++)
@@ -297,8 +304,8 @@ static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
 }
 
 /*
- * Generate a memory list from string mstr, part p and intended programming
- * modes pm; then put number of memories into *np.
+ * Generate a memory list from string mstr, programmer pgm, and part p; then
+ * put number of memories into *np.
  *
  * Memory list can be sth like ee,fl,all,-cal,efuse. -mem or /mem removes it
  * from the list. Normal use is to pass NULL for dry and let the function write
@@ -325,6 +332,10 @@ AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p, 
     } else if(str_eq(s, "all") || str_eq(s, "etc")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_backup_mem(pgm, p, (m = ldata(lm))))
+          nm = memadd(umemlist, nm, not, m);
+    } else if(str_eq(s, "test")) {
+      for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
+        if(is_test_mem(pgm, p, (m = ldata(lm))))
           nm = memadd(umemlist, nm, not, m);
     } else if(!*s) {            // Ignore empty list elements
     } else {
