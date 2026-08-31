@@ -199,6 +199,7 @@ set(SOURCES
     disasm.c
     dfu.c
     dfu.h
+    dryautogen.c
     dryrun.c
     dryrun.h
     dryrun_part.c
