@@ -500,7 +500,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
   nextaddr = 0;
   rewind(inf);
 
-  AVRMEM *any = fileio_any_memory("any");
+  AVRMEM *any = fileio_any_memory("any:ihex2b");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -816,7 +816,7 @@ static int srec2b(const char *infile, FILE *inf, const AVRPART *p,
   reccount = 0;
   rewind(inf);
 
-  AVRMEM *any = fileio_any_memory("any");
+  AVRMEM *any = fileio_any_memory("any:srec2b");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
