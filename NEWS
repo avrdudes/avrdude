@@ -52,6 +52,9 @@ Changes since version 8.2:
     - Fix jtag3_command() #2195
     - Improve verification reports #2196
     - Provide -x holes for dryrun programmers #2197
+    - Refrain from generating label for fill disassembly #2198
+    - Provide special test memory #2199
+    - Expand debug message about skipping pages in holes #2200
 
   * Internals:
 
