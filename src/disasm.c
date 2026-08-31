@@ -548,7 +548,6 @@ static void lineout(const char *code, const char *comment,
 
   if(cx->dis_opts.labels && showlabel) {
     int match = 0, first = -1;
-    const char *comment = NULL, *name;
     Dis_symbol *s;
 
     for(int i = 0; i < cx->dis_jumpcallN; i++)
@@ -573,24 +572,26 @@ static void lineout(const char *code, const char *comment,
         strcpy(r, str_ccprintf(&", L%0*x"[2*(r == reflist)], cx->dis_addrwidth, jc[i].from));
         r += strlen(r);
       }
-      name = get_label_name(here, &comment);
-      if(!comment && strlen(reflist) + commentcol() < 70 && one_mne) {  // Refs line with label
-        const char *mnestr = avr_opcodes[mne].opcode;
+      const char *comment = NULL, *name;
+      if((name = get_label_name(here, &comment))) {
+        if(!comment && strlen(reflist) + commentcol() < 70 && one_mne) { // Refs line with label
+          const char *mnestr = avr_opcodes[mne].opcode;
 
-        if(cx->dis_opts.comments)
-          disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name),
-            str_ccprintf("%c%s from %s", toupper(*mnestr & 0xff), mnestr + 1, reflist));
-        else
-          disasm_out("%s:\n", name);
-      } else {
-        if(cx->dis_opts.comments)
-          output_references(avr_opcodes[mne].opcode, reflist);
-        if(!comment || !*comment || !cx->dis_opts.comments)
-          disasm_out("%s:\n", name);
-        else
-          disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
+          if(cx->dis_opts.comments)
+            disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name),
+              str_ccprintf("%c%s from %s", toupper(*mnestr & 0xff), mnestr + 1, reflist));
+          else
+            disasm_out("%s:\n", name);
+        } else {
+          if(cx->dis_opts.comments)
+            output_references(avr_opcodes[mne].opcode, reflist);
+          if(!comment || !*comment || !cx->dis_opts.comments)
+            disasm_out("%s:\n", name);
+          else
+            disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
+        }
+        cx->dis_para = -1;
       }
-      cx->dis_para = -1;
       mmt_free(reflist);
     } else if(match) {          // Register potential L label in pass 1 as to be printed
       (void) get_label_name(here, &comment);
