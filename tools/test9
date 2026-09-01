@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Published under GNU General Public License, version 3 (GPL-3.0)
+# Author Stefan Rueger, 2026
+
+progname=$(basename "$0")
+adopts=()
+mem=test
+rand=$(shuf -i 1-1024 -n 1)
+avrdude_bin=avrdude
+
+Usage() {
+cat <<END
+Syntax: $progname [<opts>] <programmer> <part>
+Function: test AVRDUDE v 8.3 or later with -c programmer -p part; on
+  error leave the file log-<programmer>-<part>-<n>.txt for inspection
+Options:
+  -r <n>     Test using random contents seeded by <n>
+  -e <exe>   Path of the avrdude executable
+  -f         Emulate factory reset by erasing eeprom and flash only
+  -a <opt>   Pass option <opt> to avrdude; no space in <opt>, eg, -Pch340
+  -m <mlist> Use memory list <mlist> instead of test
+  -h         Show usage and exit
+
+Examples:
+    $ test9 avrisp2 t13a
+    $ test9 snap_isp m328p
+
+Note:
+  The contents of the chip will be overwritten with test data
+END
+}
+
+reset="factory reset"
+while getopts ":r:a:e:m:fh" opt; do
+  case ${opt} in
+     r) rand=0; [[ ! -z "$OPTARG" ]] && rand="$OPTARG"
+        ;;
+     a) if [[ ! -z "$OPTARG" ]]; then adopts+=("$OPTARG"); fi
+        ;;
+     e) avrdude_bin="$OPTARG"
+        ;;
+     f) reset="erase flash; erase eeprom; flush"
+        ;;
+     m) if [[ ! -z "$OPTARG" ]]; then mem="$OPTARG"; fi
+        ;;
+     h) Usage; exit 1
+        ;;
+    --) shift;
+        break
+        ;;
+   \?) echo "$progname: invalid option -$OPTARG" 1>&2
+       Usage; exit 1
+       ;;
+   : ) echo "$progname: invalid option -$OPTARG requires an argument" 1>&2
+       Usage; exit 1
+       ;;
+  esac
+done
+shift $((OPTIND -1))
+
+
+if [ $# -ne 2 ]; then
+  why=missing; [ $# -gt 2 ] && why="too many"
+  echo $progname: $why arguments
+  Usage
+  exit 1
+fi
+
+
+######
+# Test file
+
+how="random=$rand"
+tmem=${mem}_; [[ "$mem" == "test" ]] && tmem=""
+ftest="dry:$tmem${how}_holes"
+
+######
+# Actual test
+
+if ! $avrdude_bin "${adopts[@]}" -c "$1" -p "$2" -D -T "$reset" -U "$mem:w:$ftest"; then
+  echo -------------------------------
+  echo Re-running to create error logs
+  $avrdude_bin "${adopts[@]}" -vv -c "$1" -p "$2" -D -T "$reset" -U "$mem:w:$ftest" -l "log-$1-$2-$rand.txt"
+fi
