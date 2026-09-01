@@ -4453,10 +4453,10 @@ Avrdude done.  Thank you.
 
 Although the @code{dry:random=1_holes} test file contains all writable
 memories, only flash is written in above example as this is the default
-for a simple @option{-U} upload. The contents of the test file can be
+for simple @option{-U} programming. The contents of the test file can be
 written to @code{stdout} with the @code{save=-} feature as the following
-example shows,  while uploading a multi-memory file with only eeprom does
-nothing:
+example shows,  while programming a multi-memory file with only eeprom
+does nothing:
 
 @smallexample
 @cartouche
@@ -4835,7 +4835,7 @@ L7ffe:  .byte   0xe6, 0x40           ; _@
 @page
 
 @noindent
-It is noteworthy that @option{-c dryboot} allows uploading of one urboot
+It is noteworthy that @option{-c dryboot} allows programming one urboot
 bootloader and, from that point onwards, emulates @option{-c urclock -x
 nometadata}. This means, eg, @option{-c dryboot} will not allow the
 bootloader be overwritten:
@@ -4872,7 +4872,7 @@ Avrdude done.  Thank you.
 
 @noindent
 More importantly, @option{-c dryboot} patches the vector table of any
-to-be-uploaded sketch if the previously installed bootloader is an urboot
+to-be-programmed sketch if the previously installed bootloader is an urboot
 vector bootloader just like @code{avrdude -c urclock -x nometadata} would;
 this is needed for the vector bootloader to work (for details, see the
 @url{https://github.com/stefanrueger/urboot} project):
@@ -4902,11 +4902,11 @@ L0064: 11 c0        rjmp    .+34                 ; L0088
 @end smallexample
 
 @noindent
-The following example prepares a patched sketch for upload through a
-self-written uploader or through urboot's dual boot. Note that @code{385}
-is the size of the bootloader plus 1 and that the generated file
-@code{blink-patched.hex} has the size of flash minus 384. In absence of
-the option @option{-A} AVRDUDE drops all trailing 0xff from the patched
+The following example prepares a patched sketch for programming through a
+self-written downloader/uploader or through urboot's dual boot. Note that
+@code{385} is the size of the bootloader plus 1 and that the generated
+file @code{blink-patched.hex} has the size of flash minus 384. In absence
+of the option @option{-A} AVRDUDE drops all trailing 0xff from the patched
 sketch.
 
 @cindex Dual boot
