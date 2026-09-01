@@ -33,9 +33,10 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-// Is s a multi-memory string (comma-separates list, all, ALL, etc or list subtraction)?
+// Is s a multi-memory string (comma-separated list, all, ALL, test, etc or list subtraction)?
 static int is_multimem(const char *s) {
-  return str_eq(s, "ALL") || str_eq(s, "all") || str_eq(s, "etc") || strpbrk(s, "-,\\");
+  return str_eq(s, "ALL") || str_eq(s, "all") || str_eq(s, "test") || str_eq(s, "etc") ||
+    strpbrk(s, "-,\\");
 }
 
 /*
@@ -283,7 +284,7 @@ static int is_backup_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
     mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p): is_interesting_mem(pgm, p, mem);
 }
 
-// Whether a memory should be included in a test:... file: writeable memories plus signature
+// Whether a memory should be included in a dry:... file: writeable memories plus signature
 static int is_test_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   return
     mem_is_readonly(mem)? mem_is_signature(mem):
@@ -688,7 +689,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     seglist = mmt_malloc(ns*sizeof *seglist);
   }
 
-  mem = umemlist? fileio_any_memory("any"): avr_locate_mem(p, umstr);
+  mem = umemlist? fileio_any_memory("any:do_op"): avr_locate_mem(p, umstr);
   if(mem == NULL) {
     pmsg_warning("skipping -U %s:... as memory not defined for part %s\n", umstr, p->desc);
     return LIBAVRDUDE_SOFTFAIL;

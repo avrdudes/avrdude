@@ -500,7 +500,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
   nextaddr = 0;
   rewind(inf);
 
-  AVRMEM *any = fileio_any_memory("any");
+  AVRMEM *any = fileio_any_memory("any:ihex2b");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -816,7 +816,7 @@ static int srec2b(const char *infile, FILE *inf, const AVRPART *p,
   reccount = 0;
   rewind(inf);
 
-  AVRMEM *any = fileio_any_memory("any");
+  AVRMEM *any = fileio_any_memory("any:srec2b");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -1632,13 +1632,15 @@ int fileio_fmt_autodetect_fp(FILE *f) {
 
 // Read-only files that avrdude generates itself
 int is_generated_fname(const char *fname) {
-  return str_starts(fname, "urboot:");
+  return str_starts(fname, "urboot:") || str_starts(fname, "dry:");
 }
 
 // Does generated file have contents, ie, no option parsing error, no _list/_show?
 int generated_file_has_contents(const AVRPART *part, const char *fname) {
   if(str_starts(fname, "urboot:"))
     return urboot_has_contents(part, fname);
+  if(str_starts(fname, "dry:"))
+    return dry_has_contents(part, fname);
   return 1;
 }
 
@@ -1666,6 +1668,9 @@ int fileio_mem(int op, const char *filename, FILEFMT format, const AVRPART *p, c
 
   if(str_starts(filename, "urboot:") && (op == FIO_READ || op == FIO_READ_FOR_VERIFY))
     return urbootautogen(p, mem, filename);
+
+  if(str_starts(filename, "dry:") && (op == FIO_READ || op == FIO_READ_FOR_VERIFY))
+    return dryautogen(p, mem, filename);
 
   const Segment seg = { 0, msize };
   return fileio_segments(op, filename, format, p, mem, 1, &seg);

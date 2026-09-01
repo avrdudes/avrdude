@@ -101,7 +101,7 @@ typedef struct {
   int lock;                     // Cache of lock (unused)
   int init;                     // Initialise memories with something interesting
   int random;                   // Random initialisation of memories
-  int holes;                    // Whether eeprom/flash should have holes
+  int holes;                    // Whether flash, eeprom, userrow and bootrow should have holes
   int seed;                     // Seed for random number generator
   // Flash configuration irrespective of -c programming is bootloading or not
   int appstart, appsize;        // Start and size of application section
@@ -526,7 +526,7 @@ AVRPART *dryrun_part(const char *partid, int *bootsizep, int init, int random, i
 
   me.init = init;               // Initialise memories with something interesting
   me.random = random;           // Random initialisation of memories
-  me.holes = holes;             // Whether eeprom/flash should have holes
+  me.holes = holes;             // Whether flash, eeprom, userrow and bootrow should have holes
   me.seed = seed;               // Seed for random number generator
   memset(me.fuses, 0xff, sizeof me.fuses);
   srandom(me.seed? me.seed: time(NULL));
