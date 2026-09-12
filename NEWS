@@ -15,7 +15,11 @@ Changes since version 8.3:
 
   * Issues fixed:
 
+    - Deploy release with automated workflow fails #2208
+
   * Pull requests:
+
+    - Remove release and asset jobs from deploy.yml #2210
 
   * Internals:
 
