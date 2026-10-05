@@ -1765,7 +1765,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
 
   int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
 
-  pmsg_debug("ur_readEF(%s, %s, %s, %p, 0x%06x, %d, %c)\n",
+  pmsg_debug("%s(%s, %s, %s, %p, 0x%06x, %d, %c)\n", __func__,
     pgmid, p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
 
   if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))

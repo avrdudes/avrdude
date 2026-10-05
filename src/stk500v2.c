@@ -3893,7 +3893,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   void *mycookie;
   int rv;
 
-  pmsg_notice2("stk500v2_jtagmkII_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -3960,7 +3960,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
 static void stk500v2_jtagmkII_close(PROGRAMMER *pgm) {
   void *mycookie;
 
-  pmsg_notice2("stk500v2_jtagmkII_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   mycookie = pgm->cookie;
   pgm->cookie = my.chained_pdata;
@@ -3972,7 +3972,7 @@ static void stk500v2_jtagmkII_close(PROGRAMMER *pgm) {
 static void stk500v2_jtag3_close(PROGRAMMER *pgm) {
   void *mycookie;
 
-  pmsg_notice2("stk500v2_jtag3_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   mycookie = pgm->cookie;
   pgm->cookie = my.chained_pdata;
@@ -3991,7 +3991,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   void *mycookie;
 
-  pmsg_notice2("stk500v2_dragon_isp_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -4064,7 +4064,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
 static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("stk500v2_dragon_hv_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon

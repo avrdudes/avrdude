@@ -296,7 +296,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
     if(str_eq(extended_param, "no_blockmode")) {
-      pmsg_notice2("avr910_parseextparms(-x): no testing for Blockmode\n");
+      pmsg_notice2("%s(): no testing for Blockmode\n", __func__);
       my.test_blockmode = 0;
 
       continue;

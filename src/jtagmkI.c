@@ -203,7 +203,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
 
   serial_recv_timeout = 200;
 
-  pmsg_trace("jtagmkI_resync()\n");
+  pmsg_trace("%s()\n", __func__);
 
   jtagmkI_drain(pgm, 0);
 
@@ -511,7 +511,7 @@ static void jtagmkI_enable(PROGRAMMER *pgm, const AVRPART *p) {
 static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
   size_t i;
 
-  pmsg_notice2("jtagmkI_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   pgm->chosen_port = port;
   my.initial_baudrate = -1L;
@@ -547,7 +547,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
 static void jtagmkI_close(PROGRAMMER *pgm) {
   unsigned char b;
 
-  pmsg_notice2("jtagmkI_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * Revert baud rate to what it used to be when we started.  This appears to
@@ -1047,7 +1047,7 @@ static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
 static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm, unsigned char *value) {
   unsigned char buf[2], resp[3];
 
-  pmsg_notice2("jtagmkI_getparm()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   buf[0] = CMD_GET_PARAM;
   buf[1] = parm;
@@ -1077,7 +1077,7 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm, unsi
 static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char value) {
   unsigned char buf[3], resp[2];
 
-  pmsg_notice2("jtagmkI_setparm()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   buf[0] = CMD_SET_PARAM;
   buf[1] = parm;

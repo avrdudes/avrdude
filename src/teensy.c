@@ -161,7 +161,7 @@ static void teensy_dump_device_info(struct pdata *pdata) {
 static int teensy_write_page(struct pdata *pdata, uint32_t address,
   const uint8_t *buffer, uint32_t size, bool suppress_warning) {
 
-  pmsg_debug("teensy_write_page(address=0x%06X, size=%d)\n", address, size);
+  pmsg_debug("%s(address=0x%06X, size=%d)\n", __func__, address, size);
 
   if(size > pdata->page_size) {
     pmsg_error("invalid page size: %u\n", pdata->page_size);
@@ -200,14 +200,14 @@ static int teensy_write_page(struct pdata *pdata, uint32_t address,
 }
 
 static int teensy_erase_flash(struct pdata *pdata) {
-  pmsg_debug("teensy_erase_flash()\n");
+  pmsg_debug("%s()\n", __func__);
 
   // Write a dummy page at address 0 to explicitly erase the flash.
   return teensy_write_page(pdata, 0, NULL, 0, false);
 }
 
 static int teensy_reboot(struct pdata *pdata) {
-  pmsg_debug("teensy_reboot()\n");
+  pmsg_debug("%s()\n", __func__);
 
   // Write a dummy page at address -1 to reboot the Teensy.
   return teensy_write_page(pdata, 0xFFFFFFFF, NULL, 0, true);
@@ -216,18 +216,18 @@ static int teensy_reboot(struct pdata *pdata) {
 // -----------------------------------------------------------------------------
 
 static void teensy_setup(PROGRAMMER *pgm) {
-  pmsg_debug("teensy_setup()\n");
+  pmsg_debug("%s()\n", __func__);
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void teensy_teardown(PROGRAMMER *pgm) {
-  pmsg_debug("teensy_teardown()\n");
+  pmsg_debug("%s()\n", __func__);
   mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 
 static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("teensy_initialize()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -242,15 +242,15 @@ static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void teensy_display(const PROGRAMMER *pgm, const char *prefix) {
-  //    pmsg_debug("teensy_display()\n");
+  //    pmsg_debug("%s()\n", __func__);
 }
 
 static void teensy_powerup(const PROGRAMMER *pgm) {
-  pmsg_debug("teensy_powerup()\n");
+  pmsg_debug("%s()\n", __func__);
 }
 
 static void teensy_powerdown(const PROGRAMMER *pgm) {
-  pmsg_debug("teensy_powerdown()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -266,20 +266,20 @@ static void teensy_powerdown(const PROGRAMMER *pgm) {
 }
 
 static void teensy_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("teensy_enable()\n");
+  pmsg_debug("%s()\n", __func__);
 }
 
 static void teensy_disable(const PROGRAMMER *pgm) {
-  pmsg_debug("teensy_disable()\n");
+  pmsg_debug("%s()\n", __func__);
 }
 
 static int teensy_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("teensy_program_enable()\n");
+  pmsg_debug("%s()\n", __func__);
   return 0;
 }
 
 static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-  pmsg_debug("teensy_read_sig_bytes()\n");
+  pmsg_debug("%s()\n", __func__);
 
   if(mem->size < 3) {
     pmsg_error("memory size too small for read_sig_bytes\n");
@@ -294,7 +294,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 }
 
 static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("teensy_chip_erase()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -386,7 +386,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 }
 
 static void teensy_close(PROGRAMMER *pgm) {
-  pmsg_debug("teensy_close()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -398,7 +398,7 @@ static void teensy_close(PROGRAMMER *pgm) {
 
 static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value) {
-  pmsg_debug("teensy_read_byte(desc=%s, addr=0x%04lX)\n", mem->desc, addr);
+  pmsg_debug("%s(desc=%s, addr=0x%04lX)\n", __func__, mem->desc, addr);
 
   if(mem_is_a_fuse(mem) || mem_is_lock(mem)) {
     *value = 0xFF;
@@ -411,19 +411,19 @@ static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
 static int teensy_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char value) {
-  pmsg_debug("teensy_write_byte(desc=%s, addr=0x%04lX, data=0x%02x)\n", mem->desc, addr, value);
+  pmsg_debug("%s(desc=%s, addr=0x%04lX, data=0x%02x)\n", __func__, mem->desc, addr, value);
   return -1;
 }
 
 static int teensy_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  pmsg_debug("teensy_paged_load(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
+  pmsg_debug("%s(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", __func__, page_size, addr, n_bytes);
   return -1;
 }
 
 static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  pmsg_debug("teensy_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
+  pmsg_debug("%s(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", __func__, page_size, addr, n_bytes);
 
   if(mem_is_flash(mem)) {
     struct pdata *pdata = &my;
@@ -471,7 +471,7 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
   int rv = 0;
   bool help = false;
 
-  pmsg_debug("teensy_parseextparams()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 

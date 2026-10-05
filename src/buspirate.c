@@ -116,7 +116,7 @@ static void dump_mem(const unsigned char *buf, size_t len) {
 static int buspirate_send_bin(const PROGRAMMER *pgm, const unsigned char *data, size_t len) {
   int rc;
 
-  pmsg_debug("buspirate_send_bin():\n");
+  pmsg_debug("%s():\n", __func__);
   dump_mem(data, len);
 
   rc = serial_send(&pgm->fd, data, len);
@@ -131,7 +131,7 @@ static int buspirate_recv_bin(const PROGRAMMER *pgm, unsigned char *buf, size_t 
   if(rc < 0)
     return EOF;
 
-  pmsg_debug("buspirate_recv_bin():\n");
+  pmsg_debug("%s():\n", __func__);
   dump_mem(buf, len);
 
   return len;

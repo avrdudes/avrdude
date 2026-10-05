@@ -283,7 +283,7 @@ static void micronucleus_dump_device_info(struct pdata *pdata) {
 }
 
 static int micronucleus_erase_device(struct pdata *pdata) {
-  pmsg_debug("micronucleus_erase_device()\n");
+  pmsg_debug("%s()\n", __func__);
 
   int result = usb_control_msg(pdata->usb_handle,
     USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -423,7 +423,7 @@ static int micronucleus_write_page_v2(struct pdata *pdata, uint32_t address, uin
 }
 
 static int micronucleus_write_page(struct pdata *pdata, uint32_t address, uint8_t *buffer, uint32_t size) {
-  pmsg_debug("micronucleus_write_page(address=0x%04X, size=%d)\n", address, size);
+  pmsg_debug("%s(address=0x%04X, size=%d)\n", __func__, address, size);
 
   if(address == 0) {
     if(pdata->major_version >= 2) {
@@ -464,7 +464,7 @@ static int micronucleus_write_page(struct pdata *pdata, uint32_t address, uint8_
 }
 
 static int micronucleus_start(struct pdata *pdata) {
-  pmsg_debug("micronucleus_start()\n");
+  pmsg_debug("%s()\n", __func__);
 
   int result = usb_control_msg(pdata->usb_handle,
     USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -484,18 +484,18 @@ static int micronucleus_start(struct pdata *pdata) {
 // -----------------------------------------------------------------------------
 
 static void micronucleus_setup(PROGRAMMER *pgm) {
-  pmsg_debug("micronucleus_setup()\n");
+  pmsg_debug("%s()\n", __func__);
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void micronucleus_teardown(PROGRAMMER *pgm) {
-  pmsg_debug("micronucleus_teardown()\n");
+  pmsg_debug("%s()\n", __func__);
   mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 
 static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("micronucleus_initialize()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -510,15 +510,15 @@ static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void micronucleus_display(const PROGRAMMER *pgm, const char *prefix) {
-  // pmsg_debug("micronucleus_display()\n");
+  // pmsg_debug("%s()\n", __func__);
 }
 
 static void micronucleus_powerup(const PROGRAMMER *pgm) {
-  pmsg_debug("micronucleus_powerup()\n");
+  pmsg_debug("%s()\n", __func__);
 }
 
 static void micronucleus_powerdown(const PROGRAMMER *pgm) {
-  pmsg_debug("micronucleus_powerdown()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -540,20 +540,20 @@ static void micronucleus_powerdown(const PROGRAMMER *pgm) {
 }
 
 static void micronucleus_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("micronucleus_enable()\n");
+  pmsg_debug("%s()\n", __func__);
 }
 
 static void micronucleus_disable(const PROGRAMMER *pgm) {
-  pmsg_debug("micronucleus_disable()\n");
+  pmsg_debug("%s()\n", __func__);
 }
 
 static int micronucleus_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("micronucleus_program_enable()\n");
+  pmsg_debug("%s()\n", __func__);
   return 0;
 }
 
 static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-  pmsg_debug("micronucleus_read_sig_bytes()\n");
+  pmsg_debug("%s()\n", __func__);
 
   if(mem->size < 3) {
     pmsg_error("memory size %d < 3 too small for read_sig_bytes", mem->size);
@@ -569,7 +569,7 @@ static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, 
 }
 
 static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("micronucleus_chip_erase()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -701,7 +701,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
 }
 
 static void micronucleus_close(PROGRAMMER *pgm) {
-  pmsg_debug("micronucleus_close()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 
@@ -713,7 +713,7 @@ static void micronucleus_close(PROGRAMMER *pgm) {
 
 static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value) {
-  pmsg_debug("micronucleus_read_byte(desc=%s, addr=0x%04lX)\n", mem->desc, addr);
+  pmsg_debug("%s(desc=%s, addr=0x%04lX)\n", __func__, mem->desc, addr);
 
   if(mem_is_a_fuse(mem) || mem_is_lock(mem)) {
     *value = 0xFF;
@@ -726,19 +726,19 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
 
 static int micronucleus_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char value) {
-  pmsg_debug("micronucleus_write_byte(desc=%s, addr=0x%04lX, data=0x%02x)\n", mem->desc, addr, value);
+  pmsg_debug("%s(desc=%s, addr=0x%04lX, data=0x%02x)\n", __func__, mem->desc, addr, value);
   return -1;
 }
 
 static int micronucleus_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  pmsg_debug("micronucleus_paged_load(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
+  pmsg_debug("%s(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", __func__, page_size, addr, n_bytes);
   return -1;
 }
 
 static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  pmsg_debug("micronucleus_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
+  pmsg_debug("%s(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", __func__, page_size, addr, n_bytes);
 
   if(mem_is_flash(mem)) {
     struct pdata *pdata = &my;
@@ -785,7 +785,7 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
   int rv = 0;
   bool help = false;
 
-  pmsg_debug("micronucleus_parseextparams()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct pdata *pdata = &my;
 

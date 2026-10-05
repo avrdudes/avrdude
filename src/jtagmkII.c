@@ -474,7 +474,7 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg, unsig
   double timeoutval = 100;      // Seconds
   double tstart, tnow;
 
-  pmsg_trace("jtagmkII_recv():\n");
+  pmsg_trace("%s():\n", __func__);
 
   tstart = avr_timestamp();
 
@@ -625,7 +625,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
   unsigned int fwver, hwver;
   int is_dragon;
 
-  pmsg_debug("jtagmkII_getsync()\n");
+  pmsg_debug("%s()\n", __func__);
 
   if(str_starts(pgm->ptyp, "JTAG")) {
     is_dragon = 0;
@@ -639,7 +639,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
 
     // Get the sign-on information
     buf[0] = CMND_GET_SIGN_ON;
-    pmsg_notice2("jtagmkII_getsync() attempt %d of %d: sending sign-on command: ", tries + 1, MAXTRIES);
+    pmsg_notice2("%s() attempt %d of %d: sending sign-on command: ", __func__, tries + 1, MAXTRIES);
     jtagmkII_send(pgm, buf, 1);
 
     status = jtagmkII_recv(pgm, &resp);
@@ -1697,7 +1697,7 @@ void jtagmkII_close(PROGRAMMER *pgm) {
   int status;
   unsigned char buf[1], *resp, c;
 
-  pmsg_notice2("jtagmkII_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   if(pgm->flag & (PGM_FL_IS_PDI | PGM_FL_IS_JTAG)) {
     // When in PDI or JTAG mode, restart target.
@@ -2419,7 +2419,7 @@ int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char *v
   int status;
   unsigned char buf[2], *resp, c;
 
-  pmsg_notice2("jtagmkII_getparm()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   buf[0] = CMND_GET_PARAMETER;
   buf[1] = parm;
@@ -2463,7 +2463,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm, unsigned 
   size_t size;
   const char *parstr = "???";
 
-  pmsg_notice2("jtagmkII_setparm()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   switch(parm) {
   case PAR_HW_VERSION:
@@ -2630,7 +2630,7 @@ static int jtagmkII_avr32_reset(const PROGRAMMER *pgm, unsigned char val, unsign
   int status;
   unsigned char buf[3], *resp;
 
-  pmsg_notice("jtagmkII_avr32_reset(%2.2x)\n", val);
+  pmsg_notice("%s(%2.2x)\n", __func__, val);
 
   buf[0] = CMND_GET_IR;
   buf[1] = 0x0C;
@@ -2666,7 +2666,7 @@ static int jtagmkII_reset32(const PROGRAMMER *pgm, unsigned short flags) {
   unsigned char *resp, buf[3];
   unsigned long val = 0;
 
-  pmsg_notice("jtagmkII_reset32(%2.2x)\n", flags);
+  pmsg_notice("%s(%2.2x)\n", __func__, flags);
 
   status = -1;
 
@@ -3087,7 +3087,7 @@ static int jtagmkII_chip_erase32(const PROGRAMMER *pgm, const AVRPART *p_unused)
   unsigned long val = 0;
   unsigned int lineno;
 
-  pmsg_notice("jtagmkII_chip_erase32()\n");
+  pmsg_notice("%s()\n", __func__);
 
   status = jtagmkII_reset32(pgm, AVR32_RESET_CHIP_ERASE);
   if(status != 0)
@@ -3307,7 +3307,7 @@ static void jtagmkII_close32(PROGRAMMER *pgm) {
   unsigned char *resp, buf[3], c;
   unsigned long val = 0;
 
-  pmsg_notice2("jtagmkII_close32()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   // AVR32 "special"
   buf[0] = CMND_SET_PARAMETER;

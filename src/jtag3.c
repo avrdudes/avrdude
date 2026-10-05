@@ -546,7 +546,7 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
   unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
 
   msg_debug("\n");
-  pmsg_debug("jtag3_edbg_prepare()\n");
+  pmsg_debug("%s()\n", __func__);
 
   buf[0] = CMSISDAP_CMD_CONNECT;
   buf[1] = CMSISDAP_CONN_SWD;
@@ -587,7 +587,7 @@ static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
   unsigned char status[USBDEV_MAX_XFER_3] = { 0 };
 
   msg_debug("\n");
-  pmsg_debug("jtag3_edbg_signoff()\n");
+  pmsg_debug("%s()\n", __func__);
 
   buf[0] = CMSISDAP_CMD_LED;
   buf[1] = CMSISDAP_LED_CONNECT;
@@ -837,7 +837,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
 int jtag3_getsync(const PROGRAMMER *pgm, int mode) {
   unsigned char buf[3], *resp = NULL;
 
-  pmsg_debug("jtag3_getsync()\n");
+  pmsg_debug("%s()\n", __func__);
 
   // XplainedMini boards do not need this, and early revisions had a FW bug that complained about it
   if((pgm->flag & PGM_FL_IS_EDBG) && !pgmid_is("xplainedmini")) {
@@ -3011,7 +3011,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   } else if(mem_is_flash(mem)) {
     cmd[1] = XPRG_ERASE_APP;
   } else {
-    pmsg_error("jtag3_erase_tpi() unsupported memory: %s\n", mem->desc);
+    pmsg_error("%s() unsupported memory: %s\n", __func__, mem->desc);
     return -1;
   }
   paddr = (mem->offset + addr) | 0x01;  // An erase is triggered by an access to the hi-byte
