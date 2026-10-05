@@ -1768,7 +1768,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
   int status, tries;
   long otimeout = serial_recv_timeout;
 
-  pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%x)\n", __func__, m->desc, addr);
 
   if(is_classic(p) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for UPDI/XMEGAs or for classic usersig mem\n");
@@ -1868,7 +1868,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   int status, tries, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
-  pmsg_notice2("jtagmkII_paged_write(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, %d)\n", __func__, m->desc, page_size, n_bytes);
 
   if(!(pgm->flag & PGM_FL_IS_DW) && jtagmkII_program_enable(pgm) < 0)
     return -1;
@@ -1980,7 +1980,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   int status, tries, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
-  pmsg_notice2("jtagmkII_paged_load(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, %d)\n", __func__, m->desc, page_size, n_bytes);
 
   if(!(pgm->flag & PGM_FL_IS_DW) && jtagmkII_program_enable(pgm) < 0)
     return -1;
@@ -2088,7 +2088,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0;
 
-  pmsg_notice2("jtagmkII_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   if(!(pgm->flag & PGM_FL_IS_DW) && jtagmkII_program_enable(pgm) < 0)
     return -1;
@@ -2262,7 +2262,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char *resp = NULL, writedata, writedata2 = 0xFF;
   int status, tries, need_progmode = 1, unsupp = 0, writesize = 1;
 
-  pmsg_notice2("jtagmkII_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   addr += mem->offset;
 
@@ -3361,7 +3361,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
   unsigned long val = 0;
   long otimeout = serial_recv_timeout;
 
-  pmsg_notice2("jtagmkII_paged_load32(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, %d)\n", __func__, m->desc, page_size, n_bytes);
 
   serial_recv_timeout = 256;
 

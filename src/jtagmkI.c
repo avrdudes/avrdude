@@ -582,7 +582,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
 #define MAXTRIES 3
 
-  pmsg_notice2("jtagmkI_paged_write(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, %d)\n", __func__, m->desc, page_size, n_bytes);
 
   if(jtagmkI_program_enable(pgm) < 0)
     return -1;
@@ -701,7 +701,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
 #define MAXTRIES 3
 
-  pmsg_notice2("jtagmkI_paged_load(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
+  pmsg_notice2("%s(..., %s, %d, %d)\n", __func__, m->desc, page_size, n_bytes);
 
   if(jtagmkI_program_enable(pgm) < 0)
     return -1;
@@ -781,7 +781,7 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   int respsize = 3 + 1;
   int is_flash = 0;
 
-  pmsg_notice2("jtagmkI_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   if(jtagmkI_program_enable(pgm) < 0)
     return -1;
@@ -889,7 +889,7 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned char resp[1], writedata;
   int len, need_progmode = 1, need_dummy_read = 0;
 
-  pmsg_notice2("jtagmkI_write_byte(.., %s, 0x%lx, 0x%02x)\n", mem->desc, addr, data);
+  pmsg_notice2("%s(..., %s, 0x%lx, 0x%02x)\n", __func__, mem->desc, addr, data);
 
   writedata = data;
   cmd[0] = CMD_WRITE_MEM;
