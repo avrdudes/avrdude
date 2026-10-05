@@ -2262,7 +2262,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char *resp = NULL, writedata, writedata2 = 0xFF;
   int status, tries, need_progmode = 1, unsupp = 0, writesize = 1;
 
-  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, 0x%02x)\n", __func__, mem->desc, addr, data);
 
   addr += mem->offset;
 

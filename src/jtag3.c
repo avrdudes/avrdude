@@ -2300,7 +2300,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   unsigned int pagesize = 0;
   unsigned long mapped_addr;
 
-  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, 0x%02x)\n", __func__, mem->desc, addr, data);
 
   mapped_addr = jtag3_memaddr(pgm, p, mem, addr);
   if(mapped_addr != addr)

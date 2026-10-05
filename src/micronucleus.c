@@ -726,7 +726,7 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
 
 static int micronucleus_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char value) {
-  pmsg_debug("micronucleus_write_byte(desc=%s, addr=0x%04lX)\n", mem->desc, addr);
+  pmsg_debug("micronucleus_write_byte(desc=%s, addr=0x%04lX, data=0x%02x)\n", mem->desc, addr, value);
   return -1;
 }
 
