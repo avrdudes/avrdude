@@ -375,7 +375,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
   int nbytes;
 
   if(verblevel >= MSG_TRACE) {
-    pmsg_trace("usbasp_transmit(\"%s\", 0x%02x, 0x%02x, 0x%02x, 0x%02x)\n",
+    pmsg_trace("%s(\"%s\", 0x%02x, 0x%02x, 0x%02x, 0x%02x)\n", __func__,
       usbasp_get_funcname(functionid), send[0], send[1], send[2], send[3]);
     if(!receive && buffersize > 0) {
       int i;
@@ -667,7 +667,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
 }
 
 static void usbasp_close(PROGRAMMER *pgm) {
-  pmsg_debug("usbasp_close()\n");
+  pmsg_debug("%s()\n", __func__);
 
   if(my.usbhandle != NULL) {
     unsigned char temp[4];
@@ -712,7 +712,7 @@ static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
   struct pdata *pdata = &my;
 
-  pmsg_debug("usbasp_initialize()\n");
+  pmsg_debug("%s()\n", __func__);
 
   // Get capabilities
   memset(temp, 0, sizeof(temp));
@@ -752,7 +752,7 @@ static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 // SPI specific functions
 static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
-  pmsg_debug("usbasp_spi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
+  pmsg_debug("%s(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s", __func__,
     cmd[0], cmd[1], cmd[2], cmd[3], verblevel >= MSG_TRACE? " ...\n": "");
 
   int nbytes = usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);
@@ -763,7 +763,7 @@ static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsig
     pmsg_error("wrong response size\n");
     return -1;
   }
-  pmsg_trace("usbasp_spi_cmd()");
+  pmsg_trace("%s()", __func__);
   msg_debug(" => 0x%02x, 0x%02x, 0x%02x, 0x%02x\n", res[0], res[1], res[2], res[3]);
 
   return 0;
@@ -778,7 +778,7 @@ static int usbasp_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
   cmd[0] = 0;
 
-  pmsg_debug("usbasp_program_enable()\n");
+  pmsg_debug("%s()\n", __func__);
 
   int nbytes = usbasp_transmit(pgm, 1, USBASP_FUNC_ENABLEPROG, cmd, res, sizeof(res));
 
@@ -794,7 +794,7 @@ static int usbasp_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
 
-  pmsg_debug("usbasp_chip_erase()\n");
+  pmsg_debug("%s()\n", __func__);
 
   if(p->op[AVR_OP_CHIP_ERASE] == NULL) {
     pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
@@ -821,7 +821,7 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
   unsigned char *buffer = m->buf + address;
   int function;
 
-  pmsg_debug("usbasp_program_paged_load(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
+  pmsg_debug("%s(\"%s\", 0x%x, %d)\n", __func__, m->desc, address, n_bytes);
 
   if(mem_is_flash(m)) {
     function = USBASP_FUNC_READFLASH;
@@ -887,7 +887,7 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   unsigned char blockflags = USBASP_BLOCKFLAG_FIRST;
   int function;
 
-  pmsg_debug("usbasp_program_paged_write(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
+  pmsg_debug("%s(\"%s\", 0x%x, %d)\n", __func__, m->desc, address, n_bytes);
 
   if(mem_is_flash(m)) {
     function = USBASP_FUNC_WRITEFLASH;
@@ -971,7 +971,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   unsigned char res[4];
   unsigned char cmd[4];
 
-  pmsg_debug("usbasp_spi_set_sck_period(%g)\n", sckperiod);
+  pmsg_debug("%s(%g)\n", __func__, sckperiod);
 
   memset(cmd, 0, sizeof(cmd));
   memset(res, 0, sizeof(res));
@@ -1061,7 +1061,7 @@ static int usbasp_tpi_recv_byte(const PROGRAMMER *pgm) {
 static int usbasp_tpi_nvm_waitbusy(const PROGRAMMER *pgm) {
   int retry;
 
-  pmsg_debug("usbasp_tpi_nvm_waitbusy() ...");
+  pmsg_debug("%s() ...", __func__);
 
   for(retry = 50; retry > 0; retry--) {
     usbasp_tpi_send_byte(pgm, TPI_OP_SIN(NVMCSR));
@@ -1086,7 +1086,7 @@ static int usbasp_tpi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsig
 static int usbasp_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   int retry;
 
-  pmsg_debug("usbasp_tpi_program_enable()\n");
+  pmsg_debug("%s()\n", __func__);
 
   // Change guard time
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTCS(TPIPCR));
@@ -1132,14 +1132,14 @@ static int usbasp_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pr_0 = 0x41;
     pr_1 = 0x3F;
     nvm_cmd = NVMCMD_SECTION_ERASE;
-    pmsg_debug("usbasp_tpi_chip_erase() - section erase\n");
+    pmsg_debug("%s() - section erase\n", __func__);
     break;
     // Chip erase (flash only)
   default:
     pr_0 = 0x01;
     pr_1 = 0x40;
     nvm_cmd = NVMCMD_CHIP_ERASE;
-    pmsg_debug("usbasp_tpi_chip_erase() - chip erase\n");
+    pmsg_debug("%s() - chip erase\n", __func__);
     break;
   }
 
@@ -1170,7 +1170,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
   int read, clen, n;
   uint16_t pr;
 
-  pmsg_debug("usbasp_tpi_paged_load(\"%s\", 0x%0x, %d)\n", m->desc, addr, n_bytes);
+  pmsg_debug("%s(\"%s\", 0x%0x, %d)\n", __func__, m->desc, addr, n_bytes);
 
   dptr = addr + m->buf;
   pr = addr + m->offset;
@@ -1208,7 +1208,7 @@ int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   int written, clen, n;
   uint16_t pr;
 
-  pmsg_debug("usbasp_tpi_paged_write(\"%s\", 0x%0x, %d)\n", m->desc, addr, n_bytes);
+  pmsg_debug("%s(\"%s\", 0x%0x, %d)\n", __func__, m->desc, addr, n_bytes);
 
   sptr = addr + m->buf;
   pr = addr + m->offset;
@@ -1271,7 +1271,7 @@ static int usbasp_tpi_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   int n;
   uint16_t pr;
 
-  pmsg_debug("usbasp_tpi_read_byte(\"%s\", 0x%0lx)\n", m->desc, addr);
+  pmsg_debug("%s(\"%s\", 0x%0lx)\n", __func__, m->desc, addr);
 
   pr = m->offset + addr;
 

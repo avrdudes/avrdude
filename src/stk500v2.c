@@ -2272,7 +2272,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
   unsigned char *cache_ptr = NULL;
 
-  pmsg_notice2("stk500hv_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   if(mem_is_flash(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
@@ -2391,7 +2391,7 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char *cache_ptr = NULL;
   OPCODE *op;
 
-  pmsg_notice2("stk500isp_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, ...)\n", __func__, mem->desc, addr);
 
   if(mem_is_flash(mem) || mem_is_eeprom(mem)) {
     // Use paged access, and cache result
@@ -2478,7 +2478,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
   unsigned char *cache_ptr = NULL;
 
-  pmsg_notice2("stk500hv_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, 0x%02x)\n", __func__, mem->desc, addr, data);
 
   if(mem_is_flash(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
@@ -2618,7 +2618,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   unsigned char *cache_ptr = NULL;
   OPCODE *op;
 
-  pmsg_notice2("stk500isp_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("%s(..., %s, 0x%lx, 0x%02x)\n", __func__, mem->desc, addr, data);
 
   if(mem_is_flash(mem) || mem_is_eeprom(mem)) {
     if(mem_is_flash(mem)) {
@@ -2716,7 +2716,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   int result;
   OPCODE *rop, *wop;
 
-  DEBUG("STK500V2: stk500v2_paged_write(..,%s,%u,%u,%u)\n", m->desc, page_size, addr, n_bytes);
+  DEBUG("STK500V2: %s(...,%s,%u,%u,%u)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   if(page_size == 0)
     page_size = 256;
@@ -2843,7 +2843,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   unsigned char commandbuf[5], buf[266];
   int result;
 
-  DEBUG("STK500V2: stk500hv_paged_write(..,%s,%u,%u,%u)\n", m->desc, page_size, addr, n_bytes);
+  DEBUG("STK500V2: %s(...,%s,%u,%u,%u)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   addrshift = 0;
   use_ext_addr = 0;
@@ -2945,7 +2945,7 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   int result;
   OPCODE *rop;
 
-  DEBUG("STK500V2: stk500v2_paged_load(..,%s,%u,%u,%u)\n", m->desc, page_size, addr, n_bytes);
+  DEBUG("STK500V2: %s(...,%s,%u,%u,%u)\n", m->desc, __func__, page_size, addr, n_bytes);
 
   page_size = m->readsize;
 
@@ -3028,7 +3028,7 @@ static int stk500hv_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char commandbuf[3], buf[266];
   int result;
 
-  DEBUG("STK500V2: stk500hv_paged_load(..,%s,%u,%u,%u)\n", m->desc, page_size, addr, n_bytes);
+  DEBUG("STK500V2: %s(...,%s,%u,%u,%u)\n", __func__, m->desc, page_size, addr, n_bytes);
 
   page_size = m->readsize;
 
@@ -3893,7 +3893,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   void *mycookie;
   int rv;
 
-  pmsg_notice2("stk500v2_jtagmkII_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -3960,7 +3960,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
 static void stk500v2_jtagmkII_close(PROGRAMMER *pgm) {
   void *mycookie;
 
-  pmsg_notice2("stk500v2_jtagmkII_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   mycookie = pgm->cookie;
   pgm->cookie = my.chained_pdata;
@@ -3972,7 +3972,7 @@ static void stk500v2_jtagmkII_close(PROGRAMMER *pgm) {
 static void stk500v2_jtag3_close(PROGRAMMER *pgm) {
   void *mycookie;
 
-  pmsg_notice2("stk500v2_jtag3_close()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   mycookie = pgm->cookie;
   pgm->cookie = my.chained_pdata;
@@ -3991,7 +3991,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   void *mycookie;
 
-  pmsg_notice2("stk500v2_dragon_isp_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -4064,7 +4064,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
 static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  pmsg_notice2("stk500v2_dragon_hv_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -4315,6 +4315,8 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
   int need_erase = 0;
   unsigned char write_size = 1;
   unsigned char memcode;
+
+  pmsg_notice2("%s(..., %s, 0x%lx, 0x%02x)\n", __func__, mem->desc, addr, data);
 
   memset(b, 0, sizeof(b));
 

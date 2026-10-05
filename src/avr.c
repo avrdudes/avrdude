@@ -1495,7 +1495,7 @@ char *avr_cc_buffer(size_t n) {
   size_t avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
 
   if(!is_memset(cx->avr_space + avail, 0, AVR_SAFETY_MARGIN)) {
-    pmsg_warning("avr_cc_buffer(n) overran; n chosen too small in previous calls? Change and recompile\n");
+    pmsg_warning("buffer overrun; n chosen too small in previous calls?\n");
     memset(cx->avr_space + avail, 0, AVR_SAFETY_MARGIN);
   }
 

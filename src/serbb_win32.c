@@ -108,7 +108,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
       FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
       NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
       (LPTSTR) & lpMsgBuf, 0, NULL);
-    pmsg_error("SetCommState() failed: %s\n", (char *) lpMsgBuf);
+    pmsg_error("EscapeCommFunction() failed: %s\n", (char *) lpMsgBuf);
     CloseHandle(hComPort);
     LocalFree(lpMsgBuf);
     return -1;

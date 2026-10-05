@@ -317,7 +317,7 @@ static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   int aux_result;
   unsigned int default_timeout = FLIP1(pgm)->dfu->timeout;
 
-  pmsg_debug("flip_chip_erase()\n");
+  pmsg_debug("%s()\n", __func__);
 
   struct flip1_cmd cmd = {
     FLIP1_CMD_WRITE_COMMAND, {0, 0xff}
@@ -541,7 +541,7 @@ static int flip1_read_memory(const PROGRAMMER *pgm, enum flip1_mem_unit mem_unit
   };
   unsigned int default_timeout = dfu->timeout;
 
-  pmsg_debug("flip_read_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("%s(%s, 0x%04x, %d)\n", __func__, flip1_mem_unit_str(mem_unit), addr, size);
 
   /*
    * As this function is called once per page, no need to handle 64 KiB border
@@ -624,7 +624,7 @@ static int flip1_write_memory(struct dfu_dev *dfu, enum flip1_mem_unit mem_unit,
   unsigned int default_timeout = dfu->timeout;
   unsigned char *buf;
 
-  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("%s(%s, 0x%04x, %d)\n", __func__, flip1_mem_unit_str(mem_unit), addr, size);
 
   if(size < 32) {
     // Presumably single-byte updates; must be padded to USB endpoint size

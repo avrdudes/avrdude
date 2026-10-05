@@ -179,7 +179,7 @@ bool CH341ChipSelect(const PROGRAMMER *pgm, unsigned int cs, bool enable) {
 
   memset(cmd, 0, sizeof(cmd));
   memset(res, 0, sizeof(res));
-  pmsg_trace("ch341a_ChipSelect()\n");
+  pmsg_trace("%s()\n", __func__);
   if(cs > 2) {
     pmsg_error("invalid CS pin %d, 0~2 are available\n", cs);
     return false;
@@ -264,7 +264,7 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
 }
 
 static void ch341a_close(PROGRAMMER *pgm) {
-  pmsg_trace("ch341a_close()\n");
+  pmsg_trace("%s()\n", __func__);
 
   int cs = intlog2(pgm->pin[PIN_AVR_RESET].mask[0]);
 
@@ -281,7 +281,7 @@ static void ch341a_close(PROGRAMMER *pgm) {
 }
 
 static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_trace("ch341a_initialize()\n");
+  pmsg_trace("%s()\n", __func__);
 
   int cs = intlog2(pgm->pin[PIN_AVR_RESET].mask[0]);
 
@@ -410,7 +410,7 @@ static int ch341a_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   memset(res, 0, sizeof(res));
 
   cmd[0] = 0;
-  pmsg_trace("ch341a_program_enable() %p\n", p->op[AVR_OP_PGM_ENABLE]);
+  pmsg_trace("%s()\n", __func__);
 
   if(p->op[AVR_OP_PGM_ENABLE] == NULL) {
     pmsg_error("program enable instruction not defined for part %s\n", p->desc);
