@@ -1388,11 +1388,13 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
   for(int i = 0; i < size; i++) {
     if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = is_isp(p)? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
+      char where[64];
+      sprintf(where, "%cat addr 0x%04x", a->size > 1? ' ': 0, i);
 
       if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
         if(vroerror < 10)
-          imsg_info("  %s 0x%02x != input 0x%02x at addr 0x%04x (read-only location: ignored)\n",
-            avr_mem_desc(p, a, 1), buf1[i], buf2[i], i);
+          imsg_info("  %s 0x%02x != input 0x%02x%s (read-only location: ignored)\n",
+            avr_mem_desc(p, a, 1), buf1[i], buf2[i], where);
         else if(vroerror == 10)
           imsg_info("  Showing no further mismatches in read-only areas\n");
         vroerror++;
@@ -1404,8 +1406,8 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
            bitsset += !!(lbit & buf1[i]); // The mismatched bit was set on device
         }
         if(verror < maxerrs)
-          imsg_info("  %s 0x%02x != input 0x%02x at addr 0x%04x (error)\n",
-            avr_mem_desc(p, a, 1), buf1[i], buf2[i], i);
+          imsg_info("  %s 0x%02x != input 0x%02x%s (error)\n",
+            avr_mem_desc(p, a, 1), buf1[i], buf2[i], where);
         else if(verror == maxerrs)
           imsg_info("  Showing no further verification errors (increase verbosity for more)\n");
         verror++;
