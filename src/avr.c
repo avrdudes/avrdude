@@ -1391,7 +1391,8 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
 
       if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
         if(vroerror < 10)
-          imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (read-only location: ignored)\n", buf1[i], buf2[i], i);
+          imsg_info("  %s 0x%02x != input 0x%02x at addr 0x%04x (read-only location: ignored)\n",
+            avr_mem_desc(p, a, 1), buf1[i], buf2[i], i);
         else if(vroerror == 10)
           imsg_info("  showing no further mismatches in read-only areas\n");
         vroerror++;
@@ -1403,7 +1404,8 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
            bitsset += !!(lbit & buf1[i]); // The mismatched bit was set on device
         }
         if(verror < maxerrs)
-          imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
+          imsg_info("  %s 0x%02x != input 0x%02x at addr 0x%04x (error)\n",
+            avr_mem_desc(p, a, 1), buf1[i], buf2[i], i);
         else if(verror == maxerrs)
           imsg_info("  showing no further verification errors (increase verbosity for more)\n");
         verror++;
@@ -1412,20 +1414,22 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         if((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
           pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
+          imsg_debug("(%s 0x%02x != input 0x%02x); to prevent this warning fix\n",
+            avr_mem_desc(p, a, 0), buf1[i], buf2[i]);
           imsg_debug("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
           pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
+          imsg_debug("(%s 0x%02x != input 0x%02x); to prevent this warning set\n",
+            avr_mem_desc(p, a, 0), buf1[i], buf2[i]);
           imsg_debug("unused bits to 1 when writing (double check with datasheet)\n");
         }
       }
     }
   }
   if(verror)
-    imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared on device\n",
-      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset);
+    imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared in %s\n",
+      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset, avr_mem_desc(p, a, 0));
   if(verror && bitsset == 0 && mem_is_in_flash(a))
     imsg_info("  maybe flash was not erased beforehand or flash programming sections overlap?\n");
 
