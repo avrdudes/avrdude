@@ -1382,11 +1382,15 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size: verbose >= MSG_NOTICE? 10: 1;
   int ro = mem_is_readonly(a);  // Other memories can have known protected zones such as bootloaders
-  int biterrs = 0, bitsset = 0;
+  int biterrs = 0, bitsset = 0, partbyte = 0, partbytesdiffer = 0, stats[256] = { 0 };
   unsigned int bdiff;
 
   for(int i = 0; i < size; i++) {
-    if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
+    if(!(b->tags[i] & TAG_ALLOCATED))
+      continue;
+    stats[buf1[i]]++;           // Distribution of bytes read from the device
+
+    if(buf1[i] != buf2[i]) {
       uint8_t bitmask = is_isp(p)? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
       char where[64];
       sprintf(where, "%cat addr 0x%04x", a->size > 1? ' ': 0, i);
@@ -1410,6 +1414,11 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
             avr_mem_desc(p, a, 1), buf1[i], buf2[i], where);
         else if(verror == maxerrs)
           imsg_info("  Showing no further verification errors (increase verbosity for more)\n");
+        if(verror == 0)
+          partbyte = buf1[i];
+        else if(partbyte != buf1[i])
+          partbytesdiffer = 1;
+
         verror++;
       } else {
         // Mismatch is only in unused bits
@@ -1433,7 +1442,10 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
     imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared in %s\n",
       verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset, avr_mem_desc(p, a, 0));
   if(verror && bitsset == 0 && mem_is_in_flash(a))
-    imsg_info("  maybe flash was not erased beforehand or flash programming sections overlap?\n");
+    imsg_info("  Maybe flash was not erased beforehand or flash programming sections overlap?\n");
+  if(verror > 10 && !partbytesdiffer  && mem_is_in_flash(a))
+    imsg_info("  Maybe lock bits read-protect that part of flash (read %d times the byte 0x%02x from %s)?\n",
+      stats[partbyte & 0xff], partbyte, avr_mem_desc(p, a, 0));
 
   return verror? -1: size;
 }
