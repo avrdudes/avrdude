@@ -1382,18 +1382,25 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size: verbose >= MSG_NOTICE? 10: 1;
   int ro = mem_is_readonly(a);  // Other memories can have known protected zones such as bootloaders
-  int biterrs = 0, bitsset = 0;
+  int biterrs = 0, bitsset = 0, partbyte = 0, partbytesdiffer = 0, stats[256] = { 0 };
   unsigned int bdiff;
 
   for(int i = 0; i < size; i++) {
-    if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
+    if(!(b->tags[i] & TAG_ALLOCATED))
+      continue;
+    stats[buf1[i]]++;           // Distribution of bytes read from the device
+
+    if(buf1[i] != buf2[i]) {
       uint8_t bitmask = is_isp(p)? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
+      char where[64];
+      sprintf(where, "%cat addr 0x%04x", a->size > 1? ' ': 0, i);
 
       if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
         if(vroerror < 10)
-          imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (read-only location: ignored)\n", buf1[i], buf2[i], i);
+          imsg_info("  %s 0x%02x != input 0x%02x%s (read-only location: ignored)\n",
+            avr_mem_desc(p, a, 1), buf1[i], buf2[i], where);
         else if(vroerror == 10)
-          imsg_info("  showing no further mismatches in read-only areas\n");
+          imsg_info("  Showing no further mismatches in read-only areas\n");
         vroerror++;
       } else if((bdiff = (buf1[i] & bitmask) ^ (buf2[i] & bitmask))) {
         // Mismatch is not just in unused bits, loop over bit positions that differ
@@ -1403,31 +1410,42 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
            bitsset += !!(lbit & buf1[i]); // The mismatched bit was set on device
         }
         if(verror < maxerrs)
-          imsg_info("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
+          imsg_info("  %s 0x%02x != input 0x%02x%s (error)\n",
+            avr_mem_desc(p, a, 1), buf1[i], buf2[i], where);
         else if(verror == maxerrs)
-          imsg_info("  showing no further verification errors (increase verbosity for more)\n");
+          imsg_info("  Showing no further verification errors (increase verbosity for more)\n");
+        if(verror == 0)
+          partbyte = buf1[i];
+        else if(partbyte != buf1[i])
+          partbytesdiffer = 1;
+
         verror++;
       } else {
         // Mismatch is only in unused bits
         if((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
           pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
+          imsg_debug("(%s 0x%02x != input 0x%02x); to prevent this warning fix\n",
+            avr_mem_desc(p, a, 0), buf1[i], buf2[i]);
           imsg_debug("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
           pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
+          imsg_debug("(%s 0x%02x != input 0x%02x); to prevent this warning set\n",
+            avr_mem_desc(p, a, 0), buf1[i], buf2[i]);
           imsg_debug("unused bits to 1 when writing (double check with datasheet)\n");
         }
       }
     }
   }
   if(verror)
-    imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared on device\n",
-      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset);
+    imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared in %s\n",
+      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset, avr_mem_desc(p, a, 0));
   if(verror && bitsset == 0 && mem_is_in_flash(a))
-    imsg_info("  maybe flash was not erased beforehand or flash programming sections overlap?\n");
+    imsg_info("  Maybe flash was not erased beforehand or flash programming sections overlap?\n");
+  if(verror > 10 && !partbytesdiffer  && mem_is_in_flash(a))
+    imsg_info("  Maybe lock bits read-protect that part of flash (read %d times the byte 0x%02x from %s)?\n",
+      stats[partbyte & 0xff], partbyte, avr_mem_desc(p, a, 0));
 
   return verror? -1: size;
 }

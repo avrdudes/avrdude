@@ -315,6 +315,20 @@ AVRMEM_ALIAS *avr_new_memalias(void) {
   return m;
 }
 
+// Return best single name of a memory, ie, desc or its alias if fuseN
+const char *avr_mem_desc(const AVRPART *p, const AVRMEM *mem, int capitalise) {
+  char ret[256];
+  const int n = sizeof ret - 1;
+
+  strncpy(ret, mem->desc, n);
+  // Overwrite with alias desc if exists and fuseN
+  AVRMEM_ALIAS *alias = avr_find_memalias(p, mem);
+  if(alias && alias->desc && *alias->desc && strlen(ret) == 5 && str_starts(ret, "fuse") && isascii(ret[4]) && isxdigit(ret[4]))
+    strncpy(ret, alias->desc, n);
+  ret[n] = 0;
+  return cache_string(capitalise? str_ucfirst(ret): ret);
+}
+
 // Return longer name of memory including alias if any, eg, fuse7/codesize
 const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem) {
   char ret[1024];
