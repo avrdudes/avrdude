@@ -8,8 +8,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.53
- * 02.09.2026
+ * v 1.54
+ * 08.10.2026
  *
  */
 
@@ -9132,7 +9132,7 @@ static const Configvalue _values_ckout_atmega640[2] = {
 
 /*
  * ATtiny4 ATtiny5 ATtiny9 ATtiny10 ATtiny20 ATtiny40 ATtiny102 ATtiny104 AT90S1200 AT90S2313
- * AT90S2323 AT90S2343 AT90S4414 AT90S4433 AT90S4434 AT90S8515 AT90S8515comp AT90S8535
+ * AT90S2323 AT90S2333 AT90S2343 AT90S4414 AT90S4433 AT90S4434 AT90S8515 AT90S8515comp AT90S8535
  * AT90S8535comp AT90CAN32 AT90CAN64 AT90CAN128 AT90PWM1 AT90PWM81 AT90PWM161 AT90PWM2 AT90PWM2B
  * AT90PWM216 AT90PWM3 AT90PWM3B AT90PWM316 AT90USB82 AT90USB162 AT90USB646 AT90USB1286 AT90USB647
  * AT90USB1287 AT90SCR100 AT90SCR100H ATtiny11 ATtiny12 ATtiny22 ATtiny13 ATtiny13A ATtiny43U
@@ -9160,16 +9160,9 @@ static const Configvalue _values_ckout_atmega640[2] = {
  * ATA8510 ATA8515
  */
 static const Configvalue _values_lb_attiny4[3] = {
-  {0, "prog_ver_disabled", "further programming and verification disabled"},
-  {2, "prog_disabled", "further programming disabled"},
-  {3, "no_lock", "no memory lock features enabled"},
-};
-
-// AT90S2333
-static const Configvalue _values_lb_at90s2333[3] = {
-  {0, "prog_ver_disabled", "further programming and verification disabled"},
-  {1, "prog_disabled", "further programming disabled"},
-  {3, "no_lock", "no memory lock features enabled"},
+  {0, "prog_ver_disabled", "external reading and programming disabled, fuses locked"},
+  {2, "prog_disabled", "external programming disabled, fuses locked"},
+  {3, "no_lock", "no restrictions for external reading and programming"},
 };
 
 /*
@@ -9183,9 +9176,9 @@ static const Configvalue _values_lb_at90s2333[3] = {
  * ATxmega32E5
  */
 static const Configvalue _values_lb_atxmega64a1[3] = {
-  {0, "rwlock", "read and write not allowed"},
-  {2, "wlock", "write not allowed"},
-  {3, "nolock", "no locks"},
+  {0, "rwlock", "external reading and programming disabled, fuses locked"},
+  {2, "wlock", "external programming disabled, fuses locked"},
+  {3, "nolock", "no restrictions for external reading and programming"},
 };
 
 /*
@@ -9198,8 +9191,8 @@ static const Configvalue _values_lb_atxmega64a1[3] = {
  * ATmega1608 ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809
  */
 static const Configvalue _values_lb_attiny202[2] = {
-  {0x3a, "rwlock", "read and write not allowed"},
-  {0xc5, "nolock", "no locks"},
+  {0x3a, "rwlock", "device is locked (no UPDI reading/writing of memories)"},
+  {0xc5, "nolock", "device is unlocked (no restrictions for UPDI access)"},
 };
 
 /*
@@ -9462,7 +9455,7 @@ static const Configvalue _values_selfprgen_attiny102[2] = {
   {1, "spm_disabled", "self programming disabled"},
 };
 
-// AT90S1200 AT90S2343 ATtiny22
+// AT90S1200 AT90S2343
 static const Configvalue _values_rcen_at90s1200[2] = {
   {0, "intrcosc", "internal RC oscillator"},
   {1, "extclk", "external clock"},
@@ -10867,15 +10860,14 @@ static const Configvalue _values_s8515c_at90s8515comp[2] = {
  * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega649 ATmega649A ATmega649P ATmega3290
  * ATmega3290A ATmega3290P ATmega3290PA ATmega6490 ATmega6490A ATmega6490P ATmega103comp
  * ATmega16HVB ATmega16HVBrevB ATmega32HVB ATmega32HVBrevB ATmega64HVE ATmega32HVE2 ATmega64HVE2
- * ATmega406 ATA5781 ATA5782 ATA5783 ATA5787 ATA5790 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832
- * ATA5833 ATA5835 ATA6285 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510
- * ATA8515
+ * ATmega406 ATA5787 ATA5790 ATA5790N ATA5791 ATA5795 ATA5835 ATA6285 ATA6286 ATA6289 ATA6612C
+ * ATA6613C ATA6614Q
  */
 static const Configvalue _values_blb0_at90s8515comp[4] = {
-  {0, "lpm_spm_disabled_in_app", "LPM and SPM prohibited in application section"},
-  {1, "lpm_disabled_in_app", "LPM prohibited in application section"},
-  {2, "spm_disabled_in_app", "SPM prohibited in application section"},
-  {3, "no_lock_in_app", "no lock on SPM and LPM in application section"},
+  {0, "lpm_spm_disabled_in_app", "bootloader cannot read from or write to the application section"},
+  {1, "lpm_disabled_in_app", "bootloader cannot read from the application section"},
+  {2, "spm_disabled_in_app", "bootloader cannot write to the application section"},
+  {3, "no_lock_in_app", "reading from or writing to the application section allowed"},
 };
 
 /*
@@ -10896,15 +10888,14 @@ static const Configvalue _values_blb0_at90s8515comp[4] = {
  * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega649 ATmega649A ATmega649P ATmega3290
  * ATmega3290A ATmega3290P ATmega3290PA ATmega6490 ATmega6490A ATmega6490P ATmega103comp
  * ATmega16HVB ATmega16HVBrevB ATmega32HVB ATmega32HVBrevB ATmega64HVE ATmega32HVE2 ATmega64HVE2
- * ATmega406 ATA5781 ATA5782 ATA5783 ATA5787 ATA5790 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832
- * ATA5833 ATA5835 ATA6285 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510
- * ATA8515
+ * ATmega406 ATA5787 ATA5790 ATA5790N ATA5791 ATA5795 ATA5835 ATA6285 ATA6286 ATA6289 ATA6612C
+ * ATA6613C ATA6614Q
  */
 static const Configvalue _values_blb1_at90s8515comp[4] = {
-  {0, "lpm_spm_disabled_in_boot", "LPM and SPM prohibited in boot section"},
-  {1, "lpm_disabled_in_boot", "LPM prohibited in boot section"},
-  {2, "spm_disabled_in_boot", "SPM prohibited in boot section"},
-  {3, "no_lock_in_boot", "no lock on SPM and LPM in boot section"},
+  {0, "lpm_spm_disabled_in_boot", "application cannot read from, and bootloader cannot write to, the boot section"},
+  {1, "lpm_disabled_in_boot", "application cannot read from the boot section"},
+  {2, "spm_disabled_in_boot", "bootloader cannot write to the boot section"},
+  {3, "no_lock_in_boot", "reading from or writing to the boot section allowed"},
 };
 
 // AT90S8535comp ATmega8535
@@ -11081,8 +11072,8 @@ static const Configvalue _values_cksel_attiny12[16] = {
   {0x0f, "extxtalcresx0f", "external crystal/ceramic resonator"},
 };
 
-// AT90S1200 AT90S2343 ATtiny22
-static const Configvalue _values_cksel_at90s1200[2] = {
+// ATtiny22
+static const Configvalue _values_cksel_attiny22[2] = {
   {0, "intrcosc", "internal RC oscillator"},
   {1, "extclk", "external clock"},
 };
@@ -11157,10 +11148,7 @@ static const Configvalue _values_intcap_attiny28[2] = {
   {1, "cap_disabled", "internal load capacitors between XTAL1/XTAL2 and GND disabled"},
 };
 
-/*
- * ATtiny828 ATtiny828 ATtiny828R ATtiny828R ATtiny1634 ATtiny1634 ATtiny1634R ATtiny1634R
- * ATtiny441 ATtiny441 ATtiny841 ATtiny841
- */
+// ATtiny828 ATtiny828R ATtiny1634 ATtiny1634R ATtiny441 ATtiny841
 static const Configvalue _values_bodact_attiny828[3] = {
   {1, "bod_sampled", "brownout detection in sampled mode"},
   {2, "bod_enabled", "brownout detection enabled"},
@@ -11168,21 +11156,14 @@ static const Configvalue _values_bodact_attiny828[3] = {
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega192A1
- * ATxmega192A1 ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega192A3 ATxmega192A3 ATxmega256A3
- * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U
- * ATxmega16A4 ATxmega16A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U ATxmega64A4U ATxmega64A4U
- * ATxmega128A4U ATxmega128A4U ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3 ATxmega64C3 ATxmega64C3
- * ATxmega128C3 ATxmega128C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4 ATxmega32D3 ATxmega32D3
- * ATxmega64D3 ATxmega64D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4 ATxmega32D4 ATxmega32D4
- * ATxmega64D4 ATxmega64D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_bodact_atxmega64a1[3] = {
   {1, "bod_sampled", "brownout detection in sampled mode"},
@@ -11190,10 +11171,7 @@ static const Configvalue _values_bodact_atxmega64a1[3] = {
   {3, "bod_disabled", "brownout detection disabled"},
 };
 
-/*
- * ATtiny828 ATtiny828 ATtiny828R ATtiny828R ATtiny1634 ATtiny1634 ATtiny1634R ATtiny1634R
- * ATtiny441 ATtiny441 ATtiny841 ATtiny841
- */
+// ATtiny828 ATtiny828R ATtiny1634 ATtiny1634R ATtiny441 ATtiny841
 static const Configvalue _values_bodpd_attiny828[3] = {
   {1, "bod_sampled", "brownout detection in sampled mode"},
   {2, "bod_enabled", "brownout detection enabled"},
@@ -11201,21 +11179,14 @@ static const Configvalue _values_bodpd_attiny828[3] = {
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega192A1
- * ATxmega192A1 ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega192A3 ATxmega192A3 ATxmega256A3
- * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U
- * ATxmega16A4 ATxmega16A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U ATxmega64A4U ATxmega64A4U
- * ATxmega128A4U ATxmega128A4U ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3 ATxmega64C3 ATxmega64C3
- * ATxmega128C3 ATxmega128C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4 ATxmega32D3 ATxmega32D3
- * ATxmega64D3 ATxmega64D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4 ATxmega32D4 ATxmega32D4
- * ATxmega64D4 ATxmega64D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_bodpd_atxmega64a1[3] = {
   {1, "bod_sampled", "brownout detection in sampled mode"},
@@ -11375,62 +11346,20 @@ static const Configvalue _values_extclken_ata5781[2] = {
   {1, "xclk_disabled", "external clock disabled"},
 };
 
-/*
- * AT90S8515comp AT90S8535comp AT90CAN32 AT90CAN64 AT90CAN128 AT90PWM1 AT90PWM81 AT90PWM161
- * AT90PWM2 AT90PWM2B AT90PWM216 AT90PWM3 AT90PWM3B AT90PWM316 AT90USB82 AT90USB162 AT90USB646
- * AT90USB1286 AT90USB647 AT90USB1287 AT90SCR100 AT90SCR100H ATtiny828 ATtiny828R ATmega8 ATmega8A
- * ATmega16 ATmega16A ATmega32 ATmega32A ATmega64 ATmega64A ATmega128 ATmega128A ATmegaS128
- * ATmega640 ATmega1280 ATmega2560 ATmega32C1 ATmega64C1 ATmega16M1 ATmega32M1 ATmega64M1
- * ATmegaS64M1 ATmega128RFA1 ATmega64RFR2 ATmega128RFR2 ATmega256RFR2 ATmega8U2 ATmega16U2
- * ATmega32U2 ATmega16U4 ATmega32U4 ATmega32U6 ATmega161 ATmega161comp ATmega1281 ATmega2561
- * ATmega162 ATmega163 ATmega323 ATmega164A ATmega164P ATmega164PA ATmega324A ATmega324P
- * ATmega324PA ATmega644 ATmega644A ATmega644P ATmega644PA ATmega1284 ATmega1284P ATmega324PB
- * ATmega644RFR2 ATmega1284RFR2 ATmega2564RFR2 ATmega165 ATmega165A ATmega165P ATmega165PA
- * ATmega325 ATmega325A ATmega325P ATmega325PA ATmega645 ATmega645A ATmega645P ATmega3250
- * ATmega3250A ATmega3250P ATmega3250PA ATmega6450 ATmega6450A ATmega6450P ATmega8515 ATmega8535
- * ATmega88 ATmega88A ATmega88P ATmega88PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega328
- * ATmega328P ATmega88PB ATmega168PB ATmega328PB ATmega169 ATmega169A ATmega169P ATmega169PA
- * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega649 ATmega649A ATmega649P ATmega3290
- * ATmega3290A ATmega3290P ATmega3290PA ATmega6490 ATmega6490A ATmega6490P ATmega103comp
- * ATmega16HVB ATmega16HVBrevB ATmega32HVB ATmega32HVBrevB ATmega64HVE ATmega32HVE2 ATmega64HVE2
- * ATmega406 ATA5781 ATA5782 ATA5783 ATA5787 ATA5790 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832
- * ATA5833 ATA5835 ATA6285 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510
- * ATA8515
- */
-static const Configvalue _values_ap_at90s8515comp[4] = {
-  {0, "lpm_spm_disabled_in_app", "LPM and SPM prohibited in application section"},
-  {1, "lpm_disabled_in_app", "LPM prohibited in application section"},
-  {2, "spm_disabled_in_app", "SPM prohibited in application section"},
-  {3, "no_lock_in_app", "no lock on SPM and LPM in application section"},
+// ATA5781 ATA5782 ATA5783 ATA5831 ATA5832 ATA5833 ATA8210 ATA8215 ATA8510 ATA8515
+static const Configvalue _values_ap_ata5781[4] = {
+  {0, "lpm_spm_disabled_in_app", "bootloader cannot read from or write to the application section"},
+  {1, "lpm_disabled_in_app", "bootloader cannot read from the application section"},
+  {2, "spm_disabled_in_app", "bootloader cannot write to the application section"},
+  {3, "no_lock_in_app", "reading from or writing to the application section allowed"},
 };
 
-/*
- * AT90S8515comp AT90S8535comp AT90CAN32 AT90CAN64 AT90CAN128 AT90PWM1 AT90PWM81 AT90PWM161
- * AT90PWM2 AT90PWM2B AT90PWM216 AT90PWM3 AT90PWM3B AT90PWM316 AT90USB82 AT90USB162 AT90USB646
- * AT90USB1286 AT90USB647 AT90USB1287 AT90SCR100 AT90SCR100H ATtiny828 ATtiny828R ATmega8 ATmega8A
- * ATmega16 ATmega16A ATmega32 ATmega32A ATmega64 ATmega64A ATmega128 ATmega128A ATmegaS128
- * ATmega640 ATmega1280 ATmega2560 ATmega32C1 ATmega64C1 ATmega16M1 ATmega32M1 ATmega64M1
- * ATmegaS64M1 ATmega128RFA1 ATmega64RFR2 ATmega128RFR2 ATmega256RFR2 ATmega8U2 ATmega16U2
- * ATmega32U2 ATmega16U4 ATmega32U4 ATmega32U6 ATmega161 ATmega161comp ATmega1281 ATmega2561
- * ATmega162 ATmega163 ATmega323 ATmega164A ATmega164P ATmega164PA ATmega324A ATmega324P
- * ATmega324PA ATmega644 ATmega644A ATmega644P ATmega644PA ATmega1284 ATmega1284P ATmega324PB
- * ATmega644RFR2 ATmega1284RFR2 ATmega2564RFR2 ATmega165 ATmega165A ATmega165P ATmega165PA
- * ATmega325 ATmega325A ATmega325P ATmega325PA ATmega645 ATmega645A ATmega645P ATmega3250
- * ATmega3250A ATmega3250P ATmega3250PA ATmega6450 ATmega6450A ATmega6450P ATmega8515 ATmega8535
- * ATmega88 ATmega88A ATmega88P ATmega88PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega328
- * ATmega328P ATmega88PB ATmega168PB ATmega328PB ATmega169 ATmega169A ATmega169P ATmega169PA
- * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega649 ATmega649A ATmega649P ATmega3290
- * ATmega3290A ATmega3290P ATmega3290PA ATmega6490 ATmega6490A ATmega6490P ATmega103comp
- * ATmega16HVB ATmega16HVBrevB ATmega32HVB ATmega32HVBrevB ATmega64HVE ATmega32HVE2 ATmega64HVE2
- * ATmega406 ATA5781 ATA5782 ATA5783 ATA5787 ATA5790 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832
- * ATA5833 ATA5835 ATA6285 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510
- * ATA8515
- */
-static const Configvalue _values_blp_at90s8515comp[4] = {
-  {0, "lpm_spm_disabled_in_boot", "LPM and SPM prohibited in boot section"},
-  {1, "lpm_disabled_in_boot", "LPM prohibited in boot section"},
-  {2, "spm_disabled_in_boot", "SPM prohibited in boot section"},
-  {3, "no_lock_in_boot", "no lock on SPM and LPM in boot section"},
+// ATA5781 ATA5782 ATA5783 ATA5831 ATA5832 ATA5833 ATA8210 ATA8215 ATA8510 ATA8515
+static const Configvalue _values_blp_ata5781[4] = {
+  {0, "lpm_spm_disabled_in_boot", "application cannot read from, and bootloader cannot write to, the boot section"},
+  {1, "lpm_disabled_in_boot", "application cannot read from the boot section"},
+  {2, "spm_disabled_in_boot", "bootloader cannot write to the boot section"},
+  {3, "no_lock_in_boot", "reading from or writing to the boot section allowed"},
 };
 
 // ATA5790 ATA5790N ATA5791 ATA5795
@@ -11469,21 +11398,14 @@ static const Configvalue _values_eelock_ata6285[2] = {
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega192A1
- * ATxmega192A1 ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega192A3 ATxmega192A3 ATxmega256A3
- * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U
- * ATxmega16A4 ATxmega16A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U ATxmega64A4U ATxmega64A4U
- * ATxmega128A4U ATxmega128A4U ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3 ATxmega64C3 ATxmega64C3
- * ATxmega128C3 ATxmega128C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4 ATxmega32D3 ATxmega32D3
- * ATxmega64D3 ATxmega64D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4 ATxmega32D4 ATxmega32D4
- * ATxmega64D4 ATxmega64D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_wdper_atxmega64a1[11] = {
   {0x00, "t_0s008", "8 cycles (8 ms)"},
@@ -11500,21 +11422,14 @@ static const Configvalue _values_wdper_atxmega64a1[11] = {
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega192A1
- * ATxmega192A1 ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega192A3 ATxmega192A3 ATxmega256A3
- * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U
- * ATxmega16A4 ATxmega16A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U ATxmega64A4U ATxmega64A4U
- * ATxmega128A4U ATxmega128A4U ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3 ATxmega64C3 ATxmega64C3
- * ATxmega128C3 ATxmega128C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4 ATxmega32D3 ATxmega32D3
- * ATxmega64D3 ATxmega64D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4 ATxmega32D4 ATxmega32D4
- * ATxmega64D4 ATxmega64D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_wdwper_atxmega64a1[11] = {
   {0x00, "t_0s008", "8 cycles (8 ms)"},
@@ -11562,96 +11477,54 @@ static const Configvalue _values_startuptime_atxmega64a1[3] = {
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD
- * ATxmega128A1revD ATxmega128A1revD ATxmega192A1 ATxmega192A1 ATxmega192A1 ATxmega256A1
- * ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega128A1U ATxmega64A3 ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega128A3
- * ATxmega192A3 ATxmega192A3 ATxmega192A3 ATxmega256A3 ATxmega256A3 ATxmega256A3 ATxmega256A3B
- * ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega128A3U ATxmega192A3U ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU
- * ATxmega256A3BU ATxmega256A3U ATxmega256A3U ATxmega256A3U ATxmega16A4 ATxmega16A4 ATxmega16A4
- * ATxmega32A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U
- * ATxmega32A4U ATxmega64A4U ATxmega64A4U ATxmega64A4U ATxmega128A4U ATxmega128A4U ATxmega128A4U
- * ATxmega64B1 ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3
- * ATxmega32C3 ATxmega64C3 ATxmega64C3 ATxmega64C3 ATxmega128C3 ATxmega128C3 ATxmega128C3
- * ATxmega192C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4
- * ATxmega32C4 ATxmega32D3 ATxmega32D3 ATxmega32D3 ATxmega64D3 ATxmega64D3 ATxmega64D3
- * ATxmega128D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4
- * ATxmega16D4 ATxmega32D4 ATxmega32D4 ATxmega32D4 ATxmega64D4 ATxmega64D4 ATxmega64D4
- * ATxmega128D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega16E5 ATxmega32E5 ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_blbat_atxmega64a1[4] = {
-  {0, "rwlock", "read and write not allowed"},
-  {1, "rlock", "read not allowed"},
-  {2, "wlock", "write not allowed"},
-  {3, "nolock", "no locks"},
+  {0, "rwlock_apptable", "bootloader cannot read from or write to the apptable section"},
+  {1, "rlock_apptable", "bootloader cannot read from the apptable section"},
+  {2, "wlock_apptable", "bootloader cannot write to the apptable section"},
+  {3, "nolock_apptable", "reading from or writing to the apptable section allowed"},
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD
- * ATxmega128A1revD ATxmega128A1revD ATxmega192A1 ATxmega192A1 ATxmega192A1 ATxmega256A1
- * ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega128A1U ATxmega64A3 ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega128A3
- * ATxmega192A3 ATxmega192A3 ATxmega192A3 ATxmega256A3 ATxmega256A3 ATxmega256A3 ATxmega256A3B
- * ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega128A3U ATxmega192A3U ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU
- * ATxmega256A3BU ATxmega256A3U ATxmega256A3U ATxmega256A3U ATxmega16A4 ATxmega16A4 ATxmega16A4
- * ATxmega32A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U
- * ATxmega32A4U ATxmega64A4U ATxmega64A4U ATxmega64A4U ATxmega128A4U ATxmega128A4U ATxmega128A4U
- * ATxmega64B1 ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3
- * ATxmega32C3 ATxmega64C3 ATxmega64C3 ATxmega64C3 ATxmega128C3 ATxmega128C3 ATxmega128C3
- * ATxmega192C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4
- * ATxmega32C4 ATxmega32D3 ATxmega32D3 ATxmega32D3 ATxmega64D3 ATxmega64D3 ATxmega64D3
- * ATxmega128D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4
- * ATxmega16D4 ATxmega32D4 ATxmega32D4 ATxmega32D4 ATxmega64D4 ATxmega64D4 ATxmega64D4
- * ATxmega128D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega16E5 ATxmega32E5 ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_blba_atxmega64a1[4] = {
-  {0, "rwlock", "read and write not allowed"},
-  {1, "rlock", "read not allowed"},
-  {2, "wlock", "write not allowed"},
-  {3, "nolock", "no locks"},
+  {0, "rwlock_app", "bootloader cannot read from or write to the application section"},
+  {1, "rlock_app", "bootloader cannot read from the application section"},
+  {2, "wlock_app", "bootloader cannot write to the application section"},
+  {3, "nolock_app", "reading from or writing to the application section allowed"},
 };
 
 /*
- * ATxmega64A1 ATxmega64A1 ATxmega64A1 ATxmega128A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD
- * ATxmega128A1revD ATxmega128A1revD ATxmega192A1 ATxmega192A1 ATxmega192A1 ATxmega256A1
- * ATxmega256A1 ATxmega256A1 ATxmega64A1U ATxmega64A1U ATxmega64A1U ATxmega128A1U ATxmega128A1U
- * ATxmega128A1U ATxmega64A3 ATxmega64A3 ATxmega64A3 ATxmega128A3 ATxmega128A3 ATxmega128A3
- * ATxmega192A3 ATxmega192A3 ATxmega192A3 ATxmega256A3 ATxmega256A3 ATxmega256A3 ATxmega256A3B
- * ATxmega256A3B ATxmega256A3B ATxmega64A3U ATxmega64A3U ATxmega64A3U ATxmega128A3U ATxmega128A3U
- * ATxmega128A3U ATxmega192A3U ATxmega192A3U ATxmega192A3U ATxmega256A3BU ATxmega256A3BU
- * ATxmega256A3BU ATxmega256A3U ATxmega256A3U ATxmega256A3U ATxmega16A4 ATxmega16A4 ATxmega16A4
- * ATxmega32A4 ATxmega32A4 ATxmega32A4 ATxmega64A4 ATxmega64A4 ATxmega64A4 ATxmega128A4
- * ATxmega128A4 ATxmega128A4 ATxmega16A4U ATxmega16A4U ATxmega16A4U ATxmega32A4U ATxmega32A4U
- * ATxmega32A4U ATxmega64A4U ATxmega64A4U ATxmega64A4U ATxmega128A4U ATxmega128A4U ATxmega128A4U
- * ATxmega64B1 ATxmega64B1 ATxmega64B1 ATxmega128B1 ATxmega128B1 ATxmega128B1 ATxmega64B3
- * ATxmega64B3 ATxmega64B3 ATxmega128B3 ATxmega128B3 ATxmega128B3 ATxmega32C3 ATxmega32C3
- * ATxmega32C3 ATxmega64C3 ATxmega64C3 ATxmega64C3 ATxmega128C3 ATxmega128C3 ATxmega128C3
- * ATxmega192C3 ATxmega192C3 ATxmega192C3 ATxmega256C3 ATxmega256C3 ATxmega256C3 ATxmega384C3
- * ATxmega384C3 ATxmega384C3 ATxmega16C4 ATxmega16C4 ATxmega16C4 ATxmega32C4 ATxmega32C4
- * ATxmega32C4 ATxmega32D3 ATxmega32D3 ATxmega32D3 ATxmega64D3 ATxmega64D3 ATxmega64D3
- * ATxmega128D3 ATxmega128D3 ATxmega128D3 ATxmega192D3 ATxmega192D3 ATxmega192D3 ATxmega256D3
- * ATxmega256D3 ATxmega256D3 ATxmega384D3 ATxmega384D3 ATxmega384D3 ATxmega16D4 ATxmega16D4
- * ATxmega16D4 ATxmega32D4 ATxmega32D4 ATxmega32D4 ATxmega64D4 ATxmega64D4 ATxmega64D4
- * ATxmega128D4 ATxmega128D4 ATxmega128D4 ATxmega8E5 ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5
- * ATxmega16E5 ATxmega32E5 ATxmega32E5 ATxmega32E5
+ * ATxmega64A1 ATxmega128A1 ATxmega128A1revD ATxmega192A1 ATxmega256A1 ATxmega64A1U ATxmega128A1U
+ * ATxmega64A3 ATxmega128A3 ATxmega192A3 ATxmega256A3 ATxmega256A3B ATxmega64A3U ATxmega128A3U
+ * ATxmega192A3U ATxmega256A3BU ATxmega256A3U ATxmega16A4 ATxmega32A4 ATxmega64A4 ATxmega128A4
+ * ATxmega16A4U ATxmega32A4U ATxmega64A4U ATxmega128A4U ATxmega64B1 ATxmega128B1 ATxmega64B3
+ * ATxmega128B3 ATxmega32C3 ATxmega64C3 ATxmega128C3 ATxmega192C3 ATxmega256C3 ATxmega384C3
+ * ATxmega16C4 ATxmega32C4 ATxmega32D3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+ * ATxmega384D3 ATxmega16D4 ATxmega32D4 ATxmega64D4 ATxmega128D4 ATxmega8E5 ATxmega16E5
+ * ATxmega32E5
  */
 static const Configvalue _values_blbb_atxmega64a1[4] = {
-  {0, "rwlock", "read and write not allowed"},
-  {1, "rlock", "read not allowed"},
-  {2, "wlock", "write not allowed"},
-  {3, "nolock", "no locks"},
+  {0, "rwlock_boot", "application cannot read from, and bootloader cannot write to, the boot section"},
+  {1, "rlock_boot", "application cannot read from the boot section"},
+  {2, "wlock_boot", "bootloader cannot write to the boot section"},
+  {3, "nolock_boot", "reading from or writing to the boot section allowed"},
 };
 
 /*
@@ -11666,13 +11539,13 @@ static const Configvalue _values_toscsel_atxmega64a1u[2] = {
   {1, "xtal", "TOSC1/TOSC2 shared with XTAL1/XTAL2"},
 };
 
-// ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5 ATxmega32E5 ATxmega32E5
+// ATxmega8E5 ATxmega16E5 ATxmega32E5
 static const Configvalue _values_fdact4_atxmega8e5[2] = {
   {0, "gpio_from_value_fuse", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
   {1, "default_io", "default I/O pin configuration"},
 };
 
-// ATxmega8E5 ATxmega8E5 ATxmega16E5 ATxmega16E5 ATxmega32E5 ATxmega32E5
+// ATxmega8E5 ATxmega16E5 ATxmega32E5
 static const Configvalue _values_fdact5_atxmega8e5[2] = {
   {0, "gpio_from_value_fuse", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
   {1, "default_io", "default I/O pin configuration"},
@@ -12182,14 +12055,14 @@ static const Configvalue _values_crcsel_avr32da28[2] = {
  * AVR32LA32
  */
 static const Configvalue _values_key_avr32da28[2] = {
-  {0x5cc5c55c, "nolock", "no locks"},
-  {0xa33a3aa3, "rwlock", "read and write not allowed"},
+  {0x5cc5c55c, "nolock", "device is unlocked (no restrictions for UPDI access)"},
+  {0xa33a3aa3, "rwlock", "device is locked (no UPDI reading/writing of memories)"},
 };
 
 // AVR32SD20 AVR32SD28 AVR32SD32
 static const Configvalue _values_key_avr32sd20[2] = {
-  {0x00, "rwlock", "read and write not allowed"},
-  {0x5cc5c55c, "nolock", "no locks"},
+  {0x00, "rwlock", "device is locked (no UPDI reading/writing of memories)"},
+  {0x5cc5c55c, "nolock", "device is unlocked (no restrictions for UPDI access)"},
 };
 
 /*
@@ -12381,7 +12254,7 @@ const Configitem cfgtab_at90s2333[5] = {
   {"boden", 2, _values_boden_at90s2333, "fuse", 0, 0x08, 3, -1, "brownout detection"},
   {"bodlevel", 2, _values_bodlevel_at90s2333, "fuse", 0, 0x10, 4, -1, "brownout detection trigger level"},
   {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, -1, "serial programming"},
-  {"lb", 3, _values_lb_at90s2333, "lock", 0, 0x06, 1, -1, "lock bits"},
+  {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, -1, "lock bits"},
 };
 
 // AT90S2343
@@ -12717,7 +12590,7 @@ const Configitem cfgtab_attiny12[6] = {
 
 // ATtiny22
 const Configitem cfgtab_attiny22[3] = {
-  {"cksel", 2, _values_cksel_at90s1200, "fuse", 0, 0x01, 0, -1, "clock source"},
+  {"cksel", 2, _values_cksel_attiny22, "fuse", 0, 0x01, 0, -1, "clock source"},
   {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, -1, "serial programming"},
   {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
@@ -13924,8 +13797,8 @@ const Configitem cfgtab_ata5781[11] = {
   {"dwen", 2, _values_dwen_at90pwm1, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
   {"ckdiv8", 2, _values_ckdiv8_at90can32, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
   {"lb", 3, _values_lb_attiny4, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"ap", 4, _values_ap_at90s8515comp, "lock", 0, 0x0c, 2, 3, "application protection"},
-  {"blp", 4, _values_blp_at90s8515comp, "lock", 0, 0x30, 4, 3, "boot loader protection"},
+  {"ap", 4, _values_ap_ata5781, "lock", 0, 0x0c, 2, 3, "application protection"},
+  {"blp", 4, _values_blp_ata5781, "lock", 0, 0x30, 4, 3, "boot loader protection"},
 };
 
 // ATA5787
@@ -14040,8 +13913,8 @@ const Configitem cfgtab_ata8210[11] = {
   {"dwen", 2, _values_dwen_at90pwm1, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
   {"ckdiv8", 2, _values_ckdiv8_at90can32, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
   {"lb", 3, _values_lb_attiny4, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"ap", 4, _values_ap_at90s8515comp, "lock", 0, 0x0c, 2, 3, "application protection"},
-  {"blp", 4, _values_blp_at90s8515comp, "lock", 0, 0x30, 4, 3, "boot loader protection"},
+  {"ap", 4, _values_ap_ata5781, "lock", 0, 0x0c, 2, 3, "application protection"},
+  {"blp", 4, _values_blp_ata5781, "lock", 0, 0x30, 4, 3, "boot loader protection"},
 };
 
 /*
