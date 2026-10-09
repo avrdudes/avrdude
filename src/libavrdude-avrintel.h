@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.54
- * 08.10.2026
+ * v 1.55
+ * 09.10.2026
  *
  */
 
@@ -1990,10 +1990,9 @@ extern const Configitem      cfgtab_at90s2313[3];
 extern const Configitem      cfgtab_at90s2323[3];
 
 extern const Configitem      cfgtab_at90s2333[5];
+#define cfgtab_at90s4433     cfgtab_at90s2333
 
 extern const Configitem      cfgtab_at90s2343[3];
-
-extern const Configitem      cfgtab_at90s4433[5];
 
 extern const Configitem      cfgtab_at90s8515comp[13];
 

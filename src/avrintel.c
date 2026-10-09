@@ -8,8 +8,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.54
- * 08.10.2026
+ * v 1.55
+ * 09.10.2026
  *
  */
 
@@ -242,7 +242,7 @@ const Avrintel uP_table[431] = { // Value of -1 typically means unknown
   //AT90S4433        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03}, // ID
   /*AT90S4433*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080, // Mem
-  /*AT90S4433*/          1,  1,  14, vtab_at90s2333,        5, cfgtab_at90s4433, // ISRs, Config
+  /*AT90S4433*/          1,  1,  14, vtab_at90s2333,        5, cfgtab_at90s2333, // ISRs, Config
   /*AT90S4433*/          0, NULL,                   1, UART_CLASSIC_1x12,  1, uarts_at90s2313, // Register file, UART
   /*AT90S4433*/          3, ports_at90s2333, WDT_CLASSIC3}, // Ports, WDT
 
@@ -12248,27 +12248,18 @@ const Configitem cfgtab_at90s2323[3] = {
   {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
-// AT90S2333
+// AT90S2333 AT90S4433
 const Configitem cfgtab_at90s2333[5] = {
-  {"sut_cksel", 8, _values_sut_cksel_at90s2333, "fuse", 0, 0x07, 0, -1, "clock source"},
-  {"boden", 2, _values_boden_at90s2333, "fuse", 0, 0x08, 3, -1, "brownout detection"},
-  {"bodlevel", 2, _values_bodlevel_at90s2333, "fuse", 0, 0x10, 4, -1, "brownout detection trigger level"},
-  {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, -1, "serial programming"},
-  {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, -1, "lock bits"},
+  {"sut_cksel", 8, _values_sut_cksel_at90s2333, "fuse", 0, 0x07, 0, 2, "clock source"},
+  {"boden", 2, _values_boden_at90s2333, "fuse", 0, 0x08, 3, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_at90s2333, "fuse", 0, 0x10, 4, 1, "brownout detection trigger level"},
+  {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // AT90S2343
 const Configitem cfgtab_at90s2343[3] = {
   {"rcen", 2, _values_rcen_at90s1200, "fuse", 0, 0x01, 0, 0, "clock source"},
-  {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, 3, "lock bits"},
-};
-
-// AT90S4433
-const Configitem cfgtab_at90s4433[5] = {
-  {"sut_cksel", 8, _values_sut_cksel_at90s2333, "fuse", 0, 0x07, 0, 2, "clock source"},
-  {"boden", 2, _values_boden_at90s2333, "fuse", 0, 0x08, 3, 1, "brownout detection"},
-  {"bodlevel", 2, _values_bodlevel_at90s2333, "fuse", 0, 0x10, 4, 1, "brownout detection trigger level"},
   {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, 0, "serial programming"},
   {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
@@ -12590,8 +12581,8 @@ const Configitem cfgtab_attiny12[6] = {
 
 // ATtiny22
 const Configitem cfgtab_attiny22[3] = {
-  {"cksel", 2, _values_cksel_attiny22, "fuse", 0, 0x01, 0, -1, "clock source"},
-  {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"cksel", 2, _values_cksel_attiny22, "fuse", 0, 0x01, 0, 0, "clock source"},
+  {"spien", 2, _values_spien_at90s1200, "fuse", 0, 0x20, 5, 0, "serial programming"},
   {"lb", 3, _values_lb_attiny4, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
