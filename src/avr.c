@@ -662,12 +662,15 @@ int avr_can_skip_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   if(mem->paged || mem_is_io(mem) || (p->flags & AVRPART_IS_AT90S1200))
     return 0;
 
-  // Don't skip write when programming a bootloader
-  if(is_spm(pgm))
+  const PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
+  int is_dryrun = str_eq(pgm->ptyp, "Dryrun") || (dry && pgm->initpgm == dry->initpgm);
+
+  // Don't skip write when programming a bootloader (unless dryboot)
+  if(is_spm(pgm) && !is_dryrun)
     return 0;
 
   // Unclear whether this optimisation would work for TPI parts
-  if(is_tpi(p))
+  if(is_tpi(p) && !is_dryrun)
     return 0;
 
   unsigned char is;
