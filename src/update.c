@@ -52,6 +52,11 @@ UPDATE *parse_op(const char *s) {
   // Assume -U <file>[:<fmt>] first
   UPDATE *upd = (UPDATE *) mmt_malloc(sizeof *upd);
 
+  if(str_eq(s, "end_setup")) {
+    upd->marker = MARKER_END_SETUP;
+    return upd;
+  }
+
   upd->memstr = NULL;           // Defaults to flash or application
   upd->op = DEVICE_WRITE;
   const char *fn = s;
@@ -394,6 +399,9 @@ int memlist_contains_flash(const char *mstr, const AVRPART *p) {
 int update_dryrun(const AVRPART *p, UPDATE *upd) {
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
+  if(upd->marker)
+    return 0;
+
   if(upd->cmdline) {            // Todo: parse terminal command line?
     cx->upd_termcmds = mmt_realloc(cx->upd_termcmds, sizeof(*cx->upd_termcmds)*(cx->upd_nterms + 1));
     cx->upd_termcmds[cx->upd_nterms++] = upd->cmdline;
@@ -651,6 +659,12 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   Segment *seglist = NULL;
   Filestats fs;
   const char *umstr = upd->memstr;
+
+  if(upd->marker) {
+    if(upd->marker == MARKER_END_SETUP)
+      cx->dry_end_setup = 1;
+    return 0;
+  }
 
   if(pgm->updatehook)
     pgm->updatehook(pgm, p, upd, flags);

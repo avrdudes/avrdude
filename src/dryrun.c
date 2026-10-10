@@ -704,7 +704,7 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return 0;
   }
 
-  // Bootloader
+  // Dryboot bootloader from here on
   if(mem_is_in_flash(mem) && !mem_is_apptable(mem)) {
     const AVRMEM *m;
 
@@ -720,13 +720,10 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     if(addr < 4 && !is_updi(p) && ur.vectornum > 0)
       if(addr < ((m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u))
         return 1;
-  }
-  /* // Below is too realistic as it precludes -U urboot: fuse settings
-   * else if(is_classic(p) && !mem_is_eeprom(mem))
-   *   return 1;
-   */
+  } else if(cx->dry_end_setup && is_classic(p) && !mem_is_eeprom(mem))
+    return 1;
 
-  if(dry.dp && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
+  if(cx->dry_end_setup && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
     return 1;
 
   return 0;
@@ -750,6 +747,9 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *xpara = ldata(ln);
+
+    if(str_eq(xpara, "end_setup"))
+      continue;
 
     if(str_eq(xpara, "init")) {
       dry.init = 1;
@@ -794,11 +794,13 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
     msg_error("  -x random     Initialise memories with random code/values (1, 3)\n");
     msg_error("  -x random=<n> Shortcut for -x random -x seed=<n>\n");
     msg_error("  -x seed=<n>   Seed random number generator with <n>, n>0, default time(NULL)\n");
+    msg_error("  -x end_setup  Mark position on command line where dryboot setup ends (4)\n");
     msg_error("  -x help       Show this help menu and exit\n");
     msg_error("Notes:\n");
     msg_error("  (1) -x init and -x random randomly configure flash wrt boot/data/code length\n");
     msg_error("  (2) Patterns can best be seen with fixed-width font on -U flash:r:-:I\n");
     msg_error("  (3) Choose, eg, -x seed=1 for reproducible flash configuration and output\n");
+    msg_error("  (4) -U/-T commands before that position can write to fuses/lock\n");
     return rc;
   }
 
