@@ -330,7 +330,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
     if(mem->size > 0)
       memset(mem->buf, 0xff, mem->size);
 
-  if((mem = avr_locate_lock(dry.dp)))
+  if(!dry.bl && (mem = avr_locate_lock(dry.dp))) // Only erase lock if not a bootloader
     if(mem->initval != -1 && mem->size > 0 && mem->size <= (int) sizeof(mem->initval))
       for(int i = 0; i < mem->size; i++)
         mem->buf[i] = mem->initval >> 8*i;
