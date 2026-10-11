@@ -64,6 +64,22 @@ typedef struct {
     int32_t blstart, blend;     // Bootloader address range [blstart, blend] for write protection
     int32_t pfstart, pfend;     // Programmable flash address range [pfstart, pfend]
   } urdesc;
+
+#define XBOOT_RLOCK         128 // Access from bootloader for XMEGAs
+#define XBOOT_WLOCK          64
+#define XAPP_RLOCK           32
+#define XAPP_WLOCK           16
+#define XAPPTABLE_RLOCK       8
+#define XAPPTABLE_WLOCK       4
+#define BOOT_RLOCK           32 // Access from bootloader for classic parts
+#define BOOT_WLOCK           16
+#define APP_RLOCK             8
+#define APP_WLOCK             4
+#define EXT_RLOCK             2 // External access (all classic and pdi parts)
+#define EXT_WLOCK             1
+  int nlock;                    // Complement of fuse lock (classic/PDI); key for UPDI
+  int hwbs;                     // Size of hardware-supported bootloader in bytes
+  int bypass;                   // Bypass read restrictions caused by locked device?
 } Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
@@ -298,6 +314,16 @@ static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
   return 3;
 }
 
+// Read config value bypassing potentially locked access
+static int dry_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
+  int bak = dry.bypass;
+  dry.bypass = 1;
+  int rc = avr_get_config_value(pgm, p, cname, valuep);
+  dry.bypass = bak;
+
+  return rc;
+}
+
 // Emulate chip erase
 static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
   AVRMEM *mem;
@@ -321,7 +347,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
   verbose = -123;
   if((mem = avr_locate_eeprom(dry.dp))) // Check whether EEPROM needs erasing
-    if(avr_get_config_value(pgm, dry.dp, "eesave", &eesave) == 0 && eesave == !is_updi(dry.dp))
+    if(dry_get_config_value(pgm, dry.dp, "eesave", &eesave) == 0 && eesave == !is_updi(dry.dp))
       if(mem->size > 0)
         memset(mem->buf, 0xff, mem->size);
   verbose = bakverb;
@@ -385,6 +411,14 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
   return 0;
 }
 
+// Size of hardware-supported bootloader
+static int dryrun_hwbs(const PROGRAMMER *pgm, const AVRPART *p) {
+  int bootsz, bootsize = p->boot_section_size;
+  if(dry_get_config_value(pgm, p, "bootsz", &bootsz) == 0)
+    bootsize *= 8 >> bootsz;
+  return bootsize;
+}
+
 static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
   AVRMEM *m;
@@ -393,6 +427,8 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     return;
 
   dry.dp = dryrun_part(p->id, &dry.bootsize, dry.init, dry.random, dry.holes, dry.seed);
+
+  dry.hwbs = dryrun_hwbs(pgm, p); // Initialise hardware boot size
 
   // Initialise urboot descriptor so that all flash is programmable and there is no bootloader
   if((m = avr_locate_flash(p)))
@@ -456,6 +492,64 @@ static void *memand(void *dest, const void *src, size_t n) {
   for(size_t i = 0; i < n; i++)
     ((char *) dest)[i] &= ((const char *) src)[i];
   return dest;
+}
+
+// Is the memory mem at address addr locked for reading?
+static int dryrun_rlock(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr) {
+  if(dry.bypass)                // So dry_get_config_value() works even on locked device
+    return 0;
+
+  if(is_updi(p))                // Bootloader can read all; externally only sib can be read
+    return dry.bl || mem_is_sib(mem)? 0: !!dry.nlock;
+
+  // External programming read access for classic and PDI parts
+
+  if(!dry.bl || !cx->dry_end_setup) // External programming access for classic and PDI parts
+    return mem_is_in_flash(mem) || mem_is_eeprom(mem)? !!(dry.nlock & EXT_RLOCK): 0;
+
+  // Bootloader access for classic and PDI parts
+
+  if(p->n_boot_sections == 0 || !mem_is_in_flash(mem))
+    return 0;                   // Only flash access can be locked for classic and PDI bootloaders
+
+  if(is_classic(p))
+    return !!(dry.nlock & (addr < mem->size - dry.hwbs? APP_RLOCK: BOOT_RLOCK));
+
+  if(is_pdi(p)) {
+    // Quick & dirty translation from application/apptable/boot address to flash address
+    int fa = (mem->offset & ~0xfff800000) + addr, as = mem->size - 2*dry.hwbs;
+    return !!(dry.nlock & (fa < as? XAPP_RLOCK: fa < as+dry.hwbs? XAPPTABLE_RLOCK: XBOOT_RLOCK));
+  }
+
+  return 0;
+}
+
+// Is the memory mem at address addr locked for writing?
+static int dryrun_wlock(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr) {
+  if(is_updi(p))                // Externally only userrow can be written
+    return dry.bl && mem_is_in_fuses(mem)? cx->dry_end_setup:
+      dry.bl? mem_is_readonly(mem): mem_is_userrow(mem)? 0: !!dry.nlock;
+
+  // External programming write access for classic and PDI parts
+
+  if(!dry.bl || !cx->dry_end_setup)
+    return mem_is_in_flash(mem) || mem_is_eeprom(mem)? !!(dry.nlock & EXT_WLOCK): 0;
+
+  // Bootloader programming for classic and PDI parts
+
+  if(p->n_boot_sections == 0 || !mem_is_in_flash(mem))
+    return 0;                   // Only flash access can be locked for classic and PDI bootloaders
+
+  if(is_classic(p))
+    return !!(dry.nlock & (addr < mem->size - dry.hwbs? APP_WLOCK: BOOT_WLOCK));
+
+  if(is_pdi(p)) {
+    // Quick & dirty translation from application/apptable/boot address to flash address
+    int fa = (mem->offset & ~0xfff800000) + addr, as = mem->size - 2*dry.hwbs;
+    return !!(dry.nlock & (fa < as? XAPP_WLOCK: fa < as + dry.hwbs? XAPPTABLE_WLOCK: XBOOT_WLOCK));
+  }
+
+  return 0;
 }
 
 // Copy chunk in one flash memory to other overlapping flash memories (think XMEGA)
@@ -524,7 +618,8 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       }
 
       // Unless it is a bootloader flash looks like NOR-memory
-      (mchr == 'F' && !dry.bl? memand: memcpy) (dmem->buf + addr, m->buf + addr, chunk);
+      if(!dryrun_wlock(pgm, p, m, addr))
+        (mchr == 'F' && !dry.bl? memand: memcpy) (dmem->buf + addr, m->buf + addr, chunk);
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F')
@@ -567,7 +662,10 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
     for(; addr < end; addr += chunk) {
       chunk = minm(end - addr, page_size);
-      memcpy(m->buf + addr, dmem->buf + addr, chunk);
+      if(dryrun_rlock(pgm, p, m, addr))
+        memset(m->buf + addr, 0xff, chunk);
+      else
+        memcpy(m->buf + addr, dmem->buf + addr, chunk);
     }
   }
 
@@ -609,7 +707,22 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     data = (data & bitmask) | (dmem->buf[addr] & ~bitmask);
   }
 
-  dmem->buf[addr] = data;
+  if(!dryrun_wlock(pgm, p, m, addr)) {
+    if(mem_is_lock(dmem) && (p->prog_modes & (PM_Classic | PM_PDI))) {
+      dmem->buf[addr] &= data;  // Writing lock bytes ands bits (cannot reduce locking)
+    } else {
+      dmem->buf[addr] = data;
+    }
+  }
+
+  if(mem_is_lock(dmem) && (int) addr == dmem->size -1) { // Update dry.nlock
+    int flock = 0;
+    for(int i = addr; i >= 0; i--)
+      flock = (flock << 8) | dmem->buf[i];
+
+    dry.nlock = is_classic(p) || is_pdi(p)? ~flock:
+      is_updi(p)? ((flock == (addr? 0x5cc5c55c: 0xc5))? 0: 0xff): 0;
+  }
 
   if(mem_is_fuses(dmem) && addr < 16) { // Copy the byte to corresponding individual fuse
     for(LNODEID ln = lfirst(dry.dp->mem); ln; ln = lnext(ln)) {
@@ -626,6 +739,9 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     if(fidx >= 0 && fidx < dfuse->size)
       dfuse->buf[fidx] = data;
   }
+
+  if(mem_is_in_fuses(m))
+    dry.hwbs = dryrun_hwbs(pgm, p);
 
   return 0;
 }
@@ -653,7 +769,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(!dry.bl && (mem_is_io(dmem) || mem_is_sram(dmem)) && is_classic(p))
     Return("classic part io/sram memories cannot be read externally");
 
-  *value = dmem->buf[addr];
+  *value = dryrun_rlock(pgm, p, m, addr)? 0xff: dmem->buf[addr];
 
   msg_debug(" returns 0x%02x\n", *value);
   return 0;
@@ -720,10 +836,10 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     if(addr < 4 && !is_updi(p) && ur.vectornum > 0)
       if(addr < ((m = avr_locate_flash(p)) && m->size <= 8192? 2u: 4u))
         return 1;
-  } else if(cx->dry_end_setup && is_classic(p) && !mem_is_eeprom(mem))
+  } else if(dry.bl && cx->dry_end_setup && is_classic(p) && !mem_is_eeprom(mem))
     return 1;
 
-  if(cx->dry_end_setup && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
+  if(dry.bl && cx->dry_end_setup && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
     return 1;
 
   return 0;
