@@ -1426,6 +1426,14 @@ Seed random number generator with @var{n}; the default is
 make the random choices reproducible, ie, they will stay the same between
 different avrdude runs.
 
+@item end_setup
+This option marks the point on the command line where the setup of a
+@code{-c dryboot} bootloader has been finished. Any @code{-U}/@code{-T}
+command before that point is allowed to write to fuses and lockbits
+(initialising the contents of the part) and any @code{-U}/@code{-T}
+command after that point is unable to write to fuses or lockbits in the
+same way as any bootloading operation would be unable to do.
+
 @end table
 
 @cindex Option @option{-x} JTAG ICE mkII/3
