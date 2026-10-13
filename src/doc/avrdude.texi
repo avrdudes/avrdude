@@ -1027,7 +1027,7 @@ factory calibration values.
 
 @cindex @code{flash}
 @cindex @code{eeprom}
-The flash memory, being physically implemented as NOR-memory, is special
+The flash memory, being physically implemented as NOR memory, is special
 in the sense that it is normally only possible to program bits to change
 from 1 to 0. Before reprogramming takes place normally flash memory has to
 be erased. Older parts would only offer a chip erase to do so, which also
@@ -1369,8 +1369,8 @@ with @code{T}; @code{sernum} with the downward letter sequence
 known, @code{0x00} otherwise.
 
 @cindex benign code
-If either the @code{init} or @code{random} parameters are set, then the
-@code{flash} memory is randomly configured in terms of bootloader
+If either the @code{init} or @code{random} extended parameters are set,
+then the @code{flash} memory is randomly configured in terms of bootloader
 sections, code and application data sections, and the fuses updated
 accordingly. In either case, @code{flash} (including ATxmega submemories
 of @code{application}, @code{apptable} and @code{boot}), @code{eeprom},
@@ -1383,8 +1383,8 @@ If none of @code{init} or @code{random} parameters are set, these memories
 are initialised with @code{0xff}. Note that @code{init} and @code{random}
 are not meant to be both set at the same time.
 
-
-The dryrun and dryboot programmers accept the following parameters:
+For more details about the dryrun and dryboot programmers, @pxref{Dryrun
+and Dryboot}. They accept the following parameters:
 
 @table @code
 @cindex @code{flash}
@@ -1428,11 +1428,12 @@ different avrdude runs.
 
 @item end_setup
 This option marks the point on the command line where the setup of a
-@code{-c dryboot} bootloader has been finished. Any @code{-U}/@code{-T}
-command before that point is allowed to write to fuses and lockbits
-(initialising the contents of the part) and any @code{-U}/@code{-T}
-command after that point is unable to write to fuses or lockbits in the
-same way as any bootloading operation would be unable to do.
+@option{-c dryboot} bootloader has been finished. Any
+@option{-U}/@option{-T} command before that point is allowed to write to
+fuses and lockbits (initialising the contents of the part) and any
+@option{-U}/@option{-T} command after that point is unable to write to
+fuses or lockbits in the same way as any bootloading operation would be
+unable to do.
 
 @end table
 
@@ -3066,7 +3067,7 @@ before reading memories.
 @cindex @code{restore} @var{memlist} @var{file[:format]}
 Restore one or more memories from the specified file. It is the user's
 responsibility to erase memories as needed beforehand: some paged memories
-look like NOR-memory when using certain programmers, meaning programming
+look like NOR memory when using certain programmers, meaning programming
 cannot set bits to 1 (eg, flash under most programmers). These memories
 need to be erased beforehand using the erase command (see below). The
 format only needs to be specified if it cannot be automatically detected,
@@ -4854,6 +4855,8 @@ bootloader be overwritten:
 @cindex Patching the vector table
 @cindex dryrun
 @cindex dryboot
+@cindex @option{-c dryrun}
+@cindex @option{-c dryboot}
 @cindex urclock
 
 @smallexample
@@ -4936,6 +4939,7 @@ $ avrdude -qq -c dryboot -p m328p -U urboot:autobaud_ee -U blink.hex \
 @cindex Programmer-specific information
 
 @menu
+* Dryrun and Dryboot::
 * Atmel STK600::
 * DFU Bootloader Using FLIP Version 1::
 * SerialUPDI Programmer::
@@ -4945,7 +4949,196 @@ $ avrdude -qq -c dryboot -p m328p -U urboot:autobaud_ee -U blink.hex \
 @c
 @c Node
 @c
-@node Atmel STK600, DFU Bootloader Using FLIP Version 1, Programmer Specific Information, Programmer Specific Information
+@node Dryrun and Dryboot, Atmel STK600, Programmer Specific Information, Programmer Specific Information
+@cindex Emulating a HW programmer (dryrun)
+@cindex Emulating a bootloader (dryboot)
+@cindex dryrun
+@cindex dryboot
+@cindex @option{-c dryrun}
+@cindex @option{-c dryboot}
+@cindex Testing
+@section Dryrun and Dryboot
+
+The @option{-c} programmer dryrun emulates external programming without
+the need to connect a programmer or a part while dryboot emulates
+bootloader programming without the need to connect the target part. The
+emulated part is initialised with factory settings and, depending on
+extended @option{-x} options, filled with random and benign contents.
+Benign means that randomly generated opcodes do not access SRAM, I/O
+memories or flash. For further details on initialisation, see
+@ref{Programmers Accepting Extended Parameters}.
+
+The defining difference between @option{-c dryrun} and @option{-c dryboot}
+is that the former emulates external programming and the latter
+bootloading. Note that only external programming can set fuses and lock
+bits; bootloaders (the MCU) never can. All AVR parts show different
+lock-behaviour for their memories with respect to external programming and
+bootloading. In addition, classic and XMEGA parts employ different lock
+protection bits for these programming modes.
+
+In reality, bootloading parts need to be set up @emph{once} with an
+external programmer that burns the bootloader and sets the correct fuses
+and, if needed, the lock bits. In order to facilitate this standard
+procedure within a single @option{avrdude -c dryboot} command line, the
+@option{-T}, @option{-t} and @option{-U} operations on the initial part of
+the command line emulate external programming, and those on the second
+part bootloading.  The @option{-x end_setup} extended parameter marks the
+spot on the command line where setup with an external programmer ends and
+true bootloading begins, eg, @option{-T} and @option{-U} operations are no
+longer allowed to write to fuses and lock bits. For example, below command
+works as writing the lock bits is deemed to be done in the setup phase:
+
+@smallexample
+@cartouche
+$ avrdude -qq -cdryboot -pm328p -U urboot:autobaud_hw -U lock:w:0xec:m && echo OK
+OK
+@end cartouche
+@end smallexample
+
+@noindent
+In contrast, this command line
+
+@smallexample
+@cartouche
+$ avrdude -qq -cdryboot -pm328p -U urboot:autobaud_hw -x end_setup -U lock:w:0xec:m
+Error: cannot write to write-protected memory lock of ATmega328P
+ *** failed
+Error: unable to write lock (rc = -1)
+@end cartouche
+@end smallexample
+
+@noindent
+does not work because the attempt to write the lock bits was done after
+the @option{-x end_setup} marker, where @option{-c dryboot} emulates a
+true bootloader.
+
+There are other subtle differences between @option{-c dryrun} and
+@option{-c dryboot}:  AVR Flash typically is NOR memory, which implies
+that page writes normally cannot set bits to 1; classic parts do not have
+a page erase facility for external programming, so the whole chip needs
+erasing when programming over already programmed flash. For bootloading
+the @code{spm} command @emph{is} able to erase a page, which means
+bootloader can, and more often than not do, overwrite individual pages.
+The following examples exemplify this:
+
+@smallexample
+@cartouche
+$ avrdude -q -cdryrun -pm328p -U secret.hex -U blink.hex
+
+Processing -U flash:w:secret.hex:i
+Reading 936 bytes for flash from input file secret.hex
+Writing 936 bytes to flash, 936 bytes written, 32256 verified
+
+Processing -U flash:w:blink.hex:i
+Reading 354 bytes for flash from input file blink.hex
+Writing 354 bytes to flash, 354 bytes written
+  Flash 0x32 != input 0x33 at addr 0x0000 (error)
+  Showing no further verification errors (increase verbosity for more)
+  247 bytes do not match caused by 705 bit errors (0 set and 705 cleared on device)
+  Maybe flash was not erased beforehand or flash programming sections overlap?
+Error: flash verification mismatch
+
+Avrdude done.  Thank you.
+@end cartouche
+@end smallexample
+
+@noindent
+Above failure is expected while
+
+@smallexample
+@cartouche
+$ avrdude -qq -cdryboot -pm328p -U secret.hex -x end_setup -U blink.hex && echo OK
+OK
+@end cartouche
+@end smallexample
+
+@noindent
+works out OK as bootloading is emulated assuming the bootloader utilises
+page erase.
+
+Generally, @option{-c dryrun} and @option{-c dryboot} both emulate the
+respective behaviour of lock bits when programming or verifying a part.
+Here an example for external programming:
+
+@smallexample
+@cartouche
+$ avrdude -q -cdryrun -pm328p -U secret.hex -T "config lb=0" -U blink.hex
+
+Processing -U flash:w:secret.hex:i
+Reading 936 bytes for flash from input file secret.hex
+Writing 936 bytes to flash, 936 bytes written, 32256 verified
+
+Processing -T config lb=0
+
+Processing -U flash:w:blink.hex:i
+Reading 354 bytes for flash from input file blink.hex
+Writing 354 bytes to flash, 354 bytes written
+  Flash 0xff != input 0x33 at addr 0x0000 (error)
+  Showing no further verification errors (increase verbosity for more)
+  352 bytes do not match caused by 1809 bit errors (1809 set and 0 cleared on device)
+  Maybe lock bits protect flash (read 354 times the byte 0xff)?
+Error: flash verification mismatch
+
+Avrdude done.  Thank you.
+@end cartouche
+@end smallexample
+
+With these lock bits bootloader programming and verification can still
+progress as only external programming was locked:
+
+@smallexample
+@cartouche
+$ avrdude -qq -cdryboot -pm328p -U secret.hex -T "config lb=0" -x end_setup \
+  -U blink.hex && echo OK
+OK
+@end cartouche
+@end smallexample
+
+Restricting the lock bits further enables blind programming (ie, without
+verification) but prevents reading of the application:
+
+@smallexample
+@cartouche
+$ avrdude -q -cdryboot -pm328p -U secret.hex \
+  -T "config lb=0; config blb0=lpm_disabled; config blb1=0" -x end_setup \
+  -U blink.hex
+
+Processing -U flash:w:secret.hex:i
+Reading 936 bytes for flash from input file secret.hex
+Writing 936 bytes to flash, 936 bytes written, 32256 verified
+
+Processing -T config lb=0; config blb0=lpm_disabled; config blb1=0
+
+Processing -U flash:w:blink.hex:i
+Reading 354 bytes for flash from input file blink.hex
+Writing 354 bytes to flash, 354 bytes written
+  Flash 0xff != input 0x33 at addr 0x0000 (error)
+  Showing no further verification errors (increase verbosity for more)
+  352 bytes do not match caused by 1809 bit errors (1809 set and 0 cleared on device)
+  Maybe lock bits protect flash (read 354 times the byte 0xff)?
+Error: flash verification mismatch
+
+Avrdude done.  Thank you.
+@end cartouche
+@end smallexample
+
+In this case it is better to run avrdude without verification:
+
+@smallexample
+@cartouche
+$ avrdude -V -qq -cdryboot -pm328p -U secret.hex \
+  -T "config lb=0; config blb0=lpm_disabled; config blb1=0" -x end_setup
+  -U blink.hex && echo OK
+OK
+@end cartouche
+@end smallexample
+
+@page
+
+@c
+@c Node
+@c
+@node Atmel STK600, DFU Bootloader Using FLIP Version 1, Dryrun and Dryboot, Programmer Specific Information
 @cindex STK600
 @section Atmel STK600
 @cindex Atmel STK600
