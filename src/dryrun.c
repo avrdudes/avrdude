@@ -317,10 +317,12 @@ static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 
 // Read config value bypassing potentially locked access
 static int dry_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
-  int bak = dry.bypass;
+  int bakby = dry.bypass, bakverb = verbose;
   dry.bypass = 1;
+  verbose = -123;
   int rc = avr_get_config_value(pgm, p, cname, valuep);
-  dry.bypass = bak;
+  dry.bypass = bakby;
+  verbose = bakverb;
 
   return rc;
 }
@@ -415,7 +417,7 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
 // Size of hardware-supported bootloader
 static int dryrun_hwbs(const PROGRAMMER *pgm, const AVRPART *p) {
   int bootsz, bootsize = p->boot_section_size;
-  if(dry_get_config_value(pgm, p, "bootsz", &bootsz) == 0)
+  if(is_classic(p) && dry_get_config_value(pgm, p, "bootsz", &bootsz) == 0)
     bootsize *= 8 >> bootsz;
   return bootsize;
 }
