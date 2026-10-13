@@ -621,9 +621,10 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
           continue;
       }
 
-      // Unless it is a bootloader flash looks like NOR-memory
+      // Unless it is a bootloader classic flash looks like NOR-memory
       if(!dryrun_wlock(pgm, p, m, addr))
-        (mchr == 'F' && !dry.bl? memand: memcpy) (dmem->buf + addr, m->buf + addr, chunk);
+        (mchr == 'F' && !(dry.bl && cx->dry_end_setup) && is_classic(p)? memand: memcpy)
+          (dmem->buf + addr, m->buf + addr, chunk);
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F')
