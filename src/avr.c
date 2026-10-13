@@ -1442,13 +1442,13 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
     }
   }
   if(verror)
-    imsg_info("  %d byte%s do%s not match caused by %d bit error%s of which %d set and %d cleared in %s\n",
-      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset, avr_mem_desc(p, a, 0));
+    imsg_info("  %d byte%s do%s not match caused by %d bit error%s (%d set and %d cleared on device)\n",
+      verror, str_plural(verror), verror > 1? "": "es", biterrs, str_plural(biterrs), bitsset, biterrs-bitsset);
   if(verror && bitsset == 0 && mem_is_in_flash(a))
     imsg_info("  Maybe flash was not erased beforehand or flash programming sections overlap?\n");
   if(verror > 10 && !partbytesdiffer  && mem_is_in_flash(a))
-    imsg_info("  Maybe lock bits protect that part of flash (read %d times the byte 0x%02x from %s)?\n",
-      stats[partbyte & 0xff], partbyte, avr_mem_desc(p, a, 0));
+    imsg_info("  Maybe lock bits protect %s (read %d times the byte 0x%02x)?\n",
+      avr_mem_desc(p, a, 0), stats[partbyte & 0xff], partbyte);
 
   return verror? -1: size;
 }
