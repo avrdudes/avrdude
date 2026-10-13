@@ -80,6 +80,7 @@ typedef struct {
   int nlock;                    // Complement of fuse lock (classic/PDI); key for UPDI
   int hwbs;                     // Size of hardware-supported bootloader in bytes
   int bypass;                   // Bypass read restrictions caused by locked device?
+  int xendsetup;                // Option -x end_setup was issued
 } Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
@@ -437,6 +438,9 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Is the programmer a bootloader?
   if((m = avr_locate_flash(p)) && m->size >= 1024 && is_spm(pgm))
     dry.bl = is_updi(p)? DRY_BOTTOM: DRY_TOP;
+
+  if(!dry.bl && dry.xendsetup)
+    pmsg_warning("-x end_setup ignored; should be used with -c dryboot for emulating bootloading\n");
 
   // So that dryrun can emulate AVRDUDE page erase
   if(!is_spm(pgm) && (p->prog_modes & (PM_PDI | PM_UPDI)))
@@ -864,8 +868,10 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *xpara = ldata(ln);
 
-    if(str_eq(xpara, "end_setup"))
+    if(str_eq(xpara, "end_setup")) {
+      dry.xendsetup = 1;
       continue;
+    }
 
     if(str_eq(xpara, "init")) {
       dry.init = 1;
