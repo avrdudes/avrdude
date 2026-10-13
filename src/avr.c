@@ -1447,7 +1447,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
   if(verror && bitsset == 0 && mem_is_in_flash(a))
     imsg_info("  Maybe flash was not erased beforehand or flash programming sections overlap?\n");
   if(verror > 10 && !partbytesdiffer  && mem_is_in_flash(a))
-    imsg_info("  Maybe lock bits read-protect that part of flash (read %d times the byte 0x%02x from %s)?\n",
+    imsg_info("  Maybe lock bits protect that part of flash (read %d times the byte 0x%02x from %s)?\n",
       stats[partbyte & 0xff], partbyte, avr_mem_desc(p, a, 0));
 
   return verror? -1: size;
