@@ -23,6 +23,7 @@ Changes since version 8.3:
     - Tweak debug messages #2214
     - Report if lock bits might have prevented reading #2216
     - Improve avrdude's comments on lock bit settings #2217
+    - Emulate lock bits behaviour for dryrun/dryboot #2218
 
   * Internals:
 
