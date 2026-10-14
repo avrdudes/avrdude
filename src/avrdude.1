@@ -1672,6 +1672,13 @@ Seed random number generator with <n>; the default is time(NULL).
 Setting this option with a fixed n > 0 will make the random choices
 reproducible, ie, they will stay the same between different avrdude
 runs.
+.It Ar end_setup
+This option marks the point on the command line where the setup of a -c
+dryboot bootloader has been finished. Any -U/-T command before that point
+is allowed to write to fuses and lockbits (initialising the contents of
+the part) and any -U/-T command after that point is unable to write to
+fuses or lockbits in the same way as any bootloading operation would be
+unable to do.
 .It Ar help
 Show help menu and exit.
 .El
@@ -1769,7 +1776,7 @@ Reserved (must be set to 1)
 .It Bit 2 EOF:
 Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
 .It Bit 1 LOWP:
-forc running the mEDBG at 1 MHz when bit set to 0
+Force running the mEDBG at 1 MHz when set to 0
 .It Bit 0 FUSE:
 Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 .El

@@ -887,6 +887,8 @@ int main(int argc, char *argv[]) {
 
     case 'x':                   // Extended parameter (can be repeated)
       ladd(extended_params, optarg);
+      if(str_eq(optarg, "end_setup"))
+        ladd(updates, parse_op(optarg));
       break;
 
     case '?':                   // Some error with options

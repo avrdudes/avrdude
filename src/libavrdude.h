@@ -1338,8 +1338,13 @@ enum updateflags {
   UF_NOHEADING = 8,
 };
 
+enum updatemarkers {
+  MARKER_END_SETUP = 1,
+};
+
 typedef struct update {
   const char *cmdline;          // -T line is stored here and takes precedence if it exists
+  int marker;                   // If set a marker entry in the -U/-T list of commands
   char *memstr;                 // Memory name for -U
   int op;                       // Symbolic memory operation DEVICE_... for -U
   char *filename;               // Filename for -U, can be -
@@ -1913,6 +1918,9 @@ typedef struct {
 
   // Static variable from config_gram.y
   int cfgy_pin_name;            // Temporary variable for grammar parsing
+
+  // Global variable from dryrun.c set by -x end_setup
+  unsigned char dry_end_setup;
 
   // Static variable from ppi.c
   unsigned char ppi_shadow[3];
