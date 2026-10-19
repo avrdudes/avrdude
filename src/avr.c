@@ -830,11 +830,15 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   }
 
   int bm = avr_mem_bitmask(p, mem, addr);
+  unsigned char rb[2] = { mem->readback[0], mem->readback[1] };
+
+  if(mem_is_eeprom(mem) && !rb[0] && !rb[1]) // Make default readback values 0xff for eeproms
+    rb[0] = rb[1] = 0xff;
   tries = 0;
   ready = 0;
   while(!ready) {
     if(!(mem_is_eeprom(mem) || mem_is_in_flash(mem)) || // Only poll for flash or eeprom
-      data == mem->readback[0] || data == mem->readback[1]) { // ... unless data is readback
+      data == rb[0] || data == rb[1]) { // ... unless data is readback
       /*
        * Use an extra long delay when we happen to be writing values used for
        * polled data read-back.  In this case, polling doesn't work, and we
