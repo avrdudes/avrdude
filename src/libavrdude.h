@@ -1504,11 +1504,11 @@ typedef struct {
 // AVR opcodes and disassembly
 
 typedef enum {
-  OP_AVRe,                      // Classic AVR timings (original and extended instruction sets)
-  OP_AVRxm,                     // XEMGA AVR timings
-  OP_AVRxt,                     // Modern (UPDI) AVR timings
-  OP_AVRrc,                     // Reduced-core instructions (TPI) AVR timings
-  OP_AVR_cycle_N
+  CYX_AVRe,                     // Classic AVR timings (original and extended instruction sets)
+  CYX_AVRxm,                    // XEMGA AVR timings
+  CYX_AVRxt,                    // Modern (UPDI) AVR timings
+  CYX_AVRrc,                    // Reduced-core instructions (TPI) AVR timings
+  CYX_AVR_cycle_N
 } AVR_cycle_index;
 
 typedef struct {
@@ -1668,7 +1668,7 @@ typedef struct {
   *description,                 // "add without carry"
   *operation,                   // "Rd <-- Rd + Rr"
   *flags,                       // "--HSVNZC"
-  *clock[OP_AVR_cycle_N],       // Timings for AVRe, AVRxm, AVRxt and AVRrc
+  *clock[CYX_AVR_cycle_N],      // Timings for AVRe, AVRxm, AVRxt and AVRrc
   *remarks;
 } AVR_opcode;
 

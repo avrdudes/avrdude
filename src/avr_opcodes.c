@@ -719,7 +719,7 @@ int avr_get_archlevel(const AVRPART *p) {
 
 // Index in the avr_opcodes[].clock[] array for timings of an opcode
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p) {
-  return is_updi(p)? OP_AVRxt: is_pdi(p)? OP_AVRxm: is_tpi(p)? OP_AVRrc: OP_AVRe;
+  return is_updi(p)? CYX_AVRxt: is_pdi(p)? CYX_AVRxm: is_tpi(p)? CYX_AVRrc: CYX_AVRe;
 }
 
 // Return the mnemonic string of an opcode
