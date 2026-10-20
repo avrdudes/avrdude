@@ -368,12 +368,11 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{env.BUILD_TYPE}}
       - name: "avrdude -? (not installed)"
-        # FIXME: Skip running avrdude.
-        #        The exe file on arm64 is not runnable - x86_64 perhaps?
+        #  The exe file on arm64 is not runnable as the runner is x86_64.
         if: matrix.arch != 'arm64'
         run: build/src/${{env.BUILD_TYPE}}/avrdude.exe -?
       - name: "Dryrun test (not installed)"
-        #        The exe file on arm64 is not runnable as the runner is x86_64.
+        # The exe file on arm64 is not runnable as the runner is x86_64.
         if: matrix.arch != 'arm64'
         run: |
           $tmp = [System.IO.Path]::GetTempPath()
@@ -424,7 +423,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - { sys: mingw64, env: x86_64 }
           - { sys: ucrt64, env: ucrt-x86_64 }
           - { sys: clang64, env: clang-x86_64 }
     steps:
