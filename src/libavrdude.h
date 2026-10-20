@@ -1504,10 +1504,10 @@ typedef struct {
 // AVR opcodes and disassembly
 
 typedef enum {
-  OP_AVRe,
-  OP_AVRxm,
-  OP_AVRxt,
-  OP_AVRrc,
+  OP_AVRe,                      // Classic AVR timings (original and extended instruction sets)
+  OP_AVRxm,                     // XEMGA AVR timings
+  OP_AVRxt,                     // Modern (UPDI) AVR timings
+  OP_AVRrc,                     // Reduced-core instructions (TPI) AVR timings
   OP_AVR_cycle_N
 } AVR_cycle_index;
 
