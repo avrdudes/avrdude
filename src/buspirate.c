@@ -1079,12 +1079,34 @@ static int buspirate_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
   memset(cmd, 0, sizeof(cmd));
   avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
-  pgm->cmd(pgm, cmd, res);
 
-  if(res[2] != cmd[1])
-    return -2;
+  /*
+   * The Bus Pirate drives SCK low from the start of SPI mode while RESET is
+   * still high, so target code that drives SCK high (eg, Blink on an Uno, where
+   * D13 is SCK) fights it until RESET goes low, and the AVR may then not echo
+   * 0x53. As the datasheets advise, give RESET a positive pulse (CS high, CS
+   * low) now that SCK is low and issue a new Programming Enable. This needs
+   * binary SPI mode (raw-wire mode has other CS commands) and RESET on CS only.
+   */
+  int attempts = (my.flag & BP_FLAG_IN_BINMODE) && !(my.flag & BP_FLAG_XPARM_RAWFREQ) &&
+    my.reset == BP_RESET_CS? 4: 1;
 
-  return 0;
+  for(int i = 0; i < attempts; i++) {
+    if(i) {                     // CS high (0x03), CS low (0x02)
+      pmsg_notice("program enable command not successful; pulsing RESET and retrying\n");
+      if(buspirate_expect_bin_byte(pgm, 0x03, 0x01) != 1 || buspirate_expect_bin_byte(pgm, 0x02, 0x01) != 1) {
+        pmsg_error("did not get a response to CS command\n");
+        return -1;
+      }
+      usleep(20000);            // Wait at least 20 ms before Programming Enable
+    }
+    if(pgm->cmd(pgm, cmd, res) < 0)
+      return -1;
+    if(res[2] == cmd[1])
+      return 0;
+  }
+
+  return -2;
 }
 
 static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
