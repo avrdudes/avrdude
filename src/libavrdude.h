@@ -1593,7 +1593,7 @@ typedef enum {                  // Opcode classes according to when they were in
   IS_MOVW_SPM    = 0x0020,      // New in AVR with archnum 25 and above
   IS_LPMx        = 0x0040,      // New in AVR with archnum 25 and above
   OP_AVR_M       = 0x0080,      // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
-  OP_AVR4        = 0x0100,      // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
+  IS_MUL         = 0x0100,      // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
   OP_AVR_L       = 0x0200,      // AVR with flash > 64 kB (ELMP)
   OP_AVR_XL      = 0x0400,      // AVR with flash > 128 kB (EIJMP, EICALL)
   OP_AVR_DES     = 0x0800,      // XMEGA A, B, C family with encryption engine (DES)
@@ -1615,12 +1615,12 @@ typedef enum {                  // Opcode classes according to when they were in
 #define PART_AVR3   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
 #define PART_AVR31  (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
 #define PART_AVR35  (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
-#define PART_AVR4   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
-#define PART_AVR5   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
-#define PART_AVR51  (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
-#define PART_AVR6   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
-#define PART_AVR_XT (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4|OP_AVR_XTM)
-#define PART_AVR_XM (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4|OP_AVR_XTM)
+#define PART_AVR4   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
+#define PART_AVR5   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
+#define PART_AVR51  (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
+#define PART_AVR6   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
+#define PART_AVR_XT (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL|OP_AVR_XTM)
+#define PART_AVR_XM (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL|OP_AVR_XTM)
 #define PART_ALL    ((OP_AVR_ILL-1) & ~OP_AVR_RC) // All but RC (the latter conflicts)
 
 // Opcode types
