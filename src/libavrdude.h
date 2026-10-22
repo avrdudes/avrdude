@@ -1594,7 +1594,7 @@ typedef enum {                  // Opcode classes according to when they were in
   IS_LPMx        = 0x0040,      // New in AVR with archnum 25 and above
   IS_JMP_CALL    = 0x0080,      // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
   IS_MUL         = 0x0100,      // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
-  OP_AVR_L       = 0x0200,      // AVR with flash > 64 kB (ELMP)
+  IS_ELMPx       = 0x0200,      // AVR with flash > 64 kB (ELMP)
   OP_AVR_XL      = 0x0400,      // AVR with flash > 128 kB (EIJMP, EICALL)
   OP_AVR_DES     = 0x0800,      // XMEGA A, B, C family with encryption engine (DES)
   OP_AVR_RMW     = 0x1000,      // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (DES, XCH, LAC, LAS, LAT)
@@ -1605,7 +1605,7 @@ typedef enum {                  // Opcode classes according to when they were in
 /*
  * Approximation(!) of which opcodes a part may have given its archnum
  *   - Take with a pinch of salt
- *   - Must or in IS_JMP_CALL,  OP_AVR_L and OP_AVR_XL depending on flash size
+ *   - Must or in IS_JMP_CALL,  IS_ELMPx and OP_AVR_XL depending on flash size
  *   - And for XMEGAs depending on availability OP_AVR_DES and OP_AVR_RMW
  */
 #define PART_AVR1   OP_AVR1
