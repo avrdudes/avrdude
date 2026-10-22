@@ -189,7 +189,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(eijmp), 0xffff, 0x9419, 1, OP_AVR_XL, "1001 0100  0001 1001", OTY_JMPX | OTY_ZWORD,
       "eijmp", "", "extended indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"2", "2", "2", "n/a"}, ""},
-  {OP_ID(jmp), 0xfe0e, 0x940c, 2, OP_AVR_M, "1001 010k  kkkk 110k   kkkk kkkk  kkkk kkkk", OTY_JMPI,
+  {OP_ID(jmp), 0xfe0e, 0x940c, 2, IS_JMP_CALL, "1001 010k  kkkk 110k   kkkk kkkk  kkkk kkkk", OTY_JMPI,
       "jmp", "k", "jump", "PC <-- k", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(rcall), 0xf000, 0xd000, 1, OP_AVR1, "1101 kkkk  kkkk kkkk", OTY_RJMX,
@@ -201,7 +201,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(eicall), 0xffff, 0x9519, 1, OP_AVR_XL, "1001 0101  0001 1001", OTY_JMPX | OTY_ZWORD,
       "eicall", "", "extended indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"4", "3", "3", "n/a"}, ""},
-  {OP_ID(call), 0xfe0e, 0x940e, 2, OP_AVR_M, "1001 010k  kkkk 111k   kkkk kkkk  kkkk kkkk", OTY_JMPX,
+  {OP_ID(call), 0xfe0e, 0x940e, 2, IS_JMP_CALL, "1001 010k  kkkk 111k   kkkk kkkk  kkkk kkkk", OTY_JMPX,
       "call", "k", "call subroutine", "PC <-- k, STACK <-- PC, SP <-- SP - 2", "--------",
     {"4+", "3+", "3+", "n/a"}, ""},
   {OP_ID(ret), 0xffff, 0x9508, 1, OP_AVR1, "1001 0101  0000 1000", OTY_JMPX,
@@ -710,7 +710,7 @@ int avr_get_archlevel(const AVRPART *p) {
 
   if(mem) {                     // Add opcodes needed for large parts
     if(mem->size > 8192)
-      ret |= OP_AVR_M;          // JMP, CALL
+      ret |= IS_JMP_CALL;       // JMP, CALL
     if(mem->size > 65536)
       ret |= OP_AVR_L;          // ELPM
     if(mem->size > 128*1024)
