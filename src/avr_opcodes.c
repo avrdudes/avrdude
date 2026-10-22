@@ -174,7 +174,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(fmulsu), 0xff88, 0x0388, 1, OP_AVR4, "0000 0011  1ddd 1rrr", OTY_ALBI | OTY_RUPP,
       "fmulsu", "Rd, Rr", "fractional multiply signed with unsigned", "R1:R0 <-- Rd x Rr << 1 (SU)", "------ZC",
     {"2", "2", "2", "n/a"}, "d, r = 16..23"},
-  {OP_ID(des), 0xff0f, 0x940b, 1, OP_AVR_XM, "1001 0100  KKKK 1011", OTY_ALBI,
+  {OP_ID(des), 0xff0f, 0x940b, 1, OP_AVR_DES, "1001 0100  KKKK 1011", OTY_ALBI,
       "des", "K", "data encryption round",
       "if (H = 0) then R15:R0 <-- Encrypt(R15:R0, K) if (H = 1) then R15:R0 <-- Decrypt(R15:R0, K)", "--------",
     {"n/a", "1/2", "n/a", "n/a"}, ""},
@@ -416,16 +416,16 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(pop), 0xfe0f, 0x900f, 1, OP_AVR2, "1001 000d  dddd 1111", OTY_XFRX | OTY_RALL,
       "pop", "Rd", "pop register from stack", "SP <-- SP + 2, Rd <-- STACK", "--------",
     {"2", "2", "2", "3"}, ""},
-  {OP_ID(xch), 0xfe0f, 0x9204, 1, OP_AVR_XM, "1001 001d  dddd 0100", OTY_XFRX | OTY_RALL,
+  {OP_ID(xch), 0xfe0f, 0x9204, 1, OP_AVR_RMW, "1001 001d  dddd 0100", OTY_XFRX | OTY_RALL,
       "xch", "Z, Rd", "exchange", "(Z) <-- Rd, Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
-  {OP_ID(las), 0xfe0f, 0x9205, 1, OP_AVR_XM, "1001 001d  dddd 0101", OTY_ALBX | OTY_RALL,
+  {OP_ID(las), 0xfe0f, 0x9205, 1, OP_AVR_RMW, "1001 001d  dddd 0101", OTY_ALBX | OTY_RALL,
       "las", "Z, Rd", "load and set", "(Z) <-- Rd | (Z), Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
-  {OP_ID(lac), 0xfe0f, 0x9206, 1, OP_AVR_XM, "1001 001d  dddd 0110", OTY_ALBX | OTY_RALL,
+  {OP_ID(lac), 0xfe0f, 0x9206, 1, OP_AVR_RMW, "1001 001d  dddd 0110", OTY_ALBX | OTY_RALL,
       "lac", "Z, Rd", "load and clear", "(Z) <-- (0xff - Rd) & (Z), Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
-  {OP_ID(lat), 0xfe0f, 0x9207, 1, OP_AVR_XM, "1001 001d  dddd 0111", OTY_ALBX | OTY_RALL,
+  {OP_ID(lat), 0xfe0f, 0x9207, 1, OP_AVR_RMW, "1001 001d  dddd 0111", OTY_ALBX | OTY_RALL,
       "lat", "Z, Rd", "load and toggle", "(Z) <-- Rd ^ (Z), Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
 
@@ -684,10 +684,13 @@ int avr_get_archlevel(const AVRPART *p) {
       ret = PART_AVR25;
       break;
     case 3:
-    case 31:
-    case 35:                    // Sic
       ret = PART_AVR3;
       break;
+    case 31:
+      ret = PART_AVR31;
+      break;
+    case 35:
+      ret = PART_AVR35;
       break;
     case 4:
       ret = PART_AVR4;
@@ -705,12 +708,12 @@ int avr_get_archlevel(const AVRPART *p) {
 
   AVRMEM *mem = avr_locate_flash(p);
 
-  if(mem) {                     // Add opcodes needed for large parts (XMEGAs count as large)
+  if(mem) {                     // Add opcodes needed for large parts
     if(mem->size > 8192)
       ret |= OP_AVR_M;          // JMP, CALL
-    if(mem->size > 65536 || is_pdi(p))
+    if(mem->size > 65536)
       ret |= OP_AVR_L;          // ELPM
-    if(mem->size > 128*1024 || is_pdi(p))
+    if(mem->size > 128*1024)
       ret |= OP_AVR_XL;         // EIJMP, EICALL
   }
 

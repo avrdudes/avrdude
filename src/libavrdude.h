@@ -1515,7 +1515,7 @@ typedef struct {
   // Flags how to display lines
   int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
   int op_names, op_explanations, avrgcc_style, labels, unused_labels;
-  int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
+  int avrlevel;                 // Bit pattern identifying opcodes available for the disassembly
   char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
 } Dis_options;
 
@@ -1584,41 +1584,43 @@ typedef enum {
   MNEMO_N
 } AVR_mnemo;
 
-typedef enum {
+typedef enum {                  // Opcode classes according to when they were introduced
   OP_AVR_RC = 1,                // Reduced-core Tiny only (128 byte STS/LDS)
   OP_AVR1 = 2,                  // All AVR can run this OPCODE
-  OP_AVR1nRC = 4,               // All except reduced-core Tiny (TPI) and AT90S1200
-  OP_AVR2 = 8,                  // AVR with archnum 2 and above
-  OP_AVR2nRC = 16,              // AVR with archnum 2+ but not reduced-core Tiny
-  OP_AVR25 = 32,                // AVR with archnum 25 and above
+  OP_AVR1nRC = 4,               // All except reduced-core Tiny (TPI i/face) and AT90S1200
+  OP_AVR2 = 8,                  // New in AVR with archnum 2 and above also in reduced-core Tiny
+  OP_AVR2nRC = 16,              // New in AVR with archnum 2+ but not reduced-core Tiny
+  OP_AVR25 = 32,                // New in AVR with archnum 25 and above
   OP_AVR_M = 64,                // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
-  OP_AVR4 = 128,                // AVR with archnum 4 and above
+  OP_AVR4 = 128,                // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
   OP_AVR_L = 256,               // AVR with flash > 64 kB (ELMP)
   OP_AVR_XL = 512,              // AVR with flash > 128 kB (EIJMP, EICALL)
-  OP_AVR_XM = 1024,             // XMEGA only (DES, XCH, LAC, LAS, LAT)
-  OP_AVR_XTM = 2048,            // XMEGA and UPDI only (SPM Z+)
-  OP_AVR_ILL = 4096,            // Undocumented (illegal) opcodes
+  OP_AVR_DES = 1024,            // XMEGA A, B, C family with encryption engine (DES)
+  OP_AVR_RMW = 2048,            // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (DES, XCH, LAC, LAS, LAT)
+  OP_AVR_XTM = 4096,            // XMEGA and UPDI only (SPM Z+)
+  OP_AVR_ILL = 8192,            // Undocumented (illegal) opcodes
 } AVR_archlevel;
 
 /*
  * Approximation(!) of which opcodes a part may have given its archnum
  *   - Take with a pinch of salt
- *   - For OP_AVR_XT and OP_AVR_XM one needs to add in OP_AVR_L/ OP_AVR_XL
- *     depending on flash size
+ *   - Must or in OP_AVR_M,  OP_AVR_L and OP_AVR_XL depending on flash size
+ *   - And for XMEGAs depending on availability OP_AVR_DES and OP_AVR_RMW
  */
 #define PART_AVR1   OP_AVR1
 #define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVR_RC)
 #define PART_AVR2   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC)
 #define PART_AVR25  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
-#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
-#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
-#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
-#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
-#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L)
-#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L|OP_AVR_XL)
-#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XTM)
-#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XM|OP_AVR_XTM)
-#define PART_ALL    (PART_AVR_XM|OP_AVR_L|OP_AVR_XL)    // All but RC (the latter conflicts)
+#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
+#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
+#define PART_AVR35  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
+#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
+#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
+#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
+#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
+#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_XTM)
+#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_XTM)
+#define PART_ALL    ((OP_AVR_ILL-1) & ~OP_AVR_RC) // All but RC (the latter conflicts)
 
 // Opcode types
 #define OTY_REG_MASK          7 // Register formula mask
