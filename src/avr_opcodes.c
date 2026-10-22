@@ -380,7 +380,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(std_z), 0xd208, 0x8200, 1, OP_AVR2nRC, "10q0 qq1r  rrrr 0qqq", OTY_XFRX | OTY_RALL,
       "std", "Z+q, Rr", "store indirect with displacement", "(Z+q) <-- Rr", "--------",
     {"2", "2", "1", "n/a"}, ""},
-  {OP_ID(lpm_0), 0xffff, 0x95c8, 1, OP_AVR1nRC, "1001 0101  1100 1000", OTY_XFRX,
+  {OP_ID(lpm_0), 0xffff, 0x95c8, 1, IS_LPM, "1001 0101  1100 1000", OTY_XFRX,
       "lpm", "", "load program memory", "R0 <-- (Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(lpm_z), 0xfe0f, 0x9004, 1, IS_LPMx, "1001 000d  dddd 0100", OTY_XFRX | OTY_RALL,
