@@ -1600,7 +1600,7 @@ typedef enum {                  // Opcode classes according to when they were in
   IS_DES          = 0x1000,     // XMEGA A, B, C family with encryption engine (des)
   IS_RMW          = 0x2000,     // 2nd rev XMEGA AU, B, C read-modify-write opcodes (des, xch, lac, las, lat)
   IS_SPMx         = 0x4000,     // XMEGA and UPDI only (spm Z+)
-  OP_AVR_ILL      = 0x8000,     // Undocumented (illegal) opcodes
+  OP_Undocumented = 0x8000,     // Undocumented (illegal) opcodes
 } AVR_archlevel;
 
 /*
@@ -1622,7 +1622,7 @@ typedef enum {                  // Opcode classes according to when they were in
 #define PART_AVR6   (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL)
 #define PART_AVR_XT (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL|IS_SPMx)
 #define PART_AVR_XM (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL|IS_SPMx)
-#define PART_ALL    ((OP_AVR_ILL-1) & ~IS_AVRrc) // All but RC (the latter conflicts)
+#define PART_ALL    ((OP_Undocumented-1) & ~IS_AVRrc) // All but RC (the latter conflicts)
 
 // Opcode types
 #define OTY_REG_MASK          7 // Register formula mask

@@ -186,7 +186,7 @@ static int disasm_ison(char c) {
   case 'u':
     return !!cx->dis_opts.unused_labels;
   case 'd':
-    return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
+    return cx->dis_opts.avrlevel == (PART_ALL | OP_Undocumented);
   }
   return 0;
 }
@@ -547,7 +547,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           disasm_zap_jumpcalls();
           break;
         case 'd':
-          cx->dis_opts.avrlevel = PART_ALL | OP_AVR_ILL;
+          cx->dis_opts.avrlevel = PART_ALL | OP_Undocumented;
           break;
         case 'D':
           cx->dis_opts.avrlevel = avr_get_archlevel(p);
