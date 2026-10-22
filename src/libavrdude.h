@@ -1598,7 +1598,7 @@ typedef enum {                  // Opcode classes according to when they were in
   OP_AVR_XL      = 0x0400,      // AVR with flash > 128 kB (EIJMP, EICALL)
   OP_AVR_DES     = 0x0800,      // XMEGA A, B, C family with encryption engine (DES)
   OP_AVR_RMW     = 0x1000,      // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (DES, XCH, LAC, LAS, LAT)
-  OP_AVR_XTM     = 0x2000,      // XMEGA and UPDI only (SPM Z+)
+  IS_SPMx        = 0x2000,      // XMEGA and UPDI only (SPM Z+)
   OP_AVR_ILL     = 0x4000,      // Undocumented (illegal) opcodes
 } AVR_archlevel;
 
@@ -1619,8 +1619,8 @@ typedef enum {                  // Opcode classes according to when they were in
 #define PART_AVR5   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
 #define PART_AVR51  (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
 #define PART_AVR6   (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL)
-#define PART_AVR_XT (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL|OP_AVR_XTM)
-#define PART_AVR_XM (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL|OP_AVR_XTM)
+#define PART_AVR_XT (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL|IS_SPMx)
+#define PART_AVR_XM (OP_AVR1|IS_LPM|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|IS_MUL|IS_SPMx)
 #define PART_ALL    ((OP_AVR_ILL-1) & ~OP_AVR_RC) // All but RC (the latter conflicts)
 
 // Opcode types

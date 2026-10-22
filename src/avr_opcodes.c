@@ -401,7 +401,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(spm), 0xffff, 0x95e8, 1, IS_MOVW_SPM, "1001 0101  1110 1000", OTY_XFRX,
       "spm", "", "store program memory", "(RAMPZ:Z) <-- R1:R0", "--------",
     {"-", "-", "-", "-"}, ""},
-  {OP_ID(spm_zp), 0xffff, 0x95f8, 1, OP_AVR_XTM, "1001 0101  1111 1000", OTY_XFRX,
+  {OP_ID(spm_zp), 0xffff, 0x95f8, 1, IS_SPMx, "1001 0101  1111 1000", OTY_XFRX,
       "spm", "Z+", "store program memory and post-increment by 2", "(RAMPZ:Z) <-- R1:R0, Z <-- Z + 2", "--------",
     {"n/a", "-", "-", "n/a"}, ""},
   {OP_ID(in), 0xf800, 0xb000, 1, OP_AVR1, "1011 0AAd  dddd AAAA", OTY_XFRX | OTY_RALL,
