@@ -727,7 +727,7 @@ AVR_cycle_index avr_get_cycle_index(const AVRPART *p) {
 
 // Return the mnemonic string of an opcode
 const char *mnemo_str(int op) {
-  AVR_mnemo mnemo = opcode_mnemo(op, PART_ALL | OP_Undocumented);
+  AVR_mnemo mnemo = opcode_mnemo(op, OP_All);
 
   if(mnemo < 0 || mnemo >= MNEMO_N)
     return "illegal";
@@ -761,7 +761,7 @@ int z_width(int op16, AVR_mnemo *mnemop) {
 
 // Where else could the PC of the 16-bit opcode op16 at address here move to other than here + 2?
 int op16_target(int here, int op16) {
-  AVR_mnemo mnemo = opcode_mnemo(op16, PART_ALL | OP_Undocumented);
+  AVR_mnemo mnemo = opcode_mnemo(op16, OP_All);
 
   if(mnemo >= 0 && mnemo < MNEMO_N) {
     switch(avr_opcodes[mnemo].type & OTY_TYPE_MASK) {
