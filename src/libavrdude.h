@@ -1585,44 +1585,44 @@ typedef enum {
 } AVR_mnemo;
 
 typedef enum {                  // Opcode classes according to when they were introduced
-  IS_AVRrc        = 0x0001,     // Reduced-core Tiny only (128 byte sts/lds)
+  OP_AVRrc        = 0x0001,     // Reduced-core Tiny only (128 byte sts/lds)
   OP_AVR1         = 0x0002,     // All AVR can run this OPCODE
-  IS_LPM          = 0x0004,     // All except reduced-core Tiny (TPI i/face) and AT90S1200 (lpm)
+  OP_LPM          = 0x0004,     // All except reduced-core Tiny (TPI i/face) and AT90S1200 (lpm)
   OP_AVR2         = 0x0008,     // New in AVR with archnum 2 and above also in reduced-core Tiny
-  IS_AVR2e        = 0x0010,     // New in AVR with archnum 2+ but not reduced-core Tiny
-  IS_MOVW_SPM     = 0x0020,     // New in AVR with archnum 25 and above
-  IS_LPMx         = 0x0040,     // New in AVR with archnum 25 and above
-  IS_JMP_CALL     = 0x0080,     // AVR with flash > 8 kB or archnum 3+ (jmp, call)
-  IS_MUL          = 0x0100,     // New in AVR with archnum 4 and above (mul, muls, mulsu, fmul, fmuls, fmulsu)
-  IS_ELPM         = 0x0200,     // AVR with flash > 64 kB (elmp)
-  IS_ELPMx        = 0x0400,     // AVR with flash > 64 kB (elmp Rn,Z and elpm Rn,Z+)
-  IS_EIJMP_EICALL = 0x0800,     // AVR with flash > 128 kB (eijmp, eicall)
-  IS_DES          = 0x1000,     // XMEGA A, B, C family with encryption engine (des)
-  IS_RMW          = 0x2000,     // 2nd rev XMEGA AU, B, C read-modify-write opcodes (des, xch, lac, las, lat)
-  IS_SPMx         = 0x4000,     // XMEGA and UPDI only (spm Z+)
+  OP_AVR2e        = 0x0010,     // New in AVR with archnum 2+ but not reduced-core Tiny
+  OP_MOVW_SPM     = 0x0020,     // New in AVR with archnum 25 and above
+  OP_LPMx         = 0x0040,     // New in AVR with archnum 25 and above
+  OP_JMP_CALL     = 0x0080,     // AVR with flash > 8 kB or archnum 3+ (jmp, call)
+  OP_MUL          = 0x0100,     // New in AVR with archnum 4 and above (mul, muls, mulsu, fmul, fmuls, fmulsu)
+  OP_ELPM         = 0x0200,     // AVR with flash > 64 kB (elmp)
+  OP_ELPMx        = 0x0400,     // AVR with flash > 64 kB (elmp Rn,Z and elpm Rn,Z+)
+  OP_EIJMP_EICALL = 0x0800,     // AVR with flash > 128 kB (eijmp, eicall)
+  OP_DES          = 0x1000,     // XMEGA A, B, C family with encryption engine (des)
+  OP_RMW          = 0x2000,     // 2nd rev XMEGA AU, B, C read-modify-write opcodes (des, xch, lac, las, lat)
+  OP_SPMx         = 0x4000,     // XMEGA and UPDI only (spm Z+)
   OP_Undocumented = 0x8000,     // Undocumented (illegal) opcodes
-  OP_All          = 0xfffe,     // All of the above except IS_AVRrc as their bit pattern conflict with others
+  OP_All          = 0xfffe,     // All of the above except OP_AVRrc as their bit pattern conflict with others
 } AVR_archlevel;
 
 /*
  * Approximation(!) of which opcodes a part may have given its archnum
  *   - Take with a pinch of salt
- *   - Must or in IS_JMP_CALL, IS_ELPM, IS_ELPMx and IS_EIJMP_EICALL depending on flash size
- *   - And for XMEGAs depending on availability IS_DES and IS_RMW
+ *   - Must or in OP_JMP_CALL, OP_ELPM, OP_ELPMx and OP_EIJMP_EICALL depending on flash size
+ *   - And for XMEGAs depending on availability OP_DES and OP_RMW
  */
 #define PART_AVR1   OP_AVR1
-#define PART_AVR_RC (OP_AVR1|OP_AVR2|IS_AVRrc)
-#define PART_AVR2   (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e)
-#define PART_AVR25  (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx)
-#define PART_AVR3   (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx)
-#define PART_AVR31  (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx)
-#define PART_AVR35  (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx)
-#define PART_AVR4   (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL)
-#define PART_AVR5   (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL)
-#define PART_AVR51  (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL)
-#define PART_AVR6   (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL)
-#define PART_AVR_XT (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL|IS_SPMx)
-#define PART_AVR_XM (OP_AVR1|IS_LPM|OP_AVR2|IS_AVR2e|IS_MOVW_SPM|IS_LPMx|IS_MUL|IS_SPMx)
+#define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVRrc)
+#define PART_AVR2   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e)
+#define PART_AVR25  (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx)
+#define PART_AVR3   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx)
+#define PART_AVR31  (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx)
+#define PART_AVR35  (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx)
+#define PART_AVR4   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL)
+#define PART_AVR5   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL)
+#define PART_AVR51  (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL)
+#define PART_AVR6   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL)
+#define PART_AVR_XT (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx)
+#define PART_AVR_XM (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx)
 
 // Opcode types
 #define OTY_REG_MASK          7 // Register formula mask
