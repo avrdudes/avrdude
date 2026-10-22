@@ -1585,27 +1585,28 @@ typedef enum {
 } AVR_mnemo;
 
 typedef enum {                  // Opcode classes according to when they were introduced
-  OP_AVR_RC      = 0x0001,      // Reduced-core Tiny only (128 byte STS/LDS)
+  OP_AVR_RC      = 0x0001,      // Reduced-core Tiny only (128 byte sts/lds)
   OP_AVR1        = 0x0002,      // All AVR can run this OPCODE
-  IS_LPM         = 0x0004,      // All except reduced-core Tiny (TPI i/face) and AT90S1200 (LPM)
+  IS_LPM         = 0x0004,      // All except reduced-core Tiny (TPI i/face) and AT90S1200 (lpm)
   OP_AVR2        = 0x0008,      // New in AVR with archnum 2 and above also in reduced-core Tiny
   OP_AVR2nRC     = 0x0010,      // New in AVR with archnum 2+ but not reduced-core Tiny
   IS_MOVW_SPM    = 0x0020,      // New in AVR with archnum 25 and above
   IS_LPMx        = 0x0040,      // New in AVR with archnum 25 and above
-  IS_JMP_CALL    = 0x0080,      // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
-  IS_MUL         = 0x0100,      // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
-  IS_ELMPx       = 0x0200,      // AVR with flash > 64 kB (ELMP)
-  OP_AVR_XL      = 0x0400,      // AVR with flash > 128 kB (EIJMP, EICALL)
-  OP_AVR_DES     = 0x0800,      // XMEGA A, B, C family with encryption engine (DES)
-  OP_AVR_RMW     = 0x1000,      // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (DES, XCH, LAC, LAS, LAT)
-  IS_SPMx        = 0x2000,      // XMEGA and UPDI only (SPM Z+)
-  OP_AVR_ILL     = 0x4000,      // Undocumented (illegal) opcodes
+  IS_JMP_CALL    = 0x0080,      // AVR with flash > 8 kB or archnum 3+ (jmp, call)
+  IS_MUL         = 0x0100,      // New in AVR with archnum 4 and above (mul, muls, mulsu, fmul, fmuls, fmulsu)
+  IS_ELPM        = 0x0200,      // AVR with flash > 64 kB (elmp)
+  IS_ELPMx       = 0x0400,      // AVR with flash > 64 kB (elmp Rn,Z and elpm Rn,Z+)
+  OP_AVR_XL      = 0x0800,      // AVR with flash > 128 kB (eijmp, eicall)
+  OP_AVR_DES     = 0x1000,      // XMEGA A, B, C family with encryption engine (des)
+  OP_AVR_RMW     = 0x2000,      // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (des, xch, lac, las, lat)
+  IS_SPMx        = 0x4000,      // XMEGA and UPDI only (spm Z+)
+  OP_AVR_ILL     = 0x8000,      // Undocumented (illegal) opcodes
 } AVR_archlevel;
 
 /*
  * Approximation(!) of which opcodes a part may have given its archnum
  *   - Take with a pinch of salt
- *   - Must or in IS_JMP_CALL,  IS_ELMPx and OP_AVR_XL depending on flash size
+ *   - Must or in IS_JMP_CALL, IS_ELPM, IS_ELPMx and OP_AVR_XL depending on flash size
  *   - And for XMEGAs depending on availability OP_AVR_DES and OP_AVR_RMW
  */
 #define PART_AVR1   OP_AVR1

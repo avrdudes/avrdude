@@ -389,13 +389,13 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(lpm_zp), 0xfe0f, 0x9005, 1, IS_LPMx, "1001 000d  dddd 0101", OTY_XFRX | OTY_RALL | OTY_ZWRN,
       "lpm", "Rd, Z+", "load program memory and post-increment", "Rd <-- (Z), Z <-- Z + 1", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(elpm_0), 0xffff, 0x95d8, 1, IS_ELMPx, "1001 0101  1101 1000", OTY_XFRX,
+  {OP_ID(elpm_0), 0xffff, 0x95d8, 1, IS_ELPM, "1001 0101  1101 1000", OTY_XFRX,
       "elpm", "", "extended load program memory", "R0 <-- (RAMPZ:Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(elpm_z), 0xfe0f, 0x9006, 1, IS_ELMPx, "1001 000d  dddd 0110", OTY_XFRX | OTY_RALL,
+  {OP_ID(elpm_z), 0xfe0f, 0x9006, 1, IS_ELPMx, "1001 000d  dddd 0110", OTY_XFRX | OTY_RALL,
       "elpm", "Rd, Z", "extended load program memory", "Rd <-- (RAMPZ:Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(elpm_zp), 0xfe0f, 0x9007, 1, IS_ELMPx, "1001 000d  dddd 0111", OTY_XFRX | OTY_RALL | OTY_ZWRN,
+  {OP_ID(elpm_zp), 0xfe0f, 0x9007, 1, IS_ELPMx, "1001 000d  dddd 0111", OTY_XFRX | OTY_RALL | OTY_ZWRN,
       "elpm", "Rd, Z+", "extended load program memory and post-increment", "Rd <-- (RAMPZ:Z), Z <-- Z + 1", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(spm), 0xffff, 0x95e8, 1, IS_MOVW_SPM, "1001 0101  1110 1000", OTY_XFRX,
@@ -712,7 +712,7 @@ int avr_get_archlevel(const AVRPART *p) {
     if(mem->size > 8192)
       ret |= IS_JMP_CALL;       // JMP, CALL
     if(mem->size > 65536)
-      ret |= IS_ELMPx;          // ELPM
+      ret |= IS_ELPMx | IS_ELPM; // All ELPM forms
     if(mem->size > 128*1024)
       ret |= OP_AVR_XL;         // EIJMP, EICALL
   }
