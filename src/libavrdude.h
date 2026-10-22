@@ -1585,20 +1585,21 @@ typedef enum {
 } AVR_mnemo;
 
 typedef enum {                  // Opcode classes according to when they were introduced
-  OP_AVR_RC = 1,                // Reduced-core Tiny only (128 byte STS/LDS)
-  OP_AVR1 = 2,                  // All AVR can run this OPCODE
-  OP_AVR1nRC = 4,               // All except reduced-core Tiny (TPI i/face) and AT90S1200
-  OP_AVR2 = 8,                  // New in AVR with archnum 2 and above also in reduced-core Tiny
-  OP_AVR2nRC = 16,              // New in AVR with archnum 2+ but not reduced-core Tiny
-  OP_AVR25 = 32,                // New in AVR with archnum 25 and above
-  OP_AVR_M = 64,                // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
-  OP_AVR4 = 128,                // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
-  OP_AVR_L = 256,               // AVR with flash > 64 kB (ELMP)
-  OP_AVR_XL = 512,              // AVR with flash > 128 kB (EIJMP, EICALL)
-  OP_AVR_DES = 1024,            // XMEGA A, B, C family with encryption engine (DES)
-  OP_AVR_RMW = 2048,            // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (DES, XCH, LAC, LAS, LAT)
-  OP_AVR_XTM = 4096,            // XMEGA and UPDI only (SPM Z+)
-  OP_AVR_ILL = 8192,            // Undocumented (illegal) opcodes
+  OP_AVR_RC      = 0x0001,      // Reduced-core Tiny only (128 byte STS/LDS)
+  OP_AVR1        = 0x0002,      // All AVR can run this OPCODE
+  OP_AVR1nRC     = 0x0004,      // All except reduced-core Tiny (TPI i/face) and AT90S1200
+  OP_AVR2        = 0x0008,      // New in AVR with archnum 2 and above also in reduced-core Tiny
+  OP_AVR2nRC     = 0x0010,      // New in AVR with archnum 2+ but not reduced-core Tiny
+  IS_MOVW_SPM    = 0x0020,      // New in AVR with archnum 25 and above
+  IS_LPMx        = 0x0040,      // New in AVR with archnum 25 and above
+  OP_AVR_M       = 0x0080,      // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
+  OP_AVR4        = 0x0100,      // New in AVR with archnum 4 and above (MUL, MULS, MULSU, FMUL, FMULS, FMULSU)
+  OP_AVR_L       = 0x0200,      // AVR with flash > 64 kB (ELMP)
+  OP_AVR_XL      = 0x0400,      // AVR with flash > 128 kB (EIJMP, EICALL)
+  OP_AVR_DES     = 0x0800,      // XMEGA A, B, C family with encryption engine (DES)
+  OP_AVR_RMW     = 0x1000,      // 2nd revision XMEGA AU, B, C with read-modify-write opcodes (DES, XCH, LAC, LAS, LAT)
+  OP_AVR_XTM     = 0x2000,      // XMEGA and UPDI only (SPM Z+)
+  OP_AVR_ILL     = 0x4000,      // Undocumented (illegal) opcodes
 } AVR_archlevel;
 
 /*
@@ -1610,16 +1611,16 @@ typedef enum {                  // Opcode classes according to when they were in
 #define PART_AVR1   OP_AVR1
 #define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVR_RC)
 #define PART_AVR2   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC)
-#define PART_AVR25  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
-#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
-#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
-#define PART_AVR35  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
-#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
-#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
-#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
-#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4)
-#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_XTM)
-#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_XTM)
+#define PART_AVR25  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
+#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
+#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
+#define PART_AVR35  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx)
+#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
+#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
+#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
+#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4)
+#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4|OP_AVR_XTM)
+#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|IS_MOVW_SPM|IS_LPMx|OP_AVR4|OP_AVR_XTM)
 #define PART_ALL    ((OP_AVR_ILL-1) & ~OP_AVR_RC) // All but RC (the latter conflicts)
 
 // Opcode types
