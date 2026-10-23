@@ -1584,24 +1584,49 @@ typedef enum {
   MNEMO_N
 } AVR_mnemo;
 
-typedef enum {                  // Opcode classes according to when they were introduced
-  OP_AVRrc        = 0x0001,     // Reduced-core Tiny only (128 byte sts/lds)
-  OP_AVR1         = 0x0002,     // All AVR can run this OPCODE
-  OP_LPM          = 0x0004,     // All except reduced-core Tiny (TPI i/face) and AT90S1200 (lpm)
-  OP_AVR2         = 0x0008,     // New in AVR with archnum 2 and above also in reduced-core Tiny
-  OP_AVR2e        = 0x0010,     // New in AVR with archnum 2+ but not reduced-core Tiny
-  OP_MOVW_SPM     = 0x0020,     // New in AVR with archnum 25 and above
-  OP_LPMx         = 0x0040,     // New in AVR with archnum 25 and above
-  OP_JMP_CALL     = 0x0080,     // AVR with flash > 8 kB or archnum 3+ (jmp, call)
-  OP_MUL          = 0x0100,     // New in AVR with archnum 4 and above (mul, muls, mulsu, fmul, fmuls, fmulsu)
-  OP_ELPM         = 0x0200,     // AVR with flash > 64 kB (elmp)
-  OP_ELPMx        = 0x0400,     // AVR with flash > 64 kB (elmp Rn,Z and elpm Rn,Z+)
-  OP_EIJMP_EICALL = 0x0800,     // AVR with flash > 128 kB (eijmp, eicall)
-  OP_DES          = 0x1000,     // XMEGA A, B, C family with encryption engine (des)
-  OP_RMW          = 0x2000,     // 2nd rev XMEGA AU, B, C read-modify-write opcodes (des, xch, lac, las, lat)
-  OP_SPMx         = 0x4000,     // XMEGA and UPDI only (spm Z+)
-  OP_Undocumented = 0x8000,     // Undocumented (illegal) opcodes
-  OP_All          = 0xfffe,     // All of the above except OP_AVRrc as their bit pattern conflict with others
+typedef enum {
+  // Opcode classes according to when they were introduced
+  OP_AVRrc        = 0x00001,    // Reduced-core Tiny only (128 byte sts/lds)
+  OP_AVR1         = 0x00002,    // All AVR can run this OPCODE
+  OP_LPM          = 0x00004,    // All except reduced-core Tiny (TPI i/face) and AT90S1200 (lpm)
+  OP_AVR2         = 0x00008,    // New in AVR with archnum 2 and above also in reduced-core Tiny
+  OP_AVR2e        = 0x00010,    // New in AVR with archnum 2+ but not reduced-core Tiny
+  OP_MOVW_SPM     = 0x00020,    // New in AVR with archnum 25 and above
+  OP_LPMx         = 0x00040,    // New in AVR with archnum 25 and above
+  OP_JMP_CALL     = 0x00080,    // AVR with flash > 8 kB or archnum 3+ (jmp, call)
+  OP_MUL          = 0x00100,    // New in AVR with archnum 4 and above (mul, muls, mulsu, fmul, fmuls, fmulsu)
+  OP_ELPM         = 0x00200,    // AVR with flash > 64 kB (elmp)
+  OP_ELPMx        = 0x00400,    // AVR with flash > 64 kB (elmp Rn,Z and elpm Rn,Z+)
+  OP_EIJMP_EICALL = 0x00800,    // AVR with flash > 128 kB (eijmp, eicall)
+  OP_DES          = 0x01000,    // XMEGA A, B, C family with encryption engine (des)
+  OP_RMW          = 0x02000,    // 2nd rev XMEGA AU, B, C read-modify-write opcodes (des, xch, lac, las, lat)
+  OP_SPMx         = 0x04000,    // XMEGA and UPDI only (spm Z+)
+  OP_Undocumented = 0x08000,    // Undocumented (illegal) opcodes
+  OP_All          = 0x0fffe,    // All of the above except OP_AVRrc as their bit pattern conflict with others
+
+  // Help registers for addressing memory
+  REG_RAMPDXY     = 0x10000,    // Has RAMPD, RAMPX, and RAMPY register for addressing RAM in excess of 64 kB
+  REG_RAMPZ       = 0x20000,    // Has RAMPZ register for addressing flash in excess of 64(!) kB via Z register
+  MEM_LINEAR64    = 0x40000,    // Flash up to 48 kB that is mapped into data space (UPDI devices only)
+
+  // Instruction set architectures (OP_RMW and OP_DES need to be added if the ATxmega part has that)
+  ISA_avrxmega7 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPDXY|REG_RAMPZ,
+  ISA_avrxmega6 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPZ,
+  ISA_avrxmega5 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPDXY|REG_RAMPZ,
+  ISA_avrxmega4 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPZ,
+  ISA_avrxmega3 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|MEM_LINEAR64,
+  ISA_avrxmega2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL,
+  ISA_avr6 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPZ,
+  ISA_avr51 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPZ,
+  ISA_avr5 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL,
+  ISA_avr4 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL,
+  ISA_avr35 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_JMP_CALL,
+  ISA_avr31 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL|OP_ELPM,
+  ISA_avr3 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL,
+  ISA_avr25 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx,
+  ISA_avr2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e,
+  ISA_avrtiny = OP_AVR1|OP_AVR2|OP_AVRrc,
+  ISA_avr1 = OP_AVR1,
 } AVR_archlevel;
 
 /*
