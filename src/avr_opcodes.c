@@ -674,35 +674,35 @@ int avr_get_archlevel(const AVRPART *p) {
     case -1:                    // Not 8-bit AVR: return 0
       break;
     case 1:
-      ret = PART_AVR1;
+      ret = ISA_avr1;
       break;
     default:                    // If AVRDUE doesn't know, it's probably rare & old
     case 2:
-      ret = PART_AVR2;
+      ret = ISA_avr2;
       break;
     case 25:
-      ret = PART_AVR25;
+      ret = ISA_avr25;
       break;
     case 3:
-      ret = PART_AVR3;
+      ret = ISA_avr3;
       break;
     case 31:
-      ret = PART_AVR31;
+      ret = ISA_avr31;
       break;
     case 35:
-      ret = PART_AVR35;
+      ret = ISA_avr35;
       break;
     case 4:
-      ret = PART_AVR4;
+      ret = ISA_avr4;
       break;
     case 5:
-      ret = PART_AVR5;
+      ret = ISA_avr5;
       break;
     case 51:
-      ret = PART_AVR51;
+      ret = ISA_avr51;
       break;
     case 6:
-      ret = PART_AVR6;
+      ret = ISA_avr6;
     }
   }
 
