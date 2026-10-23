@@ -1629,15 +1629,6 @@ typedef enum {
   ISA_avr1 = OP_AVR1,
 } AVR_archlevel;
 
-/*
- * Approximation(!) of which opcodes a part may have given its archnum
- *   - Take with a pinch of salt
- *   - Must or in OP_JMP_CALL, OP_ELPM, OP_ELPMx and OP_EIJMP_EICALL depending on flash size
- *   - And for XMEGAs depending on availability OP_DES and OP_RMW
- */
-#define PART_AVR_XT (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx)
-#define PART_AVR_XM (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx)
-
 // Opcode types
 #define OTY_REG_MASK          7 // Register formula mask
 #define OTY_RNONE             0 // No registers addressed in this opcode

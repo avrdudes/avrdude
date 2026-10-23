@@ -667,7 +667,8 @@ int op16_is_benign(int op16, int avrlevel) {    // Benign means no I/O or SRAM i
 // Opcodes in avr_opcodes[] that a part ought to be able to run
 int avr_get_archlevel(const AVRPART *p) {
   int ret =
-    is_updi(p)? PART_AVR_XT: is_pdi(p)? PART_AVR_XM: is_tpi(p)? ISA_avrtiny: 0;
+    is_updi(p) || is_pdi(p)? OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx:
+    is_tpi(p)? ISA_avrtiny: 0;
 
   if(!ret) {                    // Non-TPI classic part
     switch(p->archnum) {
