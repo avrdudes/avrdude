@@ -636,7 +636,7 @@ AVR_mnemo opcode_mnemo(int op, int avrlevel) {
   for(AVR_mnemo i = 0; i < MNEMO_N; i++)
     if(avr_opcodes[i].avrlevel & avrlevel)
       if(op16_is_mnemo(op, i)) {
-        if(avrlevel == PART_AVR_RC && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
+        if(avrlevel == ISA_avrtiny && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
           // Reduced-core ATtiny does not have registers r0, ..., r15
           int bmask;            // Assert highest bit in 5-bit r/d is set
 
@@ -667,7 +667,7 @@ int op16_is_benign(int op16, int avrlevel) {    // Benign means no I/O or SRAM i
 // Opcodes in avr_opcodes[] that a part ought to be able to run
 int avr_get_archlevel(const AVRPART *p) {
   int ret =
-    is_updi(p)? PART_AVR_XT: is_pdi(p)? PART_AVR_XM: is_tpi(p)? PART_AVR_RC: 0;
+    is_updi(p)? PART_AVR_XT: is_pdi(p)? PART_AVR_XM: is_tpi(p)? ISA_avrtiny: 0;
 
   if(!ret) {                    // Non-TPI classic part
     switch(p->archnum) {

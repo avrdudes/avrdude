@@ -1636,7 +1636,6 @@ typedef enum {
  *   - And for XMEGAs depending on availability OP_DES and OP_RMW
  */
 #define PART_AVR1   OP_AVR1
-#define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVRrc)
 #define PART_AVR2   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e)
 #define PART_AVR25  (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx)
 #define PART_AVR3   (OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx)
