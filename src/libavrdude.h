@@ -1586,26 +1586,26 @@ typedef enum {
 
 typedef enum {
   // Opcode classes according to when they were introduced
-  OP_AVRrc        = 0x00001,    // Reduced-core Tiny only (128 byte sts/lds)
-  OP_AVR1         = 0x00002,    // All AVR can run this OPCODE
-  OP_LPM          = 0x00004,    // All except reduced-core Tiny (TPI i/face) and AT90S1200 (lpm)
-  OP_AVR2         = 0x00008,    // New in AVR with archnum 2 and above also in reduced-core Tiny
-  OP_AVR2e        = 0x00010,    // New in AVR with archnum 2+ but not reduced-core Tiny
-  OP_MOVW_SPM     = 0x00020,    // New in AVR with archnum 25 and above
-  OP_LPMx         = 0x00040,    // New in AVR with archnum 25 and above
-  OP_JMP_CALL     = 0x00080,    // AVR with flash > 8 kB or archnum 3+ (jmp, call)
-  OP_MUL          = 0x00100,    // New in AVR with archnum 4 and above (mul, muls, mulsu, fmul, fmuls, fmulsu)
-  OP_ELPM         = 0x00200,    // AVR with flash > 64 kB (elmp)
-  OP_ELPMx        = 0x00400,    // AVR with flash > 64 kB (elmp Rn,Z and elpm Rn,Z+)
-  OP_EIJMP_EICALL = 0x00800,    // AVR with flash > 128 kB (eijmp, eicall)
-  OP_DES          = 0x01000,    // XMEGA A, B, C family with encryption engine (des)
-  OP_RMW          = 0x02000,    // 2nd rev XMEGA AU, B, C read-modify-write opcodes (des, xch, lac, las, lat)
-  OP_SPMx         = 0x04000,    // XMEGA and UPDI only (spm Z+)
+  OP_AVRrc        = 0x00001,    // 128 byte sts/lds opcodes that only run on reduced-core Tinys
+  OP_AVR1         = 0x00002,    // Minimal-core opcodes that run on all AVR
+  OP_LPM          = 0x00004,    // Lpm opcode (not in reduced-core Tiny and AT90S1200)
+  OP_AVR2         = 0x00008,    // Opcodes added for archnum 2 and above, also in reduced-core Tinys
+  OP_AVR2e        = 0x00010,    // Opcodes added for archnum 2 and above but not reduced-core Tinys
+  OP_MOVW_SPM     = 0x00020,    // Movw and spm opcodes
+  OP_LPMx         = 0x00040,    // Lmp Rn, Z and lpm Rn, Z+ opcodes
+  OP_JMP_CALL     = 0x00080,    // Jmp and call (AVR with flash of more than 8 kB)
+  OP_MUL          = 0x00100,    // Mul, muls, mulsu, fmul, fmuls and fmulsu opcodes
+  OP_ELPM         = 0x00200,    // Elmp opcode (AVR with flash of more than 64 kB)
+  OP_ELPMx        = 0x00400,    // Elmp Rn, Z and elpm Rn, Z+ opcodes
+  OP_EIJMP_EICALL = 0x00800,    // Eijmp and eicall opcodes (AVR with flash of more than 128 kB)
+  OP_DES          = 0x01000,    // Des opcode (XMEGA A, B, C family parts with an encryption engine)
+  OP_RMW          = 0x02000,    // Read-modify-write xch, lac, las and lat (2nd revision XMEGA AU, B, C)
+  OP_SPMx         = 0x04000,    // Spm Z+ opcode (XMEGA and UPDI only)
   OP_Undocumented = 0x08000,    // Undocumented (illegal) opcodes
-  OP_All          = 0x0fffe,    // All of the above except OP_AVRrc as their bit pattern conflict with others
+  OP_All          = 0x0fffe,    // All of the above except OP_AVRrc as their bit patterns conflict with others
 
   // Help registers for addressing memory
-  REG_RAMPDXY     = 0x10000,    // Has RAMPD, RAMPX, and RAMPY register for addressing RAM in excess of 64 kB
+  REG_RAMPDXY     = 0x10000,    // Has RAMPD, RAMPX and RAMPY register for addressing RAM in excess of 64 kB
   REG_RAMPZ       = 0x20000,    // Has RAMPZ register for addressing flash in excess of 64(!) kB via Z register
   MEM_LINEAR64    = 0x40000,    // Flash up to 48 kB that is mapped into data space (UPDI devices only)
 
