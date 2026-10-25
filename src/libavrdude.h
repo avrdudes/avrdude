@@ -1629,7 +1629,7 @@ typedef enum {
   ISA_avr2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e,
   ISA_avrtiny = OP_AVR1|OP_AVR2|OP_AVRrc,
   ISA_avr1 = OP_AVR1,
-} AVR_archlevel;
+} AVR_instruction_set;
 
 // Opcode types
 #define OTY_REG_MASK          7 // Register formula mask
@@ -1670,7 +1670,7 @@ typedef struct {
   AVR_mnemo mnemo;              // Eg, MNEMO_add
   const char *idname;           // Unique id, eg, "ldx_1" (for error msgs or debugging)
   int mask, value, nwords;
-  AVR_archlevel isa;            // Instruction set architecture, eg, OP_AVR5
+  AVR_instruction_set isa;      // Instruction set architecture, eg, OP_AVR5
   const char *bits;             // "0000 11rd  dddd rrrr"
   int type;                     // OTY_ALBI|OTY_RALL
   const char
