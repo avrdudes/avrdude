@@ -631,12 +631,12 @@ static int bitmask_first_chr(const char *bits, int chr) {
   return ret;
 }
 
-// Return first match of opcode that is compatible with avrlevel or MNEMO_NONE
-AVR_mnemo opcode_mnemo(int op, int avrlevel) {
+// Return first match of opcode that is compatible with instruction set or MNEMO_NONE
+AVR_mnemo opcode_mnemo(int op, int isa) {
   for(AVR_mnemo i = 0; i < MNEMO_N; i++)
-    if(avr_opcodes[i].avrlevel & avrlevel)
+    if(avr_opcodes[i].isa & isa)
       if(op16_is_mnemo(op, i)) {
-        if(avrlevel == ISA_avrtiny && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
+        if(isa == ISA_avrtiny && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
           // Reduced-core ATtiny does not have registers r0, ..., r15
           int bmask;            // Assert highest bit in 5-bit r/d is set
 
@@ -650,16 +650,16 @@ AVR_mnemo opcode_mnemo(int op, int avrlevel) {
   return MNEMO_NONE;
 }
 
-// Is 16-bit opcode valid for AVR part with avrlevel architecture?
-int op16_is_valid(int op16, int avrlevel) {
-  int mnemo = opcode_mnemo(op16, avrlevel);
+// Is 16-bit opcode valid for AVR part with instruction set architecture?
+int op16_is_valid(int op16, int isa) {
+  int mnemo = opcode_mnemo(op16, isa);
 
   return mnemo >= 0 && mnemo <= MNEMO_N;
 }
 
-// Is 16-bit opcode valid and benign for AVR part with avrlevel architecture?
-int op16_is_benign(int op16, int avrlevel) {    // Benign means no I/O or SRAM is being read/written
-  int mnemo = opcode_mnemo(op16, avrlevel);
+// Is 16-bit opcode valid and benign for AVR part with instruction set architecture?
+int op16_is_benign(int op16, int isa) { // Benign means no I/O or SRAM is being read/written
+  int mnemo = opcode_mnemo(op16, isa);
 
   return mnemo >= 0 && mnemo <= MNEMO_N && !(avr_opcodes[mnemo].type & OTY_EXTERNAL);
 }

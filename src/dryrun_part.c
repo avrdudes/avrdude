@@ -431,14 +431,14 @@ static void putop16(unsigned char *addr, int op) {
 
 // Put n/2 random benign opcodes compatible with part into memory at addr
 static void putcode(const AVRPART *p, const AVRMEM *flm, int addr, int n) {
-  int i, op, inrange, pc, end = addr + n/2*2, avrlevel = avr_get_archlevel(p);
+  int i, op, inrange, pc, end = addr + n/2*2, isa = avr_get_archlevel(p);
 
   for(i = 0; i < n/2; i++) {
     do {
       inrange = 0;
       // Last opcode is a long backward jump; the others are random
       op = i == n/2 - 1? dist2rjmp(-2*(i < 2048? i: 2047)): random() & 0xffff;
-      if(op16_is_benign(op, avrlevel))
+      if(op16_is_benign(op, isa))
         inrange = (pc = op16_target(addr + 2*i, op)) >= addr && pc < end;
     } while(!inrange);
     putop16(flm->buf + addr + 2*i, op);

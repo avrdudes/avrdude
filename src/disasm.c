@@ -722,7 +722,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
     if(pos + 1 >= buflen)
       return 0;
 
-    if(!(s = find_symbol('P', disasm_wrap(pos + offset + 1)))) {        // No PGM label, check for fill block
+    if(!(s = find_symbol('P', disasm_wrap(pos + offset + 1)))) { // No PGM label, check for fill block
       int k = 0;
 
       if((buf[pos] & 0xff) == 0xff && (buf[pos + 1] & 0xff) == 0xff)
@@ -1316,7 +1316,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       }
 
       opcode = buf2op16(pos);
-      mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
+      mnemo = opcode_mnemo(opcode, cx->dis_opts.isa);
       oplen = mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
 
       if(op16_is_mnemo(opcode, MNEMO_ldi))

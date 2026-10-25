@@ -1516,7 +1516,7 @@ typedef struct {
   // Flags how to display lines
   int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
   int op_names, op_explanations, avrgcc_style, labels, unused_labels;
-  int avrlevel;                 // Bit pattern identifying opcodes available for the disassembly
+  int isa;                      // Instruction set architecture (a pattern identifying available opcodes)
   char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
 } Dis_options;
 
@@ -1670,7 +1670,7 @@ typedef struct {
   AVR_mnemo mnemo;              // Eg, MNEMO_add
   const char *idname;           // Unique id, eg, "ldx_1" (for error msgs or debugging)
   int mask, value, nwords;
-  AVR_archlevel avrlevel;       // OP_AVR1
+  AVR_archlevel isa;            // Instruction set architecture, eg, OP_AVR5
   const char *bits;             // "0000 11rd  dddd rrrr"
   int type;                     // OTY_ALBI|OTY_RALL
   const char
@@ -1835,9 +1835,9 @@ extern "C" {
   int op_width(int op16);
   int ldi_Rd(int op16);
   int ldi_K(int op16);
-  AVR_mnemo opcode_mnemo(int op16, int avrlevel);
-  int op16_is_valid(int op16, int avrlevel);
-  int op16_is_benign(int op16, int avrlevel);
+  AVR_mnemo opcode_mnemo(int op16, int isa);
+  int op16_is_valid(int op16, int isa);
+  int op16_is_benign(int op16, int isa);
   int avr_get_archlevel(const AVRPART *p);
   AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
   const char *mnemo_str(int op16);
