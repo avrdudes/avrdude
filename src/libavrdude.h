@@ -333,6 +333,7 @@ typedef struct avrpart {
   int prog_modes;               // Programming interfaces, see #define PM_...
   int mcuid;                    // Unique id in 0..2039 for urclock programmer
   int archnum;                  // Avr-gcc architecture number for the part
+  int instruction_set;          // Bit pattern describing the opcode set and RAMPx registers
   int n_interrupts;             // Number of interrupts, used for vector bootloaders
   int n_page_erase;             // If set, number of pages erased during NVM erase
   int n_boot_sections;          // Number of boot sections
@@ -1615,13 +1616,14 @@ typedef enum {
   ISA_avrxmega5 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPDXY|REG_RAMPZ,
   ISA_avrxmega4 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPZ,
   ISA_avrxmega3 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|MEM_LINEAR64,
+  ISA_avrxmega3small = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|MEM_LINEAR64,
   ISA_avrxmega2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL,
   ISA_avr6 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPZ,
   ISA_avr51 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPZ,
   ISA_avr5 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL,
   ISA_avr4 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL,
   ISA_avr35 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_JMP_CALL,
-  ISA_avr31 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL|OP_ELPM,
+  ISA_avr31 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL|OP_ELPM|REG_RAMPZ,
   ISA_avr3 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL,
   ISA_avr25 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx,
   ISA_avr2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e,

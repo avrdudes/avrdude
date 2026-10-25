@@ -151,6 +151,71 @@ static char *extra_features_str(int m) {
   return mode + (mode[1] == 0? 0: 4);
 }
 
+static char *archlevel_str(int m) {
+   static struct isas {
+    const char *name;
+    int isa;
+  } patterns[] = {
+    {"OP_All", OP_All},
+    {"ISA_avrxmega7", ISA_avrxmega7},
+    {"ISA_avrxmega6", ISA_avrxmega6},
+    {"ISA_avrxmega5", ISA_avrxmega5},
+    {"ISA_avrxmega4", ISA_avrxmega4},
+    {"ISA_avrxmega3", ISA_avrxmega3},
+    {"ISA_avrxmega3small", ISA_avrxmega3small},
+    {"ISA_avrxmega2", ISA_avrxmega2},
+    {"ISA_avr6", ISA_avr6},
+    {"ISA_avr51", ISA_avr51},
+    {"ISA_avr5", ISA_avr5},
+    {"ISA_avr4", ISA_avr4},
+    {"ISA_avr35", ISA_avr35},
+    {"ISA_avr31", ISA_avr31},
+    {"ISA_avr3", ISA_avr3},
+    {"ISA_avr25", ISA_avr25},
+    {"ISA_avr2", ISA_avr2},
+    {"ISA_avrtiny", ISA_avrtiny},
+    {"ISA_avr1", ISA_avr1},
+    {"OP_AVRrc", OP_AVRrc},
+    {"OP_AVR1", OP_AVR1},
+    {"OP_LPM", OP_LPM},
+    {"OP_AVR2", OP_AVR2},
+    {"OP_AVR2e", OP_AVR2e},
+    {"OP_MOVW_SPM", OP_MOVW_SPM},
+    {"OP_LPMx", OP_LPMx},
+    {"OP_JMP_CALL", OP_JMP_CALL},
+    {"OP_MUL", OP_MUL},
+    {"OP_ELPM", OP_ELPM},
+    {"OP_ELPMx", OP_ELPMx},
+    {"OP_EIJMP_EICALL", OP_EIJMP_EICALL},
+    {"OP_DES", OP_DES},
+    {"OP_RMW", OP_RMW},
+    {"OP_SPMx", OP_SPMx},
+    {"OP_Undocumented", OP_Undocumented},
+    {"REG_RAMPDXY", REG_RAMPDXY},
+    {"REG_RAMPZ", REG_RAMPZ},
+    {"MEM_LINEAR64", MEM_LINEAR64},
+  };
+  static char ret[1024];
+
+  if(m < 0) {
+    strcpy(ret, "-1");
+    return ret;
+  }
+
+  strcpy(ret, "0");
+  for(size_t i = 0; i < sizeof patterns/sizeof *patterns && m; i++) {
+    if((m & patterns[i].isa) == patterns[i].isa) {
+      m &= ~patterns[i].isa;
+      strcat(ret, " | ");
+      strcat(ret, patterns[i].name);
+    }
+  }
+  if(m)
+    sprintf(ret + strlen(ret), " | 0x%05x", m);
+
+  return ret + (ret[1] == 0? 0: 4);
+}
+
 // Check whether address bits are where they should be in ISP commands
 static void checkaddr(int memsize, int pagesize, int opnum, const OPCODE *op, const AVRPART *p, const AVRMEM *m) {
   int i, lo, hi;
@@ -594,6 +659,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     _if_partout(intcmp, "%d", mcuid);
   }
   _if_partout(intcmp, "%d", archnum);
+  _if_partout_str(intcmp, mmt_strdup(archlevel_str(p->instruction_set)), instruction_set);
   _if_partout(intcmp, "%d", n_interrupts);
   _if_partout(intcmp, "%d", n_page_erase);
   _if_partout(intcmp, "%d", n_boot_sections);

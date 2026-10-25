@@ -86,6 +86,7 @@ Component avr_comp[] = {
   part_comp_desc(prog_modes, COMP_INT),
   part_comp_desc(mcuid, COMP_INT),
   part_comp_desc(archnum, COMP_INT),
+  part_comp_desc(instruction_set, COMP_INT),
   part_comp_desc(n_interrupts, COMP_INT),
   part_comp_desc(n_page_erase, COMP_INT),
   part_comp_desc(n_boot_sections, COMP_INT),
@@ -351,6 +352,44 @@ TOKEN *new_constant(const char *con) {
     str_eq(con, "HAS_FOSC_ADJ")? HAS_FOSC_ADJ:
     str_eq(con, "HAS_VAREF_ADJ")? HAS_VAREF_ADJ:
     str_eq(con, "HAS_BITCLOCK_ADJ")? HAS_BITCLOCK_ADJ:
+    str_eq(con, "OP_All")? OP_All:
+    str_eq(con, "ISA_avrxmega7")? ISA_avrxmega7:
+    str_eq(con, "ISA_avrxmega6")? ISA_avrxmega6:
+    str_eq(con, "ISA_avrxmega5")? ISA_avrxmega5:
+    str_eq(con, "ISA_avrxmega4")? ISA_avrxmega4:
+    str_eq(con, "ISA_avrxmega3")? ISA_avrxmega3:
+    str_eq(con, "ISA_avrxmega3small")? ISA_avrxmega3small:
+    str_eq(con, "ISA_avrxmega2")? ISA_avrxmega2:
+    str_eq(con, "ISA_avr6")? ISA_avr6:
+    str_eq(con, "ISA_avr51")? ISA_avr51:
+    str_eq(con, "ISA_avr5")? ISA_avr5:
+    str_eq(con, "ISA_avr4")? ISA_avr4:
+    str_eq(con, "ISA_avr35")? ISA_avr35:
+    str_eq(con, "ISA_avr31")? ISA_avr31:
+    str_eq(con, "ISA_avr3")? ISA_avr3:
+    str_eq(con, "ISA_avr25")? ISA_avr25:
+    str_eq(con, "ISA_avr2")? ISA_avr2:
+    str_eq(con, "ISA_avrtiny")? ISA_avrtiny:
+    str_eq(con, "ISA_avr1")? ISA_avr1:
+    str_eq(con, "OP_AVRrc")? OP_AVRrc:
+    str_eq(con, "OP_AVR1")? OP_AVR1:
+    str_eq(con, "OP_LPM")? OP_LPM:
+    str_eq(con, "OP_AVR2")? OP_AVR2:
+    str_eq(con, "OP_AVR2e")? OP_AVR2e:
+    str_eq(con, "OP_MOVW_SPM")? OP_MOVW_SPM:
+    str_eq(con, "OP_LPMx")? OP_LPMx:
+    str_eq(con, "OP_JMP_CALL")? OP_JMP_CALL:
+    str_eq(con, "OP_MUL")? OP_MUL:
+    str_eq(con, "OP_ELPM")? OP_ELPM:
+    str_eq(con, "OP_ELPMx")? OP_ELPMx:
+    str_eq(con, "OP_EIJMP_EICALL")? OP_EIJMP_EICALL:
+    str_eq(con, "OP_DES")? OP_DES:
+    str_eq(con, "OP_RMW")? OP_RMW:
+    str_eq(con, "OP_SPMx")? OP_SPMx:
+    str_eq(con, "OP_Undocumented")? OP_Undocumented:
+    str_eq(con, "REG_RAMPDXY")? REG_RAMPDXY:
+    str_eq(con, "REG_RAMPZ")? REG_RAMPZ:
+    str_eq(con, "MEM_LINEAR64")? MEM_LINEAR64:
     str_eq(con, "pseudo")? 2:
     str_eq(con, "yes") || str_eq(con, "true")? 1: str_eq(con, "no") || str_eq(con, "false")? 0: (assigned = 0);
 

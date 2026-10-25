@@ -148,7 +148,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 
 (?x: desc | prog_modes | is_serialadapter | extra_features | port | baudrate |
   usbvid | usbdev | usbsn | usbvendor | usbproduct |
-  family_id | mcuid | archnum | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
+  family_id | mcuid | archnum | instruction_set | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
   hvupdi_variant | stk500_devcode | avr910_devcode | chip_erase_delay | pagel | bs2 |
   timeout | stabdelay | cmdexedelay | synchloops | bytedelay | pollindex | pollvalue | predelay | postdelay | pollmethod |
   hventerstabdelay | progmodedelay | latchcycles | togglevtg | poweroffdelay | resetdelayms | resetdelayus | resetdelay | hvleavestabdelay |
@@ -172,6 +172,9 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 
 (?x: PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) |
  HAS_(SUFFER|VTARG_SWITCH|VTARG_ADJ|VTARG_READ|FOSC_ADJ|VAREF_ADJ|BITCLOCK_ADJ) |
+ ISA_avr(1|2|25|3|31|35|4|5|51|6|tiny|xmega2|xmega3small|xmega3|xmega4|xmega5|xmega6|xmega7) |
+ OP_(All|AVR1|AVR2|AVR2e|AVRrc|DES|EIJMP_EICALL|ELPM|ELPMx|JMP_CALL|LPM|LPMx|MOVW_SPM|MUL|RMW|SPMx|Undocumented) |
+ REG_RAMP(DXY|Z) | MEM_LINEAR64 |
  yes|no|pseudo | true|false ) { /* Constants */
   yylval = new_constant(yytext);
   return TKN_NUMBER;
