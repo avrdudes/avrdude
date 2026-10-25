@@ -431,7 +431,7 @@ static void putop16(unsigned char *addr, int op) {
 
 // Put n/2 random benign opcodes compatible with part into memory at addr
 static void putcode(const AVRPART *p, const AVRMEM *flm, int addr, int n) {
-  int i, op, inrange, pc, end = addr + n/2*2, isa = avr_get_archlevel(p);
+  int i, op, inrange, pc, end = addr + n/2*2, isa = avr_get_instruction_set(p);
 
   for(i = 0; i < n/2; i++) {
     do {

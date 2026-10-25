@@ -1838,7 +1838,7 @@ extern "C" {
   AVR_mnemo opcode_mnemo(int op16, int isa);
   int op16_is_valid(int op16, int isa);
   int op16_is_benign(int op16, int isa);
-  int avr_get_archlevel(const AVRPART *p);
+  int avr_get_instruction_set(const AVRPART *p);
   AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
   const char *mnemo_str(int op16);
   int z_width(int op16, AVR_mnemo *mnenop);

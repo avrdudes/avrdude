@@ -665,7 +665,7 @@ int op16_is_benign(int op16, int isa) { // Benign means no I/O or SRAM is being 
 }
 
 // Opcodes in avr_opcodes[] that a part ought to be able to run
-int avr_get_archlevel(const AVRPART *p) {
+int avr_get_instruction_set(const AVRPART *p) {
   if(p->instruction_set > 0)
     return p->instruction_set;
 
