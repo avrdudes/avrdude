@@ -151,7 +151,7 @@ static char *extra_features_str(int m) {
   return mode + (mode[1] == 0? 0: 4);
 }
 
-static char *archlevel_str(int m) {
+static char *instruction_set_str(int m) {
    static struct isas {
     const char *name;
     int isa;
@@ -659,7 +659,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     _if_partout(intcmp, "%d", mcuid);
   }
   _if_partout(intcmp, "%d", archnum);
-  _if_partout_str(intcmp, mmt_strdup(archlevel_str(p->instruction_set)), instruction_set);
+  _if_partout_str(intcmp, mmt_strdup(instruction_set_str(p->instruction_set)), instruction_set);
   _if_partout(intcmp, "%d", n_interrupts);
   _if_partout(intcmp, "%d", n_page_erase);
   _if_partout(intcmp, "%d", n_boot_sections);
