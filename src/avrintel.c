@@ -8,8 +8,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.56
- * 20.10.2026
+ * v 1.57
+ * 25.10.2026
  *
  */
 
@@ -1536,12 +1536,12 @@ const Avrintel uP_table[431] = { // Value of -1 typically means unknown
   /*ATmega103*/          0, NULL,                   1, UART_CLASSIC_1x08,  1, uarts_atmega165, // Register file, UART
   /*ATmega103*/          6, ports_atmega103, WDT_CLASSIC3}, // Ports, WDT
 
-  //ATmega103comp                                                 xml // Sources
+  //ATmega103comp                                 xml, from ATmega103 // Sources
   {"ATmega103comp",    374,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
-  /*ATmega103comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*ATmega103comp*/     -1, -1,   0, NULL,                 15, cfgtab_atmega103comp, // ISRs, Config
-  /*ATmega103comp*/      0, NULL,                   0,      UART_UNKNOWN, -1, NULL, // Register file, UART
-  /*ATmega103comp*/      0, NULL, WDT_UNKNOWN}, // Ports, WDT
+  /*ATmega103comp*/     -1, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0, // Mem
+  /*ATmega103comp*/      1,  1,  24, vtab_atmega103,       15, cfgtab_atmega103comp, // ISRs, Config
+  /*ATmega103comp*/      0, NULL,                   1, UART_CLASSIC_2x12,  1, uarts_atmega165, // Register file, UART
+  /*ATmega103comp*/      6, ports_atmega103, WDT_CLASSIC3}, // Ports, WDT
 
   //ATmega8HVA                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8HVA",        47,  F_AVR8, {0x1E, 0x93, 0x10}, // ID
@@ -5046,7 +5046,7 @@ const char * const vtab_atmega3290[vts_atmega3290] = {
   "PCINT3",                     //  24: Pin Change Interrupt 3
 };
 
-// ATmega103
+// ATmega103 ATmega103comp
 const char * const vtab_atmega103[vts_atmega103] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
@@ -60822,7 +60822,7 @@ const Uart_conf uarts_atmega324pb[3] = {
  * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega325 ATmega325A ATmega325P ATmega325PA
  * ATmega645 ATmega645A ATmega645P ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega6450
  * ATmega6450A ATmega6450P ATmega169 ATmega3290 ATmega3290A ATmega3290P ATmega3290PA ATmega6490
- * ATmega6490A ATmega6490P ATmega103
+ * ATmega6490A ATmega6490P ATmega103 ATmega103comp
  */
 const Uart_conf uarts_atmega165[1] = {
   { 0, 0, PE0, PE1, PNA, PNA, PNA, PNA, PNA, PNA, PNA },
