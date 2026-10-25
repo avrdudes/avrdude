@@ -1593,11 +1593,11 @@ typedef enum {
   OP_AVR2         = 0x00008,    // Opcodes added for archnum 2 and above, also in reduced-core Tinys
   OP_AVR2e        = 0x00010,    // Opcodes added for archnum 2 and above but not reduced-core Tinys
   OP_MOVW_SPM     = 0x00020,    // Movw and spm opcodes
-  OP_LPMx         = 0x00040,    // Lmp Rn, Z and lpm Rn, Z+ opcodes
+  OP_LPMx         = 0x00040,    // Lpm Rn, Z and lpm Rn, Z+ opcodes
   OP_JMP_CALL     = 0x00080,    // Jmp and call (AVR with flash of more than 8 kB)
   OP_MUL          = 0x00100,    // Mul, muls, mulsu, fmul, fmuls and fmulsu opcodes
-  OP_ELPM         = 0x00200,    // Elmp opcode (AVR with flash of more than 64 kB)
-  OP_ELPMx        = 0x00400,    // Elmp Rn, Z and elpm Rn, Z+ opcodes
+  OP_ELPM         = 0x00200,    // Elpm opcode (AVR with flash of more than 64 kB)
+  OP_ELPMx        = 0x00400,    // Elpm Rn, Z and elpm Rn, Z+ opcodes
   OP_EIJMP_EICALL = 0x00800,    // Eijmp and eicall opcodes (AVR with flash of more than 128 kB)
   OP_DES          = 0x01000,    // Des opcode (XMEGA A, B, C family parts with an encryption engine)
   OP_RMW          = 0x02000,    // Read-modify-write xch, lac, las and lat (2nd revision XMEGA AU, B, C)

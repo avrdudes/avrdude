@@ -4582,7 +4582,7 @@ part parent ".classic-nocal" # t22
         "ATtiny22L-1PI: DIP8,  Fmax=1 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
         "ATtiny22L-1SC: SOIC8, Fmax=1 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
         "ATtiny22L-1SI: SOIC8, Fmax=1 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVSP;
+    prog_modes             = PM_ISP | PM_HVSP;
     mcuid                  = 13;
     n_interrupts           = 3;
     stk500_devcode         = 0x20;
@@ -8458,7 +8458,7 @@ part parent ".classic-nocal" # 1200
         "AT90S1200A-4SI:  SOIC20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
         "AT90S1200A-4YC:  SSOP20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
         "AT90S1200A-4YI:  SSOP20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 183;
     archnum                = 1;
     instruction_set        = ISA_avr1;
@@ -8559,7 +8559,7 @@ part parent ".classic-nocal" # 2313
         "AT90S2313-4PI:  DIP20,  Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
         "AT90S2313-4SC:  SOIC20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
         "AT90S2313-4SI:  SOIC20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 186;
     n_interrupts           = 11;
     stk500_devcode         = 0x40;
@@ -8652,7 +8652,7 @@ part parent ".classic-nocal" # 2323
         "AT90S2323-10PI: DIP8,  Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
         "AT90S2323-10SC: SOIC8, Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
         "AT90S2323-10SI: SOIC8, Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVSP;
+    prog_modes             = PM_ISP | PM_HVSP;
     mcuid                  = 187;
     n_interrupts           = 3;
     stk500_devcode         = 0x41;
@@ -8772,7 +8772,7 @@ part parent ".classic-nocal" # 2333
         "AT90S2333-8AI: TQFP32, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
         "AT90S2333-8PC: DIP28,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
         "AT90S2333-8PI: DIP28,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 188;
     n_interrupts           = 14;
     stk500_devcode         = 0x42;
@@ -8910,7 +8910,7 @@ part parent ".classic-nocal" # 4414
         "AT90S4414-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
         "AT90S4414-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
         "AT90S4414-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 190;
     n_interrupts           = 13;
     stk500_devcode         = 0x50;
@@ -9044,7 +9044,7 @@ part parent ".classic-nocal" # 4434
         "AT90S4434-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
         "AT90S4434-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
         "AT90S4434-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 192;
     n_interrupts           = 17;
     stk500_devcode         = 0x52;
@@ -9187,7 +9187,7 @@ part parent ".classic-nocal" # m103
         "ATmega103-6AI:  TQFP64, Fmax=6 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
         "ATmega103L-4AC: TQFP64, Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 3.6 V]",
         "ATmega103L-4AI: TQFP64, Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    prog_modes             = PM_ISP | PM_HVPP;
     mcuid                  = 84;
     archnum                = 31;
     instruction_set        = ISA_avr31;
