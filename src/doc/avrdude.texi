@@ -3774,7 +3774,6 @@ the executable.
 * Programmer Definitions::
 * Serial Adapter Definitions::
 * Part Definitions::
-* Other Notes::
 @end menu
 
 @c
@@ -3906,6 +3905,7 @@ consider the final definition; it will not print @code{modify} statements.
 
 @noindent
 @strong{Notes}
+@cindex Notes on programmer definitions
 
 @enumerate
 
@@ -4046,7 +4046,7 @@ be utilised as a serialadapter.
 @c
 @c Node
 @c
-@node Part Definitions, Other Notes, Serial Adapter Definitions, Configuration Files
+@node Part Definitions, , Serial Adapter Definitions, Configuration Files
 @cindex @code{part}
 @section Part Definitions
 @cindex Part definitions
@@ -4060,6 +4060,7 @@ part
     prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
     archnum          = <num>;                 # avr-gcc architecture number; -1 if not 8-bit AVR
+    instruction_set  = <num>;                 # encodes permitted opcodes; -1 if not 8-bit AVR
     n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
     n_boot_sections  = <num>;                 # Number of boot sections
@@ -4194,6 +4195,7 @@ the final definition; it will not print @code{modify} statements.
 @menu
 * Parent Part::
 * Instruction Format::
+* Notes::
 @end menu
 
 @c
@@ -4231,7 +4233,7 @@ Example format for part inheritance:
 @c
 @c Node
 @c
-@node Instruction Format,  , Parent Part, Part Definitions
+@node Instruction Format, Notes, Parent Part, Part Definitions
 @subsection Instruction Format
 @cindex Instruction format
 
@@ -4308,9 +4310,9 @@ Examples:
 @c
 @c Node
 @c
-@node Other Notes,  , Part Definitions, Configuration Files
-@section Other Notes
-@cindex Other notes
+@node Notes,  , Instruction Format, Part Definitions
+@subsection Notes
+@cindex Notes on part definitions
 
 
 @itemize @bullet
@@ -4360,6 +4362,111 @@ The bootloader implements the ``chip erase'' function by erasing the
 flash pages of the application section.
 
 Reading fuse and lock bits is fully supported.
+
+@item
+@code{instruction_set} refers to the opcodes that a particular AVR can
+process; this is only relevant for the @code{disasm} terminal command and
+does not affect programming of the devices; each bit of the integer number
+stands for a set of allowed opcodes or RAMP registers. The following
+symbolic values can be bitwise or-ed in order to describe the instruction
+set architecture of the part
+@table @code
+@item OP_AVRrc
+128 byte @code{sts}/@code{lds} opcodes that only run on reduced-core Tinys
+@item OP_AVR1
+Minimal-core opcodes that run on all AVR
+@item OP_LPM
+@code{lpm} opcode (not in reduced-core Tiny and AT90S1200)
+@item OP_AVR2
+Opcodes for @code{archnum} 2 and above, also in reduced-core Tinys
+@item OP_AVR2e
+Opcodes for @code{archnum} 2 and above but not reduced-core Tinys
+@item OP_MOVW_SPM
+@code{movw} and @code{spm} opcodes
+@item OP_LPMx
+@code{lpm Rn, Z} and @code{lpm Rn, Z+} opcodes
+@item OP_JMP_CALL
+@code{jmp} and @code{call} (AVR with flash of more than 8@w{ }kB)
+@item OP_MUL
+@code{mul}, @code{muls}, @code{mulsu}, @code{fmul}, @code{fmuls} and @code{fmulsu} opcodes
+@item OP_ELPM
+@code{elpm} opcode (AVR with flash of more than 64@w{ }kB)
+@item OP_ELPMx
+@code{elpm Rn, Z} and @code{elpm Rn, Z+} opcodes
+@item OP_EIJMP_EICALL
+@code{eijmp} and @code{eicall} opcodes (AVR with flash of more than 128@w{ }kB)
+@item OP_DES
+@code{des} opcode (XMEGA A, B, C family parts with an encryption engine)
+@item OP_RMW
+Read-modify-write opcodes @code{xch}, @code{lac}, @code{las} and @code{lat} (second revision XMEGA AU, B, C parts)
+@item OP_SPMx
+@code{spm Z+} opcode (XMEGA and UPDI only)
+@item OP_Undocumented
+Undocumented (illegal) opcodes
+@item OP_All
+All of the above except @code{OP_AVRrc} as their bit patterns conflict with others
+@item REG_RAMPDXY
+AVR has @code{RAMPD}, @code{RAMPX} and @code{RAMPY} registers for RAM in excess of 64@w{ }kB
+@item REG_RAMPZ
+AVR has @code{RAMPZ} register for flash/RAM in excess of 64@w{ }kB
+@item MEM_LINEAR64
+AVR with flash up to 48@w{ }kB that is mapped into data space (UPDI devices only)
+@end table
+
+There are pre-cooked symbolic values that correspond to a specific avr-gcc
+instruction set architecture:
+
+@table @code
+@item ISA_avrxmega7
+Newer devices (newer meaning they have UPDI or PDI interfaces) with more
+than 128@w{ }kB of program memory and RAM that is expandible to more than 64@w{ }kB
+@item ISA_avrxmega6
+Newer devices with more than 128@w{ }kB of program memory
+@item ISA_avrxmega5
+Newer devices with more than 64@w{ }kB and up to 128@w{ }kB of program memory and
+potentially more than 64@w{ }kB of RAM
+@item ISA_avrxmega4
+Newer devices with more than 64@w{ }kB and up to 128@w{ }kB of program memory
+@item ISA_avrxmega3small
+UPDI devices with up to 8@w{ }kB of program memory that is visible in the
+RAM address space
+@item ISA_avrxmega3
+UPDI devices with up to 64@w{ }kB of combined program memory and RAM, and
+more than 8@w{ }kB of program memory  that visible in the RAM address
+space
+@item ISA_avrxmega2
+Newer devices with more than 8@w{ }kB and up to 64@w{ }kB of program memory
+@item ISA_avr6
+Enhanced devices (enhanced meaning classic devices with @code{movw},
+@code{spm} and multiplication engine) with more than 128@w{ }kB of program
+memory
+@item ISA_avr51
+Enhanced devices with 128@w{ }kB of program memory
+@item ISA_avr5
+Enhanced devices with 16@w{ }kB up to 64@w{ }kB of program memory
+@item ISA_avr4
+Enhanced devices with up to 8@w{ }kB of program memory
+@item ISA_avr35
+Classic devices with 16@w{ }kB up to 64@w{ }kB of program memory and with
+the @code{movw} and @code{spm} instructions
+@item ISA_avr31
+Classic devices with 128@w{ }kB of program memory
+@item ISA_avr3
+Classic devices with 16@w{ }kB up to 64@w{ }kB of program memory
+@item ISA_avr25
+Classic devices with up to 8@w{ }kB of program memory and with the
+@code{movw} and @code{spm} instructions
+@item ISA_avr2
+Classic devices with up to 8@w{ }kB of program memory
+@item ISA_avrtiny
+Reduced-core Tiny (TPI interface)
+@item ISA_avr1
+Minimal AVR core and supported for assembler only
+@end table
+
+The @code{OP_DES} and @code{OP_RMW} properties are not part of any of the
+above @code{ISA_avrxmega} instruction set architectures and need to be
+or-ed into the @code{instruction_set} value as appropriate.
 
 @end itemize
 
@@ -6188,7 +6295,7 @@ each part in the AVRDUDE configuration file.
 1. Support of 32-bit AVR (via aWire or AVT32JTAG) is experimental at best.
 
 @noindent
-2. Flash addressing above 128 KB is not supported by all programming
+2. Flash addressing above 128@w{ }kB is not supported by all programming
 hardware, though most will support it.
 
 @noindent
