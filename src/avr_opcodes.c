@@ -666,59 +666,45 @@ int op16_is_benign(int op16, int avrlevel) {    // Benign means no I/O or SRAM i
 
 // Opcodes in avr_opcodes[] that a part ought to be able to run
 int avr_get_archlevel(const AVRPART *p) {
-  int ret =
-    is_updi(p) || is_pdi(p)? OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx:
-    is_tpi(p)? ISA_avrtiny: 0;
+  if(p->instruction_set > 0)
+    return p->instruction_set;
 
-  if(!ret) {                    // Non-TPI classic part
-    switch(p->archnum) {
-    case -1:                    // Not 8-bit AVR: return 0
-      break;
-    case 1:
-      ret = ISA_avr1;
-      break;
-    default:                    // If AVRDUE doesn't know, it's probably rare & old
-    case 2:
-      ret = ISA_avr2;
-      break;
-    case 25:
-      ret = ISA_avr25;
-      break;
-    case 3:
-      ret = ISA_avr3;
-      break;
-    case 31:
-      ret = ISA_avr31;
-      break;
-    case 35:
-      ret = ISA_avr35;
-      break;
-    case 4:
-      ret = ISA_avr4;
-      break;
-    case 5:
-      ret = ISA_avr5;
-      break;
-    case 51:
-      ret = ISA_avr51;
-      break;
-    case 6:
-      ret = ISA_avr6;
-    }
+  // No instruction_set available, try constructing from archnum
+  if(p->archnum < 0)
+    return -1;
+
+  if(is_tpi(p))
+    return ISA_avrtiny;
+
+  // Add des and read-modify-write opcodes for ATxmegas and jmp/call for UPDI parts where needed
+  AVRMEM *flm;
+  int extra =
+    is_pdi(p)? OP_DES | OP_RMW:
+    is_updi(p) && (flm = avr_locate_flash(p)) && flm->size > 8192? OP_JMP_CALL: 0;
+
+  switch(p->archnum) {
+  case -1:  return -1;          // Not 8-bit AVR: return 0
+  case 1:   return ISA_avr1;
+  case 2:   return ISA_avr2;
+  case 25:  return ISA_avr25;
+  case 3:   return ISA_avr3;
+  case 31:  return ISA_avr31;
+  case 35:  return ISA_avr35;
+  case 4:   return ISA_avr4;
+  case 5:   return ISA_avr5;
+  case 51:  return ISA_avr51;
+  case 6:   return ISA_avr6;
+  case 100: return ISA_avrtiny;
+  case 102: return ISA_avrxmega2 | extra;
+  case 103: return ISA_avrxmega3small | extra;
+  case 104: return ISA_avrxmega4 | extra;
+  case 105: return ISA_avrxmega5 | extra;
+  case 106: return ISA_avrxmega6 | extra;
+  case 107: return ISA_avrxmega7 | extra;
   }
 
-  AVRMEM *mem = avr_locate_flash(p);
-
-  if(mem) {                     // Add opcodes needed for large parts
-    if(mem->size > 8192)
-      ret |= OP_JMP_CALL;       // JMP, CALL
-    if(mem->size > 65536)
-      ret |= OP_ELPMx | OP_ELPM; // All ELPM forms
-    if(mem->size > 128*1024)
-      ret |= OP_EIJMP_EICALL;   // EIJMP, EICALL
-  }
-
-  return ret;
+  // Neither instruction_set nor archnum available? Allow all
+  return OP_All;
 }
 
 // Index in the avr_opcodes[].clock[] array for timings of an opcode
