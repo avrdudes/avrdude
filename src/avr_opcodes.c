@@ -99,7 +99,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(asr), 0xfe0f, 0x9405, 1, OP_AVR1, "1001 010d  dddd 0101", OTY_ALBI | OTY_RALL,
       "asr", "Rd", "arithmetic shift right", "Rd(7) --> Rd(7) --> Rd(6) ... Rd(1) --> Rd(0) --> C", "----VNZC",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(adiw), 0xff00, 0x9600, 1, OP_AVR2nRC, "1001 0110  KKdd KKKK", OTY_ALBI | OTY_RW24,
+  {OP_ID(adiw), 0xff00, 0x9600, 1, OP_AVR2e, "1001 0110  KKdd KKKK", OTY_ALBI | OTY_RW24,
       "adiw", "Rd, K", "add immediate to word", "Rd+1:Rd <-- Rd+1:Rd + K", "---SVNZC",
     {"2", "2", "2", "n/a"}, "d in {24, 26, 28, 30}"},
   {OP_ID(sub), 0xfc00, 0x1800, 1, OP_AVR1, "0001 10rd  dddd rrrr", OTY_ALBI | OTY_RALL,
@@ -114,7 +114,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(sbci), 0xf000, 0x4000, 1, OP_AVR1, "0100 KKKK  dddd KKKK", OTY_ALBI | OTY_RUPP,
       "sbci", "Rd, K", "subtract immediate with carry", "Rd <-- Rd - K - C", "--HSVNZC",
     {"1", "1", "1", "1"}, "d = 16..31"},
-  {OP_ID(sbiw), 0xff00, 0x9700, 1, OP_AVR2nRC, "1001 0111  KKdd KKKK", OTY_ALBI | OTY_RW24,
+  {OP_ID(sbiw), 0xff00, 0x9700, 1, OP_AVR2e, "1001 0111  KKdd KKKK", OTY_ALBI | OTY_RW24,
       "sbiw", "Rd, K", "subtract immediate from word", "Rd+1:Rd <-- Rd+1:Rd - K", "---SVNZC",
     {"2", "2", "2", "n/a"}, "d in {24, 26, 28, 30}"},
   {OP_ID(tst), 0xfc00, 0x2000, 1, OP_AVR1, "0010 00r=  rrrr ====", OTY_ALBI | OTY_RALL | OTY_CONSTRAINT,
@@ -156,25 +156,25 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(dec), 0xfe0f, 0x940a, 1, OP_AVR1, "1001 010d  dddd 1010", OTY_ALBI | OTY_RALL,
       "dec", "Rd", "decrement", "Rd <-- Rd - 1", "---SVNZ-",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(mul), 0xfc00, 0x9c00, 1, OP_AVR4, "1001 11rd  dddd rrrr", OTY_ALBI | OTY_RALL,
+  {OP_ID(mul), 0xfc00, 0x9c00, 1, OP_MUL, "1001 11rd  dddd rrrr", OTY_ALBI | OTY_RALL,
       "mul", "Rd, Rr", "multiply unsigned", "R1:R0 <-- Rd x Rr (UU)", "------ZC",
     {"2", "2", "2", "n/a"}, ""},
-  {OP_ID(muls), 0xff00, 0x0200, 1, OP_AVR4, "0000 0010  dddd rrrr", OTY_ALBI | OTY_RUPP,
+  {OP_ID(muls), 0xff00, 0x0200, 1, OP_MUL, "0000 0010  dddd rrrr", OTY_ALBI | OTY_RUPP,
       "muls", "Rd, Rr", "multiply signed", "R1:R0 <-- Rd x Rr (SS)", "------ZC",
     {"2", "2", "2", "n/a"}, "d, r = 16..31"},
-  {OP_ID(mulsu), 0xff88, 0x0300, 1, OP_AVR4, "0000 0011  0ddd 0rrr", OTY_ALBI | OTY_RUPP,
+  {OP_ID(mulsu), 0xff88, 0x0300, 1, OP_MUL, "0000 0011  0ddd 0rrr", OTY_ALBI | OTY_RUPP,
       "mulsu", "Rd, Rr", "multiply signed with unsigned", "R1:R0 <-- Rd x Rr (SU)", "------ZC",
     {"2", "2", "2", "n/a"}, "d, r = 16..23"},
-  {OP_ID(fmul), 0xff88, 0x0308, 1, OP_AVR4, "0000 0011  0ddd 1rrr", OTY_ALBI | OTY_RUPP,
+  {OP_ID(fmul), 0xff88, 0x0308, 1, OP_MUL, "0000 0011  0ddd 1rrr", OTY_ALBI | OTY_RUPP,
       "fmul", "Rd, Rr", "fractional multiply unsigned", "R1:R0 <-- Rd x Rr << 1 (UU)", "------ZC",
     {"2", "2", "2", "n/a"}, "d, r = 16..23"},
-  {OP_ID(fmuls), 0xff88, 0x0380, 1, OP_AVR4, "0000 0011  1ddd 0rrr", OTY_ALBI | OTY_RUPP,
+  {OP_ID(fmuls), 0xff88, 0x0380, 1, OP_MUL, "0000 0011  1ddd 0rrr", OTY_ALBI | OTY_RUPP,
       "fmuls", "Rd, Rr", "fractional multiply signed", "R1:R0 <-- Rd x Rr << 1 (SS)", "------ZC",
     {"2", "2", "2", "n/a"}, "d, r = 16..23"},
-  {OP_ID(fmulsu), 0xff88, 0x0388, 1, OP_AVR4, "0000 0011  1ddd 1rrr", OTY_ALBI | OTY_RUPP,
+  {OP_ID(fmulsu), 0xff88, 0x0388, 1, OP_MUL, "0000 0011  1ddd 1rrr", OTY_ALBI | OTY_RUPP,
       "fmulsu", "Rd, Rr", "fractional multiply signed with unsigned", "R1:R0 <-- Rd x Rr << 1 (SU)", "------ZC",
     {"2", "2", "2", "n/a"}, "d, r = 16..23"},
-  {OP_ID(des), 0xff0f, 0x940b, 1, OP_AVR_XM, "1001 0100  KKKK 1011", OTY_ALBI,
+  {OP_ID(des), 0xff0f, 0x940b, 1, OP_DES, "1001 0100  KKKK 1011", OTY_ALBI,
       "des", "K", "data encryption round",
       "if (H = 0) then R15:R0 <-- Encrypt(R15:R0, K) if (H = 1) then R15:R0 <-- Decrypt(R15:R0, K)", "--------",
     {"n/a", "1/2", "n/a", "n/a"}, ""},
@@ -186,10 +186,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(ijmp), 0xffff, 0x9409, 1, OP_AVR2, "1001 0100  0000 1001", OTY_JMPI | OTY_ZWORD,
       "ijmp", "", "indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"2", "2", "2", "2"}, ""},
-  {OP_ID(eijmp), 0xffff, 0x9419, 1, OP_AVR_XL, "1001 0100  0001 1001", OTY_JMPX | OTY_ZWORD,
+  {OP_ID(eijmp), 0xffff, 0x9419, 1, OP_EIJMP_EICALL, "1001 0100  0001 1001", OTY_JMPX | OTY_ZWORD,
       "eijmp", "", "extended indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"2", "2", "2", "n/a"}, ""},
-  {OP_ID(jmp), 0xfe0e, 0x940c, 2, OP_AVR_M, "1001 010k  kkkk 110k   kkkk kkkk  kkkk kkkk", OTY_JMPI,
+  {OP_ID(jmp), 0xfe0e, 0x940c, 2, OP_JMP_CALL, "1001 010k  kkkk 110k   kkkk kkkk  kkkk kkkk", OTY_JMPI,
       "jmp", "k", "jump", "PC <-- k", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(rcall), 0xf000, 0xd000, 1, OP_AVR1, "1101 kkkk  kkkk kkkk", OTY_RJMX,
@@ -198,10 +198,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(icall), 0xffff, 0x9509, 1, OP_AVR2, "1001 0101  0000 1001", OTY_JMPX | OTY_ZWORD,
       "icall", "", "indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"3+", "2+", "2+", "3"}, ""},
-  {OP_ID(eicall), 0xffff, 0x9519, 1, OP_AVR_XL, "1001 0101  0001 1001", OTY_JMPX | OTY_ZWORD,
+  {OP_ID(eicall), 0xffff, 0x9519, 1, OP_EIJMP_EICALL, "1001 0101  0001 1001", OTY_JMPX | OTY_ZWORD,
       "eicall", "", "extended indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"4", "3", "3", "n/a"}, ""},
-  {OP_ID(call), 0xfe0e, 0x940e, 2, OP_AVR_M, "1001 010k  kkkk 111k   kkkk kkkk  kkkk kkkk", OTY_JMPX,
+  {OP_ID(call), 0xfe0e, 0x940e, 2, OP_JMP_CALL, "1001 010k  kkkk 111k   kkkk kkkk  kkkk kkkk", OTY_JMPX,
       "call", "k", "call subroutine", "PC <-- k, STACK <-- PC, SP <-- SP - 2", "--------",
     {"4+", "3+", "3+", "n/a"}, ""},
   {OP_ID(ret), 0xffff, 0x9508, 1, OP_AVR1, "1001 0101  0000 1000", OTY_JMPX,
@@ -299,7 +299,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(mov), 0xfc00, 0x2c00, 1, OP_AVR1, "0010 11rd  dddd rrrr", OTY_XFRI | OTY_RALL,
       "mov", "Rd, Rr", "copy register", "Rd <-- Rr", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(movw), 0xff00, 0x0100, 1, OP_AVR25, "0000 0001  dddd rrrr", OTY_XFRI | OTY_REVN,
+  {OP_ID(movw), 0xff00, 0x0100, 1, OP_MOVW_SPM, "0000 0001  dddd rrrr", OTY_XFRI | OTY_REVN,
       "movw", "Rd, Rr", "copy register pair", "Rd+1:Rd <-- Rr+1:Rr", "--------",
     {"1", "1", "1", "n/a"}, "d, r in {0, 2, ..., 30}"},
   {OP_ID(ser), 0xff0f, 0xef0f, 1, OP_AVR1, "1110 1111  dddd 1111", OTY_ALBI | OTY_RUPP,
@@ -308,7 +308,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(ldi), 0xf000, 0xe000, 1, OP_AVR1, "1110 KKKK  dddd KKKK", OTY_XFRI | OTY_RUPP,
       "ldi", "Rd, K", "load immediate", "Rd <-- K", "--------",
     {"1", "1", "1", "1"}, "d = 16..31"},
-  {OP_ID(lds), 0xfe0f, 0x9000, 2, OP_AVR2nRC, "1001 000d  dddd 0000   kkkk kkkk  kkkk kkkk", OTY_XFRX | OTY_RALL,
+  {OP_ID(lds), 0xfe0f, 0x9000, 2, OP_AVR2e, "1001 000d  dddd 0000   kkkk kkkk  kkkk kkkk", OTY_XFRX | OTY_RALL,
       "lds", "Rd, k", "load direct from data space", "Rd <-- (k)", "--------",
     {"2", "3", "3", "2"}, ""},
   {OP_ID(ld_x), 0xfe0f, 0x900c, 1, OP_AVR2, "1001 000d  dddd 1100", OTY_XFRX | OTY_RALL,
@@ -329,7 +329,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(ld_my), 0xfe0f, 0x900a, 1, OP_AVR2, "1001 000d  dddd 1010", OTY_XFRX | OTY_RALL | OTY_YWRN,
       "ld", "Rd, -Y", "load indirect and pre-decrement", "Y <-- Y - 1 Rd <-- (Y)", "--------",
     {"2", "3", "2", "2/3"}, ""},
-  {OP_ID(ldd_y), 0xd208, 0x8008, 1, OP_AVR2nRC, "10q0 qq0d  dddd 1qqq", OTY_XFRX | OTY_RALL,
+  {OP_ID(ldd_y), 0xd208, 0x8008, 1, OP_AVR2e, "10q0 qq0d  dddd 1qqq", OTY_XFRX | OTY_RALL,
       "ldd", "Rd, Y+q", "load indirect with displacement", "Rd <-- (Y+q)", "--------",
     {"2", "3", "2", "n/a"}, ""},
   {OP_ID(ld_z), 0xfe0f, 0x8000, 1, OP_AVR1, "1000 000d  dddd 0000", OTY_XFRX | OTY_RALL,
@@ -341,10 +341,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(ld_mz), 0xfe0f, 0x9002, 1, OP_AVR1, "1001 000d  dddd 0010", OTY_XFRX | OTY_RALL | OTY_ZWRN,
       "ld", "Rd, -Z", "load indirect and pre-decrement", "Z <-- Z - 1, Rd <-- (Z)", "--------",
     {"2", "3", "2", "2/3"}, ""},
-  {OP_ID(ldd_z), 0xd208, 0x8000, 1, OP_AVR2nRC, "10q0 qq0d  dddd 0qqq", OTY_XFRX | OTY_RALL,
+  {OP_ID(ldd_z), 0xd208, 0x8000, 1, OP_AVR2e, "10q0 qq0d  dddd 0qqq", OTY_XFRX | OTY_RALL,
       "ldd", "Rd, Z+q", "load indirect with displacement", "Rd <-- (Z+q)", "--------",
     {"2", "3", "2", "n/a"}, ""},
-  {OP_ID(sts), 0xfe0f, 0x9200, 2, OP_AVR2nRC, "1001 001r  rrrr 0000   kkkk kkkk  kkkk kkkk", OTY_XFRX | OTY_RALL,
+  {OP_ID(sts), 0xfe0f, 0x9200, 2, OP_AVR2e, "1001 001r  rrrr 0000   kkkk kkkk  kkkk kkkk", OTY_XFRX | OTY_RALL,
       "sts", "k, Rr", "store direct to data space", "(k) <-- Rr", "--------",
     {"2", "2", "2", "1"}, ""},
   {OP_ID(st_x), 0xfe0f, 0x920c, 1, OP_AVR2, "1001 001r  rrrr 1100", OTY_XFRX | OTY_RALL,
@@ -365,7 +365,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(st_my), 0xfe0f, 0x920a, 1, OP_AVR2, "1001 001r  rrrr 1010", OTY_XFRX | OTY_RALL | OTY_YWRN,
       "st", "-Y, Rr", "store indirect and pre-decrement", "Y <-- Y - 1, (Y) <-- Rr", "--------",
     {"2", "2", "1", "1"}, ""},
-  {OP_ID(std_y), 0xd208, 0x8208, 1, OP_AVR2nRC, "10q0 qq1r  rrrr 1qqq", OTY_XFRX | OTY_RALL,
+  {OP_ID(std_y), 0xd208, 0x8208, 1, OP_AVR2e, "10q0 qq1r  rrrr 1qqq", OTY_XFRX | OTY_RALL,
       "std", "Y+q, Rr", "store indirect with displacement", "(Y+q) <-- Rr", "--------",
     {"2", "2", "1", "n/a"}, ""},
   {OP_ID(st_z), 0xfe0f, 0x8200, 1, OP_AVR1, "1000 001r  rrrr 0000", OTY_XFRX | OTY_RALL,
@@ -377,31 +377,31 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(st_mz), 0xfe0f, 0x9202, 1, OP_AVR1, "1001 001r  rrrr 0010", OTY_XFRX | OTY_RALL | OTY_ZWRN,
       "st", "-Z, Rr", "store indirect and pre-decrement", "Z <-- Z - 1, (Z) <-- Rr", "--------",
     {"2", "2", "1", "1"}, ""},
-  {OP_ID(std_z), 0xd208, 0x8200, 1, OP_AVR2nRC, "10q0 qq1r  rrrr 0qqq", OTY_XFRX | OTY_RALL,
+  {OP_ID(std_z), 0xd208, 0x8200, 1, OP_AVR2e, "10q0 qq1r  rrrr 0qqq", OTY_XFRX | OTY_RALL,
       "std", "Z+q, Rr", "store indirect with displacement", "(Z+q) <-- Rr", "--------",
     {"2", "2", "1", "n/a"}, ""},
-  {OP_ID(lpm_0), 0xffff, 0x95c8, 1, OP_AVR1nRC, "1001 0101  1100 1000", OTY_XFRX,
+  {OP_ID(lpm_0), 0xffff, 0x95c8, 1, OP_LPM, "1001 0101  1100 1000", OTY_XFRX,
       "lpm", "", "load program memory", "R0 <-- (Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(lpm_z), 0xfe0f, 0x9004, 1, OP_AVR25, "1001 000d  dddd 0100", OTY_XFRX | OTY_RALL,
+  {OP_ID(lpm_z), 0xfe0f, 0x9004, 1, OP_LPMx, "1001 000d  dddd 0100", OTY_XFRX | OTY_RALL,
       "lpm", "Rd, Z", "load program memory", "Rd <-- (Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(lpm_zp), 0xfe0f, 0x9005, 1, OP_AVR25, "1001 000d  dddd 0101", OTY_XFRX | OTY_RALL | OTY_ZWRN,
+  {OP_ID(lpm_zp), 0xfe0f, 0x9005, 1, OP_LPMx, "1001 000d  dddd 0101", OTY_XFRX | OTY_RALL | OTY_ZWRN,
       "lpm", "Rd, Z+", "load program memory and post-increment", "Rd <-- (Z), Z <-- Z + 1", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(elpm_0), 0xffff, 0x95d8, 1, OP_AVR_L, "1001 0101  1101 1000", OTY_XFRX,
+  {OP_ID(elpm_0), 0xffff, 0x95d8, 1, OP_ELPM, "1001 0101  1101 1000", OTY_XFRX,
       "elpm", "", "extended load program memory", "R0 <-- (RAMPZ:Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(elpm_z), 0xfe0f, 0x9006, 1, OP_AVR_L, "1001 000d  dddd 0110", OTY_XFRX | OTY_RALL,
+  {OP_ID(elpm_z), 0xfe0f, 0x9006, 1, OP_ELPMx, "1001 000d  dddd 0110", OTY_XFRX | OTY_RALL,
       "elpm", "Rd, Z", "extended load program memory", "Rd <-- (RAMPZ:Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(elpm_zp), 0xfe0f, 0x9007, 1, OP_AVR_L, "1001 000d  dddd 0111", OTY_XFRX | OTY_RALL | OTY_ZWRN,
+  {OP_ID(elpm_zp), 0xfe0f, 0x9007, 1, OP_ELPMx, "1001 000d  dddd 0111", OTY_XFRX | OTY_RALL | OTY_ZWRN,
       "elpm", "Rd, Z+", "extended load program memory and post-increment", "Rd <-- (RAMPZ:Z), Z <-- Z + 1", "--------",
     {"3", "3", "3", "n/a"}, ""},
-  {OP_ID(spm), 0xffff, 0x95e8, 1, OP_AVR25, "1001 0101  1110 1000", OTY_XFRX,
+  {OP_ID(spm), 0xffff, 0x95e8, 1, OP_MOVW_SPM, "1001 0101  1110 1000", OTY_XFRX,
       "spm", "", "store program memory", "(RAMPZ:Z) <-- R1:R0", "--------",
     {"-", "-", "-", "-"}, ""},
-  {OP_ID(spm_zp), 0xffff, 0x95f8, 1, OP_AVR_XTM, "1001 0101  1111 1000", OTY_XFRX,
+  {OP_ID(spm_zp), 0xffff, 0x95f8, 1, OP_SPMx, "1001 0101  1111 1000", OTY_XFRX,
       "spm", "Z+", "store program memory and post-increment by 2", "(RAMPZ:Z) <-- R1:R0, Z <-- Z + 2", "--------",
     {"n/a", "-", "-", "n/a"}, ""},
   {OP_ID(in), 0xf800, 0xb000, 1, OP_AVR1, "1011 0AAd  dddd AAAA", OTY_XFRX | OTY_RALL,
@@ -416,16 +416,16 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(pop), 0xfe0f, 0x900f, 1, OP_AVR2, "1001 000d  dddd 1111", OTY_XFRX | OTY_RALL,
       "pop", "Rd", "pop register from stack", "SP <-- SP + 2, Rd <-- STACK", "--------",
     {"2", "2", "2", "3"}, ""},
-  {OP_ID(xch), 0xfe0f, 0x9204, 1, OP_AVR_XM, "1001 001d  dddd 0100", OTY_XFRX | OTY_RALL,
+  {OP_ID(xch), 0xfe0f, 0x9204, 1, OP_RMW, "1001 001d  dddd 0100", OTY_XFRX | OTY_RALL,
       "xch", "Z, Rd", "exchange", "(Z) <-- Rd, Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
-  {OP_ID(las), 0xfe0f, 0x9205, 1, OP_AVR_XM, "1001 001d  dddd 0101", OTY_ALBX | OTY_RALL,
+  {OP_ID(las), 0xfe0f, 0x9205, 1, OP_RMW, "1001 001d  dddd 0101", OTY_ALBX | OTY_RALL,
       "las", "Z, Rd", "load and set", "(Z) <-- Rd | (Z), Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
-  {OP_ID(lac), 0xfe0f, 0x9206, 1, OP_AVR_XM, "1001 001d  dddd 0110", OTY_ALBX | OTY_RALL,
+  {OP_ID(lac), 0xfe0f, 0x9206, 1, OP_RMW, "1001 001d  dddd 0110", OTY_ALBX | OTY_RALL,
       "lac", "Z, Rd", "load and clear", "(Z) <-- (0xff - Rd) & (Z), Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
-  {OP_ID(lat), 0xfe0f, 0x9207, 1, OP_AVR_XM, "1001 001d  dddd 0111", OTY_ALBX | OTY_RALL,
+  {OP_ID(lat), 0xfe0f, 0x9207, 1, OP_RMW, "1001 001d  dddd 0111", OTY_ALBX | OTY_RALL,
       "lat", "Z, Rd", "load and toggle", "(Z) <-- Rd ^ (Z), Rd <-- (Z)", "--------",
     {"n/a", "1", "n/a", "n/a"}, ""},
 
@@ -521,72 +521,72 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
    * Special 16-bit lds/sts opcodes for reduced-core ATtinys only; they conflict with
    * regular ldd Rd, Y+q; ldd Rd, Z+q; std Y+q, Rr; std Z+q, Rr opcodes
    */
-  {OP_ID(lds_rc), 0xf800, 0xa000, 1, OP_AVR_RC, "1010 0aaa  dddd aaaa", OTY_XFRX | OTY_RUPP,
+  {OP_ID(lds_rc), 0xf800, 0xa000, 1, OP_AVRrc, "1010 0aaa  dddd aaaa", OTY_XFRX | OTY_RUPP,
       "lds", "Rd, a", "load direct from data space", "Rd <-- (a)", "--------",
     {"n/a", "n/a", "n/a", "2"}, "AVRrc only (TPI parts); a = 0x40..0xbf"},
-  {OP_ID(sts_rc), 0xf800, 0xa800, 1, OP_AVR_RC, "1010 1aaa  rrrr aaaa", OTY_XFRX | OTY_RUPP,
+  {OP_ID(sts_rc), 0xf800, 0xa800, 1, OP_AVRrc, "1010 1aaa  rrrr aaaa", OTY_XFRX | OTY_RUPP,
       "sts", "a, Rr", "store direct to data space", "(a) <-- Rr", "--------",
     {"n/a", "n/a", "n/a", "1"}, "AVRrc only (TPI parts); a = 0x40..0xbf"},
 
   // Undocumented opcodes: they are said(!) to do the following
-  {OP_ID(u_nop_1), 0xff00, 0x0000, 1, OP_AVR_ILL, "0000 0000  xxxx xxxx", OTY_MCUI,
+  {OP_ID(u_nop_1), 0xff00, 0x0000, 1, OP_Undocumented, "0000 0000  xxxx xxxx", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, "xxxx xxxx != 0000 0000"},
-  {OP_ID(u_nop_2), 0xfe0f, 0x9003, 1, OP_AVR_ILL, "1001 000x  xxxx 0011", OTY_MCUI,
+  {OP_ID(u_nop_2), 0xfe0f, 0x9003, 1, OP_Undocumented, "1001 000x  xxxx 0011", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_3), 0xfe0f, 0x9008, 1, OP_AVR_ILL, "1001 000x  xxxx 1000", OTY_MCUI,
+  {OP_ID(u_nop_3), 0xfe0f, 0x9008, 1, OP_Undocumented, "1001 000x  xxxx 1000", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_4), 0xfe0f, 0x900b, 1, OP_AVR_ILL, "1001 000x  xxxx 1011", OTY_MCUI,
+  {OP_ID(u_nop_4), 0xfe0f, 0x900b, 1, OP_Undocumented, "1001 000x  xxxx 1011", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_5), 0xfe0f, 0x9203, 1, OP_AVR_ILL, "1001 001x  xxxx 0011", OTY_MCUI,
+  {OP_ID(u_nop_5), 0xfe0f, 0x9203, 1, OP_Undocumented, "1001 001x  xxxx 0011", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_6), 0xfe0f, 0x9208, 1, OP_AVR_ILL, "1001 001x  xxxx 1000", OTY_MCUI,
+  {OP_ID(u_nop_6), 0xfe0f, 0x9208, 1, OP_Undocumented, "1001 001x  xxxx 1000", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_7), 0xfe0f, 0x920b, 1, OP_AVR_ILL, "1001 001x  xxxx 1011", OTY_MCUI,
+  {OP_ID(u_nop_7), 0xfe0f, 0x920b, 1, OP_Undocumented, "1001 001x  xxxx 1011", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_icall), 0xff1f, 0x9509, 1, OP_AVR_ILL, "1001 0101  xxx0 1001", OTY_JMPX | OTY_ZWORD,
+  {OP_ID(u_icall), 0xff1f, 0x9509, 1, OP_Undocumented, "1001 0101  xxx0 1001", OTY_JMPX | OTY_ZWORD,
       "u/icall", "", "indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"3+", "2+", "2+", "3"}, "xxx != 000"},
-  {OP_ID(u_eicall), 0xff1f, 0x9519, 1, OP_AVR_ILL, "1001 0101  xxx1 1001", OTY_JMPX | OTY_ZWORD,
+  {OP_ID(u_eicall), 0xff1f, 0x9519, 1, OP_Undocumented, "1001 0101  xxx1 1001", OTY_JMPX | OTY_ZWORD,
       "u/eicall", "", "extended indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"4", "3", "3", "n/a"}, "xxx != 000"},
-  {OP_ID(u_ret), 0xff9f, 0x9508, 1, OP_AVR_ILL, "1001 0101  0xx0 1000", OTY_JMPX,
+  {OP_ID(u_ret), 0xff9f, 0x9508, 1, OP_Undocumented, "1001 0101  0xx0 1000", OTY_JMPX,
       "u/ret", "", "subroutine return", "SP --> SP + 2, PC <-- STACK", "--------",
     {"4+", "4+", "4+", "6"}, "xx != 00"},
-  {OP_ID(u_reti), 0xff9f, 0x9518, 1, OP_AVR_ILL, "1001 0101  0xx1 1000", OTY_JMPX,
+  {OP_ID(u_reti), 0xff9f, 0x9518, 1, OP_Undocumented, "1001 0101  0xx1 1000", OTY_JMPX,
       "u/reti", "", "interrupt return", "SP -> SP + 2, PC <-- STACK", "I-------",
     {"4+", "4+", "4+", "6"}, "xx != 00"},
-  {OP_ID(u_nop_8), 0xffff, 0x95b8, 1, OP_AVR_ILL, "1001 0101  1011 1000", OTY_MCUI,
+  {OP_ID(u_nop_8), 0xffff, 0x95b8, 1, OP_Undocumented, "1001 0101  1011 1000", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_9), 0xfe0f, 0x9404, 1, OP_AVR_ILL, "1001 010x  xxxx 0100", OTY_MCUI,
+  {OP_ID(u_nop_9), 0xfe0f, 0x9404, 1, OP_Undocumented, "1001 010x  xxxx 0100", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_nop_a), 0xff0f, 0x950b, 1, OP_AVR_ILL, "1001 0101  xxxx 1011", OTY_MCUI,
+  {OP_ID(u_nop_a), 0xff0f, 0x950b, 1, OP_Undocumented, "1001 0101  xxxx 1011", OTY_MCUI,
       "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_ijmp), 0xff1f, 0x9409, 1, OP_AVR_ILL, "1001 0100  xxx0 1001", OTY_JMPI | OTY_ZWORD,
+  {OP_ID(u_ijmp), 0xff1f, 0x9409, 1, OP_Undocumented, "1001 0100  xxx0 1001", OTY_JMPI | OTY_ZWORD,
       "u/ijmp", "", "indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"2", "2", "2", "2"}, "xxx != 000"},
-  {OP_ID(u_eijmp), 0xff1f, 0x9419, 1, OP_AVR_ILL, "1001 0100  xxx1 1001", OTY_JMPX | OTY_ZWORD,
+  {OP_ID(u_eijmp), 0xff1f, 0x9419, 1, OP_Undocumented, "1001 0100  xxx1 1001", OTY_JMPX | OTY_ZWORD,
       "u/eijmp", "", "extended indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"2", "2", "2", "n/a"}, "xxx != 000"},
-  {OP_ID(u_bld), 0xfe08, 0xf808, 1, OP_AVR_ILL, "1111 100d  dddd 1bbb", OTY_ALBI | OTY_RALL,
+  {OP_ID(u_bld), 0xfe08, 0xf808, 1, OP_Undocumented, "1111 100d  dddd 1bbb", OTY_ALBI | OTY_RALL,
       "u/bld", "Rd, b", "bit load from T to register", "Rd(b) <-- T", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_bst), 0xfe08, 0xfa08, 1, OP_AVR_ILL, "1111 101r  rrrr 1bbb", OTY_ALBI | OTY_RALL,
+  {OP_ID(u_bst), 0xfe08, 0xfa08, 1, OP_Undocumented, "1111 101r  rrrr 1bbb", OTY_ALBI | OTY_RALL,
       "u/bst", "Rr, b", "bit store from register to T", "T <-- Rr(b)", "-T------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_sbrc), 0xfe08, 0xfc08, 1, OP_AVR_ILL, "1111 110r  rrrr 1bbb", OTY_SKPI | OTY_RALL,
+  {OP_ID(u_sbrc), 0xfe08, 0xfc08, 1, OP_Undocumented, "1111 110r  rrrr 1bbb", OTY_SKPI | OTY_RALL,
       "u/sbrc", "Rr, b", "skip if bit in register cleared", "if(Rr(b)=0) PC <-- PC + 2/3", "--------",
     {"1-3", "1-3", "1-3", "1/2"}, ""},
-  {OP_ID(u_sbrs), 0xfe08, 0xfe08, 1, OP_AVR_ILL, "1111 111r  rrrr 1bbb", OTY_SKPI | OTY_RALL,
+  {OP_ID(u_sbrs), 0xfe08, 0xfe08, 1, OP_Undocumented, "1111 111r  rrrr 1bbb", OTY_SKPI | OTY_RALL,
       "u/sbrs", "Rr, b", "skip if bit in register set", "if(Rr(b)=1) PC <-- PC + 2/3", "--------",
     {"1-3", "1-3", "1-3", "1/2"}, ""},
 };
@@ -631,12 +631,12 @@ static int bitmask_first_chr(const char *bits, int chr) {
   return ret;
 }
 
-// Return first match of opcode that is compatible with avrlevel or MNEMO_NONE
-AVR_mnemo opcode_mnemo(int op, int avrlevel) {
+// Return first match of opcode that is compatible with instruction set or MNEMO_NONE
+AVR_mnemo opcode_mnemo(int op, int isa) {
   for(AVR_mnemo i = 0; i < MNEMO_N; i++)
-    if(avr_opcodes[i].avrlevel & avrlevel)
+    if(avr_opcodes[i].isa & isa)
       if(op16_is_mnemo(op, i)) {
-        if(avrlevel == PART_AVR_RC && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
+        if(isa == ISA_avrtiny && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
           // Reduced-core ATtiny does not have registers r0, ..., r15
           int bmask;            // Assert highest bit in 5-bit r/d is set
 
@@ -650,81 +650,71 @@ AVR_mnemo opcode_mnemo(int op, int avrlevel) {
   return MNEMO_NONE;
 }
 
-// Is 16-bit opcode valid for AVR part with avrlevel architecture?
-int op16_is_valid(int op16, int avrlevel) {
-  int mnemo = opcode_mnemo(op16, avrlevel);
+// Is 16-bit opcode valid for AVR part with instruction set architecture?
+int op16_is_valid(int op16, int isa) {
+  int mnemo = opcode_mnemo(op16, isa);
 
   return mnemo >= 0 && mnemo <= MNEMO_N;
 }
 
-// Is 16-bit opcode valid and benign for AVR part with avrlevel architecture?
-int op16_is_benign(int op16, int avrlevel) {    // Benign means no I/O or SRAM is being read/written
-  int mnemo = opcode_mnemo(op16, avrlevel);
+// Is 16-bit opcode valid and benign for AVR part with instruction set architecture?
+int op16_is_benign(int op16, int isa) { // Benign means no I/O or SRAM is being read/written
+  int mnemo = opcode_mnemo(op16, isa);
 
   return mnemo >= 0 && mnemo <= MNEMO_N && !(avr_opcodes[mnemo].type & OTY_EXTERNAL);
 }
 
 // Opcodes in avr_opcodes[] that a part ought to be able to run
-int avr_get_archlevel(const AVRPART *p) {
-  int ret =
-    is_updi(p)? PART_AVR_XT: is_pdi(p)? PART_AVR_XM: is_tpi(p)? PART_AVR_RC: 0;
+int avr_get_instruction_set(const AVRPART *p) {
+  if(p->instruction_set > 0)
+    return p->instruction_set;
 
-  if(!ret) {                    // Non-TPI classic part
-    switch(p->archnum) {
-    case -1:                    // Not 8-bit AVR: return 0
-      break;
-    case 1:
-      ret = PART_AVR1;
-      break;
-    default:                    // If AVRDUE doesn't know, it's probably rare & old
-    case 2:
-      ret = PART_AVR2;
-      break;
-    case 25:
-      ret = PART_AVR25;
-      break;
-    case 3:
-    case 31:
-    case 35:                    // Sic
-      ret = PART_AVR3;
-      break;
-      break;
-    case 4:
-      ret = PART_AVR4;
-      break;
-    case 5:
-      ret = PART_AVR5;
-      break;
-    case 51:
-      ret = PART_AVR51;
-      break;
-    case 6:
-      ret = PART_AVR6;
-    }
+  // No instruction_set available, try constructing from archnum
+  if(p->archnum < 0)
+    return -1;
+
+  if(is_tpi(p))
+    return ISA_avrtiny;
+
+  // Add des and read-modify-write opcodes for ATxmegas and jmp/call for UPDI parts where needed
+  AVRMEM *flm;
+  int extra =
+    is_pdi(p)? OP_DES | OP_RMW:
+    is_updi(p) && (flm = avr_locate_flash(p)) && flm->size > 8192? OP_JMP_CALL: 0;
+
+  switch(p->archnum) {
+  case -1:  return -1;          // Not 8-bit AVR: return 0
+  case 1:   return ISA_avr1;
+  case 2:   return ISA_avr2;
+  case 25:  return ISA_avr25;
+  case 3:   return ISA_avr3;
+  case 31:  return ISA_avr31;
+  case 35:  return ISA_avr35;
+  case 4:   return ISA_avr4;
+  case 5:   return ISA_avr5;
+  case 51:  return ISA_avr51;
+  case 6:   return ISA_avr6;
+  case 100: return ISA_avrtiny;
+  case 102: return ISA_avrxmega2 | extra;
+  case 103: return ISA_avrxmega3small | extra;
+  case 104: return ISA_avrxmega4 | extra;
+  case 105: return ISA_avrxmega5 | extra;
+  case 106: return ISA_avrxmega6 | extra;
+  case 107: return ISA_avrxmega7 | extra;
   }
 
-  AVRMEM *mem = avr_locate_flash(p);
-
-  if(mem) {                     // Add opcodes needed for large parts (XMEGAs count as large)
-    if(mem->size > 8192)
-      ret |= OP_AVR_M;          // JMP, CALL
-    if(mem->size > 65536 || is_pdi(p))
-      ret |= OP_AVR_L;          // ELPM
-    if(mem->size > 128*1024 || is_pdi(p))
-      ret |= OP_AVR_XL;         // EIJMP, EICALL
-  }
-
-  return ret;
+  // Neither instruction_set nor archnum available? Allow all
+  return OP_All;
 }
 
 // Index in the avr_opcodes[].clock[] array for timings of an opcode
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p) {
-  return is_updi(p)? OP_AVRxt: is_pdi(p)? OP_AVRxm: is_tpi(p)? OP_AVRrc: OP_AVRe;
+  return is_updi(p)? CYX_AVRxt: is_pdi(p)? CYX_AVRxm: is_tpi(p)? CYX_AVRrc: CYX_AVRe;
 }
 
 // Return the mnemonic string of an opcode
 const char *mnemo_str(int op) {
-  AVR_mnemo mnemo = opcode_mnemo(op, PART_ALL | OP_AVR_ILL);
+  AVR_mnemo mnemo = opcode_mnemo(op, OP_All);
 
   if(mnemo < 0 || mnemo >= MNEMO_N)
     return "illegal";
@@ -758,7 +748,7 @@ int z_width(int op16, AVR_mnemo *mnemop) {
 
 // Where else could the PC of the 16-bit opcode op16 at address here move to other than here + 2?
 int op16_target(int here, int op16) {
-  AVR_mnemo mnemo = opcode_mnemo(op16, PART_ALL | OP_AVR_ILL);
+  AVR_mnemo mnemo = opcode_mnemo(op16, OP_All);
 
   if(mnemo >= 0 && mnemo < MNEMO_N) {
     switch(avr_opcodes[mnemo].type & OTY_TYPE_MASK) {

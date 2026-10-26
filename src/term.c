@@ -186,7 +186,7 @@ static int disasm_ison(char c) {
   case 'u':
     return !!cx->dis_opts.unused_labels;
   case 'd':
-    return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
+    return cx->dis_opts.isa == OP_All;
   }
   return 0;
 }
@@ -476,7 +476,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.labels = 1;
     cx->dis_opts.unused_labels = 1;
     cx->dis_opts.tagfile = NULL;
-    cx->dis_opts.avrlevel = avr_get_archlevel(p);
+    cx->dis_opts.isa = avr_get_instruction_set(p);
     disasm_init(p);
     cx->dis_initopts++;
   }
@@ -547,10 +547,10 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           disasm_zap_jumpcalls();
           break;
         case 'd':
-          cx->dis_opts.avrlevel = PART_ALL | OP_AVR_ILL;
+          cx->dis_opts.isa = OP_All;
           break;
         case 'D':
-          cx->dis_opts.avrlevel = avr_get_archlevel(p);
+          cx->dis_opts.isa = avr_get_instruction_set(p);
           break;
         case 't':
           if(*++q == '=')

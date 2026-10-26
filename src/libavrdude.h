@@ -333,6 +333,7 @@ typedef struct avrpart {
   int prog_modes;               // Programming interfaces, see #define PM_...
   int mcuid;                    // Unique id in 0..2039 for urclock programmer
   int archnum;                  // Avr-gcc architecture number for the part
+  int instruction_set;          // Bit pattern describing the opcode set and RAMPx registers
   int n_interrupts;             // Number of interrupts, used for vector bootloaders
   int n_page_erase;             // If set, number of pages erased during NVM erase
   int n_boot_sections;          // Number of boot sections
@@ -1504,18 +1505,18 @@ typedef struct {
 // AVR opcodes and disassembly
 
 typedef enum {
-  OP_AVRe,
-  OP_AVRxm,
-  OP_AVRxt,
-  OP_AVRrc,
-  OP_AVR_cycle_N
+  CYX_AVRe,                     // Classic AVR timings (original and extended instruction sets)
+  CYX_AVRxm,                    // XEMGA AVR timings
+  CYX_AVRxt,                    // Modern (UPDI) AVR timings
+  CYX_AVRrc,                    // Reduced-core instructions (TPI) AVR timings
+  CYX_AVR_cycle_N
 } AVR_cycle_index;
 
 typedef struct {
   // Flags how to display lines
   int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
   int op_names, op_explanations, avrgcc_style, labels, unused_labels;
-  int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
+  int isa;                      // Instruction set architecture (a pattern identifying available opcodes)
   char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
 } Dis_options;
 
@@ -1585,40 +1586,50 @@ typedef enum {
 } AVR_mnemo;
 
 typedef enum {
-  OP_AVR_RC = 1,                // Reduced-core Tiny only (128 byte STS/LDS)
-  OP_AVR1 = 2,                  // All AVR can run this OPCODE
-  OP_AVR1nRC = 4,               // All except reduced-core Tiny (TPI) and AT90S1200
-  OP_AVR2 = 8,                  // AVR with archnum 2 and above
-  OP_AVR2nRC = 16,              // AVR with archnum 2+ but not reduced-core Tiny
-  OP_AVR25 = 32,                // AVR with archnum 25 and above
-  OP_AVR_M = 64,                // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
-  OP_AVR4 = 128,                // AVR with archnum 4 and above
-  OP_AVR_L = 256,               // AVR with flash > 64 kB (ELMP)
-  OP_AVR_XL = 512,              // AVR with flash > 128 kB (EIJMP, EICALL)
-  OP_AVR_XM = 1024,             // XMEGA only (DES, XCH, LAC, LAS, LAT)
-  OP_AVR_XTM = 2048,            // XMEGA and UPDI only (SPM Z+)
-  OP_AVR_ILL = 4096,            // Undocumented (illegal) opcodes
-} AVR_archlevel;
+  // Opcode classes according to when they were introduced
+  OP_AVRrc        = 0x00001,    // 128 byte sts/lds opcodes that only run on reduced-core Tinys
+  OP_AVR1         = 0x00002,    // Minimal-core opcodes that run on all AVR
+  OP_LPM          = 0x00004,    // Lpm opcode (not in reduced-core Tiny and AT90S1200)
+  OP_AVR2         = 0x00008,    // Opcodes added for archnum 2 and above, also in reduced-core Tinys
+  OP_AVR2e        = 0x00010,    // Opcodes added for archnum 2 and above but not reduced-core Tinys
+  OP_MOVW_SPM     = 0x00020,    // Movw and spm opcodes
+  OP_LPMx         = 0x00040,    // Lpm Rn, Z and lpm Rn, Z+ opcodes
+  OP_JMP_CALL     = 0x00080,    // Jmp and call (AVR with flash of more than 8 kB)
+  OP_MUL          = 0x00100,    // Mul, muls, mulsu, fmul, fmuls and fmulsu opcodes
+  OP_ELPM         = 0x00200,    // Elpm opcode (AVR with flash of more than 64 kB)
+  OP_ELPMx        = 0x00400,    // Elpm Rn, Z and elpm Rn, Z+ opcodes
+  OP_EIJMP_EICALL = 0x00800,    // Eijmp and eicall opcodes (AVR with flash of more than 128 kB)
+  OP_DES          = 0x01000,    // Des opcode (XMEGA A, B, C family parts with an encryption engine)
+  OP_RMW          = 0x02000,    // Read-modify-write xch, lac, las and lat (2nd revision XMEGA AU, B, C)
+  OP_SPMx         = 0x04000,    // Spm Z+ opcode (XMEGA and UPDI only)
+  OP_Undocumented = 0x08000,    // Undocumented (illegal) opcodes
+  OP_All          = 0x0fffe,    // All of the above except OP_AVRrc as their bit patterns conflict with others
 
-/*
- * Approximation(!) of which opcodes a part may have given its archnum
- *   - Take with a pinch of salt
- *   - For OP_AVR_XT and OP_AVR_XM one needs to add in OP_AVR_L/ OP_AVR_XL
- *     depending on flash size
- */
-#define PART_AVR1   OP_AVR1
-#define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVR_RC)
-#define PART_AVR2   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC)
-#define PART_AVR25  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
-#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
-#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
-#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
-#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
-#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L)
-#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L|OP_AVR_XL)
-#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XTM)
-#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XM|OP_AVR_XTM)
-#define PART_ALL    (PART_AVR_XM|OP_AVR_L|OP_AVR_XL)    // All but RC (the latter conflicts)
+  // Help registers for addressing memory
+  REG_RAMPDXY     = 0x10000,    // Has RAMPD, RAMPX and RAMPY register for addressing RAM in excess of 64 kB
+  REG_RAMPZ       = 0x20000,    // Has RAMPZ register for addressing flash in excess of 64(!) kB via Z register
+  MEM_LINEAR64    = 0x40000,    // Flash up to 48 kB that is mapped into data space (UPDI devices only)
+
+  // Instruction set architectures (OP_RMW and OP_DES need to be added if the ATxmega part has that)
+  ISA_avrxmega7 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPDXY|REG_RAMPZ,
+  ISA_avrxmega6 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPZ,
+  ISA_avrxmega5 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPDXY|REG_RAMPZ,
+  ISA_avrxmega4 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPZ,
+  ISA_avrxmega3 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL|MEM_LINEAR64,
+  ISA_avrxmega3small = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|MEM_LINEAR64,
+  ISA_avrxmega2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_SPMx|OP_JMP_CALL,
+  ISA_avr6 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL|OP_ELPM|OP_ELPMx|OP_EIJMP_EICALL|REG_RAMPZ,
+  ISA_avr51 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL|OP_ELPM|OP_ELPMx|REG_RAMPZ,
+  ISA_avr5 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL|OP_JMP_CALL,
+  ISA_avr4 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_MUL,
+  ISA_avr35 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx|OP_JMP_CALL,
+  ISA_avr31 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL|OP_ELPM|REG_RAMPZ,
+  ISA_avr3 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_JMP_CALL,
+  ISA_avr25 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e|OP_MOVW_SPM|OP_LPMx,
+  ISA_avr2 = OP_AVR1|OP_LPM|OP_AVR2|OP_AVR2e,
+  ISA_avrtiny = OP_AVR1|OP_AVR2|OP_AVRrc,
+  ISA_avr1 = OP_AVR1,
+} AVR_instruction_set;
 
 // Opcode types
 #define OTY_REG_MASK          7 // Register formula mask
@@ -1659,7 +1670,7 @@ typedef struct {
   AVR_mnemo mnemo;              // Eg, MNEMO_add
   const char *idname;           // Unique id, eg, "ldx_1" (for error msgs or debugging)
   int mask, value, nwords;
-  AVR_archlevel avrlevel;       // OP_AVR1
+  AVR_instruction_set isa;      // Instruction set architecture, eg, OP_AVR5
   const char *bits;             // "0000 11rd  dddd rrrr"
   int type;                     // OTY_ALBI|OTY_RALL
   const char
@@ -1668,7 +1679,7 @@ typedef struct {
   *description,                 // "add without carry"
   *operation,                   // "Rd <-- Rd + Rr"
   *flags,                       // "--HSVNZC"
-  *clock[OP_AVR_cycle_N],       // Timings for AVRe, AVRxm, AVRxt and AVRrc
+  *clock[CYX_AVR_cycle_N],      // Timings for AVRe, AVRxm, AVRxt and AVRrc
   *remarks;
 } AVR_opcode;
 
@@ -1824,10 +1835,10 @@ extern "C" {
   int op_width(int op16);
   int ldi_Rd(int op16);
   int ldi_K(int op16);
-  AVR_mnemo opcode_mnemo(int op16, int avrlevel);
-  int op16_is_valid(int op16, int avrlevel);
-  int op16_is_benign(int op16, int avrlevel);
-  int avr_get_archlevel(const AVRPART *p);
+  AVR_mnemo opcode_mnemo(int op16, int isa);
+  int op16_is_valid(int op16, int isa);
+  int op16_is_benign(int op16, int isa);
+  int avr_get_instruction_set(const AVRPART *p);
   AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
   const char *mnemo_str(int op16);
   int z_width(int op16, AVR_mnemo *mnenop);
