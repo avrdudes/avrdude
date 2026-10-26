@@ -16,6 +16,7 @@ Changes since version 8.3:
   * Issues fixed:
 
     - Deploy release with automated workflow fails #2208
+    - Git workflow: MINGW64 is deprecated #2220
 
   * Pull requests:
 
@@ -24,6 +25,10 @@ Changes since version 8.3:
     - Report if lock bits might have prevented reading #2216
     - Improve avrdude's comments on lock bit settings #2217
     - Emulate lock bits behaviour for dryrun/dryboot #2218
+    - Update build.yml to remove mingw64 build #2221
+    - Make default EEPROM readback 0xff in avr_write_byte_default() #2219
+    - Retry buspirate program enable after a RESET pulse #2222
+    - Closely model the instruction set architecture for disasm #2223
 
   * Internals:
 
