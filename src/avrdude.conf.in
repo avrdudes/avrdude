@@ -5326,12 +5326,12 @@ part parent "t2313" # t2313a
         "ATtiny2313A-SUR:  SOIC20, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 43;
     n_interrupts           = 21;
-    idr                    = 0x27;
     flash_instr            =  0xb4, 0x07, 0x17;
     eeprom_instr           =
         0xbb, 0xfe, 0xbb, 0xee, 0xbb, 0xcc, 0xb2, 0x0d,
         0xbc, 0x07, 0xb4, 0x07, 0xba, 0x0d, 0xbb, 0xbc,
         0x99, 0xe1, 0xbb, 0xac;
+    idr                    = 0x27;
 
     memory "lfuse"
         initval            = 0x62;
@@ -5356,12 +5356,12 @@ part parent "t2313" # t4313
     mcuid                  = 44;
     n_interrupts           = 21;
     signature              = 0x1e 0x92 0x0d;
-    idr                    = 0x27;
     flash_instr            =  0xb4, 0x07, 0x17;
     eeprom_instr           =
         0xbb, 0xfe, 0xbb, 0xee, 0xbb, 0xcc, 0xb2, 0x0d,
         0xbc, 0x07, 0xb4, 0x07, 0xba, 0x0d, 0xbb, 0xbc,
         0x99, 0xe1, 0xbb, 0xac;
+    idr                    = 0x27;
 
     memory "eeprom"
         size               = 256;
@@ -7816,8 +7816,6 @@ part parent "pwm2" # pwm2b
     mcuid                  = 168;
     signature              = 0x1e 0x93 0x83;
     resetdelay             = 15;
-    idr                    = 0x31;
-    ocdrev                 = 1;
 
     memory "eeprom"
         readback           = 0x00 0x00;
