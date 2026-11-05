@@ -2172,8 +2172,8 @@ programmer # iseavrprog
 # mcp2210
 #------------------------------------------------------------
 
-Mcp2210 is a USB to SPI bridge IC.
-See https://www.microchip.com/en-us/product/mcp2210
+# Mcp2210 is a USB to SPI bridge IC.
+# See https://www.microchip.com/en-us/product/mcp2210
 
 programmer #mcp2210
    id			   = "mcp2210";

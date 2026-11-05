@@ -63,8 +63,6 @@ static bool mcp2210_cancel_transfer(const PROGRAMMER *p);
 struct mcp
 {
     hid_device *handle;
-    ushort vid;
-    ushort pid;
     uint32_t bitrate;
 };
 
@@ -85,7 +83,7 @@ static void mcp2210_setup(PROGRAMMER *p)
     mine->bitrate = 0;
 }
 
-static bool mcp2210_set_settings(const PROGRAMMER *p, ushort len)
+static bool mcp2210_set_settings(const PROGRAMMER *p, unsigned short len)
 {
     unsigned char settings_request[HID_REPORT_LENGTH], settings_response[HID_REPORT_LENGTH];
     uint32_t *current_bit_rate = &mine->bitrate;
@@ -142,8 +140,20 @@ static void mcp2210_teardown(PROGRAMMER *p)
 
 static int mcp2210_open(PROGRAMMER *p, const char * port)
 {
-    ushort vid = mine->vid <= 0 ? MCP2210_DEFAULT_VID : mine->vid;
-    ushort pid = mine->pid <= 0 ? MCP2210_DEFAULT_PID : mine->pid;
+    LNODEID usbpid = lfirst(p->usbpid);
+    int vid = p->usbvid ? p->usbvid : MCP2210_DEFAULT_VID, pid;
+
+    if(usbpid)
+    {
+        pid = *(int *) ldata(usbpid);
+
+        if(lnext(usbpid))
+            pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
+    }
+    else
+    {
+            pid = MCP2210_DEFAULT_PID;
+    }
 
     mine->handle = hid_open(vid, pid, NULL);
     if (mine->handle == NULL)
@@ -618,24 +628,6 @@ static int mcp2210_parseextparams(const PROGRAMMER *p, LISTID extparms)
             if (sscanf(extended_param, "bitrate==%u", &mine->bitrate) != 1)
             {
                 msg_info("Invalid bitrate: %s\n", extended_param);
-                return -1;
-            }
-        }
-
-        if (strncmp(extended_param, "vid=", strlen("vid=")) == 0)
-        {
-            if (sscanf(extended_param, "vid==%hu", &mine->vid) != 1)
-            {
-                msg_info("Invalid vid: %s\n", extended_param);
-                return -1;
-            }
-        }
-
-        if (strncmp(extended_param, "pid=", strlen("pid=")) == 0)
-        {
-            if (sscanf(extended_param, "pid==%hu", &mine->pid) != 1)
-            {
-                msg_info("Invalid pid: %s\n", extended_param);
                 return -1;
             }
         }
