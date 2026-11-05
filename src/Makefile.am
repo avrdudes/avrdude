@@ -150,6 +150,8 @@ libavrdude_la_SOURCES = \
 	linuxspi.h \
 	linux_ppdev.h \
 	lists.c \
+	mcp2210.h \
+	mcp2210.c \
 	micronucleus.c \
 	micronucleus.h \
 	par.c \
