@@ -18,7 +18,7 @@
  * This code is not affiliated in any way with Microchip®
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
