@@ -476,6 +476,10 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
       pmsg_ext_error("unable to read: %s\n", strerror(errno));
       return -1;
     }
+    if(rc == 0) {               // Readable but no data: end of file (hangup)
+      pmsg_error("unable to read: end of file, device disconnected?\n");
+      return -1;
+    }
     p += rc;
     len += rc;
   }
@@ -522,6 +526,10 @@ static int ser_drain(const union filedescriptor *fd, int display) {
     rc = read(fd->ifd, &buf, 1);
     if(rc < 0) {
       pmsg_ext_error("unable to read: %s\n", strerror(errno));
+      return -1;
+    }
+    if(rc == 0) {               // Readable but no data: end of file (hangup)
+      pmsg_error("unable to read: end of file, device disconnected?\n");
       return -1;
     }
     if(display) {
