@@ -29,6 +29,7 @@ Changes since version 8.3:
     - Make default EEPROM readback 0xff in avr_write_byte_default() #2219
     - Retry buspirate program enable after a RESET pulse #2222
     - Closely model the instruction set architecture for disasm #2223
+    - Fix debugWIRE instruction sequences and idr #2225
 
   * Internals:
 
