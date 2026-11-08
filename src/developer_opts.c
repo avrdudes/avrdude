@@ -967,9 +967,9 @@ static const Avrintel *silent_locate_uP(const AVRPART *p) {
   return idx < 0? NULL: uP_table + idx;
 }
 
-// -p <wildcard>/[dsASRvcreow*tiBCUPTIJWHQ]
+// -p <wildcard>/[dsASRvcreow*tiBCUPTIJWHQM]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, vtabs, confs, regis, astrc, strct, cmpst, injct, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, vtabs, confs, regis, astrc, strct, cmpst, injct, raw, all, tsv, mcus;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -980,7 +980,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*"))   // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("dsASRvcreow*tiBCUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dsASRvcreow*tiBCUPTIJWHQM", *flags)) {
     dev_info("Error: flags for developer option -p <wildcard>/<flags> not recognised\n");
     dev_info("Wildcard examples (these need protecting in the shell through quoting):\n"
       "          * all known parts\n"
@@ -1000,7 +1000,8 @@ void dev_output_part_defs(char *partdesc) {
       "          o  opcodes for SPI programming parts and memories\n"
       "          w  wd_... constants for ISP parts\n"
       "          *  as first character: all of the above except s and S\n"
-      " BCUPTIJWHQ  only Boot/Classic/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
+      " BCUPTIJWHQ  only Boot/Classic/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MCUs\n"
+      "          M  only MCU entries, ie, skip entries with common values\n"
       "          t  use tab separated values as much as possible\n"
       "          i  inject assignments from source code table\n"
       "Examples:\n"
@@ -1033,6 +1034,7 @@ void dev_output_part_defs(char *partdesc) {
   cmpst = !!strchr(flags, 's');
   tsv = !!strchr(flags, 't');
   injct = !!strchr(flags, 'i');
+  mcus = !!strchr(flags, 'M');
 
   // Go through all memories and add them to the memory order list
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
@@ -1065,6 +1067,8 @@ void dev_output_part_defs(char *partdesc) {
     if(!part_eq(p, partdesc, str_casematch))
       continue;
     if(!prog_modes_in_flags(p->prog_modes, flags))
+      continue;
+    if(mcus && *p->id == '.')   // Do not process entries with common values
       continue;
 
     if(astrc || strct || cmpst)
@@ -1593,7 +1597,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
       "         r  show entries of avrdude.conf programmers as raw dump\n"
       "         t  use tab separated values as much as possible\n"
       "         i  inject assignments from source code table\n"
-      " BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
+      " BUPTIJWHQ  only Boot/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky prog modes\n"
       "Examples:\n"
       "  $ avrdude -c usbasp/s\n"
       "  $ avrdude -c */st | grep baudrate\n"
