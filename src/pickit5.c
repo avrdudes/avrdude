@@ -1150,7 +1150,7 @@ static int pickit5_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if(!my.target_locked)             // Avoid function call to avoid error printing (might be confusing)
     pickit5_program_enable(pgm, p); // Ignore any errors that might come up
 
-  if(is_debugwire(pgm))             // debugWire Chip erase doesn't seem to be working, use ISP
+  if(is_debugwire(pgm))             // debugWIRE Chip erase doesn't seem to be working, use ISP
     pickit5_dw_switch_to_isp(pgm, p);
 
   const unsigned char *chip_erase = my.scripts.EraseChip;
