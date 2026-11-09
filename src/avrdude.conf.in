@@ -6708,12 +6708,10 @@ part parent ".classic" # t828
     desc                   = "ATtiny828";
     id                     = "t828";
     variants               =
-        "ATtiny828-AU:   TQFP32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.7 V,  5.5 V]",
-        "ATtiny828-AUR:  TQFP32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.7 V,  5.5 V]",
-        "ATtiny828-MU:   QFN32,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.7 V,  5.5 V]",
-        "ATtiny828-MUR:  VQFN32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.62 V, 5.5 V]",
-        "ATtiny828R-AU:  TQFP32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.62 V, 5.5 V]",
-        "ATtiny828R-AUR: TQFP32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.62 V, 5.5 V]";
+        "ATtiny828-AU:  TQFP32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.7 V,  5.5 V]",
+        "ATtiny828-AUR: TQFP32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.7 V,  5.5 V]",
+        "ATtiny828-MU:  QFN32,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.7 V,  5.5 V]",
+        "ATtiny828-MUR: VQFN32, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[1.62 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 35;
     archnum                = 25;
@@ -7023,16 +7021,12 @@ part parent ".classic" # t1634
     desc                   = "ATtiny1634";
     id                     = "t1634";
     variants               =
-        "ATtiny1634-MN:   WQFN20, Fmax=12 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634-MNR:  WQFN20, Fmax=12 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634-MU:   QFN20,  Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634-MUR:  QFN20,  Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634-SU:   SOIC20, Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634-SUR:  SOIC20, Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634R-MU:  QFN20,  Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634R-MUR: QFN20,  Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634R-SU:  SOIC20, Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny1634R-SUR: SOIC20, Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
+        "ATtiny1634-MN:  WQFN20, Fmax=12 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATtiny1634-MNR: WQFN20, Fmax=12 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
+        "ATtiny1634-MU:  QFN20,  Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATtiny1634-MUR: QFN20,  Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATtiny1634-SU:  SOIC20, Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATtiny1634-SUR: SOIC20, Fmax=12 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 40;
     archnum                = 35;
