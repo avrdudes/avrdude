@@ -17,6 +17,8 @@ Changes since version 8.3:
 
     - Deploy release with automated workflow fails #2208
     - Git workflow: MINGW64 is deprecated #2220
+    - debugWIRE flash_instr/eeprom_instr can contradict idr/eecr #2224
+    - 100% CPU load when USB serial adapter is unplugged #2227
 
   * Pull requests:
 
@@ -30,6 +32,10 @@ Changes since version 8.3:
     - Retry buspirate program enable after a RESET pulse #2222
     - Closely model the instruction set architecture for disasm #2223
     - Fix debugWIRE instruction sequences and idr #2225
+    - Handle unexpected end of file read in ser_posix.c #2228
+    - Add -p*/M developer option #2229
+    - Remove ATtiny(1634|828)R variants from t(1634|828) #2230
+    - Name debugWIRE protocol consistently #2231
 
   * Internals:
 
