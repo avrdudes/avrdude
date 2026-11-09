@@ -1948,6 +1948,7 @@ typedef struct {
 #else
   struct termios ser_original_termios;
   int ser_saved_original_termios;
+  int ser_disconnected;         // Device gone (tty hung up): fail without message
 #endif
 
   // Static variables from term.c

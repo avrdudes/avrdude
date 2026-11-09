@@ -376,6 +376,8 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
   int rc;
   int fd;
 
+  cx->ser_disconnected = 0;
+
   /*
    * If the port is of the form "net:<host>:<port>", then handle it as a TCP
    * connection to a terminal server.
@@ -427,10 +429,20 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 
   trace_buffer(__func__, buf, len);
 
+  /*
+   * Once the device is gone, fail at once and silently: the polling loops of
+   * some programmers would otherwise print an error for every try until they
+   * time out
+   */
+  if(cx->ser_disconnected)
+    return -1;
+
   while(len) {
     rc = write(fd->ifd, buf, minm(len, 1024));
     if(rc < 0) {
       pmsg_ext_error("unable to write: %s\n", strerror(errno));
+      if(errno == EIO)          // The tty was hung up
+        cx->ser_disconnected = 1;
       return -1;
     }
     buf += rc;
@@ -450,6 +462,9 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 
   timeout.tv_sec = serial_recv_timeout/1000L;
   timeout.tv_usec = (serial_recv_timeout%1000L)*1000;
+
+  if(cx->ser_disconnected)      // See ser_send()
+    return -1;
 
   while(len < buflen) {
     to2 = timeout;
@@ -476,6 +491,11 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
       pmsg_ext_error("unable to read: %s\n", strerror(errno));
       return -1;
     }
+    if(rc == 0) {               // Readable but no data: end of file (hangup)
+      pmsg_error("unable to read: end of file, device disconnected?\n");
+      cx->ser_disconnected = 1;
+      return -1;
+    }
     p += rc;
     len += rc;
   }
@@ -493,6 +513,9 @@ static int ser_drain(const union filedescriptor *fd, int display) {
 
   timeout.tv_sec = 0;
   timeout.tv_usec = serial_drain_timeout*1000L;
+
+  if(cx->ser_disconnected)      // See ser_send()
+    return -1;
 
   if(display) {
     msg_info("drain>");
@@ -522,6 +545,11 @@ static int ser_drain(const union filedescriptor *fd, int display) {
     rc = read(fd->ifd, &buf, 1);
     if(rc < 0) {
       pmsg_ext_error("unable to read: %s\n", strerror(errno));
+      return -1;
+    }
+    if(rc == 0) {               // Readable but no data: end of file (hangup)
+      pmsg_error("unable to read: end of file, device disconnected?\n");
+      cx->ser_disconnected = 1;
       return -1;
     }
     if(display) {
