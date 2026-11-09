@@ -298,7 +298,7 @@ static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, si
     if(len > 1)
       switch(data[1]) {
       case EMULATOR_MODE_DEBUGWIRE:
-        msg_info(": DebugWire");
+        msg_info(": debugWIRE");
         break;
       case EMULATOR_MODE_JTAG:
         msg_info(": JTAG");
@@ -736,7 +736,7 @@ retry:
   buf[0] = mode;
   if(jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0) {
     if(mode == EMULATOR_MODE_SPI) {
-      pmsg_warning("ISP activation failed, trying debugWire\n");
+      pmsg_warning("ISP activation failed, trying debugWIRE\n");
       buf[0] = EMULATOR_MODE_DEBUGWIRE;
       if(jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0)
         return -1;
@@ -831,9 +831,9 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
-// There is no chip erase functionality in debugWire mode
+// There is no chip erase functionality in debugWIRE mode
 static int jtagmkII_chip_erase_dw(const PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
-  pmsg_info("chip erase not supported in debugWire mode\n");
+  pmsg_info("chip erase not supported in debugWIRE mode\n");
 
   return 0;
 }
@@ -980,7 +980,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
   unsigned char buf[2], *resp, c;
 
   /*
-   * In debugWire mode, don't reset.  Do a forced stop, and tell the ICE to
+   * In debugWIRE mode, don't reset.  Do a forced stop, and tell the ICE to
    * stop any timers, too.
    */
   if(pgm->flag & PGM_FL_IS_DW) {
@@ -1180,7 +1180,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   ok = 0;
   if(pgm->flag & PGM_FL_IS_DW) {
-    ifname = "debugWire";
+    ifname = "debugWIRE";
     if(is_debugwire(p))
       ok = 1;
   } else if(pgm->flag & PGM_FL_IS_PDI) {
@@ -2105,7 +2105,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cache_ptr = my.flash_pagecache;
   } else if(mem_is_eeprom(mem)) {
     if((pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & (PM_PDI | PM_UPDI))) {
-      // debugWire cannot use page access for EEPROM
+      // debugWIRE cannot use page access for EEPROM
       cmd[1] = MTYPE_EEPROM;
     } else {
       cmd[1] = MTYPE_EEPROM_PAGE;
@@ -2145,7 +2145,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     if(pgm->flag & PGM_FL_IS_DW) {
       /*
-       * In debugWire mode, there is no accessible memory area to read the
+       * In debugWIRE mode, there is no accessible memory area to read the
        * signature from, but the essential two bytes can be read as a parameter
        * from the ICE.
        */
@@ -2187,7 +2187,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     return -1;
   }
 
-  // If the respective memory area is not supported under debugWire, leave here
+  // If the respective memory area is not supported under debugWIRE, leave here
   if(unsupp) {
     *value = 42;
     return -1;
@@ -3746,7 +3746,7 @@ void jtagmkII_initpgm(PROGRAMMER *pgm) {
   pgm->flag = PGM_FL_IS_JTAG;
 }
 
-const char jtagmkII_dw_desc[] = "Atmel JTAG ICE mkII in debugWire mode";
+const char jtagmkII_dw_desc[] = "Atmel JTAG ICE mkII in debugWIRE mode";
 
 void jtagmkII_dw_initpgm(PROGRAMMER *pgm) {
   pgm->ptyp = "JTAGMKII_DW";
@@ -3866,7 +3866,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
   pgm->flag = PGM_FL_IS_JTAG;
 }
 
-const char jtagmkII_dragon_dw_desc[] = "Atmel AVR Dragon in debugWire mode";
+const char jtagmkII_dragon_dw_desc[] = "Atmel AVR Dragon in debugWIRE mode";
 
 void jtagmkII_dragon_dw_initpgm(PROGRAMMER *pgm) {
   pgm->ptyp = "DRAGON_DW";

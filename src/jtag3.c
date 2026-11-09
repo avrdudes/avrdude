@@ -901,9 +901,9 @@ static int jtag3_unlock_erase_key(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
-// There is no chip erase functionality in debugWire mode
+// There is no chip erase functionality in debugWIRE mode
 static int jtag3_chip_erase_dw(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_error("chip erase not supported in debugWire mode\n");
+  pmsg_error("chip erase not supported in debugWIRE mode\n");
   return 0;
 }
 
@@ -997,7 +997,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if(pgm->flag & PGM_FL_IS_DW) {
-    ifname = "debugWire";
+    ifname = "debugWIRE";
     if(is_debugwire(p))
       conn = PARM3_CONN_DW;
   } else if(pgm->flag & PGM_FL_IS_PDI) {
@@ -2240,7 +2240,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return -1;
   }
 
-  // If the respective memory area is not supported under debugWire, leave here
+  // If the respective memory area is not supported under debugWIRE, leave here
   if(unsupp) {
     *value = 42;
     return -1;
@@ -2348,14 +2348,14 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if(mem_is_io(mem) || mem_is_sram(mem))
     cmd[3] = MTYPE_SRAM;
 
-  // Read-only memories or unsupported by debugWire
+  // Read-only memories or unsupported by debugWIRE
   if(mem_is_readonly(mem) || unsupp) {
     unsigned char is;
 
     if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
       return 0;
     if(unsupp && pgm->flag & PGM_FL_IS_DW)
-      pmsg_error("debugWire interface does not support writing to memory %s\n", mem->desc);
+      pmsg_error("debugWIRE interface does not support writing to memory %s\n", mem->desc);
     else
       pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
     return -1;
@@ -3252,7 +3252,7 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
     pgm->set_vtarget = jtag3_set_vtarget;
 }
 
-const char jtag3_dw_desc[] = "Atmel JTAGICE3 in debugWire mode";
+const char jtag3_dw_desc[] = "Atmel JTAGICE3 in debugWIRE mode";
 
 void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->ptyp = "JTAGICE3_DW";

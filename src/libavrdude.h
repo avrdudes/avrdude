@@ -364,8 +364,8 @@ typedef struct avrpart {
 
   enum ctl_stack ctl_stack_type;                 // What to use the ctl stack for
   unsigned char controlstack[CTL_STACK_SIZE];    // Stk500v2 PP/HVSP ctl stack
-  unsigned char flash_instr[FLASH_INSTR_SIZE];   // Flash instructions (debugWire, JTAG)
-  unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; // EEPROM instructions (debugWire, JTAG)
+  unsigned char flash_instr[FLASH_INSTR_SIZE];   // Flash instructions (debugWIRE, JTAG)
+  unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; // EEPROM instructions (debugWIRE, JTAG)
 
   // STK500 v2 hv mode parameters
   int hventerstabdelay;

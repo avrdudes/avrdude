@@ -288,7 +288,7 @@ static void pmshorten(char *desc, const char *modes) {
     {" in ISP mode", "ISP"},
     {" in ISP mode", "TPI, ISP"},
     {" in TPI mode", "TPI"},
-    {" in debugWire mode", "debugWIRE"},
+    {" in debugWIRE mode", "debugWIRE"},
     {" in AVR32 mode", "aWire"},
     {" in PDI mode", "PDI"},
     {" in UPDI mode", "UPDI"},
