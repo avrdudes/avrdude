@@ -378,6 +378,17 @@ jobs:
           $tmp = [System.IO.Path]::GetTempPath()
           $tmp_slash = $tmp -replace '\\', '/'
           Write-Host "`n`n" -NoNewline | bash tools/test-avrdude -v -t "$tmp_slash" -e build/src/${{env.BUILD_TYPE}}/avrdude.exe -c "-C build/src/avrdude.conf" -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
+      - name: "UTF-8 argv test (not installed)"
+        # The embedded manifest must keep non-ANSI characters in argv[] intact,
+        # here U+2212 MINUS SIGN, which would otherwise be "best fit" mapped to '-'
+        # The exe file on arm64 is not runnable as the runner is x86_64.
+        if: matrix.arch != 'arm64'
+        shell: bash
+        run: |
+          part=$(printf 'x\342\210\222y')
+          build/src/${{env.BUILD_TYPE}}/avrdude.exe -C build/src/avrdude.conf -c dryrun -p "$part" -l utf8.log || true
+          cat utf8.log
+          grep -F "part $part not found" utf8.log
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -460,6 +471,14 @@ jobs:
         run: build/src/avrdude -?
       - name: "Dryrun test (not installed)"
         run: printf "\n\n" | ./tools/test-avrdude -v -e build/src/avrdude.exe -t . -c "-C build/src/avrdude.conf" -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
+      - name: "UTF-8 argv test (not installed)"
+        # The embedded manifest must keep non-ANSI characters in argv[] intact,
+        # here U+2212 MINUS SIGN, which would otherwise be "best fit" mapped to '-'
+        run: |
+          part=$(printf 'x\342\210\222y')
+          build/src/avrdude.exe -C build/src/avrdude.conf -c dryrun -p "$part" -l utf8.log || true
+          cat utf8.log
+          grep -F "part $part not found" utf8.log
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
