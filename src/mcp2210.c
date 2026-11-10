@@ -64,9 +64,6 @@ struct mcp {
 
 static void mcp2210_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof *mine);
-
-  if(pgm->baudrate)
-    mine->bitrate = pgm->baudrate;
 }
 
 static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
@@ -88,11 +85,11 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
   memset(settings_request, 0, HID_REPORT_LENGTH);
 
   settings_request[1] = MCP2210_SET_SETTINGS;
-  settings_request[5] = (uint8_t)(*current_bit_rate >> 0) & 0xFF;
-  settings_request[6] = (uint8_t)(*current_bit_rate >> 8) & 0xFF;
-  settings_request[7] = (uint8_t)(*current_bit_rate >> 16) & 0xFF;
-  settings_request[8] = (uint8_t)(*current_bit_rate >> 24) & 0xFF;
-  settings_request[19] = (len >> 0) & 0xFF;
+  settings_request[5] = *current_bit_rate & 0xFF;
+  settings_request[6] = (*current_bit_rate >> 8) & 0xFF;
+  settings_request[7] = (*current_bit_rate >> 16) & 0xFF;
+  settings_request[8] = (*current_bit_rate >> 24) & 0xFF;
+  settings_request[19] = len & 0xFF;
   settings_request[20] = (len >> 8) & 0xFF;
 
   if(mcp2210_run_query(pgm, settings_request, settings_response) == -1) {
@@ -102,7 +99,7 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
 
   if(settings_response[2] != MCP2210_SUCCESS) {
     if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
-      msg_error("USB transfer in progress - Settings not written\n");
+      msg_error("USB transfer in progress - settings not written\n");
     else
       msg_error("unknown error, return code: %x\n", settings_response[2]);
 
@@ -155,7 +152,12 @@ static void mcp2210_close(PROGRAMMER *pgm) {
 }
 
 static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  return pgm->program_enable(pgm, p);
+  pgm->program_enable(pgm, p);
+
+  if(pgm->baudrate)
+    mine->bitrate = pgm->baudrate;
+
+  return 0;
 }
 
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
@@ -309,7 +311,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
 
     if(bytes_read < 0) {
-      msg_error("Failed @ p->spi()\n");
+      msg_error("failed @ p->spi()\n");
       return -1;
     }
 
@@ -391,7 +393,6 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     for(addr_off = 0; addr_off < blockSize; addr_off++) {
       int addr = addr_base + addr_off;
       int caddr = 0;
-
       /*
        * Determine which memory opcode to use
        */
@@ -467,7 +468,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
   }
 
-  while (retries < TRANSFER_RETRIES) {
+  while(retries < TRANSFER_RETRIES) {
     usleep(timeout * 1000);
 
     if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response) == -1) {
@@ -513,7 +514,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_report[HID_REPORT_LENGTH], unsigned char *response_report) {
   if(hid_write(mine->handle, request_report, HID_REPORT_LENGTH) == -1) {
-    msg_error("HID Write has failed with error: %ls", hid_error(mine->handle));
+    msg_error("HID write has failed with error: %ls", hid_error(mine->handle));
     return -1;
   }
 
