@@ -57,7 +57,10 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
 
 struct mcp {
   hid_device *handle;
-  uint32_t bitrate;
+  union {
+    u_int32_t bitrate_long;
+    u_int8_t bitrate_byte[4];
+  } bitrate;
 };
 
 #define mine ((struct mcp *)(pgm->cookie))
@@ -68,9 +71,8 @@ static void mcp2210_setup(PROGRAMMER *pgm) {
 
 static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
   unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_GET_SETTINGS}, settings_response[HID_REPORT_LENGTH];
-  uint32_t *current_bit_rate = &mine->bitrate;
 
-  if(!*current_bit_rate) {
+  if(!mine->bitrate.bitrate_long) {
     unsigned char current_settings[HID_REPORT_LENGTH];
 
     if(mcp2210_run_query(pgm, settings_request, current_settings) == -1) {
@@ -78,19 +80,16 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
       return -1;
     }
 
-    *current_bit_rate = le32toh(current_settings[5]);
-    mine->bitrate = *current_bit_rate;
+    mine->bitrate.bitrate_long = le32toh(current_settings[5]);
   }
 
   memset(settings_request, 0, HID_REPORT_LENGTH);
 
   settings_request[1] = MCP2210_SET_SETTINGS;
-  settings_request[5] = *current_bit_rate & 0xFF;
-  settings_request[6] = (*current_bit_rate >> 8) & 0xFF;
-  settings_request[7] = (*current_bit_rate >> 16) & 0xFF;
-  settings_request[8] = (*current_bit_rate >> 24) & 0xFF;
-  settings_request[19] = len & 0xFF;
-  settings_request[20] = (len >> 8) & 0xFF;
+  for(int i=5, j=0; j < 4; j++, i++)
+      settings_request[i] =  mine->bitrate.bitrate_byte[j];
+  settings_request[19] = len;
+  settings_request[20] = len >> 8;
 
   if(mcp2210_run_query(pgm, settings_request, settings_response) == -1) {
     msg_error("unable to run query to set settings\n");
@@ -155,7 +154,7 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->program_enable(pgm, p);
 
   if(pgm->baudrate)
-    mine->bitrate = pgm->baudrate;
+    mine->bitrate.bitrate_long = htole32(pgm->baudrate);
 
   return 0;
 }
@@ -454,10 +453,11 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
   }
 
-  mcp2210_set_settings(pgm, n_bytes);
+  if(mcp2210_set_settings(pgm, n_bytes) == -1)
+    return 1;
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH];
-  int retries = 0, timeout = (100000 / mine->bitrate) + 1;
+  int retries = 0, timeout = (100000 / mine->bitrate.bitrate_long) + 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
