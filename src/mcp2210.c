@@ -80,7 +80,7 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
       return -1;
     }
 
-    mine->bitrate.bitrate_long = le32toh(current_settings[5]);
+    mine->bitrate.bitrate_long = current_settings[5];
   }
 
   memset(settings_request, 0, HID_REPORT_LENGTH);
@@ -154,7 +154,7 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->program_enable(pgm, p);
 
   if(pgm->baudrate)
-    mine->bitrate.bitrate_long = htole32(pgm->baudrate);
+    mine->bitrate.bitrate_long = pgm->baudrate;
 
   return 0;
 }
