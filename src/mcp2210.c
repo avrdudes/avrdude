@@ -58,8 +58,8 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
 struct mcp {
   hid_device *handle;
   union {
-    u_int32_t bitrate_long;
-    u_int8_t bitrate_byte[4];
+    uint32_t bitrate_long;
+    uint8_t bitrate_byte[4];
   } bitrate;
 };
 
