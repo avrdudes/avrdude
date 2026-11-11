@@ -43,10 +43,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#if defined(WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else
+#if !defined(WIN32)
 #include <dirent.h>
 #endif
 
@@ -81,43 +78,6 @@ static const char *avrdude_message_type(int msglvl) {
   }
 }
 
-#if defined(WIN32)
-static UINT orig_console_cp;
-
-static void restore_console_cp(void) {
-  SetConsoleOutputCP(orig_console_cp);
-}
-
-// Ctrl-C etc terminate the process without running atexit() handlers
-static BOOL WINAPI console_ctrl_handler(DWORD type) {
-  (void) type;
-  restore_console_cp();
-  return FALSE;                 // Continue with the default handler
-}
-
-/*
- * When the manifest has set the process ANSI code page to UTF-8, all strings
- * (argv[], file names, part descriptions etc) are UTF-8, so switch the console
- * output code page to match; otherwise non-ASCII characters were printed as
- * mojibake in the console's legacy OEM code page. The console code page is
- * shared with the parent shell and persists after exit, so restore it then.
- */
-static void utf8_console(void) {
-  static int done;
-
-  if(done)
-    return;
-  done = 1;
-  if(GetACP() != CP_UTF8)       // Manifest not honoured (Windows < 10 1903)
-    return;
-  orig_console_cp = GetConsoleOutputCP();
-  if(orig_console_cp && orig_console_cp != CP_UTF8 && SetConsoleOutputCP(CP_UTF8)) {
-    atexit(restore_console_cp);
-    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
-  }
-}
-#endif
-
 /*
  * Core messaging routine for msg_xyz(), [pli]msg_xyz() and term_out()
  * See #define lines in avrdude.h of how it is normally called
@@ -136,10 +96,6 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func,
   } bols[5 + 1];                // Cater for up to 5 different FILE pointers plus one catch-all
 
   size_t bi = 0;                // bi is index to bols[] array
-
-#if defined(WIN32)
-  utf8_console();
-#endif
 
   for(bi = 0; bi < sizeof bols/sizeof *bols - 1; bi++) {      // Note the -1, so bi is valid after loop
     if(!bols[bi].fp) {          // First free space
