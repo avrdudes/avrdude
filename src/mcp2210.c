@@ -57,10 +57,7 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
 
 struct mcp {
   hid_device *handle;
-  union {
-    uint32_t bitrate_long;
-    uint8_t bitrate_byte[4];
-  } bitrate;
+  uint8_t bitrate[4];
 };
 
 #define mine ((struct mcp *)(pgm->cookie))
@@ -72,7 +69,7 @@ static void mcp2210_setup(PROGRAMMER *pgm) {
 static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
   unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_GET_SETTINGS}, settings_response[HID_REPORT_LENGTH];
 
-  if(!mine->bitrate.bitrate_long) {
+  if(!(uint32_t)*mine->bitrate) {
     unsigned char current_settings[HID_REPORT_LENGTH];
 
     if(mcp2210_run_query(pgm, settings_request, current_settings) == -1) {
@@ -80,14 +77,14 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
       return -1;
     }
 
-    mine->bitrate.bitrate_long = current_settings[5];
+    uint32tobuf(mine->bitrate, current_settings[5]);
   }
 
   memset(settings_request, 0, HID_REPORT_LENGTH);
 
   settings_request[1] = MCP2210_SET_SETTINGS;
   for(int i=5, j=0; j < 4; j++, i++)
-      settings_request[i] =  mine->bitrate.bitrate_byte[j];
+      settings_request[i] =  mine->bitrate[j];
   settings_request[19] = len;
   settings_request[20] = len >> 8;
 
@@ -154,7 +151,7 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->program_enable(pgm, p);
 
   if(pgm->baudrate)
-    mine->bitrate.bitrate_long = pgm->baudrate;
+    uint32tobuf(mine->bitrate, pgm->baudrate);
 
   return 0;
 }
@@ -457,7 +454,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return 1;
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH];
-  int retries = 0, timeout = (100000 / mine->bitrate.bitrate_long) + 1;
+  int retries = 0, timeout = (100000 / (uint32_t)*mine->bitrate) + 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
