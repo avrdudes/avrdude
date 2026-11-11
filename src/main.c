@@ -1750,6 +1750,9 @@ int wmain(int argc, wchar_t *wargv[]) {
     }
   }
   argv[argc] = NULL;
+  // The CRT only sets __wargv for wmain(); msvc/getopt.c needs __argv[0]
+  __argc = argc;
+  __argv = argv;
 
   setlocale(LC_CTYPE, ".UTF-8"); // UCRT only; fails harmlessly with msvcrt
 
