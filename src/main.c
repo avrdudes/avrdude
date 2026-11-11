@@ -43,7 +43,11 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#if !defined(WIN32)
+#if defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <locale.h>
+#else
 #include <dirent.h>
 #endif
 
@@ -628,7 +632,7 @@ static void part_not_found(const char *partdesc) {
 }
 
 
-int main(int argc, char *argv[]) {
+static int avrdude_main(int argc, char *argv[]) {
   int exitrc;                   // Exit code for main()
   AVRPART *pt = NULL;           // Which avr part we are programming
 
@@ -1720,3 +1724,39 @@ main_exit:
 
   return ce_delayed? 1: exitrc;
 }
+
+#if defined(WIN32)
+/*
+ * The narrow argv[] of main() is converted from the UTF-16 command line to the
+ * ANSI code page with "best fit" mapping, so e.g. U+2212 MINUS SIGN would turn
+ * into an ASCII hyphen-minus. Take the UTF-16 arguments instead, convert them
+ * to UTF-8, and make the C runtime treat narrow strings (eg, file names in
+ * fopen()) as UTF-8. Only LC_CTYPE is set so number formatting is unaffected.
+ */
+int wmain(int argc, wchar_t *wargv[]) {
+  char **argv = malloc((argc + 1)*sizeof *argv);
+
+  if(!argv) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    return 1;
+  }
+  for(int i = 0; i < argc; i++) {
+    int n = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, NULL, 0, NULL, NULL);
+
+    if(n <= 0 || !(argv[i] = malloc(n)) ||
+      !WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, argv[i], n, NULL, NULL)) {
+      fprintf(stderr, "%s: cannot convert command line argument %d to UTF-8\n", progname, i);
+      return 1;
+    }
+  }
+  argv[argc] = NULL;
+
+  setlocale(LC_CTYPE, ".UTF-8"); // UCRT only; fails harmlessly with msvcrt
+
+  return avrdude_main(argc, argv);
+}
+#else
+int main(int argc, char *argv[]) {
+  return avrdude_main(argc, argv);
+}
+#endif

@@ -371,6 +371,8 @@ target_link_libraries(avrdude PUBLIC libavrdude)
 
 if(MINGW)
     target_link_options(avrdude PRIVATE -static)
+    # Use wmain() as entry point (MSVC picks it automatically)
+    target_link_options(avrdude PRIVATE -municode)
 endif()
 
 if(HAVE_SWIG)
