@@ -269,7 +269,7 @@ int update_is_readable(const char *fn) {
 static void ioerror(const char *iotype, const UPDATE *upd) {
   int errnocp = errno;
 
-  pmsg_ext_error("file %s is not %s: ", str_outfilename(upd->filename), iotype);
+  pmsg_ext_error("%s is not %s: ", (*iotype == 'r'? str_inname: str_outname)(upd->filename), iotype);
   if(errnocp)
     msg_ext_error("%s", strerror(errnocp));
   else if(upd->filename && *upd->filename)
@@ -510,7 +510,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   // Patch flash input, eg, for vector bootloaders
   if(pgm->flash_readhook && mem_is_flash(mem)) {
     if((size = pgm->flash_readhook(pgm, p, mem, upd->filename, size)) < 0) {
-      pmsg_error("readhook for file %s failed\n", str_infilename(upd->filename));
+      pmsg_error("readhook for %s failed\n", str_inname(upd->filename));
       return -1;
     }
     if(memstats_mem(p, mem, size, &fs_patched) < 0)
@@ -639,7 +639,7 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
       return allsize;
 
   if(allsize < 0) {
-    pmsg_error("reading from file %s failed\n", str_infilename(upd->filename));
+    pmsg_error("reading from %s failed\n", str_inname(upd->filename));
     return -1;
   }
   if(memstats_mem(p, all, allsize, fsp) < 0)
@@ -797,7 +797,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     }
 
     if(rc < 0) {
-      pmsg_error("write to file %s failed\n", str_outfilename(upd->filename));
+      pmsg_error("writing to %s failed\n", str_outname(upd->filename));
       goto error;
     }
     break;
