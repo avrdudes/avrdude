@@ -2176,11 +2176,12 @@ programmer # iseavrprog
 # See https://www.microchip.com/en-us/product/mcp2210
 
 programmer #mcp2210
-   id			   = "mcp2210";
-   desc			   = "Mcp2210 USB to SPI bridge";
-   type			   = "mcp2210";
-   prog_modes		   = PM_ISP;
-   connection_type	   = usb;
+   id			        = "mcp2210";
+   desc			        = "Mcp2210 USB to SPI bridge";
+   type			        = "mcp2210";
+   prog_modes	        = PM_ISP;
+   extra_features       = HAS_BITCLOCK_ADJ;
+   connection_type	    = usb;
 ;
 
 #------------------------------------------------------------

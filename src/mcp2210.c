@@ -57,7 +57,7 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
 
 struct mcp {
   hid_device *handle;
-  uint8_t bitrate[4];
+  uint8_t bitclock[4];
 };
 
 #define mine ((struct mcp *)(pgm->cookie))
@@ -67,37 +67,23 @@ static void mcp2210_setup(PROGRAMMER *pgm) {
 }
 
 static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
-  unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_GET_SETTINGS}, settings_response[HID_REPORT_LENGTH];
+  unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_SET_SETTINGS}, settings_response[HID_REPORT_LENGTH] = {0};
 
-  if(!(uint32_t)*mine->bitrate) {
-    unsigned char current_settings[HID_REPORT_LENGTH];
-
-    if(mcp2210_run_query(pgm, settings_request, current_settings) == -1) {
-      msg_error("unable to run query to fetch current settings\n");
-      return -1;
-    }
-
-    uint32tobuf(mine->bitrate, current_settings[5]);
-  }
-
-  memset(settings_request, 0, HID_REPORT_LENGTH);
-
-  settings_request[1] = MCP2210_SET_SETTINGS;
   for(int i=5, j=0; j < 4; j++, i++)
-      settings_request[i] =  mine->bitrate[j];
+      settings_request[i] =  mine->bitclock[j];
   settings_request[19] = len;
   settings_request[20] = len >> 8;
 
   if(mcp2210_run_query(pgm, settings_request, settings_response) == -1) {
-    msg_error("unable to run query to set settings\n");
+    pmsg_error("unable to run query to set settings\n");
     return -1;
   }
 
   if(settings_response[2] != MCP2210_SUCCESS) {
     if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
-      msg_error("USB transfer in progress - settings not written\n");
+      pmsg_error("USB transfer in progress - settings not written\n");
     else
-      msg_error("unknown error, return code: %x\n", settings_response[2]);
+      pmsg_error("unknown error, return code: %x\n", settings_response[2]);
 
     return -1;
   }
@@ -116,7 +102,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   unsigned short param_vid = 0, param_pid = 0;
 
   if((numids = str_set_vid_pid_serno(port, &param_vid, &param_pid, serno, sizeof serno)) < 0) {
-    msg_error("usb[:<vid>:<pid>][serno]\n");
+    pmsg_error("usb[:<vid>:<pid>][:serno]\n");
     return -1;
   }
 
@@ -129,13 +115,16 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
     pid = *(int *)ldata(usbpid);
 
     if (lnext(usbpid))
-      msg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
+      pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else
     pid = MCP2210_DEFAULT_PID;
 
-  mine->handle = hid_open(vid, pid, numids >= 2 ? (wchar_t *)serno : NULL);
+  wchar_t wserno[sizeof serno] = { 0 };
+  mbstowcs(wserno, serno, sizeof serno);
+
+  mine->handle = hid_open(vid, pid, numids >= 2 ? wserno : NULL);
   if(mine->handle == NULL) {
-    msg_error("could not find mcp2210 device with vid=0x%x pid=0x%x serno=%s\n", vid, pid, serno);
+    pmsg_error("could not find mcp2210 device with vid=0x%x pid=0x%x serno=%s\n", vid, pid, serno);
     return -1;
   }
 
@@ -148,25 +137,27 @@ static void mcp2210_close(PROGRAMMER *pgm) {
 }
 
 static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
+  if(pgm->bitclock > 0 && !(pgm->extra_features & HAS_BITCLOCK_ADJ))
+    pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
+
+  uint32_t frequency = pgm->bitclock > 0? 1/pgm->bitclock: p->factory_fcpu > 0? p->factory_fcpu/4: 250000;
+  uint32tobuf(mine->bitclock, frequency);
+
   pgm->program_enable(pgm, p);
-
-  if(pgm->baudrate)
-    uint32tobuf(mine->bitrate, pgm->baudrate);
-
   return 0;
 }
 
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
-  unsigned char cancel_response[HID_REPORT_LENGTH];
+  unsigned char cancel_response[HID_REPORT_LENGTH] = {0};
   unsigned char cancel_request[HID_REPORT_LENGTH] = {0x00, MCP2210_SPI_CANCEL_TRANSFER};
 
   if(mcp2210_run_query(pgm, cancel_request, cancel_response) == -1) {
-    msg_error("unable to run query to cancel response\n");
+    pmsg_error("unable to run query to cancel response\n");
     return -1;
   }
 
   if(cancel_response[2] != MCP2210_SUCCESS) {
-    msg_error("unable to cancel transfer - error code: %i", cancel_response[3]);
+    pmsg_error("unable to cancel transfer - error code: %i", cancel_response[3]);
     return -1;
   }
 
@@ -182,34 +173,14 @@ static void mcp2210_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void mcp2210_display(const PROGRAMMER *pgm, const char *s) {
-  uint8_t status_request[HID_REPORT_LENGTH] = {0, 0x10}, status_response[HID_REPORT_LENGTH];
+  wchar_t serno[64] = {0};
 
-  if(mcp2210_run_query(pgm, status_request, status_response) == -1) {
-    msg_error("unable to run query to get status\n");
+  if(hid_get_serial_number_string(mine->handle, serno, sizeof(serno)/sizeof(wchar_t)) == -1) {
+    pmsg_error("unable to fetch serial number");
     return;
   }
 
-  if(status_response[2] != MCP2210_SUCCESS) {
-    msg_error("unable to get chip status\n");
-    return;
-  }
-
-  msg_info("SPI Bus current owner: ");
-  switch(status_response[4]) {
-    case 0x00:
-      msg_info("no owner\n");
-      break;
-    case 0x01:
-      msg_info("spi bridge\n");
-      break;
-    case 0x02:
-      msg_info("external host\n");
-      break;
-    default:
-      msg_info("unknown response\n");
-  }
-
-  msg_info("password attempts: %i\n", status_response[5]);
+  pmsg_info("serial number         : %ls\n", serno);
   return;
 }
 
@@ -222,10 +193,10 @@ static void mcp2210_powerdown(const PROGRAMMER *pgm) {
 }
 
 static int mcp2210_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  unsigned char cmd[4], res[4];
+  unsigned char cmd[4] = {0}, res[4] = {0};
 
   if(p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    msg_error("program enable instruction not defined for part \"%s\"\n", pgm->desc);
+    pmsg_error("program enable instruction not defined for part \"%s\"\n", pgm->desc);
     return -1;
   }
 
@@ -240,10 +211,10 @@ static int mcp2210_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int mcp2210_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  unsigned char cmd[4], res[4];
+  unsigned char cmd[4] = {0}, res[4] = {0};
 
   if(p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    msg_error("chip erase instruction not defined for part \"%s\"\n", pgm->desc);
+    pmsg_error("chip erase instruction not defined for part \"%s\"\n", pgm->desc);
     return -1;
   }
 
@@ -264,7 +235,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     return -1;
 
   OPCODE *readop = 0, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-  uint8_t data = 0, cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
+  uint8_t data = 0, cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int addr_base;
   unsigned int max_addr = addr + n_bytes;
 
@@ -296,7 +267,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       } else if(mem->op[AVR_OP_READ] != NULL) {
         readop = mem->op[AVR_OP_READ];
       } else {
-        msg_error("no read command specified\n");
+        pmsg_error("no read command specified\n");
         return -1;
       }
 
@@ -307,7 +278,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
 
     if(bytes_read < 0) {
-      msg_error("failed @ p->spi()\n");
+      pmsg_error("failed @ p->spi()\n");
       return -1;
     }
 
@@ -365,12 +336,12 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
 static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   if (!mem_is_flash(mem) && !mem_is_eeprom(mem)) {
-    msg_info("part does not support %d paged write of %s\n", page_size, mem->desc);
+    pmsg_info("part does not support %d paged write of %s\n", page_size, mem->desc);
     return -1;
   }
 
   OPCODE *writeop;
-  uint8_t cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
+  uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int addr_base;
   unsigned int max_addr = addr + n_bytes;
 
@@ -423,7 +394,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
 
     if(bytes_read < 0) {
-      msg_error("failed @ p->spi()\n");
+      pmsg_error("failed @ p->spi()\n");
       return -1;
     }
 
@@ -453,15 +424,16 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   if(mcp2210_set_settings(pgm, n_bytes) == -1)
     return 1;
 
-  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH];
-  int retries = 0, timeout = (100000 / (uint32_t)*mine->bitrate) + 1;
+  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH] = {0};
+
+  int retries = 0, timeout = (100000 / (uint32_t)*mine->bitclock) + 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
     transfer_request[i] = *cmd++;
 
   if(mcp2210_run_query(pgm, transfer_request, transfer_response) == -1) {
-    msg_error("unable to run query to send spi command\n");
+    pmsg_error("unable to run query to send spi command\n");
     return -1;
   }
 
@@ -469,37 +441,37 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     usleep(timeout * 1000);
 
     if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response) == -1) {
-      msg_error("unable to run query to send spi command\n");
+      pmsg_error("unable to run query to send spi command\n");
       return -1;
     }
 
     if(transfer_response[2] != MCP2210_SUCCESS) {
       if(transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
-        msg_debug("SPI transfer in progress - cannot accept any data for the moment\n");
+        pmsg_debug("SPI transfer in progress - cannot accept any data for the moment\n");
 
       if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
-        msg_error("SPI bus not available\n");
+        pmsg_error("SPI bus not available\n");
         return -1;
       }
     } else {
       if(transfer_response[4] == MCP2210_XFER_DONE) {
-        msg_debug("SPI transfer finished - no more data to send\n");
+        pmsg_debug("SPI transfer finished - no more data to send\n");
         success = true;
         break;
       }
 
       if(transfer_response[4] == MCP2210_XFER_NOT_FINISHED)
-        msg_debug("SPI transfer not finished; received data available\n");
+        pmsg_debug("SPI transfer not finished; received data available\n");
 
       if(transfer_response[4] == MCP2210_XFER_STARTED)
-        msg_debug("SPI transfer started - no data to receive\n");
+        pmsg_debug("SPI transfer started - no data to receive\n");
     }
 
     retries++;
   }
 
   if(!success) {
-    msg_error("transfer failed\n");
+    pmsg_error("transfer failed\n");
     return -1;
   }
 
@@ -511,14 +483,14 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_report[HID_REPORT_LENGTH], unsigned char *response_report) {
   if(hid_write(mine->handle, request_report, HID_REPORT_LENGTH) == -1) {
-    msg_error("HID write has failed with error: %ls", hid_error(mine->handle));
+    pmsg_error("HID write has failed with error: %ls", hid_error(mine->handle));
     return -1;
   }
 
   memset(response_report, 0, sizeof(HID_REPORT_LENGTH));
 
   if(hid_read(mine->handle, (response_report + 1), (HID_REPORT_LENGTH - 1)) == -1) {
-    msg_error("HID read has failed with error: %ls", hid_error(mine->handle));
+    pmsg_error("HID read has failed with error: %ls", hid_error(mine->handle));
     return -1;
   }
 
@@ -561,7 +533,7 @@ void mcp2210_initpgm(PROGRAMMER *pgm) {
 #else
 
 static int mcp2210_nohidapi_open(const PROGRAMMER *pgm, char *name) {
-  msg_info("no hidapi support. Please compile again with hidapi installed.\n");
+  pmsg_info("no hidapi support. Please compile again with hidapi installed.\n");
   return -1;
 }
 
