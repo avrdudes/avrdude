@@ -51,6 +51,7 @@
 #define HID_REPORT_LENGTH 65
 #define TRANSFER_RETRIES 30
 #define SPI_MAX_CHUNK 60
+#define MAXIMUM_TRANSFER 3000000
 
 static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_report[65], unsigned char *response_report);
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
@@ -141,6 +142,14 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_warning("setting bitclock despite HAS_BITCLOCK_ADJ missing in pgm->extra_features\n");
 
   uint32_t frequency = pgm->bitclock > 0? 1/pgm->bitclock: p->factory_fcpu > 0? p->factory_fcpu/4: 250000;
+
+  // Set a limit of 3Mbps as that is the maximium transfer rate of the mcp2210
+  // If you try to push it beyond that it will do strange things to the AVR IC
+  if(frequency > MAXIMUM_TRANSFER) {
+    pmsg_error("mcp2210 maximum transfer limit is 3 Mbps");
+    return -1;
+  }
+
   uint32tobuf(mine->bitclock, frequency);
 
   pgm->program_enable(pgm, p);
@@ -426,7 +435,8 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH] = {0};
 
-  int retries = 0, timeout = (100000 / (uint32_t)*mine->bitclock) + 1;
+  pmsg_info("%i", (uint32_t)*mine->bitclock);
+  int retries = 0, timeout = *mine->bitclock > 0 ? (100000 / (uint32_t)*mine->bitclock) + 1 : 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
