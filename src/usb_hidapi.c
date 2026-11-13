@@ -158,6 +158,103 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     }
   }
 
+#if defined(HID_API_VERSION_MAJOR) && defined(HID_API_VERSION_MINOR)
+
+  pmsg_debug("%s(): HID_API_VERSION: %s\n", __func__, HID_API_VERSION_STR);
+
+  #if (HID_API_VERSION_MAJOR > 0) || (HID_API_VERSION_MAJOR == 0 && HID_API_VERSION_MINOR >= 14)
+
+  /*
+   * To determine the packet size for ARM CMSIS-DAP / Atmel EDBG-based,
+   * we examine the HID report descriptor.
+   * 
+   * If the device is DAP version 1.x compatible,
+   * it will use the HID class with a Full-Speed ​
+   * "Interrupt" 64-byte endpoint, so this lookup should succeed.
+   * 
+   * If the device is DAP version 2.x compatible,
+   * it should not use　the HID class and should use the High-Speed ​
+   * "Bulk" 512-byte endpoint;
+   * 
+   * however, EDBG versions equivalent to PICKit4 (AVR32 based) use the HID class
+   * even for High-Speed, so this lookup is likely to succeed.
+   * 
+   * In any case, if it fails,
+   * we fall back to the packet size lookup logic described later.
+   * 
+   * NOTE: The HID report can be read with the OS standard driver + general
+   * user privileges on Windows 8 and later and macOS and later, so there are
+   * no particular problems. However, on Linux, usb_detach_kernel_driver must
+   * be executed at least once, so the first attempt may fail due to
+   * the driver reload delay.
+   */
+  unsigned long report_count = 0, report_size = 0;
+  unsigned char hid_report[HID_API_MAX_REPORT_DESCRIPTOR_SIZE];
+  int desc_size = hid_get_report_descriptor(dev, hid_report, sizeof(hid_report));
+  pmsg_trace("%s(): get HID Report size %d\n", __func__, desc_size);
+  if (desc_size > 0) {   // In the case of EDBG, it is typically 35 bytes.
+    for (int offset = 0; offset < desc_size; offset++) {
+      // The lower 2 bits of the Prefix-Byte indicate the argument type.
+      // (0=none(default 0), 1=char, 2=short, 3=long)
+      unsigned char prefix_byte = hid_report[offset + 0];
+      unsigned char item_type = prefix_byte & 0xFC;
+      unsigned char item_size = prefix_byte & 0x03;
+      unsigned long item_value = 0;
+
+      // Perform a signed type conversion on the value, and skip the next offset.
+      if (item_size == 0) {
+        pmsg_trace("%s(): item: %02X\n", __func__, hid_report[offset + 0]);
+        // A value with a length of 0 is interpreted as 0.
+      } else if (item_size == 1) {
+        pmsg_trace("%s(): item: %02X %02X\n", __func__, hid_report[offset + 0],
+          hid_report[offset + 1]);
+        item_value = ((unsigned long)hid_report[offset + 1]);
+        offset += 1;
+      } else if (item_size == 2) {
+        pmsg_trace("%s(): item: %02X %02X %02X\n", __func__, hid_report[offset + 0],
+          hid_report[offset + 1], hid_report[offset + 2]);
+        item_value = ((unsigned long)hid_report[offset + 1])
+                  | ((unsigned long)hid_report[offset + 2] << 8);
+        offset += 2;
+      } else {
+        pmsg_trace("%s(): item: %02X %02X %02X %02X %02X\n", __func__, hid_report[offset],
+          hid_report[offset + 1], hid_report[offset + 2], hid_report[offset + 3], hid_report[offset + 4]);
+        item_value = ((unsigned long)hid_report[offset + 1])
+                  | ((unsigned long)hid_report[offset + 2] << 8)
+                  | ((unsigned long)hid_report[offset + 3] << 16)
+                  | ((unsigned long)hid_report[offset + 4] << 24);
+        offset += 4;
+      }
+
+      // If an "Output" item is encountered, stop the search.
+      if (item_type == 0x80) {
+        pmsg_trace("%s(): found Input(%lX)\n", __func__, item_value);
+        break;
+      } else if (item_type == 0x74) {  // found "Report_Size" item.
+        pmsg_trace("%s(): found Report_Size(%ld)\n", __func__, item_value);
+        report_size = item_value;
+      } else if (item_type == 0x94) {  // found "Report_Count" item.
+        pmsg_trace("%s(): found Report_Count(%ld)\n", __func__, item_value);
+        report_count = item_value;
+      }
+    }
+
+    // Multiplying Report_Size by Report_Count yields the Report bit count.
+    int max_xfer = (report_size * report_count) / 8;
+    pmsg_debug("%s(): max_xfer is (presumably) %d bytes.\n", __func__, max_xfer);
+    if (max_xfer == 64 || max_xfer == 512) {
+      fd->usb.max_xfer = max_xfer;
+      return 0;
+    } else {
+      pmsg_debug("%s(): Could not determine max_xfer from the HID report. Trying the following:\n", __func__);
+    }
+  }
+  else {
+    pmsg_debug("%s(): hid_get_report_descriptor error: %ls\n", __func__, hid_error(dev));
+  }
+  #endif
+#endif
+
   /*
    * Try finding out the endpoint size.  Alas, libhidapi doesn't provide us
    * with an API function for that, nor for the report descriptor (which also
@@ -261,7 +358,8 @@ static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_
   if(udev == NULL)
     return -1;
 
-  int rv = hid_read_timeout(udev, buf, nbytes, 10000);
+  int rv = hid_read_timeout(udev, buf, nbytes, 100);
+  if(rv == 0) rv = hid_read_timeout(udev, buf, nbytes, 10000);
   if(rv <= 0 || (size_t) rv > nbytes) {
     if(rv < 0)
       pmsg_error("hid_read_timeout(usb, %lu, 10000) failed\n", (unsigned long) nbytes);
