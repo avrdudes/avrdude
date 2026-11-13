@@ -358,7 +358,8 @@ static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_
   if(udev == NULL)
     return -1;
 
-  int rv = hid_read_timeout(udev, buf, nbytes, 10000);
+  int rv = hid_read_timeout(udev, buf, nbytes, 100);
+  if(rv == 0) rv = hid_read_timeout(udev, buf, nbytes, 10000);
   if(rv <= 0 || (size_t) rv > nbytes) {
     if(rv < 0)
       pmsg_error("hid_read_timeout(usb, %lu, 10000) failed\n", (unsigned long) nbytes);
