@@ -385,10 +385,11 @@ jobs:
         if: matrix.arch != 'arm64'
         shell: bash
         run: |
-          part=$(printf 'x\342\210\222y')
-          build/src/${{env.BUILD_TYPE}}/avrdude.exe -C build/src/avrdude.conf -c dryrun -p "$part" -l utf8.log || true
+          fname=$(printf 'x\342\210\222y.raw')
+          echo "123" > "$fname"
+          build/src/${{env.BUILD_TYPE}}/avrdude.exe -C build/src/avrdude.conf -c dryrun -p m8 -U "$fname":r -l utf8.log || true
           cat utf8.log
-          grep -F "part $part not found" utf8.log
+          grep -F "input file $fname" utf8.log
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -475,10 +476,11 @@ jobs:
         # wmain() must keep non-ANSI characters in argv[] intact,
         # here U+2212 MINUS SIGN, which would otherwise be "best fit" mapped to '-'
         run: |
-          part=$(printf 'x\342\210\222y')
-          build/src/avrdude.exe -C build/src/avrdude.conf -c dryrun -p "$part" -l utf8.log || true
+          fname=$(printf 'x\342\210\222y.raw')
+          echo "123" > "$fname"
+          build/src/avrdude.exe -C build/src/avrdude.conf -c dryrun -p m8 -U "$fname":r -l utf8.log || true
           cat utf8.log
-          grep -F "part $part not found" utf8.log
+          grep -F "input file $fname" utf8.log
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
