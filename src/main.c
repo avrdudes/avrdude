@@ -627,6 +627,41 @@ static void part_not_found(const char *partdesc) {
     pmsg_error("no AVR part has been specified; use -p part or -p? to see all valid parts\n");
 }
 
+#if defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <locale.h>
+
+/*
+ * The narrow argv[] of main() is converted from the UTF-16 command line to the
+ * ANSI code page with "best fit" mapping, so e.g. U+2212 MINUS SIGN would turn
+ * into an ASCII hyphen-minus. Take the UTF-16 arguments instead, convert them
+ * to UTF-8, and make the C runtime treat narrow strings (eg, file names in
+ * fopen()) as UTF-8. Only LC_CTYPE is set so number formatting is unaffected.
+ */
+int wmain(int argc, wchar_t *wargv[]) {
+  char **argv = mmt_malloc((argc + 1)*sizeof *argv);
+
+  for(int n, i = 0; i < argc; i++) {
+    if((n = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, NULL, 0, NULL, NULL)) <= 0
+         || WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, (argv[i] = mmt_malloc(n)), n, NULL, NULL) <= 0) {
+      fprintf(stderr, "%s: cannot convert command line argument %d to UTF-8\n", progname, i);
+      return 1;
+    }
+  }
+
+  // The CRT only sets __wargv for wmain(); msvc/getopt.c needs __argv[0]
+  __argc = argc;
+  __argv = argv;
+
+  setlocale(LC_CTYPE, ".UTF-8"); // UCRT only; fails harmlessly with msvcrt
+
+#define main(a, v) avrdude_main(a, v)
+int main(int argc, char **argv);
+
+  return main(argc, argv);
+}
+#endif
 
 int main(int argc, char *argv[]) {
   int exitrc;                   // Exit code for main()
