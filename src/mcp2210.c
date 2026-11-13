@@ -435,7 +435,6 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH] = {0};
 
-  pmsg_info("%i", (uint32_t)*mine->bitclock);
   int retries = 0, timeout = *mine->bitclock > 0 ? (100000 / (uint32_t)*mine->bitclock) + 1 : 1;
   bool success = false;
 
