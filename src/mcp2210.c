@@ -84,7 +84,7 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
     if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
       pmsg_error("USB transfer in progress - settings not written\n");
     else
-      pmsg_error("unknown error, return code: %x\n", settings_response[2]);
+      pmsg_error("unknown error, return code: 0x%02x\n", settings_response[2]);
 
     return -1;
   }
@@ -108,11 +108,11 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   }
 
   LNODEID usbpid = lfirst(pgm->usbpid);
-  int pid, vid = numids >= 2 ? param_vid : pgm->usbvid ? pgm->usbvid : MCP2210_DEFAULT_VID;
+  int pid, vid = numids >= 2? param_vid: pgm->usbvid? pgm->usbvid: MCP2210_DEFAULT_VID;
 
   if(numids >= 2) {
     pid = param_pid;
-  } else if(pgm->usbvid) {
+  } else if(usbpid) {
     pid = *(int *)ldata(usbpid);
 
     if(lnext(usbpid))
@@ -121,11 +121,13 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
     pid = MCP2210_DEFAULT_PID;
 
   wchar_t wserno[sizeof serno] = { 0 };
-  mbstowcs(wserno, serno, sizeof serno);
+  if(*serno)
+    mbstowcs(wserno, serno, sizeof serno);
 
-  mine->handle = hid_open(vid, pid, numids >= 2 ? wserno : NULL);
+  mine->handle = hid_open(vid, pid, *serno? wserno: NULL);
   if(mine->handle == NULL) {
-    pmsg_error("could not find mcp2210 device with vid=0x%x pid=0x%x serno=%s\n", vid, pid, serno);
+    pmsg_error("could not find MCP2210 device with vid=0x%04x pid=0x%04x%s\n",
+      vid, pid, *serno? str_ccprintf(" serno=%s", serno): "");
     return -1;
   }
 
@@ -143,10 +145,9 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   uint32_t frequency = pgm->bitclock > 0? 1/pgm->bitclock: p->factory_fcpu > 0? p->factory_fcpu/4: 250000;
 
-  // Set a limit of 3Mbps as that is the maximium transfer rate of the mcp2210
-  // If you try to push it beyond that it will do strange things to the AVR IC
+  // Set a limit of 3 Mbps as that is the maximium transfer rate of the MCP2210
   if(frequency > MAXIMUM_TRANSFER) {
-    pmsg_error("mcp2210 maximum transfer limit is 3 Mbps");
+    pmsg_error("MCP2210 maximum transfer limit is 3 Mbps");
     return -1;
   }
 
@@ -205,7 +206,7 @@ static int mcp2210_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4] = {0}, res[4] = {0};
 
   if(p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    pmsg_error("program enable instruction not defined for part \"%s\"\n", pgm->desc);
+    pmsg_error("program enable instruction not defined for part %s\n", pgm->desc);
     return -1;
   }
 
@@ -223,7 +224,7 @@ static int mcp2210_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4] = {0}, res[4] = {0};
 
   if(p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    pmsg_error("chip erase instruction not defined for part \"%s\"\n", pgm->desc);
+    pmsg_error("chip erase instruction not defined for part %s\n", pgm->desc);
     return -1;
   }
 
@@ -287,7 +288,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
 
     if(bytes_read < 0) {
-      pmsg_error("failed @ p->spi()\n");
+      pmsg_error("pgm->spi() failed\n");
       return -1;
     }
 
@@ -330,11 +331,9 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
   avr_set_bits(wp, cmd + 4);
   avr_set_addr(wp, cmd + 4, addr);
 
-  if(lext != NULL)
-    // Write the load extended address cmd && the write_page cmd
+  if(lext != NULL)              // Write the load extended address cmd && the write_page cmd
     pgm->spi(pgm, cmd, NULL, 8);
-  else
-    // Write just the write_page cmd
+  else                          // Write just the write_page cmd
     pgm->spi(pgm, cmd + 4, NULL, 4);
 
   // Just delay the max
@@ -409,12 +408,10 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     addr_base += blockSize;
 
-    if(mem->paged && (((addr_base % page_size) == 0) || (addr_base == max_addr))) {
+    if(mem->paged && (addr_base % page_size == 0 || addr_base == max_addr))
       mcp2210_commit_page(pgm, p, mem, addr_base - blockSize);
-    }
-    else if(!mem->paged) {
+    else if(!mem->paged)
       usleep(mem->max_write_delay);
-    }
   }
 
   return n_bytes;
@@ -435,7 +432,9 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH] = {0};
 
-  int retries = 0, timeout = *mine->bitclock > 0 ? (100000 / (uint32_t)*mine->bitclock) + 1 : 1;
+  uint32_t frequency = buf2uint32(mine->bitclock);
+
+  int retries = 0, timeout = frequency > 0? (100000 / frequency) + 1: 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
@@ -507,6 +506,8 @@ static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_
 }
 
 void mcp2210_initpgm(PROGRAMMER *pgm) {
+  pgm->ptyp = "MCP2210";
+
   /*
    * Mandatory functions - these are called without checking to see
    * whether they are assigned or not
@@ -557,4 +558,4 @@ void mcp2210_initpgm(const PROGRAMMER *pgm) {
 
 #endif
 
-const char mcp2210_desc[] = "MCP2210 IC";
+const char mcp2210_desc[] = "MCP2210 IC using SPI for programming via usb_hidapi";

@@ -95,7 +95,7 @@ const PROGRAMMER_TYPE programmers_types[] = {   // Name(s) the programmers call 
   {"jtagice3_tpi", jtag3_tpi_initpgm, jtag3_tpi_desc},  // "JTAGICE3_TPI"
   {"linuxgpio", linuxgpio_initpgm, linuxgpio_desc},     // "linuxgpio"
   {"linuxspi", linuxspi_initpgm, linuxspi_desc},        // LINUXSPI
-  {"mcp2210", mcp2210_initpgm, mcp2210_desc},		// mcp2210
+  {"mcp2210", mcp2210_initpgm, mcp2210_desc},		// "MCP2210"
   {"micronucleus", micronucleus_initpgm, micronucleus_desc},    // "micronucleus" or "Micronucleus V2.0"
   {"par", par_initpgm, par_desc},       // "PPI"
   {"pickit2", pickit2_initpgm, pickit2_desc},   // "pickit2"
