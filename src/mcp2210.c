@@ -115,7 +115,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   } else if(pgm->usbvid) {
     pid = *(int *)ldata(usbpid);
 
-    if (lnext(usbpid))
+    if(lnext(usbpid))
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else
     pid = MCP2210_DEFAULT_PID;
@@ -308,7 +308,7 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if(wp == NULL) {
-    msg_error("memory \"%s\" not configured for page writes\n", mem->desc);
+    pmsg_error("memory \"%s\" not configured for page writes\n", mem->desc);
     return -1;
   }
 
@@ -344,7 +344,7 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
 }
 
 static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-  if (!mem_is_flash(mem) && !mem_is_eeprom(mem)) {
+  if(!mem_is_flash(mem) && !mem_is_eeprom(mem)) {
     pmsg_info("part does not support %d paged write of %s\n", page_size, mem->desc);
     return -1;
   }
@@ -385,7 +385,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
         writeop = mem->op[AVR_OP_WRITE_LO];
         caddr = addr;
 
-        msg_error("error AVR_OP_WRITE_LO defined only (where's the HIGH command?)\n");
+        pmsg_error("error AVR_OP_WRITE_LO defined only (where's the HIGH command?)\n");
         return -1;
       } else {
         writeop = mem->op[AVR_OP_WRITE];
@@ -426,7 +426,7 @@ static int mcp2210_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int n_bytes) {
   if(n_bytes > SPI_MAX_CHUNK) {
-    msg_error("spi chunk longer than %i", n_bytes);
+    pmsg_error("spi chunk longer than %i", n_bytes);
     return -1;
   }
 
