@@ -58,6 +58,14 @@ set(EXTRA_WINDOWS_LIBRARIES)
 if(WIN32 OR MINGW)
     list(APPEND EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
     list(APPEND EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
+    # Embed the application manifest (UTF-8 active code page). MSVC merges
+    # .manifest sources into its own linker-generated manifest, while other
+    # toolchains get it as an RT_MANIFEST resource through windows.rc.
+    if(MSVC)
+        list(APPEND EXTRA_WINDOWS_RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.exe.manifest")
+    else()
+        set(AVRDUDE_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.exe.manifest")
+    endif()
 endif()
 
 if(MSVC)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Application manifest for avrdude.exe
+
+  Setting the active code page to UTF-8 (Windows 10 1903 and newer) makes
+  the C runtime hand over argv[] and other ANSI API strings as UTF-8, rather
+  than "best fit" mapping them to the legacy ANSI code page (where, e.g.,
+  U+2212 MINUS SIGN would silently turn into an ASCII hyphen-minus).
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>

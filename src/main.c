@@ -43,8 +43,12 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#if !defined(WIN32)
-#include <dirent.h>
+#if defined (WIN32)
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#  include <locale.h>
+#else
+#  include <dirent.h>
 #endif
 
 #include "avrdude.h"
@@ -659,6 +663,9 @@ int main(int argc, char *argv[]) {
 
 #ifdef _MSC_VER
   _set_printf_count_output(1);
+#endif
+#if defined (WIN32)
+  setlocale(LC_CTYPE, ".UTF-8");
 #endif
 
   // Set line buffering for file descriptors so we see stdout and stderr properly interleaved
