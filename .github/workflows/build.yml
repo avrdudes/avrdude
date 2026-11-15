@@ -387,9 +387,7 @@ jobs:
         run: |
           fname=$(printf 'x\342\210\222y.raw')
           echo "123" > "$fname"
-          build/src/${{env.BUILD_TYPE}}/avrdude.exe -C build/src/avrdude.conf -c dryrun -p m8 -U "$fname":r -l utf8.log || true
-          cat utf8.log
-          grep -F "input file $fname" utf8.log
+          build/src/${{env.BUILD_TYPE}}/avrdude.exe -C build/src/avrdude.conf -c dryrun -p m8 -U "$fname":r
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -478,9 +476,7 @@ jobs:
         run: |
           fname=$(printf 'x\342\210\222y.raw')
           echo "123" > "$fname"
-          build/src/avrdude.exe -C build/src/avrdude.conf -c dryrun -p m8 -U "$fname":r -l utf8.log || true
-          cat utf8.log
-          grep -F "input file $fname" utf8.log
+          build/src/avrdude.exe -C build/src/avrdude.conf -c dryrun -p m8 -U "$fname":r
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v7
