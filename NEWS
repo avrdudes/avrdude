@@ -20,6 +20,7 @@ Changes since version 8.3:
     - debugWIRE flash_instr/eeprom_instr can contradict idr/eecr #2224
     - 100% CPU load when USB serial adapter is unplugged #2227
     - Error reading files with − (minus) in path #2232
+    - MinGW build complains about lack of flex #2238
 
   * Pull requests:
 
@@ -38,6 +39,7 @@ Changes since version 8.3:
     - Remove ATtiny(1634|828)R variants from t(1634|828) #2230
     - Name debugWIRE protocol consistently #2231
     - Windows UTF-8 manifest - #2233
+    - Update build.yml to fix missing MSYS2 build dependencies - #2239
 
   * Internals:
 
