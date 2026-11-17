@@ -281,7 +281,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   }
 
   for(addr_base = addr; addr_base < max_addr;) {
-    uint32_t blockSize = minm(65536 - (addr_base % 65536), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4));
+    int blockSize = minm(65536 - (addr_base % 65536), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4));
 
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
@@ -307,8 +307,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
 
-    if(bytes_read < 0) {
-      pmsg_error("pgm->spi() failed\n");
+    if(bytes_read !=  4*blockSize) {
+      pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*blockSize);
       return -1;
     }
 
