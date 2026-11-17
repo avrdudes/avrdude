@@ -214,7 +214,7 @@ static void mcp2210_display(const PROGRAMMER *pgm, const char *s) {
     return;
   }
 
-  pmsg_info("serial number         : %ls\n", serno);
+  msg_info("Serial number         : %ls\n", serno);
   return;
 }
 
