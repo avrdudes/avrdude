@@ -134,7 +134,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
         size_t slen = wcslen(list->serial_number);
 
         if(slen >= serlen && wcscmp(list->serial_number + slen - serlen, wserno) == 0)
-        break;
+          break;
       }
       list = list->next;
     }
