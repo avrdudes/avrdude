@@ -171,7 +171,7 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Set a limit of 3 Mbps as that is the maximium transfer rate of the MCP2210
   if(frequency > MAXIMUM_TRANSFER) {
-    pmsg_error("MCP2210 maximum transfer limit is 3 Mbps");
+    pmsg_error("MCP2210 maximum transfer limit is 3 Mbps; use at most -B 3MHz");
     return -1;
   }
 
