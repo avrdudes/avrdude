@@ -121,8 +121,10 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   } else
     pid = MCP2210_DEFAULT_PID;
 
-  if(*serno) {
-    wchar_t wserno[sizeof serno] = { 0 };
+  if(!*serno)
+    mine->handle = hid_open(vid, pid, NULL);
+  else {
+    wchar_t wserno[sizeof serno] = {0};
     mbstowcs(wserno, serno, sizeof serno);
     size_t serlen = strlen(serno);
 
@@ -145,8 +147,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
 
     mine->handle = hid_open_path(list->path);
     hid_free_enumeration(list);
-  } else
-    mine->handle = hid_open(vid, pid, NULL);
+  }
 
   if(mine->handle == NULL) {
     pmsg_error("could not find MCP2210 device with vid=0x%04x pid=0x%04x%s\n",
