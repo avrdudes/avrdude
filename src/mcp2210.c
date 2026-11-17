@@ -265,7 +265,7 @@ static int mcp2210_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   // Only supporting flash & eeprom page reads
-  if((!mem->paged || page_size <= 1) || (!mem_is_flash(mem) && !mem_is_eeprom(mem)))
+  if(!mem->paged || page_size <= 1 || (!mem_is_flash(mem) && !mem_is_eeprom(mem)))
     return -1;
 
   OPCODE *readop = 0, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
