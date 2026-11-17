@@ -101,6 +101,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   int numids;
   char serno[64] = {0};
   unsigned short param_vid = 0, param_pid = 0;
+  struct hid_device_info *list;
 
   if((numids = str_set_vid_pid_serno(port, &param_vid, &param_pid, serno, sizeof serno)) < 0) {
     pmsg_error("usb[:<vid>:<pid>][:serno]\n");
@@ -121,10 +122,33 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
     pid = MCP2210_DEFAULT_PID;
 
   wchar_t wserno[sizeof serno] = { 0 };
-  if(*serno)
-    mbstowcs(wserno, serno, sizeof serno);
 
-  mine->handle = hid_open(vid, pid, *serno? wserno: NULL);
+  if(*serno) {
+    mbstowcs(wserno, serno, sizeof serno);
+    size_t serlen = strlen(serno);
+
+    list = hid_enumerate(vid, pid);
+    while(list) {
+      if(list->serial_number) {
+        size_t slen = wcslen(list->serial_number);
+
+        if(slen >= serlen && wcscmp(list->serial_number + slen - serlen, wserno) == 0)
+        break;
+      }
+      list = list->next;
+    }
+
+    if(list == NULL) {
+      pmsg_error("no matching device found\n");
+      hid_free_enumeration(list);
+      return -1;
+    }
+
+    mine->handle = hid_open_path(list->path);
+    hid_free_enumeration(list);
+  } else
+    mine->handle = hid_open(vid, pid, NULL);
+
   if(mine->handle == NULL) {
     pmsg_error("could not find MCP2210 device with vid=0x%04x pid=0x%04x%s\n",
       vid, pid, *serno? str_ccprintf(" serno=%s", serno): "");
