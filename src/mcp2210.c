@@ -191,7 +191,7 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
   }
 
   if(cancel_response[2] != MCP2210_SUCCESS) {
-    pmsg_error("unable to cancel transfer - error code: %i", cancel_response[3]);
+    pmsg_error("unable to cancel transfer - error code: %d", cancel_response[3]);
     return -1;
   }
 
@@ -447,7 +447,7 @@ static int mcp2210_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int n_bytes) {
   if(n_bytes > SPI_MAX_CHUNK) {
-    pmsg_error("spi chunk longer than %i", n_bytes);
+    pmsg_error("cannot deal with SPI chunk longer than %d", n_bytes);
     return -1;
   }
 
