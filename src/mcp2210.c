@@ -104,7 +104,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   struct hid_device_info *list;
 
   if((numids = str_set_vid_pid_serno(port, &param_vid, &param_pid, serno, sizeof serno)) < 0) {
-    pmsg_error("usb[:<vid>:<pid>][:serno]\n");
+    pmsg_error("invalid -P %s; drop -P option or use -P usb[:<vid>:<pid>][:<serno>]\n", port);
     return -1;
   }
 
