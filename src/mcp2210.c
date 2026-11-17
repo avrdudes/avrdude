@@ -286,9 +286,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
 
-    uint8_t addr_off;
-
-    for(addr_off = 0; addr_off < blockSize; addr_off++) {
+    for(int addr_off = 0; addr_off < blockSize; addr_off++) {
       int addr = addr_base + addr_off, caddr = addr;
 
       if(mem->op[AVR_OP_READ_LO] && mem->op[AVR_OP_READ_HI]) {
@@ -312,7 +310,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       return -1;
     }
 
-    for(addr_off = 0; addr_off < bytes_read / 4; addr_off++) {
+    for(int addr_off = 0; addr_off < bytes_read / 4; addr_off++) {
       data = 0;
       avr_get_output(readop, &res[addr_off * 4], &data);
       mem->buf[addr_base + addr_off] = data;
