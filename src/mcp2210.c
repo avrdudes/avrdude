@@ -114,16 +114,15 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
   if(numids >= 2) {
     pid = param_pid;
   } else if(usbpid) {
-    pid = *(int *)ldata(usbpid);
+    pid = *(int *) ldata(usbpid);
 
     if(lnext(usbpid))
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else
     pid = MCP2210_DEFAULT_PID;
 
-  wchar_t wserno[sizeof serno] = { 0 };
-
   if(*serno) {
+    wchar_t wserno[sizeof serno] = { 0 };
     mbstowcs(wserno, serno, sizeof serno);
     size_t serlen = strlen(serno);
 
