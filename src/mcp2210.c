@@ -268,7 +268,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if(!mem->paged || page_size <= 1 || (!mem_is_flash(mem) && !mem_is_eeprom(mem)))
     return -1;
 
-  OPCODE *readop = 0, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  OPCODE *readop = NULL, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
   uint8_t data = 0, cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int addr_base;
   unsigned int max_addr = addr + n_bytes;
@@ -291,14 +291,10 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     for(addr_off = 0; addr_off < blockSize; addr_off++) {
       int addr = addr_base + addr_off, caddr = addr;
 
-      if(mem->op[AVR_OP_READ_LO] != NULL && mem->op[AVR_OP_READ_HI] != NULL) {
-        if (addr & 0x00000001)
-          readop = mem->op[AVR_OP_READ_HI];
-        else
-          readop = mem->op[AVR_OP_READ_LO];
-
+      if(mem->op[AVR_OP_READ_LO] && mem->op[AVR_OP_READ_HI]) {
+        readop = mem->op[addr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO];
         caddr /= 2;
-      } else if(mem->op[AVR_OP_READ] != NULL) {
+      } else if(mem->op[AVR_OP_READ]) {
         readop = mem->op[AVR_OP_READ];
       } else {
         pmsg_error("no read command specified\n");
