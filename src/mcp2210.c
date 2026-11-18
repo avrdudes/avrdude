@@ -403,8 +403,6 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   if(mcp2210_set_settings(pgm, n_bytes) == -1)
     return -1;
 
-  bool success = false;
-  uint32_t frequency = buf2uint32(mine->bitclock);
   uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
   uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND};
@@ -413,7 +411,8 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   if(mcp2210_run_query(pgm, transfer_request, transfer_response, "SPI transfer") == -1)
     return -1;
 
-  for(int retries = 0; retries < TRANSFER_RETRIES; retries++) {
+  int retries, frequency = buf2uint32(mine->bitclock);
+  for(retries = 0; retries < TRANSFER_RETRIES; retries++) {
     usleep(frequency > 0? 1 + 8*n_bytes*1000000/frequency + 10: 1000); // Estimated SPI transfer time plus 10 us
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
@@ -430,7 +429,6 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     } else {
       if(transfer_response[4] == MCP2210_XFER_DONE) {
         pmsg_debug("SPI transfer finished; no more data to send\n");
-        success = true;
         break;
       }
 
@@ -440,11 +438,9 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
       if(transfer_response[4] == MCP2210_XFER_STARTED)
         pmsg_debug("SPI transfer started; no data to receive\n");
     }
-
-    retries++;
   }
 
-  if(!success) {
+  if(retries >= TRANSFER_RETRIES) {
     pmsg_error("transfer failed\n");
     return -1;
   }
