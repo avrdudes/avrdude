@@ -268,7 +268,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if(!mem->paged || page_size <= 1 || (!mem_is_flash(mem) && !mem_is_eeprom(mem)))
     return -1;
 
-  OPCODE *readop = NULL, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
   uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int max_addr = addr + n_bytes;
   int hilo = mem->op[AVR_OP_READ_HI] && mem->op[AVR_OP_READ_LO];
@@ -292,7 +292,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     memset(res, 0, sizeof(res));
 
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
-      readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
+      OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
       avr_set_bits(readop, &cmd[4*k]);
       avr_set_addr(readop, &cmd[4*k], hilo? caddr/2: caddr);
     }
@@ -304,7 +304,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
 
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
-      readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
+      OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
       avr_get_output(readop, &res[4*k], mem->buf + addr + k);
     }
 
