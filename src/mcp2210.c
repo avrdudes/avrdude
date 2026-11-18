@@ -409,10 +409,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
   uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
-
   uint32_t frequency = buf2uint32(mine->bitclock);
-
-  int retries = 0, xfertime = frequency > 0? 1 + (n_bytes*8*1000000 / frequency): 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
@@ -423,8 +420,8 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
   }
 
-  while(retries < TRANSFER_RETRIES) {
-    usleep(xfertime);
+  for(int retries = 0; retries < TRANSFER_RETRIES; retries++) {
+    usleep(frequency > 0? 1 + (8*n_bytes*1000000/frequency): 1000); // Estimates SPI transfer time
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
     if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response) == -1) {
