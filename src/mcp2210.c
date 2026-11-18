@@ -353,18 +353,17 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   }
 
   uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
-  unsigned int addr_base;
   unsigned int past_end = addr + n_bytes;
   int oldparts = !!mem->op[AVR_OP_WRITE_LO];
   int hilo = oldparts || (mem->paged && mem->op[AVR_OP_LOADPAGE_LO]); // Word-addressable
 
-  for(addr_base = addr; addr_base < past_end;) {
-    int stride = mem->paged? minm(page_size - addr_base%page_size, minm(past_end - addr_base, SPI_MAX_CHUNK/4)): 1;
+  while(addr < past_end) {
+    int stride = mem->paged? minm(page_size - addr%page_size, minm(past_end - addr, SPI_MAX_CHUNK/4)): 1;
 
     memset(cmd, 0, sizeof cmd);
     memset(res, 0, sizeof res);
 
-    for(int caddr = addr_base, k = 0; k < stride; k++, caddr++) {
+    for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
       OPCODE *writeop = mem->op[
         oldparts? (caddr & 1? AVR_OP_WRITE_HI: AVR_OP_WRITE_LO): // Flash of ATtiny12/15/22 and AT90S...
         hilo? (caddr & 1? AVR_OP_LOADPAGE_HI: AVR_OP_LOADPAGE_LO): // Flash of *other* ISP parts
@@ -387,10 +386,10 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -1;
     }
 
-    addr_base += stride;
+    addr += stride;
 
-    if(mem->paged && (addr_base % page_size == 0 || addr_base == past_end))
-      mcp2210_commit_page(pgm, p, mem, addr_base - stride);
+    if(mem->paged && (addr % page_size == 0 || addr == past_end))
+      mcp2210_commit_page(pgm, p, mem, addr - stride);
     else if(!mem->paged)
       usleep(mem->max_write_delay);
   }
