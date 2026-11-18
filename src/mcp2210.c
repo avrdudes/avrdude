@@ -363,8 +363,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     memset(cmd, 0, sizeof cmd);
     memset(res, 0, sizeof res);
 
-    uint8_t k;
-    for(k = 0; k < stride; k++) {
+    for(int k = 0; k < stride; k++) {
       int addr = addr_base + k;
       int caddr = 0;
       /*
