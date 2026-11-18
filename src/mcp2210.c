@@ -272,6 +272,12 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   uint8_t data = 0, cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int addr_base;
   unsigned int max_addr = addr + n_bytes;
+  int hilo = mem->op[AVR_OP_READ_HI] && mem->op[AVR_OP_READ_LO];
+
+  if(!hilo && !mem->op[AVR_OP_READ]) { // Neither HI/LO read commands nor single read command
+    pmsg_error("no read command specified for %s\n", mem->desc);
+    return -1;
+  }
 
   if(lext) {
     memset(cmd, 0, sizeof(cmd));
@@ -294,9 +300,6 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         caddr /= 2;
       } else if(mem->op[AVR_OP_READ]) {
         readop = mem->op[AVR_OP_READ];
-      } else {
-        pmsg_error("no read command specified\n");
-        return -1;
       }
 
       avr_set_bits(readop, &cmd[addr_off * 4]);
