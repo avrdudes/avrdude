@@ -414,7 +414,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
 
   for(int retries = 0; retries < TRANSFER_RETRIES; retries++) {
-    usleep(frequency > 0? 1 + (8*n_bytes*1000000/frequency): 1000); // Estimates SPI transfer time
+    usleep(frequency > 0? 1 + (8*n_bytes*1000000/frequency): 1000); // Estimated SPI transfer time
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
     if(mcp2210_run_query(pgm, check_request, transfer_response, "SPI check") == -1)
@@ -423,14 +423,13 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     if(transfer_response[2] != MCP2210_SUCCESS) {
       if(transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
         pmsg_debug("SPI transfer in progress; cannot accept any data for the moment\n");
-
-      if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
+      else if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
         pmsg_error("SPI bus not available\n");
         return -1;
       }
     } else {
       if(transfer_response[4] == MCP2210_XFER_DONE) {
-        pmsg_debug("SPI transfer finished;- no more data to send\n");
+        pmsg_debug("SPI transfer finished; no more data to send\n");
         success = true;
         break;
       }
@@ -508,16 +507,11 @@ void mcp2210_initpgm(PROGRAMMER *pgm) {
 #else
 
 static int mcp2210_nohidapi_open(const PROGRAMMER *pgm, char *name) {
-  pmsg_info("no hidapi support. Please compile again with hidapi installed.\n");
+  pmsg_info("no hidapi support; please compile again with hidapi installed\n");
   return -1;
 }
 
 void mcp2210_initpgm(const PROGRAMMER *pgm) {
-  /*
-   * Mandatory functions - these are called without checking to see
-   * whether they are assigned or not
-   */
-
   pgm->open = mcp2210_nohidapi_open;
 }
 
