@@ -297,11 +297,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       avr_set_addr(readop, cmd + 4*k, hilo? caddr/2: caddr);
     }
 
-    int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
-    if(bytes_read !=  4*stride) {
-      pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*stride);
+    if(pgm->spi(pgm, cmd, res, 4*stride) != 4*stride)
       return -1;
-    }
 
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
       OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
@@ -380,11 +377,8 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       avr_set_input(writeop, cmd + 4*k, mem->buf[caddr]);
     }
 
-    int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
-    if(bytes_read !=  4*stride) {
-      pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*stride);
+    if(pgm->spi(pgm, cmd, res, 4*stride) != 4*stride)
       return -1;
-    }
 
     addr += stride;
 
