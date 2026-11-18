@@ -383,9 +383,10 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     addr += stride;
 
-    if(mem->paged && (addr % page_size == 0 || addr == past_end))
-      mcp2210_commit_page(pgm, p, mem, addr - stride);
-    else if(!mem->paged)
+    if(mem->paged && (addr % page_size == 0 || addr == past_end)) {
+      if(mcp2210_commit_page(pgm, p, mem, addr - stride) < 0)
+        return -1;
+    } else if(!mem->paged)
       usleep(mem->max_write_delay);
   }
 
