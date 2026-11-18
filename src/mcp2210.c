@@ -70,8 +70,7 @@ static void mcp2210_setup(PROGRAMMER *pgm) {
 static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
   unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_SET_SETTINGS}, settings_response[HID_REPORT_LENGTH] = {0};
 
-  for(int i=5, j=0; j < 4; j++, i++)
-    settings_request[i] =  mine->bitclock[j];
+  memcpy(settings_request + 5, mine->bitclock, 4);
   settings_request[19] = len;
   settings_request[20] = len >> 8;
 
