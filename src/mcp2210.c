@@ -337,7 +337,8 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
     start = cmd;
   }
 
-  pgm->spi(pgm, start, NULL, pastend - start);
+  if(pgm->spi(pgm, start, NULL, pastend - start) != pastend - start)
+    return -1;
   usleep(mem->max_write_delay);
 
   return 0;
