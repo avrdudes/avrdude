@@ -287,12 +287,12 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   }
 
   for(addr_base = addr; addr_base < max_addr;) {
-    int blockSize = minm(65536 - (addr_base % 65536), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4));
+    int stride = minm(65536 - (addr_base % 65536), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4));
 
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
 
-    for(int addr_off = 0; addr_off < blockSize; addr_off++) {
+    for(int addr_off = 0; addr_off < stride; addr_off++) {
       int caddr = addr_base + addr_off;
 
       if(mem->op[AVR_OP_READ_LO] && mem->op[AVR_OP_READ_HI]) {
@@ -306,10 +306,10 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       avr_set_addr(readop, &cmd[addr_off * 4], caddr);
     }
 
-    int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
+    int bytes_read = pgm->spi(pgm, cmd, res, stride * 4);
 
-    if(bytes_read !=  4*blockSize) {
-      pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*blockSize);
+    if(bytes_read !=  4*stride) {
+      pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*stride);
       return -1;
     }
 
@@ -319,7 +319,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       mem->buf[addr_base + addr_off] = data;
     }
 
-    addr_base += blockSize;
+    addr_base += stride;
   }
 
   return n_bytes;
@@ -375,18 +375,18 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned int max_addr = addr + n_bytes;
 
   for(addr_base = addr; addr_base < max_addr;) {
-    uint32_t blockSize;
+    uint32_t stride;
 
     if(mem->paged) {
-      blockSize = minm(page_size - (addr_base % page_size), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4)); // Bytes remaining in page
+      stride = minm(page_size - (addr_base % page_size), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4)); // Bytes remaining in page
     } else
-      blockSize = 1;
+      stride = 1;
 
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
 
     uint8_t addr_off;
-    for(addr_off = 0; addr_off < blockSize; addr_off++) {
+    for(addr_off = 0; addr_off < stride; addr_off++) {
       int addr = addr_base + addr_off;
       int caddr = 0;
       /*
@@ -420,17 +420,17 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       avr_set_input(writeop, &cmd[addr_off * 4], mem->buf[addr]);
     }
 
-    int bytes_read = pgm->spi(pgm, cmd, res, blockSize * 4);
+    int bytes_read = pgm->spi(pgm, cmd, res, stride * 4);
 
     if(bytes_read < 0) {
       pmsg_error("failed @ p->spi()\n");
       return -1;
     }
 
-    addr_base += blockSize;
+    addr_base += stride;
 
     if(mem->paged && (addr_base % page_size == 0 || addr_base == max_addr))
-      mcp2210_commit_page(pgm, p, mem, addr_base - blockSize);
+      mcp2210_commit_page(pgm, p, mem, addr_base - stride);
     else if(!mem->paged)
       usleep(mem->max_write_delay);
   }
