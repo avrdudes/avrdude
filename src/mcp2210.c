@@ -499,7 +499,7 @@ static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_
     return -1;
   }
 
-  memset(response_report, 0, sizeof(HID_REPORT_LENGTH));
+  memset(response_report, 0, HID_REPORT_LENGTH);
 
   if(hid_read(mine->handle, (response_report + 1), (HID_REPORT_LENGTH - 1)) == -1) {
     pmsg_error("HID read has failed with error: %ls", hid_error(mine->handle));
