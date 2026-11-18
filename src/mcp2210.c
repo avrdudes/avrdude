@@ -434,7 +434,8 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   if(mcp2210_set_settings(pgm, n_bytes) == -1)
     return 1;
 
-  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes}, transfer_response[HID_REPORT_LENGTH] = {0};
+  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
+  uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
 
   uint32_t frequency = buf2uint32(mine->bitclock);
 
@@ -452,6 +453,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   while(retries < TRANSFER_RETRIES) {
     usleep(timeout * 1000);
 
+    memset(transfer_response, 0, HID_REPORT_LENGTH);
     if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response) == -1) {
       pmsg_error("unable to run query to send spi command\n");
       return -1;
@@ -498,8 +500,6 @@ static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_
     pmsg_error("HID write has failed with error: %ls", hid_error(mine->handle));
     return -1;
   }
-
-  memset(response_report, 0, HID_REPORT_LENGTH);
 
   if(hid_read(mine->handle, (response_report + 1), (HID_REPORT_LENGTH - 1)) == -1) {
     pmsg_error("HID read has failed with error: %ls", hid_error(mine->handle));
