@@ -412,7 +412,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
   uint32_t frequency = buf2uint32(mine->bitclock);
 
-  int retries = 0, timeout = frequency > 0? (100000 / frequency) + 1: 1;
+  int retries = 0, xfertime = frequency > 0? 1 + (n_bytes*8*1000000 / frequency): 1;
   bool success = false;
 
   for(int i = 5; i < n_bytes + 5; i++)
@@ -424,7 +424,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   }
 
   while(retries < TRANSFER_RETRIES) {
-    usleep(timeout * 1000);
+    usleep(xfertime);
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
     if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response) == -1) {
