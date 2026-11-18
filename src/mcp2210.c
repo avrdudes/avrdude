@@ -364,9 +364,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     memset(cmd, 0, sizeof cmd);
     memset(res, 0, sizeof res);
 
-    for(int k = 0; k < stride; k++) {
-      int caddr = addr_base + k;
-
+    for(int caddr = addr_base, k = 0; k < stride; k++, caddr++) {
       // Determine which write opcode to use
       if(mem->op[AVR_OP_WRITE_LO]) { // Flash of ATtiny12/15/22 and AT90S...
         writeop = mem->op[caddr & 1? AVR_OP_WRITE_HI: AVR_OP_WRITE_LO];
