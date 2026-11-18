@@ -381,8 +381,8 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
-    if(bytes_read < 0) {
-      pmsg_error("failed @ p->spi()\n");
+    if(bytes_read !=  4*stride) {
+      pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*stride);
       return -1;
     }
 
