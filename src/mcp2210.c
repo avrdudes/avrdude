@@ -293,8 +293,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
       OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
-      avr_set_bits(readop, &cmd[4*k]);
-      avr_set_addr(readop, &cmd[4*k], hilo? caddr/2: caddr);
+      avr_set_bits(readop, cmd + 4*k);
+      avr_set_addr(readop, cmd + 4*k, hilo? caddr/2: caddr);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
@@ -305,7 +305,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
       OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
-      avr_get_output(readop, &res[4*k], mem->buf + addr + k);
+      avr_get_output(readop, res + 4*k, mem->buf + addr + k);
     }
 
     addr += stride;
@@ -404,9 +404,9 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       if(writeop == NULL)
         return -1;
 
-      avr_set_bits(writeop, &cmd[4*k]);
-      avr_set_addr(writeop, &cmd[4*k], caddr);
-      avr_set_input(writeop, &cmd[4*k], mem->buf[addr]);
+      avr_set_bits(writeop, cmd + 4*k);
+      avr_set_addr(writeop, cmd + 4*k, caddr);
+      avr_set_input(writeop, cmd + 4*k, mem->buf[addr]);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
@@ -494,7 +494,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   }
 
   if(res)
-    memcpy(res, &transfer_response[5], transfer_response[3]);
+    memcpy(res, transfer_response + 5, transfer_response[3]);
 
   return n_bytes;
 }
