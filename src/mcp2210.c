@@ -292,8 +292,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
 
-    for(int addr_off = 0; addr_off < stride; addr_off++) {
-      int caddr = addr_base + addr_off;
+    for(int k = 0; k < stride; k++) {
+      int caddr = addr_base + k;
 
       if(mem->op[AVR_OP_READ_LO] && mem->op[AVR_OP_READ_HI]) {
         readop = mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO];
@@ -302,8 +302,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         readop = mem->op[AVR_OP_READ];
       }
 
-      avr_set_bits(readop, &cmd[4*addr_off]);
-      avr_set_addr(readop, &cmd[4*addr_off], caddr);
+      avr_set_bits(readop, &cmd[4*k]);
+      avr_set_addr(readop, &cmd[4*k], caddr);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
@@ -313,10 +313,10 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       return -1;
     }
 
-    for(int addr_off = 0; addr_off < bytes_read / 4; addr_off++) {
+    for(int k = 0; k < bytes_read / 4; k++) {
       data = 0;
-      avr_get_output(readop, &res[4*addr_off], &data);
-      mem->buf[addr_base + addr_off] = data;
+      avr_get_output(readop, &res[4*k], &data);
+      mem->buf[addr_base + k] = data;
     }
 
     addr_base += stride;
@@ -385,9 +385,9 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
 
-    uint8_t addr_off;
-    for(addr_off = 0; addr_off < stride; addr_off++) {
-      int addr = addr_base + addr_off;
+    uint8_t k;
+    for(k = 0; k < stride; k++) {
+      int addr = addr_base + k;
       int caddr = 0;
       /*
        * Determine which memory opcode to use
@@ -415,9 +415,9 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       if(writeop == NULL)
         return -1;
 
-      avr_set_bits(writeop, &cmd[4*addr_off]);
-      avr_set_addr(writeop, &cmd[4*addr_off], caddr);
-      avr_set_input(writeop, &cmd[4*addr_off], mem->buf[addr]);
+      avr_set_bits(writeop, &cmd[4*k]);
+      avr_set_addr(writeop, &cmd[4*k], caddr);
+      avr_set_input(writeop, &cmd[4*k], mem->buf[addr]);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
