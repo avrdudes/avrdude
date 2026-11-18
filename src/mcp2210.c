@@ -402,36 +402,36 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   if(mcp2210_set_settings(pgm, n_bytes) == -1)
     return -1;
 
-  uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
+  uint8_t response[HID_REPORT_LENGTH] = {0};
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
   uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND};
   memcpy(transfer_request + 5, cmd, n_bytes);  // Payload
 
-  if(mcp2210_run_query(pgm, transfer_request, transfer_response, "SPI transfer") == -1)
+  if(mcp2210_run_query(pgm, transfer_request, response, "SPI transfer") == -1)
     return -1;
 
   int retries, frequency = buf2uint32(mine->bitclock);
   for(retries = 0; retries < TRANSFER_RETRIES; retries++) {
     usleep(frequency > 0? 1 + 8*n_bytes*1000000/frequency + 10: 1000); // Estimated SPI transfer time plus 10 us
 
-    memset(transfer_response, 0, HID_REPORT_LENGTH);
-    if(mcp2210_run_query(pgm, check_request, transfer_response, "SPI check") == -1)
+    memset(response, 0, HID_REPORT_LENGTH);
+    if(mcp2210_run_query(pgm, check_request, response, "SPI check") == -1)
       return -1;
 
-    if(transfer_response[2] == MCP2210_SUCCESS && transfer_response[4] == MCP2210_XFER_DONE) {
+    if(response[2] == MCP2210_SUCCESS && response[4] == MCP2210_XFER_DONE) {
       pmsg_debug("SPI transfer finished; no more data to send\n");
       break;
     }
-    if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
+    if(response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
       pmsg_error("SPI bus not available\n");
       return -1;
     }
     pmsg_debug("SPI transfer %s, %s ...\n",
-      transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS? "in progress; cannot currently accept more data":
-      transfer_response[2] != MCP2210_SUCCESS? str_ccprintf("unknown response[2] %d", transfer_response[2]):
-      transfer_response[4] == MCP2210_XFER_NOT_FINISHED? "not finished; received data available":
-      transfer_response[4] == MCP2210_XFER_STARTED? "started; no data to receive":
-      str_ccprintf("unknown response[4] %d", transfer_response[4]),
+      response[2] == MCP2210_TRANSFER_IN_PROGRESS? "in progress; cannot currently accept more data":
+      response[2] != MCP2210_SUCCESS? str_ccprintf("unknown response[2] %d", response[2]):
+      response[4] == MCP2210_XFER_NOT_FINISHED? "not finished; received data available":
+      response[4] == MCP2210_XFER_STARTED? "started; no data to receive":
+      str_ccprintf("unknown response[4] %d", response[4]),
       retries < TRANSFER_RETRIES-1? "retrying": "aborting"
     );
   }
@@ -442,7 +442,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   }
 
   if(res)
-    memcpy(res, transfer_response + 5, minm(transfer_response[3], SPI_MAX_CHUNK));
+    memcpy(res, response + 5, minm(response[3], SPI_MAX_CHUNK));
 
   return n_bytes;
 }
