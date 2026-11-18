@@ -445,7 +445,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   }
 
   if(res)
-    memcpy(res, transfer_response + 5, transfer_response[3]);
+    memcpy(res, transfer_response + 5, minm(transfer_response[3], SPI_MAX_CHUNK));
 
   return n_bytes;
 }
