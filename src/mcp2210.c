@@ -356,6 +356,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int addr_base;
   unsigned int past_end = addr + n_bytes;
+  int hilo = mem->op[AVR_OP_WRITE_LO] || (mem->paged && mem->op[AVR_OP_LOADPAGE_LO]);
 
   for(addr_base = addr; addr_base < past_end;) {
     int stride = mem->paged? minm(page_size - addr_base%page_size, minm(past_end - addr_base, SPI_MAX_CHUNK/4)): 1;
@@ -369,10 +370,8 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       // Determine which write opcode to use
       if(mem->op[AVR_OP_WRITE_LO]) { // Flash of ATtiny12/15/22 and AT90S...
         writeop = mem->op[caddr & 1? AVR_OP_WRITE_HI: AVR_OP_WRITE_LO];
-        caddr /= 2;
       } else if(mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) { // Flash of *other* ISP parts
         writeop = mem->op[caddr & 1? AVR_OP_LOADPAGE_HI: AVR_OP_LOADPAGE_LO];
-        caddr /= 2;
       } else {                  // EEPROM
         writeop = mem->op[AVR_OP_WRITE];
       }
@@ -381,7 +380,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
         return -1;
 
       avr_set_bits(writeop, cmd + 4*k);
-      avr_set_addr(writeop, cmd + 4*k, caddr);
+      avr_set_addr(writeop, cmd + 4*k, hilo? caddr/2: caddr);
       avr_set_input(writeop, cmd + 4*k, mem->buf[addr_base + k]);
     }
 
