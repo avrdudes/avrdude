@@ -209,7 +209,7 @@ static void mcp2210_enable(PROGRAMMER *pgm, const AVRPART *p) {
 static void mcp2210_display(const PROGRAMMER *pgm, const char *s) {
   wchar_t serno[64] = {0};
 
-  if(hid_get_serial_number_string(mine->handle, serno, sizeof(serno)/sizeof(wchar_t)) == -1) {
+  if(hid_get_serial_number_string(mine->handle, serno, sizeof serno/sizeof(wchar_t)) == -1) {
     pmsg_error("unable to fetch serial number");
     return;
   }
@@ -234,7 +234,7 @@ static int mcp2210_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  memset(cmd, 0, sizeof(cmd));
+  memset(cmd, 0, sizeof cmd);
   avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
   pgm->cmd(pgm, cmd, res);
 
@@ -252,7 +252,7 @@ static int mcp2210_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  memset(cmd, 0, sizeof(cmd));
+  memset(cmd, 0, sizeof cmd);
 
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
@@ -279,7 +279,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   }
 
   if(lext) {
-    memset(cmd, 0, sizeof(cmd));
+    memset(cmd, 0, sizeof cmd);
     avr_set_bits(lext, cmd);
     avr_set_addr(lext, cmd, addr / 2);
     pgm->cmd(pgm, cmd, res);
@@ -288,8 +288,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   while(addr < past_end) {      // Process stride bytes in one go
     int stride = minm(65536 - (addr % 65536), minm(past_end - addr, SPI_MAX_CHUNK / 4));
 
-    memset(cmd, 0, sizeof(cmd));
-    memset(res, 0, sizeof(res));
+    memset(cmd, 0, sizeof cmd);
+    memset(res, 0, sizeof res);
 
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
       OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
@@ -326,7 +326,7 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
     addr /= 2;
 
   unsigned char cmd[8], *start = cmd + 4, *pastend = cmd + 8;
-  memset(cmd, 0, sizeof(cmd));
+  memset(cmd, 0, sizeof cmd);
 
   // Make up the write page command in the 2nd half of cmd
   avr_set_bits(wp, cmd + 4);
@@ -365,8 +365,8 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     } else
       stride = 1;
 
-    memset(cmd, 0, sizeof(cmd));
-    memset(res, 0, sizeof(res));
+    memset(cmd, 0, sizeof cmd);
+    memset(res, 0, sizeof res);
 
     uint8_t k;
     for(k = 0; k < stride; k++) {
