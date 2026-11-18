@@ -358,12 +358,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned int past_end = addr + n_bytes;
 
   for(addr_base = addr; addr_base < past_end;) {
-    uint32_t stride;
-
-    if(mem->paged) {
-      stride = minm(page_size - (addr_base % page_size), minm(past_end - addr_base, SPI_MAX_CHUNK / 4)); // Bytes remaining in page
-    } else
-      stride = 1;
+    int stride = mem->paged? minm(page_size - addr_base%page_size, minm(past_end - addr_base, SPI_MAX_CHUNK/4)): 1;
 
     memset(cmd, 0, sizeof cmd);
     memset(res, 0, sizeof res);
