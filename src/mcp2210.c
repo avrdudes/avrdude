@@ -407,6 +407,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   uint32_t frequency = buf2uint32(mine->bitclock);
   uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
+  uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND};
   memcpy(transfer_request + 5, cmd, n_bytes);  // Payload
 
   if(mcp2210_run_query(pgm, transfer_request, transfer_response, "SPI transfer") == -1)
@@ -416,7 +417,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     usleep(frequency > 0? 1 + (8*n_bytes*1000000/frequency): 1000); // Estimates SPI transfer time
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
-    if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response, "SPI check") == -1)
+    if(mcp2210_run_query(pgm, check_request, transfer_response, "SPI check") == -1)
       return -1;
 
     if(transfer_response[2] != MCP2210_SUCCESS) {
