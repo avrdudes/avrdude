@@ -269,7 +269,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     return -1;
 
   OPCODE *readop = NULL, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-  uint8_t data = 0, cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
+  uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int max_addr = addr + n_bytes;
   int hilo = mem->op[AVR_OP_READ_HI] && mem->op[AVR_OP_READ_LO];
 
@@ -298,16 +298,13 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
-
     if(bytes_read !=  4*stride) {
       pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*stride);
       return -1;
     }
 
-    for(int k = 0; k < bytes_read / 4; k++) {
-      data = 0;
-      avr_get_output(readop, &res[4*k], &data);
-      mem->buf[addr + k] = data;
+    for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
+      avr_get_output(readop, &res[4*k], mem->buf + addr + k);
     }
 
     addr += stride;
