@@ -80,9 +80,9 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
 
   if(settings_response[2] != MCP2210_SUCCESS) {
     if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
-      pmsg_error("USB transfer in progress - settings not written\n");
+      pmsg_error("USB transfer in progress; settings not written\n");
     else
-      pmsg_error("unknown error, return code: 0x%02x\n", settings_response[2]);
+      pmsg_error("unknown error code %d\n", settings_response[2]);
 
     return -1;
   }
@@ -187,7 +187,7 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
     return -1;
 
   if(cancel_response[2] != MCP2210_SUCCESS) {
-    pmsg_error("unable to cancel transfer - error code: %d", cancel_response[3]);
+    pmsg_error("unable to cancel transfer; error code %d", cancel_response[3]);
     return -1;
   }
 
@@ -421,7 +421,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
     if(transfer_response[2] != MCP2210_SUCCESS) {
       if(transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
-        pmsg_debug("SPI transfer in progress - cannot accept any data for the moment\n");
+        pmsg_debug("SPI transfer in progress; cannot accept any data for the moment\n");
 
       if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
         pmsg_error("SPI bus not available\n");
@@ -429,7 +429,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
       }
     } else {
       if(transfer_response[4] == MCP2210_XFER_DONE) {
-        pmsg_debug("SPI transfer finished - no more data to send\n");
+        pmsg_debug("SPI transfer finished;- no more data to send\n");
         success = true;
         break;
       }
@@ -438,7 +438,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
         pmsg_debug("SPI transfer not finished; received data available\n");
 
       if(transfer_response[4] == MCP2210_XFER_STARTED)
-        pmsg_debug("SPI transfer started - no data to receive\n");
+        pmsg_debug("SPI transfer started; no data to receive\n");
     }
 
     retries++;
