@@ -130,6 +130,7 @@ static int mcp2210_open(PROGRAMMER *pgm, const char *port) {
       if(list->serial_number) {
         size_t slen = wcslen(list->serial_number);
 
+        pmsg_notice("found device on %04x:%04x with serial number %ls\n", vid, pid, list->serial_number);
         if(slen >= serlen && wcscmp(list->serial_number + slen - serlen, wserno) == 0)
           break;
       }
