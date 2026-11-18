@@ -364,29 +364,25 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     memset(res, 0, sizeof res);
 
     for(int k = 0; k < stride; k++) {
-      int addr = addr_base + k;
-      int caddr = 0;
+      int caddr = addr_base + k;
       /*
        * Determine which memory opcode to use
        */
       if(mem->paged && mem->op[AVR_OP_LOADPAGE_HI] && mem->op[AVR_OP_LOADPAGE_LO]) {
-        if(addr & 0x01)
+        if(caddr & 0x01)
           writeop = mem->op[AVR_OP_LOADPAGE_HI];
         else
           writeop = mem->op[AVR_OP_LOADPAGE_LO];
-        caddr = addr / 2;
+        caddr /= 2;
       } else if(mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) {
         writeop = mem->op[AVR_OP_LOADPAGE_LO];
-        caddr = addr;
       } else if(mem->op[AVR_OP_WRITE_LO]) {
         writeop = mem->op[AVR_OP_WRITE_LO];
-        caddr = addr;
 
         pmsg_error("error AVR_OP_WRITE_LO defined only (where's the HIGH command?)\n");
         return -1;
       } else {
         writeop = mem->op[AVR_OP_WRITE];
-        caddr = addr;
       }
 
       if(writeop == NULL)
@@ -394,7 +390,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
       avr_set_bits(writeop, cmd + 4*k);
       avr_set_addr(writeop, cmd + 4*k, caddr);
-      avr_set_input(writeop, cmd + 4*k, mem->buf[addr]);
+      avr_set_input(writeop, cmd + 4*k, mem->buf[addr_base + k]);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
