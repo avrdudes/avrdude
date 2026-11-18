@@ -270,7 +270,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
   uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
-  unsigned int max_addr = addr + n_bytes;
+  unsigned int past_end = addr + n_bytes;
   int hilo = mem->op[AVR_OP_READ_HI] && mem->op[AVR_OP_READ_LO];
 
   if(!hilo && !mem->op[AVR_OP_READ]) { // Neither HI/LO read commands nor single read command
@@ -285,8 +285,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     pgm->cmd(pgm, cmd, res);
   }
 
-  while(addr < max_addr) {      // Process stride bytes in one go
-    int stride = minm(65536 - (addr % 65536), minm(max_addr - addr, SPI_MAX_CHUNK / 4));
+  while(addr < past_end) {      // Process stride bytes in one go
+    int stride = minm(65536 - (addr % 65536), minm(past_end - addr, SPI_MAX_CHUNK / 4));
 
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
@@ -361,13 +361,13 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   OPCODE *writeop;
   uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
   unsigned int addr_base;
-  unsigned int max_addr = addr + n_bytes;
+  unsigned int past_end = addr + n_bytes;
 
-  for(addr_base = addr; addr_base < max_addr;) {
+  for(addr_base = addr; addr_base < past_end;) {
     uint32_t stride;
 
     if(mem->paged) {
-      stride = minm(page_size - (addr_base % page_size), minm(max_addr - addr_base, SPI_MAX_CHUNK / 4)); // Bytes remaining in page
+      stride = minm(page_size - (addr_base % page_size), minm(past_end - addr_base, SPI_MAX_CHUNK / 4)); // Bytes remaining in page
     } else
       stride = 1;
 
@@ -418,7 +418,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     addr_base += stride;
 
-    if(mem->paged && (addr_base % page_size == 0 || addr_base == max_addr))
+    if(mem->paged && (addr_base % page_size == 0 || addr_base == past_end))
       mcp2210_commit_page(pgm, p, mem, addr_base - stride);
     else if(!mem->paged)
       usleep(mem->max_write_delay);
