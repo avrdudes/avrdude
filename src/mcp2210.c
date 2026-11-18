@@ -418,6 +418,10 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     if(mcp2210_run_query(pgm, check_request, transfer_response, "SPI check") == -1)
       return -1;
 
+    if(transfer_response[2] == MCP2210_SUCCESS && transfer_response[4] == MCP2210_XFER_DONE) {
+      pmsg_debug("SPI transfer finished; no more data to send\n");
+      break;
+    }
     if(transfer_response[2] != MCP2210_SUCCESS) {
       if(transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
         pmsg_debug("SPI transfer in progress; cannot accept any data for the moment\n");
@@ -426,11 +430,6 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
         return -1;
       }
     } else {
-      if(transfer_response[4] == MCP2210_XFER_DONE) {
-        pmsg_debug("SPI transfer finished; no more data to send\n");
-        break;
-      }
-
       if(transfer_response[4] == MCP2210_XFER_NOT_FINISHED)
         pmsg_debug("SPI transfer not finished; received data available\n");
 
