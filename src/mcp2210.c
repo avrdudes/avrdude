@@ -285,25 +285,16 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     pgm->cmd(pgm, cmd, res);
   }
 
-  while(addr < max_addr) {
-    // Process stride bytes in one go
+  while(addr < max_addr) {      // Process stride bytes in one go
     int stride = minm(65536 - (addr % 65536), minm(max_addr - addr, SPI_MAX_CHUNK / 4));
 
     memset(cmd, 0, sizeof(cmd));
     memset(res, 0, sizeof(res));
 
-    for(int k = 0; k < stride; k++) {
-      int caddr = addr + k;
-
-      if(mem->op[AVR_OP_READ_LO] && mem->op[AVR_OP_READ_HI]) {
-        readop = mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO];
-        caddr /= 2;
-      } else if(mem->op[AVR_OP_READ]) {
-        readop = mem->op[AVR_OP_READ];
-      }
-
+    for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
+      readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
       avr_set_bits(readop, &cmd[4*k]);
-      avr_set_addr(readop, &cmd[4*k], caddr);
+      avr_set_addr(readop, &cmd[4*k], hilo? caddr/2: caddr);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
