@@ -315,9 +315,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 }
 
 static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr) {
-  OPCODE *wp, *lext;
-
-  wp = mem->op[AVR_OP_WRITEPAGE];
+  OPCODE *wp = mem->op[AVR_OP_WRITEPAGE];
   if(wp == NULL) {
     pmsg_error("memory \"%s\" not configured for page writes\n", mem->desc);
     return -1;
@@ -330,8 +328,8 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char cmd[8];
   memset(cmd, 0, sizeof(cmd));
 
-  // Use the "load extended address" command, if available
-  lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  // Use the Load extended address command, if available
+  OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
   if(lext != NULL) {
     avr_set_bits(lext, cmd);
     avr_set_addr(lext, cmd, addr);
