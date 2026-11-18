@@ -401,6 +401,7 @@ static int mcp2210_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   return pgm->spi(pgm, cmd, res, 4);
 }
 
+// SPI communication; returns -1 on error (and will have printed error message) or n_bytes on success
 static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int n_bytes) {
   if(n_bytes > SPI_MAX_CHUNK) {
     pmsg_error("cannot deal with SPI chunk longer than %d", n_bytes);
@@ -408,7 +409,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   }
 
   if(mcp2210_set_settings(pgm, n_bytes) == -1)
-    return 1;
+    return -1;
 
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
   uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
