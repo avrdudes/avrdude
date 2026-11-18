@@ -407,13 +407,11 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   if(mcp2210_set_settings(pgm, n_bytes) == -1)
     return -1;
 
-  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
-  uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
-  uint32_t frequency = buf2uint32(mine->bitclock);
   bool success = false;
-
-  for(int i = 5; i < n_bytes + 5; i++)
-    transfer_request[i] = *cmd++;
+  uint32_t frequency = buf2uint32(mine->bitclock);
+  uint8_t transfer_response[HID_REPORT_LENGTH] = {0};
+  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
+  memcpy(transfer_request + 5, cmd, n_bytes);  // Payload
 
   if(mcp2210_run_query(pgm, transfer_request, transfer_response) == -1) {
     pmsg_error("unable to run query to send spi command\n");
