@@ -376,7 +376,7 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
       avr_set_bits(writeop, cmd + 4*k);
       avr_set_addr(writeop, cmd + 4*k, hilo? caddr/2: caddr);
-      avr_set_input(writeop, cmd + 4*k, mem->buf[addr_base + k]);
+      avr_set_input(writeop, cmd + 4*k, mem->buf[caddr]);
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
