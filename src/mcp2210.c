@@ -422,20 +422,18 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
       pmsg_debug("SPI transfer finished; no more data to send\n");
       break;
     }
-    if(transfer_response[2] != MCP2210_SUCCESS) {
-      if(transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
-        pmsg_debug("SPI transfer in progress; cannot accept any data for the moment\n");
-      else if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
-        pmsg_error("SPI bus not available\n");
-        return -1;
-      }
-    } else {
-      if(transfer_response[4] == MCP2210_XFER_NOT_FINISHED)
-        pmsg_debug("SPI transfer not finished; received data available\n");
-
-      if(transfer_response[4] == MCP2210_XFER_STARTED)
-        pmsg_debug("SPI transfer started; no data to receive\n");
+    if(transfer_response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
+      pmsg_error("SPI bus not available\n");
+      return -1;
     }
+    pmsg_debug("SPI transfer %s, %s ...\n",
+      transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS? "in progress; cannot currently accept more data":
+      transfer_response[2] != MCP2210_SUCCESS? str_ccprintf("unknown response[2] %d", transfer_response[2]):
+      transfer_response[4] == MCP2210_XFER_NOT_FINISHED? "not finished; received data available":
+      transfer_response[4] == MCP2210_XFER_STARTED? "started; no data to receive":
+      str_ccprintf("unknown response[4] %d", transfer_response[4]),
+      retries < TRANSFER_RETRIES-1? "retrying": "aborting"
+    );
   }
 
   if(retries >= TRANSFER_RETRIES) {
