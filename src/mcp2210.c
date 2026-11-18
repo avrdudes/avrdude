@@ -365,23 +365,15 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     for(int k = 0; k < stride; k++) {
       int caddr = addr_base + k;
-      /*
-       * Determine which memory opcode to use
-       */
-      if(mem->paged && mem->op[AVR_OP_LOADPAGE_HI] && mem->op[AVR_OP_LOADPAGE_LO]) {
-        if(caddr & 0x01)
-          writeop = mem->op[AVR_OP_LOADPAGE_HI];
-        else
-          writeop = mem->op[AVR_OP_LOADPAGE_LO];
-        caddr /= 2;
-      } else if(mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) {
-        writeop = mem->op[AVR_OP_LOADPAGE_LO];
-      } else if(mem->op[AVR_OP_WRITE_LO]) {
-        writeop = mem->op[AVR_OP_WRITE_LO];
 
-        pmsg_error("error AVR_OP_WRITE_LO defined only (where's the HIGH command?)\n");
-        return -1;
-      } else {
+      // Determine which write opcode to use
+      if(mem->op[AVR_OP_WRITE_LO]) { // Flash of ATtiny12/15/22 and AT90S...
+        writeop = mem->op[caddr & 1? AVR_OP_WRITE_HI: AVR_OP_WRITE_LO];
+        caddr /= 2;
+      } else if(mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) { // Flash of *other* ISP parts
+        writeop = mem->op[caddr & 1? AVR_OP_LOADPAGE_HI: AVR_OP_LOADPAGE_LO];
+        caddr /= 2;
+      } else {                  // EEPROM
         writeop = mem->op[AVR_OP_WRITE];
       }
 
@@ -394,7 +386,6 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 
     int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
-
     if(bytes_read < 0) {
       pmsg_error("failed @ p->spi()\n");
       return -1;
