@@ -325,26 +325,22 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if(mem->op[AVR_OP_LOADPAGE_LO] || mem->op[AVR_OP_READ_LO])
     addr /= 2;
 
-  unsigned char cmd[8];
+  unsigned char cmd[8], *start = cmd + 4, *pastend = cmd + 8;
   memset(cmd, 0, sizeof(cmd));
 
-  // Use the Load extended address command, if available
-  OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-  if(lext != NULL) {
-    avr_set_bits(lext, cmd);
-    avr_set_addr(lext, cmd, addr);
-  }
-
-  // Make up the write page command in the 2nd cmd position
+  // Make up the write page command in the 2nd half of cmd
   avr_set_bits(wp, cmd + 4);
   avr_set_addr(wp, cmd + 4, addr);
 
-  if(lext != NULL)              // Write the load extended address cmd && the write_page cmd
-    pgm->spi(pgm, cmd, NULL, 8);
-  else                          // Write just the write_page cmd
-    pgm->spi(pgm, cmd + 4, NULL, 4);
+  // Prepend the Load extended address command if available
+  OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  if(lext) {
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr);
+    start = cmd;
+  }
 
-  // Just delay the max
+  pgm->spi(pgm, start, NULL, pastend - start);
   usleep(mem->max_write_delay);
 
   return 0;
