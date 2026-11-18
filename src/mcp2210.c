@@ -81,7 +81,7 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
     if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
       pmsg_error("USB transfer in progress; settings not written\n");
     else
-      pmsg_error("unknown error code %d\n", settings_response[2]);
+      pmsg_error("unknown error code 0x%02x\n", settings_response[2]);
 
     return -1;
   }
@@ -186,7 +186,7 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
     return -1;
 
   if(cancel_response[2] != MCP2210_SUCCESS) {
-    pmsg_error("unable to cancel transfer; error code %d", cancel_response[3]);
+    pmsg_error("unable to cancel transfer; error code 0x%02x", cancel_response[3]);
     return -1;
   }
 
@@ -341,7 +341,7 @@ static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
 static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   if(!mem_is_flash(mem) && !mem_is_eeprom(mem)) {
-    pmsg_info("part does not support %d paged write of %s\n", page_size, mem->desc);
+    pmsg_info("part does not support %d-byte paged write of %s\n", page_size, mem->desc);
     return -1;
   }
 
@@ -428,10 +428,10 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     }
     pmsg_debug("SPI transfer %s, %s ...\n",
       response[2] == MCP2210_TRANSFER_IN_PROGRESS? "in progress; cannot currently accept more data":
-      response[2] != MCP2210_SUCCESS? str_ccprintf("unknown response[2] %d", response[2]):
+      response[2] != MCP2210_SUCCESS? str_ccprintf("unknown response[2] 0x%02x", response[2]):
       response[4] == MCP2210_XFER_NOT_FINISHED? "not finished; received data available":
       response[4] == MCP2210_XFER_STARTED? "started; no data to receive":
-      str_ccprintf("unknown response[4] %d", response[4]),
+      str_ccprintf("unknown response[4] 0x%02x", response[4]),
       retries < TRANSFER_RETRIES-1? "retrying": "aborting"
     );
   }
