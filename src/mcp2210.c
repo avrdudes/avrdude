@@ -317,7 +317,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 static int mcp2210_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr) {
   OPCODE *wp = mem->op[AVR_OP_WRITEPAGE];
   if(wp == NULL) {
-    pmsg_error("memory \"%s\" not configured for page writes\n", mem->desc);
+    pmsg_error("memory %s not configured for page writes\n", mem->desc);
     return -1;
   }
 
