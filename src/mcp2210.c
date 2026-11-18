@@ -53,7 +53,7 @@
 #define SPI_MAX_CHUNK 60
 #define MAXIMUM_TRANSFER 3000000
 
-static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_report[65], unsigned char *response_report);
+static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char *request, unsigned char *response, const char *caller);
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
 
 struct mcp {
@@ -75,10 +75,8 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
   settings_request[19] = len;
   settings_request[20] = len >> 8;
 
-  if(mcp2210_run_query(pgm, settings_request, settings_response) == -1) {
-    pmsg_error("unable to run query to set settings\n");
+  if(mcp2210_run_query(pgm, settings_request, settings_response, "set settings") == -1)
     return -1;
-  }
 
   if(settings_response[2] != MCP2210_SUCCESS) {
     if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
@@ -185,10 +183,8 @@ static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
   unsigned char cancel_response[HID_REPORT_LENGTH] = {0};
   unsigned char cancel_request[HID_REPORT_LENGTH] = {0x00, MCP2210_SPI_CANCEL_TRANSFER};
 
-  if(mcp2210_run_query(pgm, cancel_request, cancel_response) == -1) {
-    pmsg_error("unable to run query to cancel response\n");
+  if(mcp2210_run_query(pgm, cancel_request, cancel_response, "cancel transfer") == -1)
     return -1;
-  }
 
   if(cancel_response[2] != MCP2210_SUCCESS) {
     pmsg_error("unable to cancel transfer - error code: %d", cancel_response[3]);
@@ -413,19 +409,15 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
   memcpy(transfer_request + 5, cmd, n_bytes);  // Payload
 
-  if(mcp2210_run_query(pgm, transfer_request, transfer_response) == -1) {
-    pmsg_error("unable to run query to send spi command\n");
+  if(mcp2210_run_query(pgm, transfer_request, transfer_response, "SPI transfer") == -1)
     return -1;
-  }
 
   for(int retries = 0; retries < TRANSFER_RETRIES; retries++) {
     usleep(frequency > 0? 1 + (8*n_bytes*1000000/frequency): 1000); // Estimates SPI transfer time
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
-    if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response) == -1) {
-      pmsg_error("unable to run query to send spi command\n");
+    if(mcp2210_run_query(pgm, (const unsigned char[65]){0x00, MCP2210_SPI_XFER_COMMAND, 0}, transfer_response, "SPI check") == -1)
       return -1;
-    }
 
     if(transfer_response[2] != MCP2210_SUCCESS) {
       if(transfer_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
@@ -463,14 +455,14 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   return n_bytes;
 }
 
-static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char request_report[HID_REPORT_LENGTH], unsigned char *response_report) {
+static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char *request_report, unsigned char *response_report, const char *caller) {
   if(hid_write(mine->handle, request_report, HID_REPORT_LENGTH) == -1) {
-    pmsg_error("HID write has failed with error: %ls", hid_error(mine->handle));
+    pmsg_error("HID write for %s has failed with error %ls", caller, hid_error(mine->handle));
     return -1;
   }
 
   if(hid_read(mine->handle, (response_report + 1), (HID_REPORT_LENGTH - 1)) == -1) {
-    pmsg_error("HID read has failed with error: %ls", hid_error(mine->handle));
+    pmsg_error("HID read for %s has failed with error %ls", caller, hid_error(mine->handle));
     return -1;
   }
 
