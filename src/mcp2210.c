@@ -302,11 +302,11 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         readop = mem->op[AVR_OP_READ];
       }
 
-      avr_set_bits(readop, &cmd[addr_off * 4]);
-      avr_set_addr(readop, &cmd[addr_off * 4], caddr);
+      avr_set_bits(readop, &cmd[4*addr_off]);
+      avr_set_addr(readop, &cmd[4*addr_off], caddr);
     }
 
-    int bytes_read = pgm->spi(pgm, cmd, res, stride * 4);
+    int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
 
     if(bytes_read !=  4*stride) {
       pmsg_error("pgm->spi() returned unexpected value %d instead of %d\n", bytes_read, 4*stride);
@@ -315,7 +315,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     for(int addr_off = 0; addr_off < bytes_read / 4; addr_off++) {
       data = 0;
-      avr_get_output(readop, &res[addr_off * 4], &data);
+      avr_get_output(readop, &res[4*addr_off], &data);
       mem->buf[addr_base + addr_off] = data;
     }
 
@@ -415,12 +415,12 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       if(writeop == NULL)
         return -1;
 
-      avr_set_bits(writeop, &cmd[addr_off * 4]);
-      avr_set_addr(writeop, &cmd[addr_off * 4], caddr);
-      avr_set_input(writeop, &cmd[addr_off * 4], mem->buf[addr]);
+      avr_set_bits(writeop, &cmd[4*addr_off]);
+      avr_set_addr(writeop, &cmd[4*addr_off], caddr);
+      avr_set_input(writeop, &cmd[4*addr_off], mem->buf[addr]);
     }
 
-    int bytes_read = pgm->spi(pgm, cmd, res, stride * 4);
+    int bytes_read = pgm->spi(pgm, cmd, res, 4*stride);
 
     if(bytes_read < 0) {
       pmsg_error("failed @ p->spi()\n");
