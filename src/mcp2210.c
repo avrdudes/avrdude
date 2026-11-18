@@ -400,7 +400,7 @@ static int mcp2210_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 // SPI communication; returns -1 on error (and will have printed error message) or n_bytes on success
 static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int n_bytes) {
   if(n_bytes > SPI_MAX_CHUNK) {
-    pmsg_error("cannot deal with SPI chunk longer than %d", n_bytes);
+    pmsg_error("SPI chunk of %d bytes is too long (max %d)", n_bytes, SPI_MAX_CHUNK);
     return -1;
   }
 
