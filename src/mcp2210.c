@@ -371,8 +371,10 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
         AVR_OP_WRITE            // EEPROM
       ];
 
-      if(writeop == NULL)
+      if(writeop == NULL) {
+        pmsg_error("missing appropriate ISP write definition for %s\n", mem->desc);
         return -1;
+      }
 
       avr_set_bits(writeop, cmd + 4*k);
       avr_set_addr(writeop, cmd + 4*k, hilo? caddr/2: caddr);
