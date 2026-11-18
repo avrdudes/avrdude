@@ -414,7 +414,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
 
   for(int retries = 0; retries < TRANSFER_RETRIES; retries++) {
-    usleep(frequency > 0? 1 + (8*n_bytes*1000000/frequency): 1000); // Estimated SPI transfer time
+    usleep(frequency > 0? 1 + 8*n_bytes*1000000/frequency + 10: 1000); // Estimated SPI transfer time plus 10 us
 
     memset(transfer_response, 0, HID_REPORT_LENGTH);
     if(mcp2210_run_query(pgm, check_request, transfer_response, "SPI check") == -1)
