@@ -296,6 +296,8 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if(pgm->spi(pgm, cmd, res, 4*stride) != 4*stride)
       return -1;
 
+    memset(mem->buf + addr, 0, stride);
+
     for(int caddr = addr, k = 0; k < stride; k++, caddr++) {
       OPCODE *readop = hilo? mem->op[caddr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO]: mem->op[AVR_OP_READ];
       avr_get_output(readop, res + 4*k, mem->buf + addr + k);
