@@ -249,17 +249,12 @@ int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *da
 /*
  * avr_get_output_index()
  *
- * Calculate the byte number of the output data based on the opcode data.
+ * Return command byte number 0..3 of the output bits described in op or -1 if there are none
  */
 int avr_get_output_index(const OPCODE *op) {
-  int i, j;
-
-  for(i = 0; i < 32; i++) {
-    if(op->bit[i].type == AVR_CMDBIT_OUTPUT) {
-      j = 3 - i/8;
-      return j;
-    }
-  }
+  for(int i = 0; i < 32; i++)
+    if(op->bit[i].type == AVR_CMDBIT_OUTPUT)
+      return 3 - i/8;
 
   return -1;
 }
