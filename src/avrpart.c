@@ -211,24 +211,16 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
 /*
  * avr_set_input()
  *
- * Set input data bits in the specified command based on the opcode, and the
- * data byte.
+ * Initialise the input data bits described by op in the 4-byte command cmd from data
  */
 int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data) {
-  int i, j, bit;
-  unsigned char value;
-  unsigned char mask;
-
-  for(i = 0; i < 32; i++) {
+  for(int i = 0; i < 32; i++) {
     if(op->bit[i].type == AVR_CMDBIT_INPUT) {
-      j = 3 - i/8;
-      bit = i%8;
-      mask = 1 << bit;
-      value = data >> op->bit[i].bitno & 0x01;
-      if(value)
-        cmd[j] = cmd[j] | mask;
+      int j = 3 - i/8, cmdmask = 1 << i%8; // Location of bit i in 4-byte cmd
+      if(data & (1 << op->bit[i].bitno))
+        cmd[j] |= cmdmask;
       else
-        cmd[j] = cmd[j] & ~mask;
+        cmd[j] &= ~cmdmask;
     }
   }
 
