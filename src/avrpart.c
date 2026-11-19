@@ -238,24 +238,16 @@ int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data) {
 /*
  * avr_get_output()
  *
- * Retrieve output data bits from the command results based on the opcode data.
+ * Copy output data bits described by op from the 4-byte command res into the data byte
  */
 int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data) {
-  int i, j, bit;
-  unsigned char value;
-  unsigned char mask;
-
-  for(i = 0; i < 32; i++) {
+  for(int i = 0; i < 32; i++) {
     if(op->bit[i].type == AVR_CMDBIT_OUTPUT) {
-      j = 3 - i/8;
-      bit = i%8;
-      mask = 1 << bit;
-      value = ((res[j] & mask) >> bit) & 0x01;
-      value = value << op->bit[i].bitno;
-      if(value)
-        *data = *data | value;
+      int datamask = 1 << op->bit[i].bitno;
+      if(res[3 - i/8] & (1 << i%8)) // Output bit set in 4-byte command res?
+        *data |= datamask;
       else
-        *data = *data & ~value;
+        *data &= ~datamask;
     }
   }
 
