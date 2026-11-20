@@ -36,16 +36,27 @@
 #include "arduino.h"
 
 static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  int attempts;
   int rv = 0;
   bool help = 0;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
 
-    if(sscanf(extended_param, "attempts=%i", &attempts) == 1) {
+    if(str_starts(extended_param, "attempts=")) {
+      int32_t attempts;
+
+      if((errstr = str_int32(extended_param, strlen("attempts="), &attempts))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      if(attempts <= 0) {
+        pmsg_error("value in -x %s must be positive\n", extended_param);
+        rv = -1;
+        break;
+      }
       my.retry_attempts = attempts;
-      pmsg_info("setting number of retry attempts to %d\n", attempts);
+      pmsg_notice2("setting number of sync attempts to %d\n", attempts);
       continue;
     }
 
