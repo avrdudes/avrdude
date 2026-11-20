@@ -47,6 +47,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1001,13 +1002,19 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
 
     if(str_starts(extended_param, "clockrate=")) {
-      int clock_rate;
+      int32_t clock_rate;
 
-      if(sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0) {
-        pmsg_error("invalid clock rate in -x %s\n", extended_param);
+      if((errstr = str_int32(extended_param, strlen("clockrate="), &clock_rate))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+
+      if(clock_rate <= 0) {
+        pmsg_error("clock rate in -x %s must be positive\n", extended_param);
         rv = -1;
         break;
       }
@@ -1015,8 +1022,8 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
       int clock_period = minm(1000000/clock_rate, 255);   // Max period is 255
 
       clock_rate = (int) (1000000/(clock_period + 5e-7)); // Assume highest speed is 2 MHz
-
       pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
+
       my.clock_period = clock_period;
       continue;
     }
