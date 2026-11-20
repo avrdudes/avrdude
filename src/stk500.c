@@ -98,7 +98,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
 
-  int attempt, max_sync_attempts = my.retry_attempts? my.retry_attempts: MAX_SYNC_ATTEMPTS;
+  int attempt, max_sync_attempts = my.sync_attempts? my.sync_attempts: MAX_SYNC_ATTEMPTS;
   for(attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
     if(str_eq(pgm->ptyp, "Arduino") && my.autoreset && attempt > 0) {
@@ -619,7 +619,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         rv = -1;
         break;
       }
-      my.retry_attempts = attempts;
+      my.sync_attempts = attempts;
       pmsg_notice2("setting number of sync attempts to %d\n", attempts);
       continue;
     }

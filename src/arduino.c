@@ -55,7 +55,7 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         rv = -1;
         break;
       }
-      my.retry_attempts = attempts;
+      my.sync_attempts = attempts;
       pmsg_notice2("setting number of sync attempts to %d\n", attempts);
       continue;
     }
