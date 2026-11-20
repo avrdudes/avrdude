@@ -477,9 +477,8 @@ retry:
   }
 
   if(n_extparms) {
-    if((p->pagel == 0) || (p->bs2 == 0)) {
-      pmsg_notice2("PAGEL and BS2 signals not defined in the configuration "
-        "file for part %s, using dummy values\n", p->desc);
+    if(p->pagel == 0 || p->bs2 == 0) {
+      pmsg_warning("PAGEL or BS2 signals unknown; set them in avrdude.conf, using 0xD7/0xA0\n");
       buf[2] = 0xD7;            // They look somehow possible, don't they? ;)
       buf[3] = 0xA0;
     } else {
