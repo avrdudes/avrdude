@@ -1232,7 +1232,7 @@ int main(int argc, char *argv[]) {
 #endif
     } else if(str_eq(port_tok[0], DEFAULT_USB)) {
       // Port or usb:[vid]:[pid]
-      int vid, pid;
+      unsigned vid, pid;
 
       if(sscanf(port_tok[1], "%x", &vid) > 0 && sscanf(port_tok[2], "%x", &pid) > 0) {
         int rv = setport_from_vid_pid(&port, vid, pid, port_tok[3]);
