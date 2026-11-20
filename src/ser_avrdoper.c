@@ -22,6 +22,7 @@
 
 #include <ac_cfg.h>
 
+typedef int suppress_pedantic_compiler_warning_ser_avrdoper;
 #if defined(HAVE_LIBHIDAPI)
 #include <stdio.h>
 #include <string.h>
