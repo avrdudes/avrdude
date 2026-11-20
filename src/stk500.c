@@ -620,7 +620,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       my.retry_attempts = attempts;
-      pmsg_info("setting number of sync attempts to %d\n", attempts);
+      pmsg_notice2("setting number of sync attempts to %d\n", attempts);
       continue;
     }
 
