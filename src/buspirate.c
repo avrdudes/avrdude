@@ -278,14 +278,12 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
   int rv = 0;
   char reset[10];
   char *preset = reset;         // For strtok()
-  unsigned int spifreq;
-  unsigned int rawfreq;
-  unsigned int cpufreq;
   int serial_recv_timeout;
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
+    uint32_t spifreq, rawfreq, cpufreq;
 
     if(str_eq(extended_param, "ascii")) {
       my.flag |= BP_FLAG_XPARM_FORCE_ASCII;
@@ -302,8 +300,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    if(sscanf(extended_param, "spifreq=%u", &spifreq) == 1) {
-      if(spifreq & (~0x07)) {
+    if(str_starts(extended_param, "spifreq=")) {
+      if((errstr = str_uint32(extended_param, strlen("spifreq="), &spifreq))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      if(spifreq > 7) {
         pmsg_error("spifreq must be between 0 and 7; see BusPirate manual for details\n");
         rv = -1;
         break;
@@ -318,8 +321,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    if(sscanf(extended_param, "rawfreq=%u", &rawfreq) == 1) {
-      if(rawfreq >= 4) {
+    if(str_starts(extended_param, "rawfreq=")) {
+      if((errstr = str_uint32(extended_param, strlen("rawfreq="), &rawfreq))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      if(rawfreq > 3) {
         pmsg_error("rawfreq must be between 0 and 3\n");
         rv = -1;
         break;
@@ -334,8 +342,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    if(sscanf(extended_param, "cpufreq=%u", &cpufreq) == 1) {
-      // Lower limit comes from cpufreq > 4*spifreq, spifreq in ASCII mode is 30kHz
+    if(str_starts(extended_param, "cpufreq=")) {
+      if((errstr = str_uint32(extended_param, strlen("cpufreq="), &cpufreq))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      // Lower limit comes from cpufreq > 4*spifreq, spifreq in ASCII mode is 30 kHz
       if(cpufreq < 125 || cpufreq > 4000) {
         pmsg_error("cpufreq must be between 125 and 4000 kHz; see BusPirate manual for details\n");
         rv = -1;
