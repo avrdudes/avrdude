@@ -1042,7 +1042,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
         break;
       }
 
-      pmsg_notice2("%s(): usb timeout set to 0x%02x\n", __func__, timeout);
+      pmsg_notice2("USB timeout set to %d ms\n", timeout);
       my.transaction_timeout = timeout;
       continue;
     }
@@ -1058,7 +1058,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
     msg_error("  -x clockrate=<n> Set the SPI clock rate to <n> Hz\n");
-    msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms\n");
+    msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms (default 1500)\n");
     msg_error("  -x help          Show this help menu and exit\n");
     return rv;
   }
