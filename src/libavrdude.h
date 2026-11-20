@@ -1782,6 +1782,14 @@ extern "C" {
   Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
   void str_freedata(Str2data *sd);
   unsigned long long int str_int(const char *str, int type, const char **errpp);
+  const char *str_int8(const char *str, int offset, int8_t *p);
+  const char *str_int16(const char *str, int offset, int16_t *p);
+  const char *str_int32(const char *str, int offset, int32_t *p);
+  const char *str_int64(const char *str, int offset, int64_t *p);
+  const char *str_uint8(const char *str, int offset, uint8_t *p);
+  const char *str_uint16(const char *str, int offset, uint16_t *p);
+  const char *str_uint32(const char *str, int offset, uint32_t *p);
+  const char *str_uint64(const char *str, int offset, uint64_t *p);
   int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
   int str_set_vid_pid_serno(const char *port, unsigned short *vidp, unsigned short *pidp,
     char *serno, size_t n);
