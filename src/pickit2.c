@@ -1014,7 +1014,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
       }
 
       if(clock_rate <= 0) {
-        pmsg_error("clock rate in -x %s must be positive\n", extended_param);
+        pmsg_error("value in -x %s must be positive\n", extended_param);
         rv = -1;
         break;
       }
@@ -1029,10 +1029,15 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     if(str_starts(extended_param, "timeout=")) {
-      int timeout;
+      int32_t timeout;
 
-      if(sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0) {
-        pmsg_error("invalid timeout in -x %s\n", extended_param);
+      if((errstr = str_int32(extended_param, strlen("timeout="), &timeout))) {
+       pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      if(timeout <= 0) {
+        pmsg_error("value in -x %s must be positive\n", extended_param);
         rv = -1;
         break;
       }
