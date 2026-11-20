@@ -512,9 +512,9 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
 static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
   struct submode {
     const char *name;           // Name of mode for user messages
-    char enter;                 // Command to enter from base binary mode
+    unsigned char enter;        // Command to enter from base binary mode
     const char *entered_format; // Response, for scanf
-    char config;                // Command to setup submode parameters
+    unsigned char config;       // Command to setup submode parameters
   } submode;
 
   if(my.flag & BP_FLAG_XPARM_RAWFREQ) {
