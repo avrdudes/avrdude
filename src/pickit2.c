@@ -960,7 +960,7 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int 
           pmsg_warning("cannot open USB device: %s\n", usb_strerror());
           continue;
         } else {                // Return with opened device handle
-          msg_notice2("device %p seemed to open OK\n", handle);
+          msg_notice2("device %p seemed to open OK\n", (void *) handle);
           if((errorCode = usb_set_configuration(handle, 1)) < 0) {
             cx->usb_access_error = 1;
             pmsg_ext_error("cannot set configuration, error code %d, %s\n",
