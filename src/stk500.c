@@ -88,8 +88,6 @@ int stk500_drain(const PROGRAMMER *pgm, int display) {
 
 int stk500_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[32], resp[32];
-  int attempt;
-  int max_sync_attempts;
 
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
@@ -100,11 +98,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
 
-  if(my.retry_attempts)
-    max_sync_attempts = my.retry_attempts;
-  else
-    max_sync_attempts = MAX_SYNC_ATTEMPTS;
-
+  int attempt, max_sync_attempts = my.sync_attempts? my.sync_attempts: MAX_SYNC_ATTEMPTS;
   for(attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
     if(str_eq(pgm->ptyp, "Arduino") && my.autoreset && attempt > 0) {
@@ -210,7 +204,6 @@ static int stk500_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   int tries = 0;
 
 retry:
-
   tries++;
 
   buf[0] = Cmnd_STK_ENTER_PROGMODE;
@@ -257,7 +250,6 @@ static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n, unsigned char
   int i;
 
 retry:
-
   tries++;
 
   buf[0] = Cmnd_STK_SET_DEVICE_EXT;
@@ -321,7 +313,6 @@ static int mib510_isp(const PROGRAMMER *pgm, unsigned char cmd) {
   buf[8] = cmd;
 
 retry:
-
   tries++;
 
   stk500_send(pgm, buf, 9);
@@ -486,9 +477,8 @@ retry:
   }
 
   if(n_extparms) {
-    if((p->pagel == 0) || (p->bs2 == 0)) {
-      pmsg_notice2("PAGEL and BS2 signals not defined in the configuration "
-        "file for part %s, using dummy values\n", p->desc);
+    if(p->pagel == 0 || p->bs2 == 0) {
+      pmsg_warning("PAGEL or BS2 signals unknown; set them in avrdude.conf, using 0xD7/0xA0\n");
       buf[2] = 0xD7;            // They look somehow possible, don't they? ;)
       buf[3] = 0xA0;
     } else {
@@ -610,16 +600,27 @@ retry:
 }
 
 static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  int attempts;
   int rv = 0;
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
 
-    if(sscanf(extended_param, "attempts=%i", &attempts) == 1) {
-      my.retry_attempts = attempts;
-      pmsg_info("setting number of retry attempts to %d\n", attempts);
+    if(str_starts(extended_param, "attempts=")) {
+      int32_t attempts;
+
+      if((errstr = str_int32(extended_param, strlen("attempts="), &attempts))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      if(attempts <= 0) {
+        pmsg_error("value in -x %s must be positive\n", extended_param);
+        rv = -1;
+        break;
+      }
+      my.sync_attempts = attempts;
+      pmsg_notice2("setting number of sync attempts to %d\n", attempts);
       continue;
     }
 
@@ -773,7 +774,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -x attempts=<n>   Specify the number <n> of connection retry attempts\n");
+    msg_error("  -x attempts=<n>   Set the number <n> of connection attempts (default %d)\n", MAX_SYNC_ATTEMPTS);
     if(pgm->extra_features & HAS_VTARG_READ) {
       msg_error("  -x vtarg          Read target supply voltage\n");
     }
@@ -802,7 +803,6 @@ static void stk500_disable(const PROGRAMMER *pgm) {
   int tries = 0;
 
 retry:
-
   tries++;
 
   buf[0] = Cmnd_STK_LEAVE_PROGMODE;
@@ -891,12 +891,11 @@ static void stk500_close(PROGRAMMER *pgm) {
 // Address is byte address; a_div == 2: send word address; a_div == 1: send byte address
 static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned int addr, int a_div) {
   unsigned char buf[16];
-  int tries;
+  int tries = 0;
   unsigned char ext_byte;
 
   addr /= a_div;
 
-  tries = 0;
 retry:
   tries++;
 
@@ -1028,6 +1027,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       else
         block_size = page_size;
     }
+
     tries = 0;
   retry:
     tries++;
@@ -1340,7 +1340,6 @@ static int stk500_get_sck_period(const PROGRAMMER *pgm, double *v) {
 
 static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value) {
   unsigned char buf[16];
-  unsigned v;
   int tries = 0;
 
 retry:
@@ -1370,7 +1369,7 @@ retry:
 
   if(stk500_recv(pgm, buf, 1) < 0)
     return -1;
-  v = buf[0];
+  unsigned v = buf[0];
 
   if(stk500_recv(pgm, buf, 1) < 0)
     return -1;

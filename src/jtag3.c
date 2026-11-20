@@ -1453,6 +1453,7 @@ static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
 static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   int rv = 0;
   bool help = false;
+  const char *errstr;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *extended_param = ldata(ln);
@@ -1502,8 +1503,8 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
         if(str_starts(extended_param, "suffer=")) {
-          if(sscanf(extended_param, "suffer=%hhi", my.suffer_data + 1) < 1) {
-            pmsg_error("invalid value in -x %s\n", extended_param);
+          if((errstr = str_uint8(extended_param, strlen("suffer="), my.suffer_data + 1))) {
+            pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
             rv = -1;
             break;
           }
@@ -1529,10 +1530,13 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
         if(str_starts(extended_param, "vtarg_switch=")) {
-          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", my.vtarg_switch_data + 1);
-
-          if(sscanf_success < 1 || my.vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid value in -x %s\n", extended_param);
+          if((errstr = str_uint8(extended_param, strlen("vtarg_switch="), my.vtarg_switch_data + 1))) {
+            pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+            rv = -1;
+            break;
+          }
+          if(my.vtarg_switch_data[1] > 1) {
+            pmsg_error("value in -x %s out of range (use 0 or 1)\n", extended_param);
             rv = -1;
             break;
           }
@@ -1566,7 +1570,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
           if(sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid value in -x %s\n", extended_param);
+            pmsg_error("invalid -x %s\n", extended_param);
             rv = -1;
             break;
           }

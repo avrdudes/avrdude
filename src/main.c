@@ -939,7 +939,7 @@ int main(int argc, char *argv[]) {
     msg_debug("%s%c", str_ccsharg(argv[i]), i == argc - 1? '\n': ' ');
 
   size_t ztest;
-  if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
+  if(1 != sscanf("42", "%zx", &ztest) || ztest != 0x42)
     pmsg_warning("linked C library does not conform to C99; %s may not work as expected\n", progname);
 
   if(quell_progress == 0)
@@ -1232,7 +1232,7 @@ int main(int argc, char *argv[]) {
 #endif
     } else if(str_eq(port_tok[0], DEFAULT_USB)) {
       // Port or usb:[vid]:[pid]
-      int vid, pid;
+      unsigned vid, pid;
 
       if(sscanf(port_tok[1], "%x", &vid) > 0 && sscanf(port_tok[2], "%x", &pid) > 0) {
         int rv = setport_from_vid_pid(&port, vid, pid, port_tok[3]);

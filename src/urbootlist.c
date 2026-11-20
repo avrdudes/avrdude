@@ -10,7 +10,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.31
- * 02.04.2026
+ * 20.11.2026
  *
  */
 
@@ -81,7 +81,7 @@ typedef struct {
 
 // Huffman code table for compression of bootloader templates
 static Ul_huffcode hcodes[1995] = {
-#define ulhc(n, code) (((n)<<27) | (code))
+#define ulhc(n, code) (((unsigned) (n) << 27) | (code))
   {0x0000, ulhc( 4, 000000013)}, // 1011
   {0xe080, ulhc( 6, 000000031)}, // 011001
   {0x9508, ulhc( 6, 000000071)}, // 111001

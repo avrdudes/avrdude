@@ -1506,13 +1506,18 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
 
     if(str_starts(extended_param, "xbeeresetpin=")) {
-      int resetpin;
+      int32_t resetpin;
 
-      if(sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 || resetpin <= 0 || resetpin > 7) {
-        pmsg_error("invalid value in -x %s\n", extended_param);
+      if((errstr = str_int32(extended_param, strlen("xbeeresetpin="), &resetpin))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rc = -1;
+        break;
+      }
+      if(resetpin <= 0 || resetpin > 7) {
+        pmsg_error("value in -x %s must be in [1, 7]\n", extended_param);
         rc = -1;
         break;
       }

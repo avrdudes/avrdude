@@ -185,7 +185,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       c = 27;
       EI(butterfly_send(pgm, &c, 1));
       usleep(20000);
-      c = 0xaa;
+      c = (char) 0xaa;          // Pedantic: the result could be implementation-dependent
       usleep(80000);
       EI(butterfly_send(pgm, &c, 1));
       if(mk_timeout%10 == 0)

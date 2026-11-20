@@ -21,6 +21,7 @@
 
 #include <ac_cfg.h>
 
+typedef int suppress_pedantic_compiler_warning_ser_win32;
 #if defined(WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

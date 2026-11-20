@@ -19,6 +19,7 @@
 
 // Posix serial interface for avrdude
 
+typedef int suppress_pedantic_compiler_warning_ser_posix;
 #if !defined(WIN32)
 #include <ac_cfg.h>
 

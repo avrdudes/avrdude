@@ -47,6 +47,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -960,7 +961,7 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int 
           pmsg_warning("cannot open USB device: %s\n", usb_strerror());
           continue;
         } else {                // Return with opened device handle
-          msg_notice2("device %p seemed to open OK\n", handle);
+          msg_notice2("device %p seemed to open OK\n", (void *) handle);
           if((errorCode = usb_set_configuration(handle, 1)) < 0) {
             cx->usb_access_error = 1;
             pmsg_ext_error("cannot set configuration, error code %d, %s\n",
@@ -1001,36 +1002,47 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
 
     if(str_starts(extended_param, "clockrate=")) {
-      int clock_rate;
+      int32_t clock_rate;
 
-      if(sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0) {
-        pmsg_error("invalid clock rate in -x %s\n", extended_param);
+      if((errstr = str_int32(extended_param, strlen("clockrate="), &clock_rate))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+
+      if(clock_rate <= 0) {
+        pmsg_error("value in -x %s must be positive\n", extended_param);
         rv = -1;
         break;
       }
 
       int clock_period = minm(1000000/clock_rate, 255);   // Max period is 255
 
-      clock_rate = (int) (1000000/(clock_period + 5e-7)); // Assume highest speed is 2 MHz
+      pmsg_notice2("effective -x clock rate set to %s (period %d us)\n",
+        clock_period == 0? "maximum": str_ccprintf("%.1f kHz", 1000.0/clock_period), clock_period);
 
-      pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
       my.clock_period = clock_period;
       continue;
     }
 
     if(str_starts(extended_param, "timeout=")) {
-      int timeout;
+      int32_t timeout;
 
-      if(sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0) {
-        pmsg_error("invalid timeout in -x %s\n", extended_param);
+      if((errstr = str_int32(extended_param, strlen("timeout="), &timeout))) {
+       pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
+      if(timeout <= 0) {
+        pmsg_error("value in -x %s must be positive\n", extended_param);
         rv = -1;
         break;
       }
 
-      pmsg_notice2("%s(): usb timeout set to 0x%02x\n", __func__, timeout);
+      pmsg_notice2("USB timeout set to %d ms\n", timeout);
       my.transaction_timeout = timeout;
       continue;
     }
@@ -1046,7 +1058,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
     msg_error("  -x clockrate=<n> Set the SPI clock rate to <n> Hz\n");
-    msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms\n");
+    msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms (default 1500)\n");
     msg_error("  -x help          Show this help menu and exit\n");
     return rv;
   }

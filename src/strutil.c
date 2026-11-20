@@ -685,10 +685,10 @@ static int is_mantissa_only(char *p) {
 }
 
 // Return 1 if all n bytes in memory pointed to by p are c, 0 otherwise
-int is_memset(const void *p, char c, size_t n) {
-  const char *q = (const char *) p;
+int is_memset(const void *p, int c, size_t n) {
+  const uint8_t *q = (const uint8_t *) p;
 
-  return n <= 0 || (*q == c && memcmp(q, q + 1, n - 1) == 0);
+  return n <= 0 || (*q == (uint8_t) c && memcmp(q, q + 1, n - 1) == 0);
 }
 
 // https://en.wikipedia.org/wiki/Easter_egg_(media)#Software
@@ -1207,6 +1207,102 @@ finished:
   str_freedata(sd);
 
   return ret;
+}
+
+// Scan a number in string str+offset into the int8_t variable pointed to by p
+const char *str_int8(const char *s, int offset, int8_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  int8_t n = str_int(str, STR_INT8, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_int16(const char *s, int offset, int16_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  int16_t n = str_int(str, STR_INT16, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_int32(const char *s, int offset, int32_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  int32_t n = str_int(str, STR_INT32, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_int64(const char *s, int offset, int64_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  int64_t n = str_int(str, STR_INT64, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_uint8(const char *s, int offset, uint8_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  uint8_t n = str_int(str, STR_UINT8, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_uint16(const char *s, int offset, uint16_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  uint16_t n = str_int(str, STR_UINT16, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_uint32(const char *s, int offset, uint32_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  uint32_t n = str_int(str, STR_UINT32, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
+}
+
+// Scan a number in string str+offset into the @_t variable pointed to by p
+const char *str_uint64(const char *s, int offset, uint64_t *p) {
+  const char *errptr, *str = s + minm((size_t) offset, strlen(s));
+
+  uint64_t n = str_int(str, STR_UINT64, &errptr);
+  if(errptr)
+    return errptr;
+
+  *p = n;
+  return NULL;
 }
 
 // Convert a data string (except STR_FILE) to a memory buffer suitable for AVRMEM use

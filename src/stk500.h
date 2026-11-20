@@ -37,7 +37,7 @@ extern "C" {
 #include "xbee.h"
 struct pdata {
   unsigned char ext_addr_byte;  // Record ext-addr byte set in the target device (if used)
-  int retry_attempts;           // Number of connection attempts provided by the user
+  int sync_attempts;            // Number of connection attempts provided by the user
   int xbeeResetPin;             // Piggy back variable used by xbee programmmer
   struct serial_device xbee_serdev;     // Piggy back device descriptor for XBee framing
 
