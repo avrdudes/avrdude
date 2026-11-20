@@ -1776,7 +1776,7 @@ extern "C" {
   const char *str_ccinterval(int a, int b);
   bool is_bigendian(void);
   void change_endian(void *p, int size);
-  int is_memset(const void *p, char c, size_t n);
+  int is_memset(const void *p, int c, size_t n);
   unsigned long long int str_ull(const char *str, char **endptr, int base);
   int looks_like_number(const char *str);
   Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);

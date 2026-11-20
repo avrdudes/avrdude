@@ -685,10 +685,10 @@ static int is_mantissa_only(char *p) {
 }
 
 // Return 1 if all n bytes in memory pointed to by p are c, 0 otherwise
-int is_memset(const void *p, char c, size_t n) {
-  const char *q = (const char *) p;
+int is_memset(const void *p, int c, size_t n) {
+  const uint8_t *q = (const uint8_t *) p;
 
-  return n <= 0 || (*q == c && memcmp(q, q + 1, n - 1) == 0);
+  return n <= 0 || (*q == (uint8_t) c && memcmp(q, q + 1, n - 1) == 0);
 }
 
 // https://en.wikipedia.org/wiki/Easter_egg_(media)#Software
