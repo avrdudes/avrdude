@@ -71,7 +71,7 @@ struct pdata {
   int current_peripherals_config;
   int spifreq;                  // For "set speed" commands
   int cpufreq;                  // (125)..4000 kHz - see buspirate manual
-  int serial_recv_timeout;      // Timeout in ms, default 100
+  long serial_recv_timeout;     // Timeout in ms, default 100
   int reset;                    // See BP_RESET_* above
   unsigned char pin_dir;        // Last written pin direction for bitbang mode
   unsigned char pin_val;        // Last written pin values for bitbang mode
@@ -278,12 +278,12 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
   int rv = 0;
   char reset[10];
   char *preset = reset;         // For strtok()
-  int serial_recv_timeout;
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *extended_param = ldata(ln), *errstr;
     uint32_t spifreq, rawfreq, cpufreq;
+    int32_t serial_recv_timeout;
 
     if(str_eq(extended_param, "ascii")) {
       my.flag |= BP_FLAG_XPARM_FORCE_ASCII;
@@ -390,7 +390,12 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    if(sscanf(extended_param, "serial_recv_timeout=%d", &serial_recv_timeout) == 1) {
+    if(str_starts(extended_param, "serial_recv_timeout=")) {
+      if((errstr = str_int32(extended_param, strlen("serial_recv_timeout="), &serial_recv_timeout))) {
+        pmsg_error("invalid -x %s: %s\n", extended_param, errstr);
+        rv = -1;
+        break;
+      }
       if(serial_recv_timeout < 1) {
         pmsg_error("serial_recv_timeout must be greater 0\n");
         rv = -1;
