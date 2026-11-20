@@ -40,6 +40,8 @@ Changes since version 8.3:
     - Name debugWIRE protocol consistently #2231
     - Windows UTF-8 manifest - #2233
     - Update build.yml to fix missing MSYS2 build dependencies - #2239
+    - Show path name not file name on errors #2235
+    - Find packet size for ARM CMSIS-DAP/Atmel EDBG programmers #2236
 
   * Internals:
 
