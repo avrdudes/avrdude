@@ -19,28 +19,36 @@
  */
 
 /*
- * To connect an MCP2210 to an AVR IC you need to connect the MCP2210 pins
- * MISO, MOSI and SCK to the corresponding pins on the AVR IC.
+ * To connect an MCP2210 to an AVR chip one needs to connect the three
+ * MCP2210 SPI pins to the corresponding AVR SPI pins of the same name.
+ * For example, to connect a MCP2210 in a SOIC/SSOP package to an ATtiny85
+ * in a PDIP/SOIC package the following pins should be connected.
  *
- * For example, to connect to an ATTINY85 you wire the MISO to pin 6, MOSI
- * to pin 5 and SCK to PIN 7.
+ * MCP2210       AVR Chip   SPI signal
+ * -------       --------   ----------
+ *  Pin 9   <->  Pin 5      PICO
+ *  Pin 13  <->  Pin 6      POCI
+ *  Pin 11  <->  Pin 7      SCK
+ *     GND  <->  GND
  *
- * The MCP2210 takes D+, D-, VCC and GND from a USB 2.0 breakout. VCC from USB
- * can both power the MCP2210 and AVR IC. If the AVR IC takes less than 5v you will
- * need to lower the voltage. The MCP2210 needs a 12MHZ oscillator attached to pin
- * 2 and 3. You can use either a quartz crystal oscillator or a ceramic resonator.
+ * The MCP2210 takes D+, D-, Vcc and GND from a USB 2.0 breakout. Vcc from
+ * USB can both power the MCP2210 and the AVR part. If the AVR board takes
+ * less than 5 V the voltage levels need shifting. The MCP2210 requires a
+ * 12 MHz oscillator (quartz crystal or ceramic resonator) attached to
+ * pins 2 and 3.
  *
- * If powering from VCC on a USB breakout you will need to add a 10 µF or lower
- * capacitor ( it is recommended to use capacitor between 0.22 and 0.47 µF ) to
- * pin 17 (Vusb) and attach to ground.
+ * If powering from Vcc on a USB breakout you will need to add a 10 µF or
+ * lower capacitor (it is recommended to use capacitor between 0.22 and
+ * 0.47 µF) between Pin 17 (Vusb) and ground.
  *
- * To set the AVR IC into ISP Programming Mode you will need to bring the RESET
- * to low voltage by attaching to ground. To take it out of ISP Programming Mode
- * and allow the code to run you simply attach the RESET pin to VCC.
+ * To set the AVR into ISP Programming Mode you will need to manually ground
+ * the AVR's RESET signal during powering up and keep RESET grounded until
+ * programming is finished.
  *
  * For more information check out the MCP2210 data sheet at
  * https://www.microchip.com/en-us/product/mcp2210
  */
+
 #include <ac_cfg.h>
 
 #include <stdio.h>
