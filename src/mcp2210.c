@@ -51,30 +51,11 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "mcp2210.h"
 
 #if defined(HAVE_LIBHIDAPI)
 
 #include <hidapi/hidapi.h>
-
-#define MCP2210_CHIP_STATUS 0x10
-#define MCP2210_SPI_CANCEL_TRANSFER 0x11
-#define MCP2210_SET_SETTINGS 0x40
-#define MCP2210_GET_SETTINGS 0x41
-#define MCP2210_SPI_XFER_COMMAND 0x42
-
-#define MCP2210_SUCCESS 0x00
-#define MCP2210_TRANSFER_IN_PROGRESS 0xF8
-#define MCP2210_SPI_BUS_UNAVALIABLE 0xF7
-#define MCP2210_XFER_DONE 0x10
-#define MCP2210_XFER_STARTED 0x20
-#define MCP2210_XFER_NOT_FINISHED 0x30
-
-#define MCP2210_DEFAULT_VID 0x04d8
-#define MCP2210_DEFAULT_PID 0x00DE
-#define HID_REPORT_LENGTH 65
-#define TRANSFER_RETRIES 30
-#define SPI_MAX_CHUNK 60
-#define MAXIMUM_TRANSFER 3000000
 
 static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char *request, unsigned char *response, const char *caller);
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
@@ -91,7 +72,7 @@ static void mcp2210_setup(PROGRAMMER *pgm) {
 }
 
 static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
-  unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_SET_SETTINGS}, settings_response[HID_REPORT_LENGTH] = {0};
+  unsigned char settings_request[HID_REPORT_LENGTH] = {0x00, MCP2210_CMD_SET_SPI_CONFIG}, settings_response[HID_REPORT_LENGTH] = {0};
 
   memcpy(settings_request + 5, mine->bitclock, 4);
   settings_request[19] = len;
@@ -100,8 +81,8 @@ static int mcp2210_set_settings(const PROGRAMMER *pgm, unsigned short len) {
   if(mcp2210_run_query(pgm, settings_request, settings_response, "set settings") == -1)
     return -1;
 
-  if(settings_response[2] != MCP2210_SUCCESS) {
-    if(settings_response[2] == MCP2210_TRANSFER_IN_PROGRESS)
+  if(settings_response[2] != MCP2210_STATUS_SUCCESS) {
+    if(settings_response[2] == MCP2210_STATUS_BUSY)
       pmsg_error("USB transfer in progress; settings not written\n");
     else
       pmsg_error("unknown error code 0x%02x\n", settings_response[2]);
@@ -204,12 +185,12 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm) {
   unsigned char cancel_response[HID_REPORT_LENGTH] = {0};
-  unsigned char cancel_request[HID_REPORT_LENGTH] = {0x00, MCP2210_SPI_CANCEL_TRANSFER};
+  unsigned char cancel_request[HID_REPORT_LENGTH] = {0x00, MCP2210_CMD_SPI_CANCEL};
 
   if(mcp2210_run_query(pgm, cancel_request, cancel_response, "cancel transfer") == -1)
     return -1;
 
-  if(cancel_response[2] != MCP2210_SUCCESS) {
+  if(cancel_response[2] != MCP2210_STATUS_SUCCESS) {
     pmsg_error("unable to cancel transfer; error code 0x%02x", cancel_response[3]);
     return -1;
   }
@@ -429,8 +410,8 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
 
   uint8_t response[HID_REPORT_LENGTH] = {0};
-  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND, n_bytes};
-  uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_SPI_XFER_COMMAND};
+  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_CMD_SET_SPI_CONFIG, n_bytes};
+  uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_CMD_SET_SPI_CONFIG};
   memcpy(transfer_request + 5, cmd, n_bytes);  // Payload
 
   if(mcp2210_run_query(pgm, transfer_request, response, "SPI transfer") == -1)
@@ -444,19 +425,19 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     if(mcp2210_run_query(pgm, check_request, response, "SPI check") == -1)
       return -1;
 
-    if(response[2] == MCP2210_SUCCESS && response[4] == MCP2210_XFER_DONE) {
+    if(response[2] == MCP2210_STATUS_SUCCESS && response[4] == MCP2210_STATUS_XFER_DONE) {
       pmsg_debug("SPI transfer finished; no more data to send\n");
       break;
     }
-    if(response[2] == MCP2210_SPI_BUS_UNAVALIABLE) {
+    if(response[2] == MCP2210_STATUS_SPI_NOT_OWNED) {
       pmsg_error("SPI bus not available\n");
       return -1;
     }
     pmsg_debug("SPI transfer %s, %s ...\n",
-      response[2] == MCP2210_TRANSFER_IN_PROGRESS? "in progress; cannot currently accept more data":
-      response[2] != MCP2210_SUCCESS? str_ccprintf("unknown response[2] 0x%02x", response[2]):
-      response[4] == MCP2210_XFER_NOT_FINISHED? "not finished; received data available":
-      response[4] == MCP2210_XFER_STARTED? "started; no data to receive":
+      response[2] == MCP2210_STATUS_BUSY? "in progress; cannot currently accept more data":
+      response[2] != MCP2210_STATUS_SUCCESS? str_ccprintf("unknown response[2] 0x%02x", response[2]):
+      response[4] == MCP2210_STATUS_XFER_NOT_FINISHED? "not finished; received data available":
+      response[4] == MCP2210_STATUS_XFER_STARTED? "started; no data to receive":
       str_ccprintf("unknown response[4] 0x%02x", response[4]),
       retries < TRANSFER_RETRIES-1? "retrying": "aborting"
     );
