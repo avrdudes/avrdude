@@ -21,28 +21,6 @@
 #ifndef mcp2210_h
 #define mcp2210_h
 
-/*
- * Constant naming taken from https://github.com/daniel-santos
- */
-
-#define MCP2210_CMD_GET_STATUS 0x10
-#define MCP2210_CMD_SPI_CANCEL 0x11
-#define MCP2210_CMD_SET_SPI_CONFIG 0x40
-#define MCP2210_CMD_GET_SPI_CONFIG 0x41
-#define MCP2210_CMD_SPI_TRANSFER 0x42
-
-#define MCP2210_STATUS_SUCCESS 0x00
-#define MCP2210_STATUS_XFER_DONE 0x10
-#define MCP2210_STATUS_XFER_STARTED 0x20
-#define MCP2210_STATUS_XFER_NOT_FINISHED 0x30
-#define MCP2210_STATUS_SPI_NOT_OWNED 0xF7
-#define MCP2210_STATUS_BUSY	 0xF8
-
-#define MCP2210_DEFAULT_VID 0x04d8
-#define MCP2210_DEFAULT_PID 0x00DE
-#define MCP2210_PAYLOAD 60
-#define MCP2210_MAX_SPI_BITRATE 3000000
-
 #ifdef __cplusplus
 extern "C" {
 #endif

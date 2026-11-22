@@ -60,6 +60,7 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "mcp2210.h"
+#include "mcp2210_private.h"
 
 #if defined(HAVE_LIBHIDAPI)
 
