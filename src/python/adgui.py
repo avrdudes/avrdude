@@ -505,7 +505,10 @@ class adgui(QObject):
         # the main Qt app
         self.app = QApplication(sys.argv)
         # can be 'Dark', 'Light', or 'Unknown'
-        guimode = self.app.styleHints().colorScheme().name
+        try:
+            guimode = self.app.styleHints().colorScheme().name
+        except AttributeError:
+            guimode = 'Light'
         self.darkmode = guimode == 'Dark'
 
         # members for logging
