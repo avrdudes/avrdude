@@ -377,15 +377,20 @@ the section on
 below for details.
 
 @cindex CH341A programmer
-The USBasp ISP, USBtinyISP and CH341A adapters are also supported, provided
-AVRDUDE has been compiled with libusb support.
-The former two feature simple firmware-only USB implementations, running on
-an ATmega8 (or ATmega88), or ATtiny2313, respectively.
-CH341A programmers connect directly to the AVR target. Their SPI bit clock
-is approximately 1.7@w{ }MHz and cannot be changed. As a consequence, the
-AVR target must have a CPU frequency of 6.8@w{ }MHz or more: factory-set
-AVR parts, which typically run on an internal oscillator between 1 MHz and
-1.6 MHz, cannot be programmed using @option{-c ch341a}.
+@cindex MCP2210 programmer
+The USBasp, USBtiny and CH341A programmers are also supported, provided
+AVRDUDE has been compiled with libusb support. The USB-to-SPI protocol
+converter chip MCP2210 is supported as programmer if AVRDUDE has been
+compiled with libhidapi.  The USBasp and USBtiny both feature two feature
+simple firmware-only USB implementations, running on an ATmega8 (or
+ATmega88), or ATtiny2313, respectively. Both, the MCP2210 and CH341A chips
+connect directly to the AVR target. While the MCP2210 can change the bit
+clock, the CH341A's bit clock is approximately 1.7@w{ }MHz and cannot be
+changed. As the SPI bit rate must not exceed a quarter of the CPU
+frequency, the AVR target must have a CPU frequency of 6.8@w{ }MHz or
+more: factory-set AVR parts, which typically run on an internal oscillator
+between 1@w{ }MHz and 1.6@w{ }MHz, cannot be programmed using @option{-c
+ch341a}.
 
 @cindex FLIP bootloader
 The Atmel DFU bootloader is supported in both, FLIP protocol version 1
@@ -856,10 +861,10 @@ and @var{pid} and/or request a match of the desired device serial number
 with @var{serialno}. The match is done after stripping any existing colons
 from the given serial number on the command line, and right-to-left, so
 only the least significant bytes from the serial number need to be given.
-The JTAG ICE mkII, JTAGICE3, SNAP, PICKit5, CH341A, teensy and avrftdi
-programmers are examples for this @option{-P} port syntax. Some of these in
-turn, e.g. the CH341A and teensy, are not capable of matching serial
-numbers.
+The JTAG ICE mkII, JTAGICE3, SNAP, PICKit5, MCP2210, CH341A, teensy and
+avrftdi programmers are examples for this @option{-P} port syntax. Some of
+these in turn, e.g. the CH341A and teensy, are not capable of matching
+serial numbers.
 
 If avrdude has been configured with libserialport support, a serial port
 can be specified using a predefined serial adapter type in
