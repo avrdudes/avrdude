@@ -65,6 +65,9 @@
 
 #include <hidapi/hidapi.h>
 
+#define HID_REPORT_LENGTH    65
+#define TRANSFER_RETRIES     30
+
 static int mcp2210_run_query(const PROGRAMMER *pgm, const unsigned char *request, unsigned char *response, const char *caller);
 static int mcp2210_cancel_transfer(const PROGRAMMER *pgm);
 
