@@ -410,8 +410,8 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
 
   uint8_t response[HID_REPORT_LENGTH] = {0};
-  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_CMD_SET_SPI_CONFIG, n_bytes};
-  uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_CMD_SET_SPI_CONFIG};
+  uint8_t transfer_request[HID_REPORT_LENGTH] = {0, MCP2210_CMD_SPI_TRANSFER, n_bytes};
+  uint8_t check_request[HID_REPORT_LENGTH] = {0, MCP2210_CMD_SPI_TRANSFER};
   memcpy(transfer_request + 5, cmd, n_bytes);  // Payload
 
   if(mcp2210_run_query(pgm, transfer_request, response, "SPI transfer") == -1)
