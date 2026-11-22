@@ -280,7 +280,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     return -1;
 
   OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-  uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
+  uint8_t cmd[MCP2210_PAYLOAD] = {0}, res[MCP2210_PAYLOAD] = {0};
   unsigned int past_end = addr + n_bytes;
   int hilo = mem->op[AVR_OP_READ_HI] && mem->op[AVR_OP_READ_LO];
 
@@ -297,7 +297,7 @@ static int mcp2210_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   }
 
   while(addr < past_end) {      // Process stride bytes in one go
-    int stride = minm(65536 - (addr % 65536), minm(past_end - addr, SPI_MAX_CHUNK / 4));
+    int stride = minm(65536 - (addr % 65536), minm(past_end - addr, MCP2210_PAYLOAD / 4));
 
     memset(cmd, 0, sizeof cmd);
     memset(res, 0, sizeof res);
@@ -363,13 +363,13 @@ static int mcp2210_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return -1;
   }
 
-  uint8_t cmd[SPI_MAX_CHUNK] = {0}, res[SPI_MAX_CHUNK] = {0};
+  uint8_t cmd[MCP2210_PAYLOAD] = {0}, res[MCP2210_PAYLOAD] = {0};
   unsigned int past_end = addr + n_bytes;
   int oldparts = !!mem->op[AVR_OP_WRITE_LO];
   int hilo = oldparts || (mem->paged && mem->op[AVR_OP_LOADPAGE_LO]); // Word-addressable
 
   while(addr < past_end) {
-    int stride = mem->paged? minm(page_size - addr%page_size, minm(past_end - addr, SPI_MAX_CHUNK/4)): 1;
+    int stride = mem->paged? minm(page_size - addr%page_size, minm(past_end - addr, MCP2210_PAYLOAD/4)): 1;
 
     memset(cmd, 0, sizeof cmd);
     memset(res, 0, sizeof res);
@@ -412,8 +412,8 @@ static int mcp2210_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 // SPI communication; returns -1 on error (and will have printed error message) or n_bytes on success
 static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int n_bytes) {
-  if(n_bytes > SPI_MAX_CHUNK) {
-    pmsg_error("SPI chunk of %d bytes is too long (max %d)", n_bytes, SPI_MAX_CHUNK);
+  if(n_bytes > MCP2210_PAYLOAD) {
+    pmsg_error("SPI chunk of %d bytes is too long (max %d)", n_bytes, MCP2210_PAYLOAD);
     return -1;
   }
 
@@ -460,7 +460,7 @@ static int mcp2210_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   }
 
   if(res)
-    memcpy(res, response + 5, minm(response[3], SPI_MAX_CHUNK));
+    memcpy(res, response + 5, minm(response[3], MCP2210_PAYLOAD));
 
   return n_bytes;
 }
