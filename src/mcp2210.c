@@ -38,7 +38,7 @@
  * to low voltage by attaching to ground. To take it out of ISP Programming Mode
  * and allow the code to run you simply attach the RESET pin to VCC.
  *
- * For more information check out the MCP2210 datasheet at
+ * For more information check out the MCP2210 data sheet at
  * https://www.microchip.com/en-us/product/mcp2210
  */
 #include <ac_cfg.h>
@@ -171,10 +171,10 @@ static int mcp2210_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   uint32_t frequency = pgm->bitclock > 0? 1/pgm->bitclock: p->factory_fcpu > 0? p->factory_fcpu/4: 250000;
 
-  // Set a limit of 3 Mbps as that is the maximium transfer rate of the MCP2210
-  if(frequency > MAXIMUM_TRANSFER) {
-    pmsg_error("MCP2210 maximum transfer limit is 3 Mbps; use at most -B 3MHz");
-    return -1;
+  // Enforcing a limit maximum SPI transfer speed of 3 Mbit/s
+  if(frequency > MCP2210_MAX_SPI_BITRATE) {
+    pmsg_warning("MCP2210 maximum transfer limit is 3 Mbit/s; setting -B 3MHz");
+    frequency =  MCP2210_MAX_SPI_BITRATE;
   }
 
   uint32tobuf(mine->bitclock, frequency);

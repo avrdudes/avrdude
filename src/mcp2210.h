@@ -43,7 +43,7 @@
 #define HID_REPORT_LENGTH 65
 #define TRANSFER_RETRIES 30
 #define SPI_MAX_CHUNK 60
-#define MAXIMUM_TRANSFER 3000000
+#define MCP2210_MAX_SPI_BITRATE 3000000
 
 #ifdef __cplusplus
 extern "C" {
