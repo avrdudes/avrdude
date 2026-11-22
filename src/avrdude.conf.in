@@ -2174,6 +2174,18 @@ programmer # iseavrprog
 
 # MCP2210 is a USB to SPI bridge IC
 # See https://www.microchip.com/en-us/product/mcp2210
+#
+# MCP2210       AVR Chip
+# -------       --------
+#     Vcc  <->  Vcc
+#     GND  <->  GND
+#    PICO  <->  PICO
+#    POCI  <->  POCI
+#     SCK  <->  SCK
+#
+# Ground AVR reset while powering up the AVR and keep reset grounded
+# during programming
+#
 
 programmer # mcp2210
     id                     = "mcp2210";
