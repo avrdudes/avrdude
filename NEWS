@@ -21,6 +21,7 @@ Changes since version 8.3:
     - 100% CPU load when USB serial adapter is unplugged #2227
     - Error reading files with − (minus) in path #2232
     - MinGW build complains about lack of flex #2238
+    - adgui.py: AttributeError on PySide2 — QStyleHints has no colorScheme #2241
 
   * Pull requests:
 
@@ -42,6 +43,7 @@ Changes since version 8.3:
     - Update build.yml to fix missing MSYS2 build dependencies - #2239
     - Show path name not file name on errors #2235
     - Find packet size for ARM CMSIS-DAP/Atmel EDBG programmers #2236
+    - adgui.py: Guard colorScheme() call for PySide2 (fixes #2241) - #2243
 
   * Internals:
 
