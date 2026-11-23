@@ -216,7 +216,8 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
 int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data) {
   for(int i = 0; i < 32; i++) {
     if(op->bit[i].type == AVR_CMDBIT_INPUT) {
-      int j = 3 - i/8, cmdmask = 1 << i%8; // Location of bit i in 4-byte cmd
+      int j = 3 - i/8;          // Byte that contains ith bit
+      int cmdmask = 1 << i%8;   // Mask for ith bit in byte j
       if(data & (1 << op->bit[i].bitno))
         cmd[j] |= cmdmask;
       else
