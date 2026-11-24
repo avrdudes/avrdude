@@ -237,6 +237,9 @@ set(SOURCES
     linuxspi.h
     linux_ppdev.h
     lists.c
+    mcp2210.c
+    mcp2210.h
+    mcp2210_private.h
     micronucleus.c
     micronucleus.h
     par.c
