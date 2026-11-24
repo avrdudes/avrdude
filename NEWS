@@ -11,6 +11,8 @@ Changes since version 8.3:
 
   * New programmers supported:
 
+     - mcp2210
+
   * New serial adapters supported:
 
   * Issues fixed:
@@ -21,7 +23,7 @@ Changes since version 8.3:
     - 100% CPU load when USB serial adapter is unplugged #2227
     - Error reading files with − (minus) in path #2232
     - MinGW build complains about lack of flex #2238
-    - adgui.py: AttributeError on PySide2 — QStyleHints has no colorScheme #2241
+    - AttributeError on PySide2 — QStyleHints has no colorScheme #2241
 
   * Pull requests:
 
@@ -43,7 +45,10 @@ Changes since version 8.3:
     - Update build.yml to fix missing MSYS2 build dependencies - #2239
     - Show path name not file name on errors #2235
     - Find packet size for ARM CMSIS-DAP/Atmel EDBG programmers #2236
-    - adgui.py: Guard colorScheme() call for PySide2 (fixes #2241) - #2243
+    - Guard colorScheme() call for PySide2 #2243
+    - Add MCP2210 chipset support #2226
+    - Fix avr_get_output() #2240
+    - Silence pedantic compiler warnings #2242
 
   * Internals:
 
