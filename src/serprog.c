@@ -464,13 +464,13 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
   bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    const char *extended_param = ldata(ln);
+    const char *extended_param = ldata(ln), *errstr;
 
     if(str_starts(extended_param, "cs=")) {
-      unsigned int cs;
+      uint32_t cs;
 
-      if(sscanf(extended_param, "cs=%u", &cs) != 1) {
-        pmsg_error("invalid chip select in -x %s\n", extended_param);
+      if((errstr = str_uint32(extended_param, strlen("cs="), &cs))) {
+        pmsg_error("invalid chip select in -x %s: %s\n", extended_param, errstr);
         rv = -1;
         break;
       }

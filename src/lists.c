@@ -1215,7 +1215,8 @@ int lprint(FILE *f, LISTID lid) {
   fprintf(f, "   num f pool n_ln        top     bottom    next_ln     np_top  np_bottom\n");
   fprintf(f, "  ---- - ---- ---- ---------- ---------- ---------- ---------- ----------\n");
   fprintf(f, "  %4d %1d %4d %4d %10p %10p %10p %10p %10p\n",
-    l->num, l->free_on_close, l->poolsize, l->n_ln_pool, l->top, l->bottom, l->next_ln, l->np_top, l->np_bottom);
+    l->num, l->free_on_close, l->poolsize, l->n_ln_pool, (void *) l->top, (void *) l->bottom,
+    (void *) l->next_ln, (void *) l->np_top, (void *) l->np_bottom);
 
   fprintf(f,
     "  node pools:\n"
@@ -1225,7 +1226,7 @@ int lprint(FILE *f, LISTID lid) {
   np = l->np_top;
   while(np != NULL) {
     count++;
-    fprintf(f, "    %4d %10p 0x%08x %10p %10p 0x%08x\n", count, np,
+    fprintf(f, "    %4d %10p 0x%08x %10p %10p 0x%08x\n", count, (void *) np,
 
 #if CHECK_MAGIC
       np->magic1,
@@ -1233,7 +1234,7 @@ int lprint(FILE *f, LISTID lid) {
       0,
 #endif
 
-      np->chain_next, np->chain_prev,
+      (void *) np->chain_next, (void *) np->chain_prev,
 
 #if CHECK_MAGIC
       np->magic2
@@ -1254,13 +1255,13 @@ int lprint(FILE *f, LISTID lid) {
     ln = l->top;
     while(ln != NULL) {
       count++;
-      fprintf(f, "    %4d %10p %10x %10p %10p %10p %10x\n", count, ln,
+      fprintf(f, "    %4d %10p %10x %10p %10p %10p %10x\n", count, (void *) ln,
 #if CHECK_MAGIC
         ln->magic1,
 #else
         0,
 #endif
-        ln->next, ln->prev, ln->data,
+        (void *) ln->next, (void *) ln->prev, ln->data,
 #if CHECK_MAGIC
         ln->magic2
 #else
