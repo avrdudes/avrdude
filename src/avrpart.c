@@ -211,24 +211,17 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
 /*
  * avr_set_input()
  *
- * Set input data bits in the specified command based on the opcode, and the
- * data byte.
+ * Initialise the input data bits described by op in the 4-byte command cmd from data
  */
 int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data) {
-  int i, j, bit;
-  unsigned char value;
-  unsigned char mask;
-
-  for(i = 0; i < 32; i++) {
+  for(int i = 0; i < 32; i++) {
     if(op->bit[i].type == AVR_CMDBIT_INPUT) {
-      j = 3 - i/8;
-      bit = i%8;
-      mask = 1 << bit;
-      value = data >> op->bit[i].bitno & 0x01;
-      if(value)
-        cmd[j] = cmd[j] | mask;
+      int j = 3 - i/8;          // Byte that contains ith bit
+      int cmdmask = 1 << i%8;   // Mask for ith bit in byte j
+      if(data & (1 << op->bit[i].bitno))
+        cmd[j] |= cmdmask;
       else
-        cmd[j] = cmd[j] & ~mask;
+        cmd[j] &= ~cmdmask;
     }
   }
 
@@ -238,24 +231,16 @@ int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data) {
 /*
  * avr_get_output()
  *
- * Retrieve output data bits from the command results based on the opcode data.
+ * Copy output data bits described by op from the 4-byte command res into the data byte
  */
 int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data) {
-  int i, j, bit;
-  unsigned char value;
-  unsigned char mask;
-
-  for(i = 0; i < 32; i++) {
+  for(int i = 0; i < 32; i++) {
     if(op->bit[i].type == AVR_CMDBIT_OUTPUT) {
-      j = 3 - i/8;
-      bit = i%8;
-      mask = 1 << bit;
-      value = ((res[j] & mask) >> bit) & 0x01;
-      value = value << op->bit[i].bitno;
-      if(value)
-        *data = *data | value;
+      int datamask = 1 << op->bit[i].bitno;
+      if(res[3 - i/8] & (1 << i%8)) // Output bit set in 4-byte command res?
+        *data |= datamask;
       else
-        *data = *data & ~value;
+        *data &= ~datamask;
     }
   }
 
@@ -265,17 +250,12 @@ int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *da
 /*
  * avr_get_output_index()
  *
- * Calculate the byte number of the output data based on the opcode data.
+ * Return command byte number 0..3 of the output bits described in op or -1 if there are none
  */
 int avr_get_output_index(const OPCODE *op) {
-  int i, j;
-
-  for(i = 0; i < 32; i++) {
-    if(op->bit[i].type == AVR_CMDBIT_OUTPUT) {
-      j = 3 - i/8;
-      return j;
-    }
-  }
+  for(int i = 0; i < 32; i++)
+    if(op->bit[i].type == AVR_CMDBIT_OUTPUT)
+      return 3 - i/8;
 
   return -1;
 }
